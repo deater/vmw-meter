@@ -1,0 +1,27 @@
+
+Background
+~~~~~~~~~~
+
+Soon after aquiring my first Linux box (a 66MHz 486) in 1996, I built
+a simple CPU meter using 8 LEDs that hooked directly to output
+pins on the parallel port using plans from the internet and a dameon
+I wrote myself that read /proc/stat.
+
+In 1998 I decided to go for a fancier setup, one that used alpha-numeric
+LEDs to support displaying text among other things.  At the time I was
+unable to find any IC that implemented this, despite finding many
+that supported plain 7-segment dislpays.
+
+After a few years of on-and-off again development, in 2001 I had a
+prototype for a system that talked over the parallel port to a
+huge breadboard full of discrete 7400 series logic.  This had a bunch
+of flip/flop RAM, parallel shift registers, and a mulitplexed output
+driven by a 555 timer.  This was complicated and in the end I
+put the project aside.
+
+In 2010 I revived the project.  Now there are various ICs available
+that will do most of the hard work, such as the ST2225A.
+I settled on using a SAA1064.
+
+
+
