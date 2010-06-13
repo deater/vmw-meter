@@ -1,7 +1,20 @@
-
 18 May 2010
 + Initial release (0.1)
 
 24 May 2010
 + Add new clock demo
 + Release (0.2)
+
+5 June 2010
++ Make i2c targets for actual hardware
++ After day of debugging got the actual hardware displaying
+  two digits.  The major problem was i2c on Linux using
+  the shifted by one addresses, while the chip docs use
+  unshifted.
+  
+13 June 2010
++ More work on adding digits.  Having trouble
+  getting the right values for the voltage divider resistors.
++ Release version (0.3)
+
+

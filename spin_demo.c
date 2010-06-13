@@ -11,6 +11,7 @@ int main(int argc, char **argv) {
   int i,spin=0,dot1=0,dot2=19,blob=0;
   unsigned short display_state[8];
 
+  init_meter();
   reset_display();
   display_config_sane();
   

@@ -24,4 +24,35 @@ that will do most of the hard work, such as the ST2225A.
 I settled on using a SAA1064.
 
 
+Usage
+~~~~~
+
+Running the "simulated" versions, just run the *.ascii versions.
+
+ Actual Hardware:
+
+   Build the hardware as described (will add schematics some day).
+   
+   Hook up an i2c bus.  I assume i2c parport with the ?? pinout (mode=?)
+   
+   Also currently the i2c bus is hardcoded in the file, should make
+      configurable.
+      
+   Then run the *.i2c versions of the test.
+   
+
+
+Demos:
+~~~~~~
+
++ clock_demo
+   shows clock on digits, unix time on extra LEDs, 
+   day of week on color LEDs
++ pulse_demo
+   Just pulse the dislay
++ spin_demo
+   Spinning around display
++ string_demo
+   Test the string output
+   
 

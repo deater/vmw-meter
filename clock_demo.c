@@ -50,6 +50,7 @@ int main(int argc, char **argv) {
     };
 #endif
 
+  init_meter();
   reset_display();
   display_config_sane();
   for(i=0;i<8;i++) { display_state[i]=0; }

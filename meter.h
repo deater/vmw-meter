@@ -1,3 +1,4 @@
+void init_meter();
 void reset_display();
 void emulate_i2c(char *buffer, int length);
 

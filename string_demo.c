@@ -11,6 +11,8 @@ int main(int argc, char **argv) {
   unsigned short display_state[8];
   char string[256];
 
+  init_meter();
+   
   reset_display();
   display_config_sane();
   for(i=0;i<8;i++) { display_state[i]=0; }

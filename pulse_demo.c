@@ -10,6 +10,7 @@ int main(int argc, char **argv) {
   int i,pulse1=0,pulsedir1=1,pulse2=15,pulsedir2=-1,count=0;
   unsigned short display_state[8];
 
+  init_meter();
   reset_display();
   display_config_sane();
   

@@ -13,6 +13,11 @@ static int led_current[CHIPS];
 
 static void print_meter(void);
 
+void init_meter() {
+ 
+}
+
+
 void reset_display() {
   int i;
 
@@ -51,7 +56,9 @@ void emulate_i2c(char *buffer, int length) {
 
   while(i<length) {
     //printf("Addr %d = %x\n",address,buffer[i]);
-
+       
+    digit=(chip*2)+(1-(address%2));
+     
     switch(address) {
     case 0: 
             config_state[chip]=buffer[i];
@@ -60,18 +67,14 @@ void emulate_i2c(char *buffer, int length) {
 	      (!!(config_state[chip]&CONTROL_PLUS12MA))*12;
             //printf("LED Current for chip %d = %dmA\n",chip,led_current[chip]);
             break;
-    case 1: 
+    case 1:
     case 2: 
+       meter_state[digit]=(meter_state[digit]&0x00ff) | (buffer[i]<<8);
+       break;
     case 3: 
     case 4: 
-      digit=(chip*2)+((address-1)>>1);
-      if (address%2) {
-	meter_state[digit]=(meter_state[digit]&0x00ff) | (buffer[i]<<8);
-      }
-      else {
-        meter_state[digit]=(meter_state[digit]&0xff00) | (buffer[i]&0xff);
-      }      
-      break;
+       meter_state[digit]=(meter_state[digit]&0xff00) | (buffer[i]&0xff);   
+       break;
     default: break;  /* 5 - 7 are reserved */
     }
 

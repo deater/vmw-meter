@@ -9,10 +9,10 @@
 void display_config_sane() {
   /* set all 4 chips to dynamic mode, noblank */
   /*    notest, 12mA current, blank all segments */ 
-  emulate_i2c("\x70\x00\x46\x00\x00\x00\x00",7);
-  emulate_i2c("\x72\x00\x46\x00\x00\x00\x00",7);
-  emulate_i2c("\x74\x00\x46\x00\x00\x00\x00",7);
-  emulate_i2c("\x76\x00\x46\x00\x00\x00\x00",7);
+  emulate_i2c("\x70\x00\x47\x00\x00\x00\x00",7);
+  emulate_i2c("\x72\x00\x47\x00\x00\x00\x00",7);
+  emulate_i2c("\x74\x00\x47\x00\x00\x00\x00",7);
+  emulate_i2c("\x76\x00\x47\x00\x00\x00\x00",7);
 }
 
 void update_display(unsigned short state[8]) {
@@ -27,8 +27,8 @@ void update_display(unsigned short state[8]) {
      buffer[0]=address;
      buffer[1]=0x01;
      buffer[2]=(state[i*2]>>8)&0xff;
-     buffer[3]=(state[i*2])&0xff;
-     buffer[4]=(state[(i*2)+1]>>8)&0xff;
+     buffer[3]=(state[(i*2)+1]>>8)&0xff;
+     buffer[4]=(state[i*2])&0xff;
      buffer[5]=(state[(i*2)+1])&0xff;
      emulate_i2c(buffer,6);
      address+=2;
