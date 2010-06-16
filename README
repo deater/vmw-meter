@@ -53,6 +53,10 @@ Demos:
 + spin_demo
    Spinning around display
 + string_demo
-   Test the string output
+   Test the string output, only first 6 chars displayed
++ scroll_string
+   Displays text, scrolling it.  You can do something like
+        cat README | ./scroll_string.ascii
+   To view a full text file.
    
 
