@@ -20,6 +20,7 @@ static int led_current[CHIPS];
 static int meter_fd=-1;
 
 // rmmod lp, ppdev
+// insmod parport-pc
 // sudo /sbin/modprobe i2c-parport type=3
 // /sys/class/i2c-adapter
 // /sbin/modprobe  i2c_dev    ( or device files won't show)
@@ -66,7 +67,7 @@ void emulate_i2c(char *buffer, int length) {
  
   address=buffer[0]/2; /* linux i2c expects addres / 2 */
 
-  if (address>0x39) return;
+//  if (address>0x39) return;
    
   i++;
   if (i>length) return;
@@ -89,8 +90,8 @@ void emulate_i2c(char *buffer, int length) {
 //  printf("\n");
   
   if ( (write(meter_fd, buffer+1, length-1)) !=length-1) {
-     fprintf(stderr,"ERROR writing\n");
-     exit(1);
+     fprintf(stderr,"Warning, cannot write %x (%x)\n", address,address*2);
+//     exit(1);
   }
 
 #if 0    

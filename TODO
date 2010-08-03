@@ -1,6 +1,5 @@
-
-scroll text
 mp3 player sim
 cpu meter
 
 gumstix with i2c bus
+only update over i2c bus if value changes

@@ -19,5 +19,15 @@
 
 16 June 2010
 + Add scroll_string demo
++ Release version (0.4)
 
+1 August 2010
++ Write program to calculate better resistor values for votage divider.
++ Finally have full hardware prototype working.
++ Release version (0.5)
 
+2 August 2010
++ Implemented a passable version of a cpumeter, as
+  that's what in theory this is all about. Combines all
+  three modes of the simple meter into one big program.
++ Release version (0.6)

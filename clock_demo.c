@@ -107,12 +107,12 @@ int main(int argc, char **argv) {
        break;
     case 3:
        strftime(string,8,"%_6Y",breakdown);
-       display_state[0]=ascii_lookup[string[0]];
-       display_state[1]=ascii_lookup[string[1]];
-       display_state[2]=ascii_lookup[string[2]];
-       display_state[3]=ascii_lookup[string[3]];
-       display_state[4]=ascii_lookup[string[4]];
-       display_state[5]=ascii_lookup[string[5]];
+       display_state[0]=ascii_lookup[(int)string[0]];
+       display_state[1]=ascii_lookup[(int)string[1]];
+       display_state[2]=ascii_lookup[(int)string[2]];
+       display_state[3]=ascii_lookup[(int)string[3]];
+       display_state[4]=ascii_lookup[(int)string[4]];
+       display_state[5]=ascii_lookup[(int)string[5]];
        break;
     }
 
