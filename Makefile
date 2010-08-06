@@ -5,10 +5,12 @@ LFLAGS =
 all:	char_test \
         clock_demo.ascii clock_demo.i2c \
 	cpu_meter.ascii cpu_meter.i2c \
+	music_demo.ascii music_demo.i2c \
 	pulse_demo.ascii pulse_demo.i2c \
 	spin_demo.ascii spin_demo.i2c \
 	string_demo.ascii string_demo.i2c \
         scroll_string.ascii scroll_string.i2c
+	
 
 ascii:	clock_demo.ascii pulse_demo.ascii spin_demo.ascii string_demo.ascii
 
@@ -50,7 +52,18 @@ cpu_meter.i2c:	cpu_meter.o meter-i2c.o meter_tools.o
 
 cpu_meter.o:	cpu_meter.c meter.h meter_tools.h
 	$(CC) $(CFLAGS) -c cpu_meter.c	
+	
+	
+music_demo.ascii:	music_demo.o meter-ascii.o meter_tools.o
+	$(CC) $(LFLAGS) -o music_demo.ascii music_demo.o meter-ascii.o meter_tools.o -lm
 
+music_demo.i2c:	music_demo.o meter-i2c.o meter_tools.o
+	$(CC) $(LFLAGS) -o music_demo.i2c music_demo.o meter-i2c.o meter_tools.o -lm
+
+music_demo.o:	music_demo.c meter.h meter_tools.h
+	$(CC) $(CFLAGS) -c music_demo.c	
+	
+	
 
 pulse_demo.ascii:	pulse_demo.o meter-ascii.o meter_tools.o
 	$(CC) $(LFLAGS) -o pulse_demo.ascii pulse_demo.o meter-ascii.o meter_tools.o
@@ -97,4 +110,5 @@ clean:
 	clock_demo.ascii spin_demo.ascii pulse_demo.ascii string_demo.ascii \
 	clock_demo.i2c spin_demo.i2c pulse_demo.i2c string_demo.i2c \
 	scroll_string.ascii scroll_string.i2c \
-	cpu_meter.i2c cpu_meter.ascii
+	cpu_meter.i2c cpu_meter.ascii \
+	music_demo.i2c music_demo.ascii
