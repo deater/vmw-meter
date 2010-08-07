@@ -16,8 +16,19 @@
 #define NUM_CHANNELS  2
 
 #define DISPLAY_RATE 10
+#define SCROLL_RATE 3
 
-unsigned short bargraph_lut[11]=
+static unsigned short top[7]={
+   0x00,
+   0x01,
+   0x03,
+   0x07,
+   0x0f,
+   0x1f,
+   0x3f,
+};
+
+static unsigned short bargraph_lut[11]=
 {0x0000,
          0x8000,
          0xc000,
@@ -35,11 +46,13 @@ unsigned short bargraph_lut[11]=
 int main(int argc, char **argv) {
 
    double maximum;
-   int best[NUM_CHANNELS], counter, flag = 1, channel;
-   short holder[2], temp_holder;
-   char name[7];
-   double crude;
+   int loudest[NUM_CHANNELS], counter, not_done = 1, channel;
+   short sample[2], temp_sample;
+   char *name,*start;
+   int str_len=0;
+   double adjusted,average;
    long time = 0;
+   int string_count=0,string_add=1;
 
    unsigned short display_state[8];
    int i;
@@ -51,48 +64,71 @@ int main(int argc, char **argv) {
    for(i=0;i<8;i++) { display_state[i]=0; }
    update_display(display_state);   
 
-   strncpy(name,argv[1],6);
+   /* setup the name of the file */
+   /* pad if less than 6 chars */
+   /* remove preceeding path name */
    
-   /***** REALLY THE MAX ALLOWABLE AMPLITUDE *****/
-   //divisor = pow(2, (float)SAMPLE_WIDTH ) / 2.0 - 1.0;
+   if (argc<2) {
+      name=strdup("      ");
+      start=name;
+      str_len=6;
+   }
+   else {
+      name=strdup(argv[1]);
+   
+      start=name;
+      while(*name!='\0') {      
+         if (*name=='/') start=name+1;
+         name++;
+      }
+      str_len=strlen(start);
+      if (str_len<6) {
+         name=strdup("      ");
+	 strncpy(name,start,str_len);
+	 str_len=6;
+	 start=name;
+      }
+   }
+   
+   /* maximum amplitude for this many bits */
    maximum = ((1<<SAMPLE_WIDTH ) / 2) - 1;
 
-   /***** READ TO END OF INPUT *****/
-   while(flag) {
 
-      /***** DO A VISUAL BLOCK *****/
+   while(not_done) {
+
+      /* read in a screen-update's worth of samples */
       for(counter = 0; counter <= (SAMPLE_RATE / DISPLAY_RATE); counter++) {
 
-	 /***** DO A SAMPLE FRAME *****/
+	 /* read both channels */
 	 for(channel = 0; channel < NUM_CHANNELS; channel++){
-	    best[channel] = 0;
-	    holder[channel] = 0;
-	    /***** READ A SAMPLE *****/
-	    if (fread(&holder[channel] , 
+	    
+	    loudest[channel] = 0;
+	    sample[channel] = 0;
+
+	    if (fread(&sample[channel] , 
 		      (SAMPLE_WIDTH / 8), 1, stdin) != 1) {
-	       flag = 0;
+	       not_done = 0;
 	       break;
 	    }
 	    time++; 
 
-	    /***** CORRECT SAMPLE AND TEST FOR GREATEST VALUE SO FAR *****/
-	    temp_holder = (SAMPLE_WIDTH == 8 ? holder[channel] - 128 : 
-			                             holder[channel]);
-	    if (temp_holder < -maximum){
-	       temp_holder = -maximum;
+	    /* adjust 8-bit samples */
+	    temp_sample = (SAMPLE_WIDTH == 8 ? sample[channel] - 128 : 
+			                             sample[channel]);
+	    if (temp_sample < -maximum){
+	       temp_sample = -maximum;
 	    }
 				
-	    if ( abs(temp_holder) > best[channel]) {
-	       best[channel] = abs(temp_holder);
+	    if (abs(temp_sample) > loudest[channel]) {
+	       loudest[channel] = abs(temp_sample);
 	    }
 
 	 }
 
-	 
 	 for(channel = 0; channel < NUM_CHANNELS; channel++){
-	    /***** WRITE THE SAMPLE BACK OUT *****/
-	    if (fwrite(&holder[channel] , SAMPLE_WIDTH/8, 1 , stderr) != 1){
-	       flag = 0;
+	    /* write sample back out to stderr */
+	    if (fwrite(&sample[channel] , SAMPLE_WIDTH/8, 1 , stderr) != 1){
+	       not_done = 0;
 	       break;
 	    }
 	 }
@@ -100,36 +136,37 @@ int main(int argc, char **argv) {
 	 
       }
 
+      average=0;
       for(channel=0;channel<NUM_CHANNELS;channel++) {
-         /***** FIND FRACTION OF MAX AMPLITUDE *****/
-         crude = sqrt( (double)(best[channel] ) / maximum) ;
-         if (crude > 1){
-	    crude = 1;
+         /* take square-root of our_max / theoretical max */
+         adjusted = sqrt( (double)(loudest[channel] ) / maximum) ;
+         if (adjusted > 1){
+	    adjusted = 1;
          }
-	 
-	 
-#if 0
-         /***** CREATE DISPLAY BAR INFORMATION *****/
-         strcpy(canvas, scale);
-         memset(canvas, 'O', (int)(crude * 50.0));
-         sprintf(message2, "%2d%%", (int)(crude * (100.0) ) );
-         sprintf(message3, "%d", best[channel]); 
 
-         /***** OUTPUT DISPLAY BAR *****/
-         fprintf(stderr, "%s ", canvas);
+         // elapsed time, if we ever want to print it, is
+	 // ((double)time / (double)SAMPLE_RATE) / NUM_CHANNELS);
 
-         fprintf(stderr, "T:%-7.4g ", ((double)time / (double)SAMPLE_RATE)
-	      / NUM_CHANNELS);
-
-         fprintf(stderr, "\n");
-#endif	 
-	 
-	 display_state[6+channel]=bargraph_lut[(int)(crude*10.0)];         
+	 display_state[6+channel]=bargraph_lut[(int)(adjusted*10.0)];         
+	 average+=adjusted*6.0;
       }
-      update_display(display_state);
+      average/=2.0;
+      display_state[6]|=top[(int)average];
+      display_state[7]|=top[(int)average];      
+			   
+
+      
+      /* scroll the name of the file */
       for(i=0;i<6;i++) {
-	 display_state[i]=ascii_lookup[(unsigned char)name[i]];
+	 display_state[i]=ascii_lookup[(unsigned char)start[i+(string_count/SCROLL_RATE)]];
       }
+      
+      string_count+=string_add;
+      if (string_count>((str_len-6)*SCROLL_RATE)) string_add=-string_add;
+      if (string_count<=0) string_add=-string_add;
+      
+      update_display(display_state);      
+      
    }
 
    /* clear display */
