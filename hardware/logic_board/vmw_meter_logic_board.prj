@@ -1,0 +1,4 @@
+elements-dir ./footprints
+schematics vmw_meter_logic_board.sch
+output-name vmw_meter_logic_board
+

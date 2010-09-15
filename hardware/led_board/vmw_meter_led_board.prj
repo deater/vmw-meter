@@ -1,0 +1,4 @@
+elements-dir ./footprints
+schematics vmw_meter_led_board.sch
+output-name vmw_meter_led_board
+

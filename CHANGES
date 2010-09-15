@@ -36,6 +36,11 @@
 + Implement music_demo
 + Release version (0.7)
 
-6 Agust 2010
+6 August 2010
 + Fix up music_demo a bit
 + Release version (0.8)
+
+14 September 2010
++ Finish hardware PCB layout, found in hardware directory
++ Waiting to see if the PCBs will actually work.
++ Releave version (0.9)

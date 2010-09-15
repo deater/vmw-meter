@@ -1,0 +1,45 @@
+[labels]
+
+SAA1064
+refdes=U?
+
+! copryright=2010 Vince Weaver
+! author=Vince Weaver
+! uselicense=unlimited
+! distlicense=GPL
+! device=SAA1064
+! description=LED Driver
+! footprint=DIP-24-600
+
+[left]
+1 ADR
+2 CEXT
+3 P8
+4 P7
+5 P6
+6 P5
+7 P4
+8 P3
+9 P2
+10 P1
+11 MX1
+12 VEE
+
+[right]
+13 VCC
+14 MX2
+15 P9
+16 P10
+17 P11
+18 P12
+19 P13
+20 P14
+21 P15
+22 P16
+23 SDA
+24 SCL
+
+[top]
+
+[bottom]
+

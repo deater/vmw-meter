@@ -1,0 +1,45 @@
+[labels]
+
+LTA1000G
+refdes=LED?
+
+! copryright=2010 Vince Weaver
+! author=Vince Weaver
+! uselicense=unlimited
+! distlicense=GPL
+! device=sample device
+! description=dual 10-bar bargraph LED
+! footprint=QFN-20
+
+[left]
+
+[right]
+
+[top]
+
+.bus
+20  CA
+19  CB
+18  CC
+17  CD
+16  CE
+15  CF
+14  CG
+13  CH
+12  CJ
+11  CK
+
+[bottom]
+
+.bus
+1   AA
+2   AB
+3   AC
+4   AD
+5   AE
+6   AF
+7   AG
+8   AH
+9   AJ
+10  AK
+

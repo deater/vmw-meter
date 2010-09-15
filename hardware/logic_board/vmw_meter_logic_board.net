@@ -1,0 +1,95 @@
+unnamed_net94	Q7-3 SOCKET7-11 
+unnamed_net93	Q8-3 SOCKET7-10 
+unnamed_net92	SOCKET7-1 U5-22 
+unnamed_net91	SOCKET7-2 U5-21 
+unnamed_net90	SOCKET7-3 U5-20 
+unnamed_net89	SOCKET7-4 U5-19 
+unnamed_net88	SOCKET7-5 U5-18 
+unnamed_net87	SOCKET7-6 U5-17 
+unnamed_net86	SOCKET7-7 U5-16 
+unnamed_net85	SOCKET7-8 U5-15 
+unnamed_net84	Q8-2 U5-14 
+unnamed_net83	Q7-2 U5-11 
+unnamed_net82	SOCKET7-13 U5-10 
+unnamed_net81	SOCKET7-14 U5-9 
+unnamed_net80	SOCKET7-15 U5-8 
+unnamed_net79	SOCKET7-16 U5-7 
+unnamed_net78	SOCKET7-17 U5-6 
+unnamed_net77	SOCKET7-18 U5-5 
+unnamed_net76	SOCKET7-19 U5-4 
+unnamed_net75	SOCKET7-20 U5-3 
+unnamed_net74	C7-2 U5-2 
+unnamed_net73	Q5-3 SOCKET6-11 
+unnamed_net72	Q6-3 SOCKET6-10 
+unnamed_net71	SOCKET6-1 U4-22 
+unnamed_net70	SOCKET6-2 U4-21 
+unnamed_net69	SOCKET6-3 U4-20 
+unnamed_net68	SOCKET6-4 U4-19 
+unnamed_net67	SOCKET6-5 U4-18 
+unnamed_net66	SOCKET6-6 U4-17 
+unnamed_net65	SOCKET6-7 U4-16 
+unnamed_net64	SOCKET6-8 U4-15 
+unnamed_net63	Q6-2 U4-14 
+unnamed_net62	Q5-2 U4-11 
+unnamed_net61	SOCKET6-13 U4-10 
+unnamed_net60	SOCKET6-14 U4-9 
+unnamed_net59	SOCKET6-15 U4-8 
+unnamed_net58	SOCKET6-16 U4-7 
+unnamed_net57	SOCKET6-17 U4-6 
+unnamed_net56	SOCKET6-18 U4-5 
+unnamed_net55	SOCKET6-19 U4-4 
+unnamed_net54	SOCKET6-20 U4-3 
+unnamed_net53	C5-2 U4-2 
+unnamed_net52	R10-1 R9-2 U4-1 
+unnamed_net51	Q3-3 SOCKET5-11 
+unnamed_net50	Q4-3 SOCKET5-10 
+unnamed_net49	SOCKET5-1 U3-22 
+unnamed_net48	SOCKET5-2 U3-21 
+unnamed_net47	SOCKET5-3 U3-20 
+unnamed_net46	SOCKET5-4 U3-19 
+unnamed_net45	SOCKET5-5 U3-18 
+unnamed_net44	SOCKET5-6 U3-17 
+unnamed_net43	SOCKET5-7 U3-16 
+unnamed_net42	SOCKET5-8 U3-15 
+unnamed_net41	Q4-2 U3-14 
+unnamed_net40	Q3-2 U3-11 
+unnamed_net39	SOCKET5-13 U3-10 
+unnamed_net38	SOCKET5-14 U3-9 
+unnamed_net37	SOCKET5-15 U3-8 
+unnamed_net36	SOCKET5-16 U3-7 
+unnamed_net35	SOCKET5-17 U3-6 
+unnamed_net34	SOCKET5-18 U3-5 
+unnamed_net33	SOCKET5-19 U3-4 
+unnamed_net32	SOCKET5-20 U3-3 
+unnamed_net31	C3-2 U3-2 
+unnamed_net30	R8-1 R7-2 U3-1 
+unnamed_net29	Q1-3 SOCKET4-11 
+unnamed_net28	Q2-3 SOCKET4-10 
+unnamed_net27	SOCKET4-1 U2-22 
+unnamed_net26	SOCKET4-2 U2-21 
+unnamed_net25	SOCKET4-3 U2-20 
+unnamed_net24	SOCKET4-4 U2-19 
+unnamed_net23	SOCKET4-5 U2-18 
+unnamed_net22	SOCKET4-6 U2-17 
+unnamed_net21	SOCKET4-7 U2-16 
+unnamed_net20	SOCKET4-8 U2-15 
+unnamed_net19	Q2-2 U2-14 
+unnamed_net18	Q1-2 U2-11 
+unnamed_net17	SOCKET4-13 U2-10 
+unnamed_net16	SOCKET4-14 U2-9 
+unnamed_net15	SOCKET4-15 U2-8 
+unnamed_net14	SOCKET4-16 U2-7 
+unnamed_net13	SOCKET4-17 U2-6 
+unnamed_net12	SOCKET4-18 U2-5 
+unnamed_net11	SOCKET4-19 U2-4 
+unnamed_net10	SOCKET4-20 U2-3 
+unnamed_net9	C1-2 U2-2 
+unnamed_net8	R3-2 R4-2 C8-1 U5-1 U5-13 Q8-1 R8-2 C4-1 U3-13 Q4-1 Q3-1 Q7-1 C6-1 R10-2 U4-13 Q6-1 Q5-1 C2-1 U2-13 Q2-1 Q1-1 R6-2 R5-2 U1-14 CONN3-1 
+unnamed_net7	U3-23 U5-23 U4-23 U2-23 U1-5 R3-1 U1-2 CONN2-1 
+unnamed_net6	U3-24 U5-24 U4-24 U2-24 U1-11 U1-12 R6-1 CONN2-2 
+unnamed_net5	R2-2 U1-13 CONN1-2 
+unnamed_net4	R5-1 U1-10 CONN1-15 
+unnamed_net3	U1-1 R1-2 CONN1-3 
+unnamed_net2	R4-1 U1-6 CONN1-10 
+unnamed_net1	R7-1 C3-1 C4-2 U3-12 C7-1 C8-2 U5-12 SOCKET5-12 SOCKET5-9 SOCKET7-12 SOCKET7-9 R9-1 C5-1 C6-2 U4-12 SOCKET6-12 SOCKET6-9 SOCKET4-12 SOCKET4-9 U2-1 C1-1 C2-2 U2-12 R2-1 U1-9 U1-7 CONN3-2 U1-3 R1-1 \
+ CONN1-18 CONN1-19 CONN1-20 CONN1-21 CONN1-22 CONN1-23 CONN1-24 CONN1-25 

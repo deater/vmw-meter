@@ -1,0 +1,35 @@
+[labels]
+
+75HC05
+refdes=U?
+
+! copryright=2010 Vince Weaver
+! author=Vince Weaver
+! uselicense=unlimited
+! distlicense=GPL
+! device=74HC05
+! description= Open-drain inverter
+! footprint=DIP-14-300
+
+[left]
+1 1A
+3 2A
+5 3A
+9 4A
+11 5A
+13 6A
+
+[right]
+2 1Y
+4 2Y
+6 3Y
+8 4Y
+10 5Y
+12 6Y
+
+[top]
+7 GND
+14 VCC
+
+[bottom]
+

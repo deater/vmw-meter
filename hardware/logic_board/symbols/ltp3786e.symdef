@@ -1,0 +1,43 @@
+[labels]
+
+LTP3786E
+refdes=LED?
+
+! copryright=2010 Vince Weaver
+! author=Vince Weaver
+! uselicense=unlimited
+! distlicense=GPL
+! device=sample device
+! description=dual 14-segment LED DISPLAY
+! footprint=QFN-18
+
+[left]
+
+[right]
+
+16 D1
+11  D2
+
+[top]
+
+.bus
+12  A
+10  B
+9   C
+7   D
+1   E
+18  F
+15  G
+14  H
+
+[bottom]
+
+.bus
+6   J
+5   K
+4   L
+2   M
+13  N
+17  P
+8   DP
+

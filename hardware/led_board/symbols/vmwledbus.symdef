@@ -1,0 +1,46 @@
+[labels]
+
+VMWLEDBUS
+refdes=SOCKET?
+
+! copryright=2010 Vince Weaver
+! author=Vince Weaver
+! uselicense=unlimited
+! distlicense=GPL
+! device=sample device
+! description=dual Bus for LED board
+! footprint=QFN-20
+
+[left]
+
+[right]
+
+[top]
+
+12 GND
+11 D1
+
+.bus
+20  A
+19  B
+18  C
+17  D
+16  E
+15  F
+14  G
+13  H
+
+[bottom]
+
+9 GND
+10 D2
+
+.bus
+1   J
+2   K
+3   L
+4   M
+5   N
+6   P
+7   DP
+8   EX
