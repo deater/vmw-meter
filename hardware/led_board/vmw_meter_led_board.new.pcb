@@ -1,0 +1,102 @@
+# release: pcb 1.99x
+# To read pcb files, the pcb version (or the cvs source date) must be >= the file version
+FileVersion[20070407]
+PCB["" 600000 500000]
+Grid[10000.000000 0 0 0]
+Cursor[0 0 0.000000]
+PolyArea[200000000.000000]
+Thermal[0.500000]
+DRC[1000 1000 1000 1000 1500 1000]
+Flags("nameonpcb,uniquename,clearnew,snappin")
+Groups("1,c:2,s:3:4:5:6:7:8")
+Styles["Signal,1000,3600,2000,1000:Power,2500,6000,3500,1000:Fat,4000,6000,3500,1000:Skinny,600,2402,1181,600"]
+
+Element(0x00000000 "T1.75_LED" "D6" "PURPLE" 500 500 60 -114 0 100 0x00000000)
+(
+	Pin(0 0 70 30 60 28 "" "1" 0x00000101)
+	Pin(0 100 70 30 60 28 "" "2" 0x00000001)
+	ElementLine (72 135 -73 135 10)
+	ElementLine (81 125 71 135 10)
+	ElementLine (-83 125 -74 134 10)
+	ElementArc (-1 43 116 116 135 270 10)
+	)
+
+Element(0x00000000 "T1.75_LED" "D5" "BLUE" 500 500 60 -114 0 100 0x00000000)
+(
+	Pin(0 0 70 30 60 28 "" "1" 0x00000101)
+	Pin(0 100 70 30 60 28 "" "2" 0x00000001)
+	ElementLine (72 135 -73 135 10)
+	ElementLine (81 125 71 135 10)
+	ElementLine (-83 125 -74 134 10)
+	ElementArc (-1 43 116 116 135 270 10)
+	)
+
+Element(0x00000000 "T1.75_LED" "D4" "GREEN" 500 500 60 -114 0 100 0x00000000)
+(
+	Pin(0 0 70 30 60 28 "" "1" 0x00000101)
+	Pin(0 100 70 30 60 28 "" "2" 0x00000001)
+	ElementLine (72 135 -73 135 10)
+	ElementLine (81 125 71 135 10)
+	ElementLine (-83 125 -74 134 10)
+	ElementArc (-1 43 116 116 135 270 10)
+	)
+
+Element(0x00000000 "T1.75_LED" "D3" "YELLOW" 500 500 60 -114 0 100 0x00000000)
+(
+	Pin(0 0 70 30 60 28 "" "1" 0x00000101)
+	Pin(0 100 70 30 60 28 "" "2" 0x00000001)
+	ElementLine (72 135 -73 135 10)
+	ElementLine (81 125 71 135 10)
+	ElementLine (-83 125 -74 134 10)
+	ElementArc (-1 43 116 116 135 270 10)
+	)
+
+Element(0x00000000 "T1.75_LED" "D2" "ORANGE" 500 500 60 -114 0 100 0x00000000)
+(
+	Pin(0 0 70 30 60 28 "" "1" 0x00000101)
+	Pin(0 100 70 30 60 28 "" "2" 0x00000001)
+	ElementLine (72 135 -73 135 10)
+	ElementLine (81 125 71 135 10)
+	ElementLine (-83 125 -74 134 10)
+	ElementArc (-1 43 116 116 135 270 10)
+	)
+
+Element(0x00000000 "T1.75_LED" "D1" "RED" 500 500 60 -114 0 100 0x00000000)
+(
+	Pin(0 0 70 30 60 28 "" "1" 0x00000101)
+	Pin(0 100 70 30 60 28 "" "2" 0x00000001)
+	ElementLine (72 135 -73 135 10)
+	ElementLine (81 125 71 135 10)
+	ElementLine (-83 125 -74 134 10)
+	ElementArc (-1 43 116 116 135 270 10)
+	)
+Layer(1 "component")
+(
+)
+Layer(2 "solder")
+(
+)
+Layer(3 "outline")
+(
+)
+Layer(4 "GND")
+(
+)
+Layer(5 "power")
+(
+)
+Layer(6 "signal1")
+(
+)
+Layer(7 "signal2")
+(
+)
+Layer(8 "signal3")
+(
+)
+Layer(9 "silk")
+(
+)
+Layer(10 "silk")
+(
+)
