@@ -1,6 +1,9 @@
-gumstix with i2c bus
++ Fix all issues with PCBs
++ Put my ARM gumstix inside, using GPIO -> i2c bus
++ create USB interface
 
-USB interface:
+
+USB interface notes:
   http://home.ict.nl/~fredkrom/pe0fko/g8voi_guide/
   http://www.evilmadscientist.com/article.php/avrtargetboards
   http://www.ladyada.net/make/usbtinyisp/

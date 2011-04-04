@@ -1,7 +1,16 @@
 \documentclass[11pt]{article}
+
+\usepackage{epsfig}
+
 \begin{document}
 
-Building the Super-VMW CPU Meter
+\begin{center}
+{\Large \bf Building the Super-VMW CPU Meter}\\
+{\tt http://www.deater.net/weave/vmwprod/meter/super.html}\\
+by Vincent M. Weaver\\
+4 April 2011
+\end{center}
+
 
 \section{Parts List}
 
@@ -11,7 +20,7 @@ Part No   &  Description    &  Quantity    &   Source \\
 \hline
 \hline
 
-          &  LED Board                 & 1  & VMW SVMW-Meter-LED-Board\\ %$15
+          &  LED Board                 & 1  & SVMW-Meter-LED-Board\\ %$15
 LTP 3786E &  14-Seg 2x Alphanum Com Anode & 3 &  DigiKey 160-1011-ND \\ % 3@3.78
 % Jameco also has a selection of colors.  Blue?
 LTA 1000G &  10-segment bargraph       & 2  &  Jameco 697469 \\ %2@1.19
@@ -21,7 +30,7 @@ LTA 1000G &  10-segment bargraph       & 2  &  Jameco 697469 \\ %2@1.19
 	  &  30-pin SIP header         & 5  &  All-Electronics SIP-30 \\ %5@1.20
 \hline
 \hline
-          & Logic Board                & 1  & VMW SVMW-Meter-Logic-Board \\ %$20 
+          & Logic Board                & 1  & SVMW-Meter-Logic-Board \\ %$20 
 	  & DC Male 2.1mm Solder Jack  & 1  &  Jameco 101178 \\ %0.39
 	  & 25-pin right-angle DSUB male & 1  &  Jameco 15150 \\ %0.75
 	  & 24-pin .6 wide DIP socket  & 4  &  Jameco 112264 \\ %4@.23
@@ -54,22 +63,30 @@ HT-214D   & IDC DIP Crimping Tool      & 1   & Newark 69C1030 \\ % 1@15.62
 
 \section{Building the LED Board}
 
+\begin{figure*}[tbp]
+\begin{center}
+\epsfig{file=cable_loft.eps,width=1.75in}
+\caption{Lofting the cable connector (workaround).}
+\label{figure:cableloft}
+\end{center}
+\end{figure*}
+
 \begin{enumerate}
 \item Take two 30-pin headers.  Cut off 4 10-pin lengths for
       the LED bargraph sockets.  (These need to be made out
       of the headers, so that it is possible to solder the
       sockets from the other side).  Solder these to the board.
-      Put a 20-pin socket into the headers to keep them vertical.
+      Place a 20-pin socket temporarily into the headers to 
+      keep them vertical while soldering.
 \item Solder the 4 20-pin sockets on the back of the board.
       The one that comes up between the bargraph sockets is a bit tricky.
 \item Take a 30-pin header and snip pins 10 and 20 off, plus trim off
-      the 30th pin completely.  Repeat.  Solder these on for the
+      the 30th pin completely.  Repeat.  Solder into place as
       alphanumeric sockets.  Place a wide 24-pin socket across while
       soldering to keep vertical.
 \item Cut 22 2-pin lengths of the 30-pin headers for LED sockets.
-      Solder them in place.  Scotch tape can hold them in place when
-      soldering.
-\item Place all of the LED displays in place.  
+      Solder them in place; scotch tape can temporarily hold them.
+\item Place all of the LED displays into their sockets.
       {\bf WORKAROUND} If you are using the
       Mark2 board the 12 red LEDs are indicated backwards, you'll
       have to install them opposite the way indicated on the PCB.
@@ -77,51 +94,64 @@ HT-214D   & IDC DIP Crimping Tool      & 1   & Newark 69C1030 \\ % 1@15.62
       cable connectors are too close together to fit in the socket.
       As a workaround build a stack of cut up 30-pin headers 8 wide
       and place on the middle connector.
-      Stack 3 high.  Then solder to the far right and left pins wires
-      up to a 10-wide stack at top. This will allow the side connectors
-      to go on, as well as the middle one to be lofted.
+      Stack 3 high.  Then solder wires from the PCB up to the far right and 
+      left pins of a 10-wide socket on top. This will allow the side 
+      connectors to fit, as well as the middle one to be lofted.
+      See Figure~\ref{figure:cableloft}.
 \end{enumerate}
+
+
+
+\begin{figure*}[tbp]
+\begin{center}
+\epsfig{file=chip_loft.eps,width=2.5in}
+\caption{Lofting the chip socket (workaround).}
+\label{figure:chiploft}
+\end{center}
+\end{figure*}
+
 
 \section{Building the Logic Board}
 \begin{enumerate}
-\item Solder the sockets in place.  First the 4 24-pin wide ones.
-      Then the 4 20-pin sockets.  Then the 1 16-pin socket.
-\item You can optionally use parts of header to make i2c and voltage
+\item Solder the sockets in place:  first the 4 24-pin wide ones, then
+      the 4 20-pin sockets, finally the 1 16-pin socket.
+\item You can optionally use parts of 30-pin header to make i2c and voltage
       interface sockets.
-\item Bend the transistors down (so they lie flush) so that the
-      cable headers can fit on the sockets w/o interruption.
+\item Bend the transistors down at a right angle (so they lie flush) 
+      so that the cable headers can fit overtop.  Solder in place.
 \item Solder the resistors in place.  
       {\bf WORKAROUND} The 27K resistor is mislabeled
       21K on the board.
 \item Solder the capacitors in place.
 \item Solder the power socket.
 \item Solder on the parallel connector.
-
-\item {\bf WORKAROUND} Loft the middle SAA1064 chip.  Use two 10-wide
+\item {\bf WORKAROUND} Loft the middle SAA1064 chip socket.  Use two 10-wide
       headers to loft it.  Then solder wires to the holes on either
       end and loft.  You might insert heat-shrink tubing around wires
-      to keep shorts from happening.
-\item Insert the 74HC05 chip, the four SAA1064 chips.
+      to keep shorts from happening.  See Figure~\ref{figure:chiploft}.
+\item Insert the 74HC05 chip and the four SAA1064 chips.
 
 \end{enumerate}
+
+\pagebreak
 
 \section{Assembling the Whole Thing}
 \begin{enumerate}
 \item {\bf WORKAROUND} If the left side of the board won't fit in the
-      case, you'll need to file a semi-circular hole so that the board
-      will fit.
+      case due to the case screw channel, you'll need to file a 
+      semi-circular hole so that the board will fit.
 \item Screw the logic board to base using two of the screws that
       came with the case.
 \item Crimp the 4 cables with 20-pin connectors on either end.
       A crimper really helps here, and you really need one that
-      had a DIP crimping substrate (hard to find).
+      has a DIP crimping substrate (hard to find).
       From the front, the left cable is 5in, next 2.5in (longer
       if you don't need the workaround), 3in, then 5.5in.      
 \item Connect cables.  {\bf WORKAROUND}  If using mark1 logic board,
       need to trim the side off of the right-side connector
       so it can fit and not conflict with bottom right connector.
 \item Plug in 5V adapter and parallel port.  Test using one
-     of the sample programs.
+      of the sample programs.
 \end{enumerate}
 
 \section{Testing}
@@ -133,10 +163,10 @@ HT-214D   & IDC DIP Crimping Tool      & 1   & Newark 69C1030 \\ % 1@15.62
 \end{enumerate}
 
 
-\section{Optional USB Board}
-\begin{enumerate}
-\item Investigate putting together usb-tiny board for use on machines
-      without parallel port.
-\end{enumerate}
+%\section{Optional USB Board}
+%\begin{enumerate}
+%\item Investigate putting together usb-tiny board for use on machines
+%      without parallel port.
+%\end{enumerate}
 
 \end{document}

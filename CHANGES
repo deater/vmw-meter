@@ -54,3 +54,8 @@
 + Comment and clean up the code a bit
 + Only update display if display has changed
 + Add documentation in ./doc
++ Release 0.12
+
+4 April 2011
++ Final fixes
++ Release 0.13
