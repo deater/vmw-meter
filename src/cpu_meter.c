@@ -47,10 +47,22 @@ unsigned big_cylon_lut[22]={0,1,2,3,4,5,6,7,8,9,10,11,10,9,8,7,
 
 
 
+unsigned short_cylon_lut[10]={
+   0x01,
+   0x02,
+   0x04,
+   0x08,
+   0x10,
+   0x20,
+   0x10,
+   0x08,
+   0x04,
+   0x02};
+
 
 int main(int argc, char **argv) {
 
-  int i;
+  int i,random_top_cylon_bottom=0;
   unsigned short display_state[8];
   char string[256];
      int cylon_count=0;
@@ -62,7 +74,7 @@ int main(int argc, char **argv) {
     int idle_ticks,odd_ticks,even_ticks;  
   char temp_string[BUFSIZ];
   int random_count=0;
-  int pattern=0;
+  int pattern=0,rand_pattern=0;
    
   int last_cpu[5]={0,0,0,0,0};
   int last_even[5]={0,0,0,0,0};
@@ -196,25 +208,52 @@ int main(int argc, char **argv) {
    display_state[7]=bargraph_lut[even_percent/10];
 
 
-    /* cylon */
-   cylon_count+=3+((percent*97)/50);
+   if (random_top_cylon_bottom) {
+      
+      /* cylon */
+      cylon_count+=3+((percent*97)/50);
    
-   if (cylon_count>=2200) cylon_count=0;
+      if (cylon_count>=2200) cylon_count=0;
    
-   display_state[6]|=cylon_left[big_cylon_lut[cylon_count/100]];
-   display_state[7]|=cylon_right[big_cylon_lut[cylon_count/100]];     
+      display_state[6]|=cylon_left[big_cylon_lut[cylon_count/100]];
+      display_state[7]|=cylon_right[big_cylon_lut[cylon_count/100]];     
    
-   /* random */
-   random_count+=4+((percent*96)/100);
+      /* random */
+      random_count+=4+((percent*96)/100);
    
-   if (random_count>75) {
-      random_count=0;
-      pattern=rand()&0x3f;
+      if (random_count>75) {
+         random_count=0;
+         pattern=rand()&0x3f;
+      }
+      for(i=0;i<6;i++) {
+         if ((pattern>>i)&0x1) display_state[i]^=SEGMENT_EX;
+      }
    }
-   for(i=0;i<6;i++) {
-      if ((pattern>>i)&0x1) display_state[i]^=SEGMENT_EX;
-   }
+   else {
+        /* cylon */
+      cylon_count+=3+((percent*97)/50);
+   
+      if (cylon_count>=1000) cylon_count=0;
 
+      pattern=short_cylon_lut[cylon_count/100];
+      
+      for(i=0;i<6;i++) {
+         if ((pattern>>i)&0x1) display_state[i]^=SEGMENT_EX;
+      }      
+
+            /* random */
+      random_count+=4+((percent*96)/100);
+
+      if (random_count>75) {
+         random_count=0;
+         rand_pattern=rand()&0x0fff;
+      }
+      
+      display_state[6]|=rand_pattern&0x3f;
+      display_state[7]|=(rand_pattern>>6)&0x3f;     
+   
+
+   }
      
     update_display(display_state);   
      /* 200,000 = 5Hz*/

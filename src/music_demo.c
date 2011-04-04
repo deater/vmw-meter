@@ -1,3 +1,7 @@
+/* Use with the play_mp3.sh shell script */
+/* puts some music visualization on the bar graph */
+/* and prints the filename to the display */
+
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>

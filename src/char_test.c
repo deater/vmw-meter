@@ -1,3 +1,5 @@
+/* this tool is used to help design fonts for the 14-seg display */
+
 #include <stdio.h>
 
 #include "meter.h"

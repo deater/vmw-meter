@@ -1,3 +1,5 @@
+/* code to drive the LED display */
+
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
@@ -25,11 +27,13 @@ static int meter_fd=-1;
 // /sys/class/i2c-adapter
 // /sbin/modprobe  i2c_dev    ( or device files won't show)
 
+
+/* should make the device settable */
 void init_meter() {
    
    meter_fd = open("/dev/i2c-1", O_RDWR);
    if (meter_fd < 0) {
-      fprintf(stderr,"Error opening i2c dev file\n");
+      fprintf(stderr,"Error opening i2c dev file /dev/i2c-1\n");
       exit(1);
    }
    

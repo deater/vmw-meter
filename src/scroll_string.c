@@ -1,3 +1,7 @@
+/* scroll a string on the display */
+/* cat README | ./scroll_string.ascii */
+/* will display text file README to the display */
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>

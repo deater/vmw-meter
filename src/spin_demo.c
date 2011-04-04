@@ -1,3 +1,5 @@
+/* Makes a spinning pattern on the display */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

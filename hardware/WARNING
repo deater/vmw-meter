@@ -1,0 +1,18 @@
+The PCBs included here have various errata.
+
+Logic Board:
++ The board is slightly too wide, needing filing around a screw hole
+  to fit in an A-31 case.
++ The sockets for the SAA1064 are too close together (no room for
+  overhang) so the middle one needs to be lofted.
++ The vertical-oriented cable socket is too close to the bottom
+  left horizontal one, so the cable connector needs to be clipped
+  to fit.
+
+LED Board:
++ The sockets for the cables are too close together, not allowing
+  for overhang.  The middle one needs to be lofted
++ The markings for the RED LEDs are reversed, they need to be
+  inserted backward.
+  
+  

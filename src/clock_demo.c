@@ -1,3 +1,9 @@
+/* A simple clock appication.  */
+/* Prints the time on the alphanum segments */
+/* Puts UNIX time along the bargraphs segments */
+/* Day of the week on the colored LEDs */
+/* Occasionally the month/day/year is also displayed */
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -6,9 +12,6 @@
 
 #include "meter.h"
 #include "meter_tools.h"
-
-
-
 
 
 int reverse_bits32(int v) {
@@ -58,11 +61,13 @@ int main(int argc, char **argv) {
   
   while(1) {
     seconds=time(NULL);
+
     reverse_seconds=reverse_bits32(seconds);
 
+     
     /* binary clock around eddge */    
     display_state[7]=(reverse_seconds>>16)&0xffff;
-    display_state[6]=reverse_seconds&0xffff;
+    display_state[6]=(seconds>>16)&0xffff;
 
     breakdown=localtime(&seconds);
 
@@ -115,9 +120,6 @@ int main(int argc, char **argv) {
        display_state[5]=ascii_lookup[(int)string[5]];
        break;
     }
-
-
-
 
     /* day of week (Sunday is none) */
     if (breakdown->tm_wday>0) {

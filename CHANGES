@@ -43,4 +43,14 @@
 14 September 2010
 + Finish hardware PCB layout, found in hardware directory
 + Waiting to see if the PCBs will actually work.
-+ Releave version (0.9)
++ Release version (0.9)
+
+21 February 2011
++ Re-route LED board to fix some issues
++ Release version (0.10)
+
+3 April 2011
++ Add set_display demo
++ Comment and clean up the code a bit
++ Only update display if display has changed
++ Add documentation in ./doc

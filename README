@@ -1,6 +1,59 @@
+Quick Start
+~~~~~~~~~~~
 
-Background
-~~~~~~~~~~
+Assemble meter (parts and directions in ./doc, circuit board in
+./hardware).
+
+Turn on, plug in parallel port
+
+Get the kernel repared
+  /sbin/rmmod lp
+  /sbin/rmmod ppdev
+  /sbin/modprobe parport-pc
+  /sbin/modprobe i2c-parport type=3
+  /sbin/modprobe  i2c_dev   
+  
+The i2c device should be in 
+  /sys/class/i2c-adapter
+
+The examples assume /dev/i2c-1
+I should make this easier to configure.
+
+Currently you need to be root to run them unless /dev/i2c* is configured
+to be usable by an ordinary user.
+
+I plan to make a USB version in the future.
+
+Examples
+~~~~~~~~
+
+The examples are located in ./src
+You can run the *.ascii versions at any time (no need for a meter).
+
++ clock_demo
+   shows clock on digits, unix time on extra LEDs, 
+   day of week on color LEDs
++ cpu_meter
+   shows CPU usage on display and bargraph
++ music_demo
+   music visualization
++ pulse_demo
+   Pulsing light pattern
++ set_display
+   Lets you set all display segments from command line
++ spin_demo
+   Spinning light pattern
++ string_demo
+   Test the string output, only first 6 chars displayed
++ scroll_string
+   Displays text, scrolling it.  You can do something like
+        cat README | ./scroll_string.ascii
+   To view a full text file.
+   
+   
+
+History
+~~~~~~~
 
 Soon after aquiring my first Linux box (a 66MHz 486) in 1996, I built
 a simple CPU meter using 8 LEDs that hooked directly to output
@@ -24,42 +77,7 @@ that will do most of the hard work, such as the ST2225A.
 I settled on using a SAA1064.
 
 
-Usage
-~~~~~
+-----------------
 
-Running the "simulated" versions, just run the *.ascii versions.
-
- Actual Hardware:
-
-   Build the hardware as described (will add schematics some day).
-   
-   Hook up an i2c bus.  I assume i2c parport with the ?? pinout (mode=?)
-   
-   Also currently the i2c bus is hardcoded in the file, should make
-      configurable.
-      
-   Then run the *.i2c versions of the test.
-   
-
-
-Demos:
-~~~~~~
-
-+ clock_demo
-   shows clock on digits, unix time on extra LEDs, 
-   day of week on color LEDs
-+ pulse_demo
-   Just pulse the dislay
-+ spin_demo
-   Spinning around display
-+ string_demo
-   Test the string output, only first 6 chars displayed
-+ scroll_string
-   Displays text, scrolling it.  You can do something like
-        cat README | ./scroll_string.ascii
-   To view a full text file.
-   
-
----
-can use for any LED display via LED bus.
-
+3 April 2011
+Vince Weaver   <vince _at_ deater.net>

@@ -1,3 +1,5 @@
+/* Code to emulate the led meter using ANSI color ASCII art */
+
 #include <stdio.h>
 #include <string.h>
 
@@ -6,18 +8,19 @@
 #define METER_DIGITS 8
 #define CHIPS 4
 
-static unsigned short meter_state[METER_DIGITS];
+static unsigned short global_meter_state[METER_DIGITS];
 static unsigned char config_state[CHIPS];
 static unsigned char subaddress=0;
 static int led_current[CHIPS];
 
 static void print_meter(void);
 
+/* nothing needed */
 void init_meter() {
  
 }
 
-
+/* set all segments to zero */
 void reset_display() {
   int i;
 
@@ -27,7 +30,7 @@ void reset_display() {
   }
   subaddress=0;
   for(i=0;i<METER_DIGITS;i++) {
-    meter_state[i]=0;
+    global_meter_state[i]=0;
   }
   print_meter();
 }
@@ -69,11 +72,11 @@ void emulate_i2c(char *buffer, int length) {
             break;
     case 1:
     case 2: 
-       meter_state[digit]=(meter_state[digit]&0x00ff) | (buffer[i]<<8);
+       global_meter_state[digit]=(global_meter_state[digit]&0x00ff) | (buffer[i]<<8);
        break;
     case 3: 
     case 4: 
-       meter_state[digit]=(meter_state[digit]&0xff00) | (buffer[i]&0xff);   
+       global_meter_state[digit]=(global_meter_state[digit]&0xff00) | (buffer[i]&0xff);   
        break;
     default: break;  /* 5 - 7 are reserved */
     }
@@ -123,10 +126,39 @@ static void bargraph(int condition1, int condition2) {
 
 }
 
+static unsigned short reverse_bits16(unsigned short v) {
+   
+         unsigned int s = 16;
+         unsigned int mask = ~0;
+         while ((s >>= 1) > 0) {
+	                   mask ^= (mask << s);
+	                   v = ((v >> s) & mask) | ((v << s) & ~mask);
+	 }
+     
+         return v;
+}
+
+
+
 static void print_meter() {
 
   int i;
-
+   
+  unsigned short meter_state[METER_DIGITS],temp;
+   
+  for(i=0;i<8;i++) {
+     meter_state[i]=global_meter_state[i];
+  }
+   
+  /* workaround bug in hardware where bargraph wired backwards */
+   
+  temp=(reverse_bits16(meter_state[6])<<6)|(meter_state[6]&0x3f);
+  meter_state[6]=temp;
+	
+  temp=(reverse_bits16(meter_state[7])<<6)|(meter_state[7]&0x3f);
+  meter_state[7]=temp;
+   
+   
   //  for(i=0;i<8;i++) printf("%i %x\n",i,meter_state[i]);
 
   /* clear screen */

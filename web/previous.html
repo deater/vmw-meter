@@ -1,0 +1,55 @@
+<html>
+<head>
+<title>Previous Meter Designs</title>
+</head>
+<body>
+
+<h3>Previous <em>VMW</em> Meter Designs</h3>
+
+This page is an archive of previous attempts to get 
+an Alpha-numeric CPU meter going.  See my ongoing work
+on the same project <a href="super.html">here</a>.
+
+<br><br>
+
+Back in 1998 I had hoped to find a readily-available LED driver
+that could handle a 14-segment display, hopefully with multiplexing
+and other nice features.  At the time I could not find spec sheets
+for anything except 7-segment drivers.  Thus I decided to do things the
+hard way.
+<br><br>
+The prototype used 7400 series logic (there were flip flop arrays
+to store state, serial/parallel converters to take the info from
+the PC over the parallel port, and a 555 timer to run the
+multiplexer).
+<br><br>
+
+Here are some pictures (circa 2001).
+It is displaying a "W" on the alphanumeric LED.  It is programmed via the 
+parallel port into a 16-bit shift register.  
+<br>
+<img src="meter_proto1.jpg">
+<br><br>
+
+Here some of the register-set RAM is hooked up. It is displaying an "M".  
+<br>
+<img src="withram.jpg">
+
+<br><br>
+
+Here multiplexing is working and lighting up 2 
+digits at once.  It's hard to see but it is saying "OK".
+<br>
+<img src="ok.jpg">
+<br><br>
+
+Sadly I ran out of time and the project languished for years.
+I just now (in 2010) removed all of the parts from the above
+pictured breadboards, and I'll be re-implementing things
+using an LED driver chip (<a href="super.html">see here</a>).
+
+<hr>
+
+<a href="../index.html">Back to VMW productions page...</a>
+</body>
+</html>

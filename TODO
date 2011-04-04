@@ -1,2 +1,26 @@
 gumstix with i2c bus
-only update over i2c bus if value changes
+
+USB interface:
+  http://home.ict.nl/~fredkrom/pe0fko/g8voi_guide/
+  http://www.evilmadscientist.com/article.php/avrtargetboards
+  http://www.ladyada.net/make/usbtinyisp/
+  http://www.harbaum.org/till/i2c_tiny_usb/index.shtml
+  
+  Parts:
+    2x3 DIP adapter
+    8-pin socket
+    
+    2 3.6V zener diode
+    1 12MHz crystal, HC49U package
+    1 2.2K resistor
+    2 68Ohm resistor
+    2 10K resistor
+    2 22pF cap
+    1 100nF cap
+    1 10uF electrolytic
+    1 USB-B connector
+    1 4-pin i2c connector
+    1 Attiny45 DIP 20MHz
+    1 8-pin socket
+    
+    

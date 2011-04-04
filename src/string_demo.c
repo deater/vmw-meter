@@ -1,3 +1,6 @@
+/* This tool will repeatedly prompt for a string which is then */
+/* printed on the display.                                     */
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>

@@ -1,3 +1,5 @@
+/* Makes a pulsing pattern on the display */
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>

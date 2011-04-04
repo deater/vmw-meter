@@ -15,23 +15,72 @@ void display_config_sane() {
   emulate_i2c("\x76\x00\x47\x00\x00\x00\x00",7);
 }
 
+unsigned short existing_state[8]= {
+   0x0,0x0,0x0,0x0,
+   0x0,0x0,0x0,0x0,
+};
+
+static unsigned short reverse_bits16(unsigned short v) {
+      
+      unsigned int s = 16;
+      unsigned int mask = ~0;         
+      while ((s >>= 1) > 0) {
+	       mask ^= (mask << s);
+	       v = ((v >> s) & mask) | ((v << s) & ~mask);
+      }
+     
+      return v;
+}
+
+
+
 void update_display(unsigned short state[8]) {
 
-  /* todo... only update if changed? */
- 
   int i;
   char buffer[6];
   int address=0x70;
-
+  unsigned short temp;
+   
+  /* state[0]=digit0 */
+  /* state[1]=digit1 */
+  /* state[2]=digit2 */
+  /* state[3]=digit3 */
+  /* state[4]=digit4 */
+  /* state[5]=digit5 */
+  /* state[6]=left bargraph */
+  /* state[7]=right bargraph */
+   
   for(i=0;i<4;i++) {
-     buffer[0]=address;
-     buffer[1]=0x01;
-     buffer[2]=(state[i*2]>>8)&0xff;
-     buffer[3]=(state[(i*2)+1]>>8)&0xff;
-     buffer[4]=(state[i*2])&0xff;
-     buffer[5]=(state[(i*2)+1])&0xff;
-     emulate_i2c(buffer,6);
-     address+=2;
+  
+     /* the bargraph was wired backward on actual hardware */
+     /* fix it here to make software easier to write       */
+     if (i==3) {
+	
+	temp=(reverse_bits16(state[6])<<6)|(state[6]&0x3f);
+	state[6]=temp;
+	
+	temp=(reverse_bits16(state[7])<<6)|(state[7]&0x3f);
+	state[7]=temp;
+       	
+     }
+     
+     /* only update if there's been a change */
+     if ( (existing_state[i*2]!=state[i*2]) ||
+	  (existing_state[(i*2)+1]!=state[(i*2)+1])) {
+	
+	existing_state[i*2]=state[i*2];
+	existing_state[(i*2)+1]=state[(i*2)+1];
+     
+	/* write out to hardware */
+	
+        buffer[0]=address+(i*2);
+        buffer[1]=0x01;
+        buffer[2]=(state[i*2]>>8)&0xff;
+        buffer[3]=(state[(i*2)+1]>>8)&0xff;
+        buffer[4]=(state[i*2])&0xff;
+        buffer[5]=(state[(i*2)+1])&0xff;
+        emulate_i2c(buffer,6);
+     }
   }
 }
 
