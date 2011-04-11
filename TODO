@@ -3,6 +3,10 @@
 + create USB interface
 
 
+To self-power from USB, probably need to use 6ma current rather than 12.
+SAA-1064 uses approx 150ma at full draw at 5V, times 4 is 600ma which
+is more then the 400ma a USB port can provide.
+
 USB interface notes:
   http://home.ict.nl/~fredkrom/pe0fko/g8voi_guide/
   http://www.evilmadscientist.com/article.php/avrtargetboards

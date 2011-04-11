@@ -49,7 +49,9 @@ You can run the *.ascii versions at any time (no need for a meter).
    Displays text, scrolling it.  You can do something like
         cat README | ./scroll_string.ascii
    To view a full text file.
-   
++ enemy_attack
+   Demo of what it might be like to use the display as
+   an auxiliary output for a video game
    
 
 History

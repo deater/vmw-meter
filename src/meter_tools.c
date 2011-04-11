@@ -34,12 +34,17 @@ static unsigned short reverse_bits16(unsigned short v) {
 
 
 
-void update_display(unsigned short state[8]) {
+void update_display(unsigned short in_state[8]) {
 
   int i;
   char buffer[6];
   int address=0x70;
   unsigned short temp;
+  unsigned short state[8];
+   
+   /* c passes arrays by reference so we have to do this         */ 
+   /* otherwise changes to state[] are propogated back to caller */
+  for(i=0;i<8;i++) state[i]=in_state[i];
    
   /* state[0]=digit0 */
   /* state[1]=digit1 */
