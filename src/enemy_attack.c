@@ -187,6 +187,18 @@ int main(int argc, char **argv) {
      update_display(display_state);   
      sleep(2);     
 
+     /* SHLDS < 50% */
+  
+     set_string("SHLDS");
+     display_state[2]|=SEGMENT_EX;
+     update_display(display_state);   
+     sleep(1);
+
+     set_string("< 50% ");
+     display_state[2]|=SEGMENT_EX;
+     update_display(display_state);   
+     sleep(1);
+     
      /* RED ALERT */
   
      set_string("RED");

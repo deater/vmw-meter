@@ -3,6 +3,31 @@
 + create USB interface
 
 
+New Demos:
++ Self destruct countdown
++ E-reader?
++ Two displays at once?
++ Code review
++ Countdown
++ Interstellar Spaceship Display Panel
++ Guinea Pig Simulator
++ product placement?  Vote Metrocat?
+
+Code fixeS:
++ Auto-detect i2c
++ Brightness=6
++ merge binaries
+
+For website/video
++ Print alphanum sample
+
++ We introduced the SVMW Meter Mark 1
++ You said "Who has a parallel port in 2011?"
++ We said "Get off our lawn!" (pics of Apple II, me, E)
++ Then we said "I suppose we can do a USB version"
+
+
+
 To self-power from USB, probably need to use 6ma current rather than 12.
 SAA-1064 uses approx 150ma at full draw at 5V, times 4 is 600ma which
 is more then the 400ma a USB port can provide.

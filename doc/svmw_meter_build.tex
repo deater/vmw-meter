@@ -8,7 +8,7 @@
 {\Large \bf Building the Super-VMW CPU Meter}\\
 {\tt http://www.deater.net/weave/vmwprod/meter/super.html}\\
 by Vincent M. Weaver\\
-4 April 2011
+18 May 2011
 \end{center}
 
 
@@ -24,8 +24,9 @@ Part No   &  Description    &  Quantity    &   Source \\
 LTP 3786E &  14-Seg 2x Alphanum Com Anode & 3 &  DigiKey 160-1011-ND \\ % 3@3.78
 % Jameco also has a selection of colors.  Blue?
 LTA 1000G &  10-segment bargraph       & 2  &  Jameco 697469 \\ %2@1.19
-          &  Mini Red LED              & 12 &  Jameco 333851 \\ %12@.12
+          &  Mini Red LED (3mm)        & 12 &  Jameco 333851 \\ %12@.12
 	  &  1200mcd R,O,Y,G,B,P LEDs  & 6  &  Super Bright LED \\ % 6@.60
+% RL5-R12120, RL5-04030, RL5-Y12120,  RL5-G16120, RL5-B12120, RL5-V1015
 	  &  20-pin .3 wide DIP socket & 4  &  Jameco 38608 \\ %4@.17
 	  &  30-pin SIP header         & 5  &  All-Electronics SIP-30 \\ %5@1.20
 \hline
@@ -40,8 +41,8 @@ LTA 1000G &  10-segment bargraph       & 2  &  Jameco 697469 \\ %2@1.19
 	  & 27K Resistor               & 1  &  Jameco 691201 \\ %.02
 	  & 16K Resistor               & 1  &  Jameco 691155 \\ %.02
 	  & 3.3K Resistor              & 1  &  Jameco 690988 \\ %.02
-	  & 2.7nF Capacitor            & 4  &  Jameco 544905 \\ %10@.15
-	  & 0.1$\mu$F Capacitor        & 4  &  Jameco 15229 \\ %10@0.06
+	  & 2.2nF Capacitor            & 4  &  Jameco 1947327 \\ %10@.15
+	  & 0.1$\mu$F Capacitor        & 4  &  Jameco 151116 \\ %10@0.06
 PN2222    & NPN Transistor             & 8  &  Jameco 28628 \\ %10@0.07
 SAA1064   & LED Driver w I$^{2}$C      & 4  &  DigiKey 568-1107-5-ND \\ % 4@2.79
 74HC05    & Inverter w/ Open Drain     & 1  &  DigiKey 296-1568-5-ND \\ % 1@.57
@@ -52,7 +53,7 @@ SAA1064   & LED Driver w I$^{2}$C      & 4  &  DigiKey 568-1107-5-ND \\ % 4@2.79
           & SERPAC A-31 Case           & 1   & Digikey SRA31G-ND \\ % 1@9.54
 	  & 20-conductor Flat 28AWG wire & 16in & Jameco 643874 \\ % $3.95
           & IDC 20-pin DIP cable mount & 8   & Jameco 104097 \\ % 8@.65
-	  & 5V 1A power adapter        & 1   & Jameco S08AA05010001 \\ %12.95
+	  & 5V 1A power adapter        & 1   & Jameco 252720 \\ %12.95
 	  & Parallel Cable             & 1   & \\
 HT-214D   & IDC DIP Crimping Tool      & 1   & Newark 69C1030 \\ % 1@15.62
 \hline
@@ -65,7 +66,7 @@ HT-214D   & IDC DIP Crimping Tool      & 1   & Newark 69C1030 \\ % 1@15.62
 
 \begin{figure*}[tbp]
 \begin{center}
-\epsfig{file=cable_loft.eps,width=1.75in}
+\epsfig{file=figures/cable_loft.eps,width=1.75in}
 \caption{Lofting the cable connector (workaround).}
 \label{figure:cableloft}
 \end{center}
@@ -104,7 +105,7 @@ HT-214D   & IDC DIP Crimping Tool      & 1   & Newark 69C1030 \\ % 1@15.62
 
 \begin{figure*}[tbp]
 \begin{center}
-\epsfig{file=chip_loft.eps,width=2.5in}
+\epsfig{file=figures/chip_loft.eps,width=2.5in}
 \caption{Lofting the chip socket (workaround).}
 \label{figure:chiploft}
 \end{center}
@@ -121,7 +122,9 @@ HT-214D   & IDC DIP Crimping Tool      & 1   & Newark 69C1030 \\ % 1@15.62
       so that the cable headers can fit overtop.  Solder in place.
 \item Solder the resistors in place.  
       {\bf WORKAROUND} The 27K resistor is mislabeled
-      21K on the board.
+      21K on the board.  3.3K = Orange Orange Red. 
+      4.7K = Yellow Violet Red.  16K = Brown Blue Orange.
+      27K = Red Violet Orange.
 \item Solder the capacitors in place.
 \item Solder the power socket.
 \item Solder on the parallel connector.
@@ -162,11 +165,96 @@ HT-214D   & IDC DIP Crimping Tool      & 1   & Newark 69C1030 \\ % 1@15.62
       programs to make sure each works/no problems before inserting all.
 \end{enumerate}
 
+\pagebreak
 
-%\section{Optional USB Board}
-%\begin{enumerate}
-%\item Investigate putting together usb-tiny board for use on machines
-%      without parallel port.
-%\end{enumerate}
+
+
+
+\section{Optional USB Board}
+
+
+\subsection{USB Parts List}
+
+\begin{tabular}{|c|l|c|c|}
+\hline
+Part No   &  Description    &  Quantity    &   Source \\
+\hline
+\hline
+          &  USBtiny AVR Programmer  & 1  & adafruit\\ %$22
+\hline
+\hline
+          &  Proto Board             & 1  & ????    \\ %got long ago
+          &  Male 6-pin header       & 1  & Jameco 115035 \\ % .29
+          &  8-pin machine socket    & 1  & \\
+\hline
+\hline
+          &  22pF capcaitor          & 2  & \\
+          &  12MHz crystal           & 1  & \\
+          &  ATTiny45                & 1  & \\
+          &  68$\Omega$ Resistor          & 2  & \\
+          &  2.2K Resistor           & 1  & \\
+          &  3.6V Zener Diode        & 2  & \\
+          &  10$\mu$F electrolytic cap   & 1  & \\
+          &  100nF (.1$\mu$F) cap        & 1  & \\
+          &  10K Resistor            & 2  & \\
+          &  USB B connector         & 1  & \\
+          &  6-foot USB cable        & 1  & \\
+          &  8-pin machine socket    & 1  & \\
+          &  Perf Board              & 1  & Radio Shack 276-159B \\
+\hline
+
+\hline
+\end{tabular}
+
+\subsection{USB AVR Programming Board}
+
+\begin{figure*}[tbp]
+\begin{center}
+\epsfig{file=figures/usb_flash.eps,width=2in}
+\caption{Setup for flashing ATTINY45 with USB-tiny-ISP}
+\label{figure:avrprog}
+\end{center}
+\end{figure*}
+
+\begin{enumerate}
+\item First we need to flash the ATTINY45.  Get an AVR programmer
+I used the USBtinyISP, from {\tt http://www.ladyada.net/make/usbtinyisp/}
+\item You'll need to set wire up an adapter so the pins from the 
+programmer go to the right pins of the ATTINY45.  The one I made used
+some existing perf board I had, and can be seen in Figure~\ref{figure:avrprog}
+\end{enumerate}
+
+\pagebreak
+
+\subsection{Flashing the ATTINY45}
+
+This assumes you are using USBtinyISP.
+\begin{enumerate}
+\item Jumper the USBtinyISP to provide USB power.
+\item Insert ATTINY45 into the board, attach 6-pin jumper
+      from USBtinyISP.
+\item Plug the USBtinyISP into a USB port.  The green light
+      should come on.
+\item Use {\tt avrdude} to do the programming.  On Debian Linux
+      you can do an {\tt apt-get install avrdude} to install.
+\item Obtain the USB firmware.  Get this from the 
+      i2c tiny USB page
+      {\tt http://www.harbaum.org/till/i2c\_tiny\_usb/} or eventually
+      I will include it here.
+\item Program as so:\\
+      {\tt avrdude -Pattiny45 -c usbtiny -U lfuse:w:0xdf:m 
+       -U hfuse:w:0x5f:m -U flash:w:firmware.hex}
+\end{enumerate}
+
+
+\begin{figure*}[tbp]
+\begin{center}
+\epsfig{file=figures/usb_i2c.eps,width=4in}
+\caption{Layout of USB to i2c board.}
+\label{figure:usbi2c}
+\end{center}
+\end{figure*}
+
+\subsection{USB to I2C Converter Board}
 
 \end{document}

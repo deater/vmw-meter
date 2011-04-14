@@ -1,0 +1,830 @@
+%!PS-Adobe-2.0 EPSF-2.0
+%%Title: usb_i2c.fig
+%%Creator: fig2dev Version 3.2 Patchlevel 5a
+%%CreationDate: Wed May 18 14:28:48 2011
+%%BoundingBox: 0 0 617 398
+%Magnification: 1.0000
+%%EndComments
+%%BeginProlog
+/$F2psDict 200 dict def
+$F2psDict begin
+$F2psDict /mtrx matrix put
+/col-1 {0 setgray} bind def
+/col0 {0.000 0.000 0.000 srgb} bind def
+/col1 {0.000 0.000 1.000 srgb} bind def
+/col2 {0.000 1.000 0.000 srgb} bind def
+/col3 {0.000 1.000 1.000 srgb} bind def
+/col4 {1.000 0.000 0.000 srgb} bind def
+/col5 {1.000 0.000 1.000 srgb} bind def
+/col6 {1.000 1.000 0.000 srgb} bind def
+/col7 {1.000 1.000 1.000 srgb} bind def
+/col8 {0.000 0.000 0.560 srgb} bind def
+/col9 {0.000 0.000 0.690 srgb} bind def
+/col10 {0.000 0.000 0.820 srgb} bind def
+/col11 {0.530 0.810 1.000 srgb} bind def
+/col12 {0.000 0.560 0.000 srgb} bind def
+/col13 {0.000 0.690 0.000 srgb} bind def
+/col14 {0.000 0.820 0.000 srgb} bind def
+/col15 {0.000 0.560 0.560 srgb} bind def
+/col16 {0.000 0.690 0.690 srgb} bind def
+/col17 {0.000 0.820 0.820 srgb} bind def
+/col18 {0.560 0.000 0.000 srgb} bind def
+/col19 {0.690 0.000 0.000 srgb} bind def
+/col20 {0.820 0.000 0.000 srgb} bind def
+/col21 {0.560 0.000 0.560 srgb} bind def
+/col22 {0.690 0.000 0.690 srgb} bind def
+/col23 {0.820 0.000 0.820 srgb} bind def
+/col24 {0.500 0.190 0.000 srgb} bind def
+/col25 {0.630 0.250 0.000 srgb} bind def
+/col26 {0.750 0.380 0.000 srgb} bind def
+/col27 {1.000 0.500 0.500 srgb} bind def
+/col28 {1.000 0.630 0.630 srgb} bind def
+/col29 {1.000 0.750 0.750 srgb} bind def
+/col30 {1.000 0.880 0.880 srgb} bind def
+/col31 {1.000 0.840 0.000 srgb} bind def
+/col32 {0.533 0.533 0.533 srgb} bind def
+/col33 {0.000 0.000 0.000 srgb} bind def
+/col34 {1.000 0.871 0.627 srgb} bind def
+/col35 {0.890 0.475 0.102 srgb} bind def
+/col36 {0.988 0.749 0.259 srgb} bind def
+/col37 {1.000 0.451 0.000 srgb} bind def
+
+end
+
+/cp {closepath} bind def
+/ef {eofill} bind def
+/gr {grestore} bind def
+/gs {gsave} bind def
+/sa {save} bind def
+/rs {restore} bind def
+/l {lineto} bind def
+/m {moveto} bind def
+/rm {rmoveto} bind def
+/n {newpath} bind def
+/s {stroke} bind def
+/sh {show} bind def
+/slc {setlinecap} bind def
+/slj {setlinejoin} bind def
+/slw {setlinewidth} bind def
+/srgb {setrgbcolor} bind def
+/rot {rotate} bind def
+/sc {scale} bind def
+/sd {setdash} bind def
+/ff {findfont} bind def
+/sf {setfont} bind def
+/scf {scalefont} bind def
+/sw {stringwidth} bind def
+/tr {translate} bind def
+/tnt {dup dup currentrgbcolor
+  4 -2 roll dup 1 exch sub 3 -1 roll mul add
+  4 -2 roll dup 1 exch sub 3 -1 roll mul add
+  4 -2 roll dup 1 exch sub 3 -1 roll mul add srgb}
+  bind def
+/shd {dup dup currentrgbcolor 4 -2 roll mul 4 -2 roll mul
+  4 -2 roll mul srgb} bind def
+/reencdict 12 dict def /ReEncode { reencdict begin
+/newcodesandnames exch def /newfontname exch def /basefontname exch def
+/basefontdict basefontname findfont def /newfont basefontdict maxlength dict def
+basefontdict { exch dup /FID ne { dup /Encoding eq
+{ exch dup length array copy newfont 3 1 roll put }
+{ exch newfont 3 1 roll put } ifelse } { pop pop } ifelse } forall
+newfont /FontName newfontname put newcodesandnames aload pop
+128 1 255 { newfont /Encoding get exch /.notdef put } for
+newcodesandnames length 2 idiv { newfont /Encoding get 3 1 roll put } repeat
+newfontname newfont definefont pop end } def
+/isovec [
+8#055 /minus 8#200 /grave 8#201 /acute 8#202 /circumflex 8#203 /tilde
+8#204 /macron 8#205 /breve 8#206 /dotaccent 8#207 /dieresis
+8#210 /ring 8#211 /cedilla 8#212 /hungarumlaut 8#213 /ogonek 8#214 /caron
+8#220 /dotlessi 8#230 /oe 8#231 /OE
+8#240 /space 8#241 /exclamdown 8#242 /cent 8#243 /sterling
+8#244 /currency 8#245 /yen 8#246 /brokenbar 8#247 /section 8#250 /dieresis
+8#251 /copyright 8#252 /ordfeminine 8#253 /guillemotleft 8#254 /logicalnot
+8#255 /hyphen 8#256 /registered 8#257 /macron 8#260 /degree 8#261 /plusminus
+8#262 /twosuperior 8#263 /threesuperior 8#264 /acute 8#265 /mu 8#266 /paragraph
+8#267 /periodcentered 8#270 /cedilla 8#271 /onesuperior 8#272 /ordmasculine
+8#273 /guillemotright 8#274 /onequarter 8#275 /onehalf
+8#276 /threequarters 8#277 /questiondown 8#300 /Agrave 8#301 /Aacute
+8#302 /Acircumflex 8#303 /Atilde 8#304 /Adieresis 8#305 /Aring
+8#306 /AE 8#307 /Ccedilla 8#310 /Egrave 8#311 /Eacute
+8#312 /Ecircumflex 8#313 /Edieresis 8#314 /Igrave 8#315 /Iacute
+8#316 /Icircumflex 8#317 /Idieresis 8#320 /Eth 8#321 /Ntilde 8#322 /Ograve
+8#323 /Oacute 8#324 /Ocircumflex 8#325 /Otilde 8#326 /Odieresis 8#327 /multiply
+8#330 /Oslash 8#331 /Ugrave 8#332 /Uacute 8#333 /Ucircumflex
+8#334 /Udieresis 8#335 /Yacute 8#336 /Thorn 8#337 /germandbls 8#340 /agrave
+8#341 /aacute 8#342 /acircumflex 8#343 /atilde 8#344 /adieresis 8#345 /aring
+8#346 /ae 8#347 /ccedilla 8#350 /egrave 8#351 /eacute
+8#352 /ecircumflex 8#353 /edieresis 8#354 /igrave 8#355 /iacute
+8#356 /icircumflex 8#357 /idieresis 8#360 /eth 8#361 /ntilde 8#362 /ograve
+8#363 /oacute 8#364 /ocircumflex 8#365 /otilde 8#366 /odieresis 8#367 /divide
+8#370 /oslash 8#371 /ugrave 8#372 /uacute 8#373 /ucircumflex
+8#374 /udieresis 8#375 /yacute 8#376 /thorn 8#377 /ydieresis] def
+/Times-Roman /Times-Roman-iso isovec ReEncode
+/Helvetica /Helvetica-iso isovec ReEncode
+ /DrawEllipse {
+	/endangle exch def
+	/startangle exch def
+	/yrad exch def
+	/xrad exch def
+	/y exch def
+	/x exch def
+	/savematrix mtrx currentmatrix def
+	x y tr xrad yrad sc 0 0 1 startangle endangle arc
+	closepath
+	savematrix setmatrix
+	} def
+
+/$F2psBegin {$F2psDict begin /$F2psEnteredState save def} def
+/$F2psEnd {$F2psEnteredState restore end} def
+
+/pageheader {
+save
+newpath 0 398 moveto 0 0 lineto 617 0 lineto 617 398 lineto closepath clip newpath
+-39.1 394.6 translate
+1 -1 scale
+$F2psBegin
+10 setmiterlimit
+0 slj 0 slc
+ 0.06299 0.06299 sc
+} bind def
+/pagefooter {
+$F2psEnd
+restore
+} bind def
+%%EndProlog
+pageheader
+%
+% Fig objects follow
+%
+% 
+% here starts figure with depth 50
+% Ellipse
+7.500 slw
+n 1215 4635 302 302 0 360 DrawEllipse gs col0 s gr
+
+% Ellipse
+n 7110 4635 302 302 0 360 DrawEllipse gs col0 s gr
+
+% Ellipse
+n 7110 990 302 302 0 360 DrawEllipse gs col0 s gr
+
+% Ellipse
+n 1209 1018 302 302 0 360 DrawEllipse gs col0 s gr
+
+% Polyline
+0 slj
+0 slc
+n 2130 1800 m 2025 1800 2025 2370 105 arcto 4 {pop} repeat
+  2025 2475 2145 2475 105 arcto 4 {pop} repeat
+  2250 2475 2250 1905 105 arcto 4 {pop} repeat
+  2250 1800 2130 1800 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 2580 1800 m 2475 1800 2475 2370 105 arcto 4 {pop} repeat
+  2475 2475 2595 2475 105 arcto 4 {pop} repeat
+  2700 2475 2700 1905 105 arcto 4 {pop} repeat
+  2700 1800 2580 1800 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 4830 1800 m 4725 1800 4725 2370 105 arcto 4 {pop} repeat
+  4725 2475 4845 2475 105 arcto 4 {pop} repeat
+  4950 2475 4950 1905 105 arcto 4 {pop} repeat
+  4950 1800 4830 1800 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 5280 1800 m 5175 1800 5175 2370 105 arcto 4 {pop} repeat
+  5175 2475 5295 2475 105 arcto 4 {pop} repeat
+  5400 2475 5400 1905 105 arcto 4 {pop} repeat
+  5400 1800 5280 1800 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 5730 1800 m 5625 1800 5625 2370 105 arcto 4 {pop} repeat
+  5625 2475 5745 2475 105 arcto 4 {pop} repeat
+  5850 2475 5850 1905 105 arcto 4 {pop} repeat
+  5850 1800 5730 1800 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 6180 1800 m 6075 1800 6075 2370 105 arcto 4 {pop} repeat
+  6075 2475 6195 2475 105 arcto 4 {pop} repeat
+  6300 2475 6300 1905 105 arcto 4 {pop} repeat
+  6300 1800 6180 1800 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 2130 3150 m 2025 3150 2025 3720 105 arcto 4 {pop} repeat
+  2025 3825 2145 3825 105 arcto 4 {pop} repeat
+  2250 3825 2250 3255 105 arcto 4 {pop} repeat
+  2250 3150 2130 3150 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 2580 3150 m 2475 3150 2475 3720 105 arcto 4 {pop} repeat
+  2475 3825 2595 3825 105 arcto 4 {pop} repeat
+  2700 3825 2700 3255 105 arcto 4 {pop} repeat
+  2700 3150 2580 3150 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 3030 3150 m 2925 3150 2925 3720 105 arcto 4 {pop} repeat
+  2925 3825 3045 3825 105 arcto 4 {pop} repeat
+  3150 3825 3150 3255 105 arcto 4 {pop} repeat
+  3150 3150 3030 3150 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 3480 3150 m 3375 3150 3375 3720 105 arcto 4 {pop} repeat
+  3375 3825 3495 3825 105 arcto 4 {pop} repeat
+  3600 3825 3600 3255 105 arcto 4 {pop} repeat
+  3600 3150 3480 3150 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 4380 3150 m 4275 3150 4275 3720 105 arcto 4 {pop} repeat
+  4275 3825 4395 3825 105 arcto 4 {pop} repeat
+  4500 3825 4500 3255 105 arcto 4 {pop} repeat
+  4500 3150 4380 3150 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 4830 3150 m 4725 3150 4725 3720 105 arcto 4 {pop} repeat
+  4725 3825 4845 3825 105 arcto 4 {pop} repeat
+  4950 3825 4950 3255 105 arcto 4 {pop} repeat
+  4950 3150 4830 3150 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 5280 3150 m 5175 3150 5175 3720 105 arcto 4 {pop} repeat
+  5175 3825 5295 3825 105 arcto 4 {pop} repeat
+  5400 3825 5400 3255 105 arcto 4 {pop} repeat
+  5400 3150 5280 3150 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 5730 3150 m 5625 3150 5625 3720 105 arcto 4 {pop} repeat
+  5625 3825 5745 3825 105 arcto 4 {pop} repeat
+  5850 3825 5850 3255 105 arcto 4 {pop} repeat
+  5850 3150 5730 3150 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 1350 3150 m 1800 3150 l 1800 3375 l 1350 3375 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 1350 3600 m 1800 3600 l 1800 3825 l 1350 3825 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 1350 1800 m 1800 1800 l 1800 2025 l 1350 2025 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 1350 2250 m 1800 2250 l 1800 2475 l 1350 2475 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 6525 1800 m 6975 1800 l 6975 2025 l 6525 2025 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 6525 2250 m 6975 2250 l 6975 2475 l 6525 2475 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 2025 1125 m 2475 1125 l 2475 1350 l 2025 1350 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 2025 4275 m 2475 4275 l 2475 4500 l 2025 4500 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 3825 1350 m 4050 1350 l 4050 900 l 3825 900 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 4500 1350 m 4725 1350 l 4725 900 l 4500 900 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 5175 1350 m 5400 1350 l 5400 900 l 5175 900 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 5850 1350 m 6075 1350 l 6075 900 l 5850 900 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 3150 4725 m 3375 4725 l 3375 4275 l 3150 4275 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 3825 4725 m 4050 4725 l 4050 4275 l 3825 4275 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 4500 4725 m 4725 4725 l 4725 4275 l 4500 4275 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 5175 4725 m 5400 4725 l 5400 4275 l 5175 4275 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 5850 4725 m 6075 4725 l 6075 4275 l 5850 4275 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+75.000 slw
+n 1755 2340 m
+ 2115 2340 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 1710 3240 m
+ 2160 3240 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 6210 2385 m
+ 6615 2385 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 5760 1890 m
+ 6030 1575 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 6030 1575 m
+ 6570 1575 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 6570 1575 m
+ 6570 1800 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+7.500 slw
+n 6180 3150 m 6075 3150 6075 3720 105 arcto 4 {pop} repeat
+  6075 3825 6195 3825 105 arcto 4 {pop} repeat
+  6300 3825 6300 3255 105 arcto 4 {pop} repeat
+  6300 3150 6180 3150 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 6525 3150 m 6975 3150 l 6975 3375 l 6525 3375 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 6525 3600 m 6975 3600 l 6975 3825 l 6525 3825 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+75.000 slw
+n 2610 1935 m
+ 2250 1575 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 2250 1575 m
+ 1755 1575 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 1755 1575 m
+ 1710 1845 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 2610 3735 m
+ 2250 4050 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 2250 4050 m
+ 1800 4050 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 1800 4050 m
+ 1665 3780 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 5805 3780 m
+ 6075 4050 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 6030 4050 m
+ 6525 4050 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 6525 4050 m
+ 6570 3735 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 2385 4410 m
+ 3015 3735 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 3960 1935 m
+ 3915 1260 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 4410 1890 m
+ 4590 1260 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 4860 1890 m
+ 5310 1305 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 5310 1890 m
+ 5940 1215 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 3510 3735 m
+ 3285 4365 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 3960 3735 m
+ 3960 4365 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 4410 3780 m
+ 4635 4410 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 4815 3735 m
+ 5265 4410 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 5310 3690 m
+ 5940 4410 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+7.500 slw
+n 675 450 m 7650 450 l 7650 5400 l 675 5400 l
+ cp gs col0 s gr 
+% Polyline
+n 4470 4365 m 4365 4365 4365 4575 105 arcto 4 {pop} repeat
+  4365 4680 5430 4680 105 arcto 4 {pop} repeat
+  5535 4680 5535 4470 105 arcto 4 {pop} repeat
+  5535 4365 4470 4365 105 arcto 4 {pop} repeat
+ cp gs col32 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 4515 4410 m 4410 4410 4410 4530 105 arcto 4 {pop} repeat
+  4410 4635 5385 4635 105 arcto 4 {pop} repeat
+  5490 4635 5490 4515 105 arcto 4 {pop} repeat
+  5490 4410 4515 4410 105 arcto 4 {pop} repeat
+ cp gs col32 1.00 shd ef gr gs col0 s gr 
+% Polyline
+60.000 slw
+n 5985 4635 m
+ 6660 3735 l gs col32 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 2385 1260 m
+ 1665 90 l gs col32 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 6255 3285 m
+ 6615 3240 l gs col32 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 3960 4635 m
+ 3915 6210 l gs col32 1.00 shd ef gr gs col10 s gr 
+% Polyline
+7.500 slw
+n 4522 3420 m 4455 3420 4455 3488 67 arcto 4 {pop} repeat
+  4455 3555 5063 3555 67 arcto 4 {pop} repeat
+  5130 3555 5130 3487 67 arcto 4 {pop} repeat
+  5130 3420 4522 3420 67 arcto 4 {pop} repeat
+ cp gs col26 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 4792 3600 m 4725 3600 4725 3668 67 arcto 4 {pop} repeat
+  4725 3735 5333 3735 67 arcto 4 {pop} repeat
+  5400 3735 5400 3667 67 arcto 4 {pop} repeat
+  5400 3600 4792 3600 67 arcto 4 {pop} repeat
+ cp gs col26 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 3150 1350 m 3375 1350 l 3375 900 l 3150 900 l
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+75.000 slw
+n 3510 1890 m
+ 3195 1215 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 2385 1260 m
+ 3015 1845 l gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+7.500 slw
+n 4380 1800 m 4275 1800 4275 2370 105 arcto 4 {pop} repeat
+  4275 2475 4395 2475 105 arcto 4 {pop} repeat
+  4500 2475 4500 1905 105 arcto 4 {pop} repeat
+  4500 1800 4380 1800 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 3930 3150 m 3825 3150 3825 3720 105 arcto 4 {pop} repeat
+  3825 3825 3945 3825 105 arcto 4 {pop} repeat
+  4050 3825 4050 3255 105 arcto 4 {pop} repeat
+  4050 3150 3930 3150 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 3930 1800 m 3825 1800 3825 2370 105 arcto 4 {pop} repeat
+  3825 2475 3945 2475 105 arcto 4 {pop} repeat
+  4050 2475 4050 1905 105 arcto 4 {pop} repeat
+  4050 1800 3930 1800 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 5490 2250 m 3735 2250 l 3735 3375 l 5490 3375 l
+ cp gs col32 1.00 shd ef gr gs col0 s gr 
+% Polyline
+30.000 slw
+n 3735 2700 m 3870 2790 l
+ 3735 2925 l gs col32 1.00 shd ef gr gs col0 s gr 
+% Polyline
+60.000 slw
+ [180] 0 sd
+n 675 3600 m
+ 2520 5445 l gs col32 1.00 shd ef gr gs col0 s gr  [] 0 sd
+% Polyline
+n 3222 1251 m
+ 4032 981 l gs col32 1.00 shd ef gr gs col4 s gr 
+% Polyline
+n 3285 1035 m
+ 3330 135 l gs col32 1.00 shd ef gr gs col4 s gr 
+% Polyline
+n 5310 1035 m
+ 5265 90 l gs col32 1.00 shd ef gr gs col2 s gr 
+% Polyline
+7.500 slw
+n 3480 1800 m 3375 1800 3375 2370 105 arcto 4 {pop} repeat
+  3375 2475 3495 2475 105 arcto 4 {pop} repeat
+  3600 2475 3600 1905 105 arcto 4 {pop} repeat
+  3600 1800 3480 1800 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 3030 1800 m 2925 1800 2925 2370 105 arcto 4 {pop} repeat
+  2925 2475 3045 2475 105 arcto 4 {pop} repeat
+  3150 2475 3150 1905 105 arcto 4 {pop} repeat
+  3150 1800 3030 1800 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 2992 2115 m 2925 2115 2925 2183 67 arcto 4 {pop} repeat
+  2925 2250 3533 2250 67 arcto 4 {pop} repeat
+  3600 2250 3600 2182 67 arcto 4 {pop} repeat
+  3600 2115 2992 2115 67 arcto 4 {pop} repeat
+ cp gs col26 1.00 shd ef gr gs col0 s gr 
+% Ellipse
+n 3274 1856 191 191 0 360 DrawEllipse gs 0.00 setgray ef gr gs col0 s gr
+
+% Ellipse
+n 3274 1856 142 142 0 360 DrawEllipse gs col32 1.00 shd ef gr gs col0 s gr
+
+% Polyline
+30.000 slw
+n 3094 1811 m
+ 3094 1901 l gs col32 1.00 shd ef gr gs col32 s gr 
+% Ellipse
+7.500 slw
+n 6232 1912 132 132 0 360 DrawEllipse gs col34 1.00 shd ef gr gs col0 s gr
+
+% Ellipse
+n 6660 1890 127 127 0 360 DrawEllipse gs col34 1.00 shd ef gr gs col0 s gr
+
+% Polyline
+n 6210 1800 m 6660 1800 l 6660 1980 l 6210 1980 l
+ cp gs col34 1.00 shd ef gr gs col34 s gr 
+% Polyline
+30.000 slw
+n 6345 1800 m
+ 6345 2025 l gs 0.00 setgray ef gr gs col4 s gr 
+% Polyline
+n 6480 1800 m
+ 6480 1980 l gs 0.00 setgray ef gr gs col4 s gr 
+% Polyline
+n 6570 1800 m
+ 6570 1980 l gs 0.00 setgray ef gr gs col4 s gr 
+% Ellipse
+7.500 slw
+n 4162 1912 132 132 0 360 DrawEllipse gs col34 1.00 shd ef gr gs col0 s gr
+
+% Ellipse
+n 4590 1890 127 127 0 360 DrawEllipse gs col34 1.00 shd ef gr gs col0 s gr
+
+% Polyline
+n 4140 1800 m 4590 1800 l 4590 1980 l 4140 1980 l
+ cp gs col34 1.00 shd ef gr gs col34 s gr 
+% Polyline
+30.000 slw
+n 4230 1800 m
+ 4230 2025 l gs 0.00 setgray ef gr gs col26 s gr 
+% Polyline
+n 4365 1800 m
+ 4365 1980 l gs 0.00 setgray ef gr gs col0 s gr 
+% Polyline
+n 4500 1800 m
+ 4500 1980 l gs 0.00 setgray ef gr gs col37 s gr 
+% Ellipse
+7.500 slw
+gs
+3488 2767 tr
+-270.001 rot
+n 0 0 132 132 0 360 DrawEllipse 270.001 rot
+gs col34 1.00 shd ef gr gs col0 s gr
+gr
+
+% Ellipse
+gs
+3510 3195 tr
+-270.001 rot
+n 0 0 127 127 0 360 DrawEllipse 270.001 rot
+gs col34 1.00 shd ef gr gs col0 s gr
+gr
+
+% Polyline
+n 3600 2745 m 3600 3195 l 3420 3195 l 3420 2745 l
+ cp gs col34 1.00 shd ef gr gs col34 s gr 
+% Polyline
+30.000 slw
+n 3600 2835 m
+ 3375 2835 l gs 0.00 setgray ef gr gs col26 s gr 
+% Polyline
+n 3600 2970 m
+ 3420 2970 l gs 0.00 setgray ef gr gs col0 s gr 
+% Polyline
+n 3600 3105 m
+ 3420 3105 l gs 0.00 setgray ef gr gs col37 s gr 
+% Ellipse
+7.500 slw
+n 5557 2092 132 132 0 360 DrawEllipse gs col34 1.00 shd ef gr gs col0 s gr
+
+% Ellipse
+n 5985 2070 127 127 0 360 DrawEllipse gs col34 1.00 shd ef gr gs col0 s gr
+
+% Polyline
+n 5535 1980 m 5985 1980 l 5985 2160 l 5535 2160 l
+ cp gs col34 1.00 shd ef gr gs col34 s gr 
+% Polyline
+30.000 slw
+n 5895 1980 m
+ 5895 2160 l gs 0.00 setgray ef gr gs col0 s gr 
+% Polyline
+n 5670 1980 m
+ 5670 2160 l gs 0.00 setgray ef gr gs col9 s gr 
+% Polyline
+n 5805 1980 m
+ 5805 2160 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+7.500 slw
+n 5760 3555 m 6210 3555 l 6210 3780 l 5760 3780 l
+ cp gs col32 1.00 shd ef gr gs col33 s gr 
+% Polyline
+n 6075 3555 m 6165 3555 l 6165 3780 l 6075 3780 l
+ cp gs 0.00 setgray ef gr gs col33 s gr 
+% Polyline
+n 5715 2700 m 6165 2700 l 6165 2925 l 5715 2925 l
+ cp gs col32 1.00 shd ef gr gs col33 s gr 
+% Polyline
+n 6030 2700 m 6120 2700 l 6120 2925 l 6030 2925 l
+ cp gs 0.00 setgray ef gr gs col33 s gr 
+% Ellipse
+n 6907 2812 132 132 0 360 DrawEllipse gs col34 1.00 shd ef gr gs col0 s gr
+
+% Ellipse
+n 7335 2790 127 127 0 360 DrawEllipse gs col34 1.00 shd ef gr gs col0 s gr
+
+% Polyline
+n 6885 2700 m 7335 2700 l 7335 2880 l 6885 2880 l
+ cp gs col34 1.00 shd ef gr gs col34 s gr 
+% Polyline
+30.000 slw
+n 7245 2700 m
+ 7245 2880 l gs 0.00 setgray ef gr gs col0 s gr 
+% Polyline
+n 7020 2700 m
+ 7020 2880 l gs 0.00 setgray ef gr gs col9 s gr 
+% Polyline
+n 7155 2700 m
+ 7155 2880 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+60.000 slw
+n 6840 3735 m
+ 9135 3735 l gs col32 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 6840 2340 m
+ 9135 2340 l gs col32 1.00 shd ef gr gs col10 s gr 
+% Polyline
+n 6885 3240 m
+ 9045 3240 l gs col32 1.00 shd ef gr gs col2 s gr 
+% Polyline
+n 6885 1935 m
+ 9090 1935 l gs col32 1.00 shd ef gr gs col4 s gr 
+% Polyline
+45.000 slw
+n 3510 3285 m
+ 3915 3690 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 3465 2655 m
+ 3960 2160 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 3960 1890 m
+ 4050 1890 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 4680 1845 m
+ 4860 1890 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 4365 3465 m
+ 4500 3510 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 5085 3465 m
+ 5265 3465 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 5715 3645 m
+ 5805 3645 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 6210 3645 m
+ 6255 3690 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 5715 3195 m
+ 5715 2790 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 6165 2835 m
+ 6660 2340 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 5310 2070 m
+ 5490 2070 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 6075 2115 m
+ 6210 2160 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 6750 1890 m
+ 6840 1980 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 6210 2070 m
+ 6120 1890 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 6615 3240 m
+ 6795 2790 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+60.000 slw
+n 3960 1170 m
+ 5760 1890 l gs 0.00 setgray ef gr gs col4 s gr 
+% Polyline
+n 3105 2340 m
+ 3105 4050 l gs 0.00 setgray ef gr gs col0 s gr 
+% Polyline
+n 3105 4005 m
+ 5985 4365 l gs 0.00 setgray ef gr gs col0 s gr 
+% Polyline
+45.000 slw
+n 4635 1215 m
+ 7470 1710 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 7470 1710 m
+ 7560 2790 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+n 7560 2790 m
+ 7380 2790 l gs 0.00 setgray ef gr gs col32 s gr 
+% Polyline
+7.500 slw
+n 9150 315 m 9045 315 9045 750 105 arcto 4 {pop} repeat
+  9045 855 9165 855 105 arcto 4 {pop} repeat
+  9270 855 9270 420 105 arcto 4 {pop} repeat
+  9270 315 9150 315 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 9150 1035 m 9045 1035 9045 1470 105 arcto 4 {pop} repeat
+  9045 1575 9165 1575 105 arcto 4 {pop} repeat
+  9270 1575 9270 1140 105 arcto 4 {pop} repeat
+  9270 1035 9150 1035 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 9465 1035 m 9360 1035 9360 1470 105 arcto 4 {pop} repeat
+  9360 1575 9480 1575 105 arcto 4 {pop} repeat
+  9585 1575 9585 1140 105 arcto 4 {pop} repeat
+  9585 1035 9465 1035 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 9465 315 m 9360 315 9360 750 105 arcto 4 {pop} repeat
+  9360 855 9480 855 105 arcto 4 {pop} repeat
+  9585 855 9585 420 105 arcto 4 {pop} repeat
+  9585 315 9465 315 105 arcto 4 {pop} repeat
+ cp gs col31 1.00 shd ef gr gs col31 s gr 
+% Polyline
+n 8955 450 m 10035 450 l 10035 1350 l 8955 1350 l
+ cp gs col32 1.00 shd ef gr gs col0 s gr 
+% Polyline
+60.000 slw
+n 9180 405 m
+ 9135 90 l gs col31 1.00 shd ef gr gs col4 s gr 
+% Polyline
+n 9450 405 m
+ 9495 0 l gs col31 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 9180 1440 m
+ 9135 1755 l gs col31 1.00 shd ef gr gs col10 s gr 
+% Polyline
+n 9495 1485 m
+ 9495 1710 l gs col31 1.00 shd ef gr gs col2 s gr 
+% Polyline
+7.500 slw
+n 10080 450 m 10395 630 l 10395 1575 l
+ 9990 1305 l gs col0 s gr 
+% Polyline
+n 10305 1350 m 10170 1260 l 10080 1125 l 10080 720 l 10215 675 l 10350 720 l
+
+ 10350 1350 l gs col0 s gr 
+% Polyline
+n 10170 765 m 10170 1125 l 10215 1215 l
+ 10215 765 l gs col0 s gr 
+% Polyline
+n 10170 765 m
+ 10260 810 l gs col0 s gr 
+% Polyline
+n 8955 1350 m 9090 1440 l 10395 1575 l
+ 10035 1305 l gs col32 1.00 shd ef gr gs col0 s gr 
+% Polyline
+n 8955 1350 m
+ 10035 1305 l gs col32 1.00 shd ef gr gs col0 s gr 
+/Times-Roman-iso ff 190.50 scf sf
+4140 2880 m
+gs 1 -1 sc (ATTiny45) col0 sh gr
+/Helvetica-iso ff 190.50 scf sf
+4725 4590 m
+gs 1 -1 sc (Xtal) col0 sh gr
+/Helvetica-iso ff 190.50 scf sf
+1800 270 m
+gs 1 -1 sc (GND) col0 sh gr
+/Helvetica-iso ff 190.50 scf sf
+7920 4005 m
+gs 1 -1 sc (GND) col0 sh gr
+/Helvetica-iso ff 190.50 scf sf
+9585 180 m
+gs 1 -1 sc (GND) col0 sh gr
+/Helvetica-iso ff 190.50 scf sf
+3420 360 m
+gs 1 -1 sc (Vcc) col0 sh gr
+/Helvetica-iso ff 190.50 scf sf
+7920 1845 m
+gs 1 -1 sc (Vcc) col0 sh gr
+/Helvetica-iso ff 190.50 scf sf
+8730 225 m
+gs 1 -1 sc (Vcc) col0 sh gr
+/Helvetica-iso ff 190.50 scf sf
+8100 3105 m
+gs 1 -1 sc (D+) col0 sh gr
+/Helvetica-iso ff 190.50 scf sf
+9585 1755 m
+gs 1 -1 sc (D+) col0 sh gr
+/Helvetica-iso ff 190.50 scf sf
+8100 2610 m
+gs 1 -1 sc (D-) col0 sh gr
+/Helvetica-iso ff 190.50 scf sf
+8820 1710 m
+gs 1 -1 sc (D-) col0 sh gr
+/Helvetica-iso ff 190.50 scf sf
+4050 5895 m
+gs 1 -1 sc (SCL) col0 sh gr
+/Helvetica-iso ff 190.50 scf sf
+4680 270 m
+gs 1 -1 sc (SDA) col0 sh gr
+% here ends figure;
+pagefooter
+showpage
+%%Trailer
+%EOF
