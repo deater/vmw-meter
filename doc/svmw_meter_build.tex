@@ -185,19 +185,19 @@ Part No   &  Description    &  Quantity    &   Source \\
 \hline
           &  Proto Board             & 1  & ????    \\ %got long ago
           &  Male 6-pin header       & 1  & Jameco 115035 \\ % .29
-          &  8-pin machine socket    & 1  & \\
+          &  8-pin machine socket    & 1  & All Electronics HRICS-8\\
 \hline
 \hline
-          &  22pF capcaitor          & 2  & \\
-          &  12MHz crystal           & 1  & \\
-          &  ATTiny45                & 1  & \\
+          &  22pF capacitor          & 2  & Jameco 15404 \\ % 
+          &  12MHz crystal           & 1  & DigiKey X993-ND \\
+          &  ATTiny45                & 1  & DigiKey ATTINY45-20PU-ND \\
           &  68$\Omega$ Resistor          & 2  & \\
           &  2.2K Resistor           & 1  & \\
-          &  3.6V Zener Diode        & 2  & \\
+1N717A    &  3.6V Zener Diode        & 2  & Jameco 1579771\\
           &  10$\mu$F electrolytic cap   & 1  & \\
-          &  100nF (.1$\mu$F) cap        & 1  & \\
+          &  100nF (.1$\mu$F) cap        & 1  & Jameco 15116\\
           &  10K Resistor            & 2  & \\
-          &  USB B connector         & 1  & \\
+          &  USB B connector         & 1  & Jameco 230958\\
           &  6-foot USB cable        & 1  & \\
           &  8-pin machine socket    & 1  & \\
           &  Perf Board              & 1  & Radio Shack 276-159B \\
@@ -256,5 +256,15 @@ This assumes you are using USBtinyISP.
 \end{figure*}
 
 \subsection{USB to I2C Converter Board}
+
+\begin{enumerate}
+\item Build the USB/i2c board as described in Figure~\ref{figure:usbi2c}.
+\item Trim the board corner so it won't interfere with the lofted
+      chips on the parallel port board.
+\item Connect the GND, SDA, and SCL wires to the headers on 
+      the parallel port board.  {\bf DO NOT} connect VCC.
+      Experimentation is still underway on having a USB-bus
+      powered board.
+\end{enumerate}
 
 \end{document}
