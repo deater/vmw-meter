@@ -1,0 +1,106 @@
+#! /bin/sh
+# Copyright (c) 1995-2000 SuSE GmbH Nuernberg, Germany.
+#
+# /etc/init.d/ledmeter
+#
+### BEGIN INIT INFO
+# Provides: ledmeter
+# Default-Start: 3 5
+# Default-Stop: 0 1 2 6
+# Description: Start the ledmeter daemon
+### END INIT INFO
+
+LEDMETER=/usr/local/bin/ledmeter
+test -x $SSHD_BIN || exit 5
+
+LEDMETER_PIDFILE=/var/run/ledmeter.init.pid
+
+. /etc/rc.status
+
+# Shell functions sourced from /etc/rc.status:
+#      rc_check         check and set local and overall rc status
+#      rc_status        check and set local and overall rc status
+#      rc_status -v     ditto but be verbose in local rc status
+#      rc_status -v -r  ditto and clear the local rc status
+#      rc_failed        set local and overall rc status to failed
+#      rc_reset         clear local rc status (overall remains)
+#      rc_exit          exit appropriate to overall rc status
+
+# First reset status of this service
+rc_reset
+
+case "$1" in
+    start)
+	echo -n "Starting ledmeter daemon"
+	## Start daemon with startproc(8). If this fails
+	## the echo return value is set appropriate.
+
+	startproc -f -p $LEDMETER_PIDFILE /usr/local/bin/ledmeter
+
+	# Remember status and be verbose
+	rc_status -v
+	;;
+    stop)
+	echo -n "Shutting down ledmeter daemon"
+	## Stop daemon with killproc(8) and if this fails
+	## set echo the echo return value.
+
+	killproc -p $LEDMETER_PIDFILE -TERM /usr/local/bin/ledmeter
+
+	# Remember status and be verbose
+	rc_status -v
+	;;
+    try-restart)
+        ## Stop the service and if this succeeds (i.e. the 
+        ## service was running before), start it again.
+        $0 status >/dev/null &&  $0 restart
+
+        # Remember status and be quiet
+        rc_status
+        ;;
+    restart)
+        ## Stop the service and regardless of whether it was
+        ## running or not, start it again.
+        $0 stop
+        $0 start
+
+        # Remember status and be quiet
+        rc_status
+        ;;
+    force-reload|reload)
+	## Signal the daemon to reload its config. Most daemons
+	## do this on signal 1 (SIGHUP).
+
+	echo -n "Reload service ledmeter"
+
+	killproc -p $LEDMETER_PIDFILE -HUP /usr/local/bin/ledmeter
+
+        rc_status -v
+
+        ;;
+    status)
+	echo -n "Checking for service ledmeter "
+        ## Check status with checkproc(8), if process is running
+        ## checkproc will return with exit status 0.
+
+        # Status has a slightly different for the status command:
+        # 0 - service running
+        # 1 - service dead, but /var/run/  pid  file exists
+        # 2 - service dead, but /var/lock/ lock file exists
+        # 3 - service not running
+
+	checkproc -p $LEDMETER_PIDFILE /usr/local/bin/ledmeter
+
+	rc_status -v
+	;;
+    probe)
+	## Optional: Probe for the necessity of a reload,
+	## give out the argument which is required for a reload.
+
+	;;
+    *)
+	echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload|probe}"
+	exit 1
+	;;
+esac
+rc_exit
