@@ -49,7 +49,9 @@ void update_display(unsigned char *display_state) {
 
    unsigned char buffer[17];
 
-   int i;
+   int big_hack[8][8];
+
+   int i,j,x,y,newi;
 
    /* only update if there's been a change */
 //     if ( (existing_state[i*2]!=state[i*2]) ||
@@ -60,18 +62,70 @@ void update_display(unsigned char *display_state) {
 
       /* ugh bug in backpack?  bit 0 is actually LED 1, bit 128 LED 0 */
       /* Verify that somehow the python code is outputting like this */
+      /* Fix bits mirrored error */
+
+      for(y=0;y<8;y++) {
+	 for(x=0;x<8;x++) {
+            big_hack[x][y]=((display_state[y]>>(x))&1);
+         }
+      }
 
       /* write out to hardware */
    buffer[0]=0x00;
    for(i=0;i<DISPLAY_LINES;i++) {
-      buffer[(i*2)+1]=(display_state[i]>>1)|((display_state[i]&1)<<7);
-      buffer[(i*2)+2]=0x00;
+      /* Fix off by one error */
+
+
+      /* reconstruct */
+
+	/* no rotate */
+#if 0
+      buffer[(i*2)+1]=0;
+      buffer[(i*2)+1]|=big_hack[6][i]<<0;
+      buffer[(i*2)+1]|=big_hack[5][i]<<1;
+      buffer[(i*2)+1]|=big_hack[4][i]<<2;
+      buffer[(i*2)+1]|=big_hack[3][i]<<3;
+      buffer[(i*2)+1]|=big_hack[2][i]<<4;
+      buffer[(i*2)+1]|=big_hack[1][i]<<5;
+      buffer[(i*2)+1]|=big_hack[0][i]<<6;
+      buffer[(i*2)+1]|=big_hack[7][i]<<7;
+#endif
+	/* rotate 270 degrees clockwise */
+#if 0
+      newi=i;
+      if (newi==0) newi=7;
+      else newi-=1;
+      buffer[(newi*2)+1]=0;
+      buffer[(newi*2)+1]|=big_hack[i][7]<<7;
+      buffer[(newi*2)+1]|=big_hack[i][6]<<6;
+      buffer[(newi*2)+1]|=big_hack[i][5]<<5;
+      buffer[(newi*2)+1]|=big_hack[i][4]<<4;
+      buffer[(newi*2)+1]|=big_hack[i][3]<<3;
+      buffer[(newi*2)+1]|=big_hack[i][2]<<2;
+      buffer[(newi*2)+1]|=big_hack[i][1]<<1;
+      buffer[(newi*2)+1]|=big_hack[i][0]<<0;
+#endif
+      /* rotate 90 degrees clockwise */
+      newi=i;
+//      if (newi==0) newi=7;
+//      else newi-=1;
+      buffer[(newi*2)+1]=0;
+      buffer[(newi*2)+1]|=big_hack[7-i][0]<<6;
+      buffer[(newi*2)+1]|=big_hack[7-i][1]<<5;
+      buffer[(newi*2)+1]|=big_hack[7-i][2]<<4;
+      buffer[(newi*2)+1]|=big_hack[7-i][3]<<3;
+      buffer[(newi*2)+1]|=big_hack[7-i][4]<<2;
+      buffer[(newi*2)+1]|=big_hack[7-i][5]<<1;
+      buffer[(newi*2)+1]|=big_hack[7-i][6]<<0;
+      buffer[(newi*2)+1]|=big_hack[7-i][7]<<7;
+
+
+      buffer[(newi*2)+2]=0x00;
    }
    if ( (write(display_fd, buffer, 17)) !=17) {
       fprintf(stderr,"Erorr writing display!\n");
       exit(1);
    }
-
 
 
 
