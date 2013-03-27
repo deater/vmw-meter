@@ -51,7 +51,7 @@ void update_display(unsigned char *display_state) {
 
    int big_hack[8][8];
 
-   int i,j,x,y,newi;
+   int i,x,y,newi;
 
    /* only update if there's been a change */
 //     if ( (existing_state[i*2]!=state[i*2]) ||
