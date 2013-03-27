@@ -141,6 +141,27 @@ void update_display(unsigned char *display_state) {
 }
 
 
+/* Set brightness from 0 - 15 */
+int set_brightness(int value) {
+
+   unsigned char buffer[17];
+
+   if ((value<0) || (value>15)) {
+      fprintf(stderr,"Brightness value of %d out of range (0-15)\n",value);
+      return -1;
+   }
+
+   /* Set Brightness */
+   buffer[0]= HT16K33_REGISTER_DIMMING | value;
+   if ( (write(display_fd, buffer, 1)) !=1) {
+      fprintf(stderr,"Error setting brightness!\n");
+      return -1;
+   }
+
+   return 0;
+}
+
+
 /* should make the device settable */
 int init_display(void) {
 
@@ -171,5 +192,8 @@ int init_display(void) {
       return -1;
    }
 
+   set_brightness(5);
+
    return 0;
 }
+
