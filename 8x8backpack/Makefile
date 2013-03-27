@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -O2
 LFLAGS =
 
-all:	ball_bounce_demo fill_demo font_demo spiral_demo
+all:	ball_bounce_demo clock_demo fill_demo font_demo spiral_demo
 
 i2c_lib.o:	i2c_lib.c i2c_lib.h
 	$(CC) $(CFLAGS) -c i2c_lib.c
@@ -18,6 +18,15 @@ ball_bounce_demo:	ball_bounce_demo.o i2c_lib.o graphics_lib.o
 
 ball_bounce_demo.o:	ball_bounce_demo.c i2c_lib.h graphics_lib.h
 	$(CC) $(CFLAGS) -c ball_bounce_demo.c
+
+
+####
+
+clock_demo:	clock_demo.o i2c_lib.o graphics_lib.o
+	$(CC) $(LFLASG) -o clock_demo clock_demo.o i2c_lib.o graphics_lib.o
+
+clock_demo.o:	clock_demo.c i2c_lib.h graphics_lib.h
+	$(CC) $(CFLAGS) -c clock_demo.c
 
 
 ####
@@ -52,5 +61,5 @@ spiral_demo.o:	spiral_demo.c i2c_lib.h graphics_lib.h
 
 clean:	
 	rm -f *~ *.o \
-		ball_bounce_demo fill_demo font_demo spiral_demo
+		ball_bounce_demo clock_demo fill_demo font_demo spiral_demo
 
