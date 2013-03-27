@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "i2c_lib.h"
 #include "graphics_lib.h"
@@ -268,6 +269,8 @@ int main(int argc, char **argv) {
   int scroll_buffer[XSIZE][YSIZE];
   unsigned char display_buffer[8];
 
+  time_t seconds;
+  struct tm *breakdown;
 
   /* init scroll buffer */
   for(x=0;x<XSIZE;x++) {
@@ -282,11 +285,19 @@ int main(int argc, char **argv) {
 
   while(1) {
 
-     put_digit(2,1,1,scroll_buffer);
-     put_digit(3,5,1,scroll_buffer);
+     seconds=time(NULL);
+     breakdown=localtime(&seconds);
+
+     /* hour */
+     put_digit((breakdown->tm_hour / 10),1,1,scroll_buffer);
+     put_digit((breakdown->tm_hour % 10),5,1,scroll_buffer);
+
+     /* colon */
      put_digit(10,9,1,scroll_buffer);
-     put_digit(1,13,1,scroll_buffer);
-     put_digit(5,17,1,scroll_buffer);
+
+     /* minutes */
+     put_digit((breakdown->tm_min / 10),13,1,scroll_buffer);
+     put_digit((breakdown->tm_min % 10),17,1,scroll_buffer);
 
      /* Put scroll buffer into output buffer */
      for(y=0;y<YSIZE;y++) {
