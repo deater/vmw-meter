@@ -263,7 +263,7 @@ int put_digit(int c, int x, int y, int scroll_buffer[XSIZE][YSIZE]) {
 int main(int argc, char **argv) {
 
   int result,x,y;
-  int x_scroll=0;
+  int x_scroll=0,scroll_dir=1;
 
   int scroll_buffer[XSIZE][YSIZE];
   unsigned char display_buffer[8];
@@ -278,17 +278,34 @@ int main(int argc, char **argv) {
 
   result=init_display();
 
-  put_digit(2,0,0,scroll_buffer);
+  /* Scroll */
 
-  /* Put scroll buffer into output buffer */
-  for(y=0;y<YSIZE;y++) {
-     /* clear the line before drawing to it */
-     display_buffer[y]=0;
-     for(x=0;x<XSIZE;x++) {
-        if (scroll_buffer[x+x_scroll][y]) plotxy(display_buffer,x,y);
+  while(1) {
+
+     put_digit(2,1,1,scroll_buffer);
+     put_digit(3,5,1,scroll_buffer);
+     put_digit(10,9,1,scroll_buffer);
+     put_digit(1,13,1,scroll_buffer);
+     put_digit(5,17,1,scroll_buffer);
+
+     /* Put scroll buffer into output buffer */
+     for(y=0;y<YSIZE;y++) {
+        /* clear the line before drawing to it */
+        display_buffer[y]=0;
+        for(x=0;x<XSIZE;x++) {
+           if (scroll_buffer[x+x_scroll][y]) plotxy(display_buffer,x,y);
+        }
      }
+
+     update_display(display_buffer);
+
+     x_scroll+=scroll_dir;
+     if ((x_scroll>13) || (x_scroll<1)) {
+        scroll_dir=-scroll_dir;
+     }
+
+     usleep(100000);
   }
-  update_display(display_buffer);
 
   return result;
 }
