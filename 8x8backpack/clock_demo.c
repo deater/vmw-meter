@@ -248,7 +248,7 @@ int put_digit(int c, int x, int y, int scroll_buffer[XSIZE][YSIZE]) {
 
     for(h=0;h<DIGIT_HEIGHT;h++) {
        for(w=0;w<DIGIT_WIDTH;w++) {
-          if (digits[c].line[h] & (1<<w)) {
+          if (digits[c].line[h] & (1<<(DIGIT_WIDTH-1-w))) {
              scroll_buffer[x+w][y+h]=1;
           }
           else {
@@ -278,7 +278,7 @@ int main(int argc, char **argv) {
 
   result=init_display();
 
-  put_digit(0,0,0,scroll_buffer);
+  put_digit(2,0,0,scroll_buffer);
 
   /* Put scroll buffer into output buffer */
   for(y=0;y<YSIZE;y++) {
