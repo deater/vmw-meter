@@ -45,7 +45,7 @@ void reset_display(unsigned short *display_state) {
   }
 }
 
-void update_display(unsigned char *display_state) {
+int update_display(unsigned char *display_state) {
 
    unsigned char buffer[17];
 
@@ -124,7 +124,7 @@ void update_display(unsigned char *display_state) {
    }
    if ( (write(display_fd, buffer, 17)) !=17) {
       fprintf(stderr,"Erorr writing display!\n");
-      exit(1);
+      return -1;
    }
 
 
@@ -138,6 +138,7 @@ void update_display(unsigned char *display_state) {
 //    # Clear the screen
 //    self.clear()
 
+    return 0;
 }
 
 
