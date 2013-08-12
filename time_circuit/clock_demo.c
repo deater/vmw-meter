@@ -264,10 +264,10 @@ int put_digit(int c, int x, int y, int scroll_buffer[XSIZE][YSIZE]) {
 
 int main(int argc, char **argv) {
 
-  int result,x,y;
-  int x_scroll=0,scroll_dir=1;
+  int result;
 
   unsigned char display_buffer[8];
+	long long keypad_result;
 
   time_t seconds;
   struct tm *breakdown;
@@ -301,6 +301,11 @@ int main(int argc, char **argv) {
      }
 #endif
      update_display(display_buffer);
+
+	keypad_result=read_keypad();
+	if (keypad_result!=-1) {
+		printf("keypad: %lld\n",keypad_result);
+	}
 
      usleep(100000);
   }

@@ -11,8 +11,13 @@
 
 #include "i2c_lib.h"
 
-#define HT16K33_REGISTER_DISPLAY_SETUP		0x80
+#define HT16K33_REGISTER_ADDRESS_POINTER	0x00
 #define HT16K33_REGISTER_SYSTEM_SETUP		0x20
+#define HT16K33_REGISTER_KEY_DATA_POINTER	0x40
+#define HT16K33_REGISTER_INT_ADDRESS_POINTER	0x60
+#define HT16K33_REGISTER_DISPLAY_SETUP		0x80
+#define HT16K33_REGISTER_ROW_INT_SET		0xA0
+#define HT16K33_REGISTER_TEST_MODE		0xD0
 #define HT16K33_REGISTER_DIMMING		0xE0
 
 /* Blink rate */
@@ -160,6 +165,36 @@ int set_brightness(int value) {
    }
 
    return 0;
+}
+
+/* Read keypad */
+long long read_keypad(void) {
+
+	unsigned char keypad_buffer[6];
+	unsigned char buffer[17];
+	long long keypress;
+
+	int i;
+
+	buffer[0]= HT16K33_REGISTER_KEY_DATA_POINTER;
+	if ( (write(display_fd, buffer, 1)) !=1) {
+		fprintf(stderr,"Error setting data_pointer!\n");
+      		return -1;
+	}
+
+	read(display_fd,keypad_buffer,6);
+
+	for(i=0;i<6;i++) printf("%x ",keypad_buffer[i]);
+	printf("\n");
+
+	keypress = (long long)keypad_buffer[0] |
+		((long long)keypad_buffer[1]<<8) |
+		((long long)keypad_buffer[2]<<16) |
+		((long long)keypad_buffer[3]<<24) |
+		((long long)keypad_buffer[4]<<32) |
+		((long long)keypad_buffer[5]<<40);
+
+	return keypress;
 }
 
 
