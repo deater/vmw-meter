@@ -264,20 +264,22 @@ int put_digit(int c, int x, int y, int scroll_buffer[XSIZE][YSIZE]) {
 
 int main(int argc, char **argv) {
 
-  int result;
+ 	int result;
 
-  unsigned char display_buffer[8];
-	long long keypad_result;
+ 	unsigned short display_buffer[8];
+	long long keypad_result=0,old_keypad=0,keypad_change;
 
-  time_t seconds;
-  struct tm *breakdown;
+	time_t seconds;
+	struct tm *breakdown;
 
-  result=init_display();
+	result=init_display();
 
-  while(1) {
+	display_buffer[0]=0;
 
-     seconds=time(NULL);
-     breakdown=localtime(&seconds);
+	while(1) {
+
+		seconds=time(NULL);
+		breakdown=localtime(&seconds);
 
 #if 0
      /* hour */
@@ -300,16 +302,26 @@ int main(int argc, char **argv) {
         }
      }
 #endif
-     update_display(display_buffer);
 
-	keypad_result=read_keypad();
-	if (keypad_result!=-1) {
-		printf("keypad: %lld\n",keypad_result);
+
+		keypad_result=read_keypad();
+		if (keypad_result!=-1) {
+			printf("keypad: %lld\n",keypad_result);
+		}
+
+		keypad_change=old_keypad&~keypad_result;
+		if (keypad_change) {
+			display_buffer[0]^=keypad_change;
+		}
+
+		old_keypad=keypad_result;
+
+        	update_display_raw(display_buffer);
+
+
+		usleep(100000);
 	}
 
-     usleep(100000);
-  }
-
-  return result;
+	return result;
 }
 

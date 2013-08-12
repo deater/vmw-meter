@@ -147,6 +147,28 @@ int update_display(unsigned char *display_state) {
 }
 
 
+int update_display_raw(unsigned short *display_state) {
+
+	unsigned char buffer[17];
+
+	int i,x,y,newi;
+
+	buffer[0]=0x00;
+
+	for(i=0;i<8;i++) {
+		buffer[1+(i*2)]=display_state[i]&0xff;
+		buffer[2+(i*2)]=(display_state[i]>>8)&0xff;
+	}
+
+	if ( (write(display_fd, buffer, 17)) !=17) {
+		fprintf(stderr,"Erorr writing display!\n");
+      		return -1;
+	}
+
+	return 0;
+}
+
+
 /* Set brightness from 0 - 15 */
 int set_brightness(int value) {
 
