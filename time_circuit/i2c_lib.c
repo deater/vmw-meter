@@ -206,8 +206,8 @@ long long read_keypad(void) {
 
 	read(display_fd,keypad_buffer,6);
 
-	for(i=0;i<6;i++) printf("%x ",keypad_buffer[i]);
-	printf("\n");
+	//for(i=0;i<6;i++) printf("%x ",keypad_buffer[i]);
+	//printf("\n");
 
 	keypress = (long long)keypad_buffer[0] |
 		((long long)keypad_buffer[1]<<8) |
@@ -221,7 +221,7 @@ long long read_keypad(void) {
 
 
 /* should make the device settable */
-int init_display(void) {
+int init_display(int brightness) {
 
    unsigned char buffer[17];
 
@@ -250,7 +250,7 @@ int init_display(void) {
       return -1;
    }
 
-   set_brightness(5);
+   set_brightness(brightness);
 
    return 0;
 }

@@ -272,9 +272,18 @@ int main(int argc, char **argv) {
 	time_t seconds;
 	struct tm *breakdown;
 
-	result=init_display();
+	/* brightness 0 - 15 */
+	result=init_display(12);
 
-	display_buffer[0]=0;
+	display_buffer[0]=0xffff;
+	display_buffer[1]=0xffff;
+	display_buffer[2]=0xffff;
+	display_buffer[3]=0xffff;
+	display_buffer[4]=0xffff;
+	display_buffer[5]=0xffff;
+	display_buffer[6]=0xffff;
+	display_buffer[7]=0xffff;
+
 
 	while(1) {
 
@@ -305,12 +314,13 @@ int main(int argc, char **argv) {
 
 
 		keypad_result=read_keypad();
-		if (keypad_result!=-1) {
-			printf("keypad: %lld\n",keypad_result);
-		}
+//		if (keypad_result!=-1) {
+//			printf("keypad: %lld\n",keypad_result);
+//		}
 
 		keypad_change=old_keypad&~keypad_result;
 		if (keypad_change) {
+			printf("Keypad: %llx\n",keypad_change);
 			display_buffer[0]^=keypad_change;
 		}
 
