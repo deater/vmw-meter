@@ -125,7 +125,7 @@ unsigned short font_16seg[128] = {
 	SEG_A|SEG_B|SEG_D|SEG_E|SEG_F|SEG_H|SEG_U|SEG_P,	// 0x53 'S'
 	SEG_A|SEG_B|SEG_M|SEG_S,				// 0x54 'T'
 	SEG_C|SEG_D|SEG_E|SEG_F|SEG_G|SEG_H,			// 0x55 'U'
-	SEG_K|SEG_R|SEG_C|SEG_D,				// 0x56 'V'
+	SEG_H|SEG_G|SEG_T|SEG_M,				// 0x56 'V'
 	SEG_C|SEG_D|SEG_H|SEG_G|SEG_T|SEG_R,			// 0x57 'W'
 	SEG_K|SEG_N|SEG_R|SEG_T,				// 0x58 'X'
 	SEG_S|SEG_K|SEG_N,					// 0x59 'Y'
@@ -169,16 +169,166 @@ unsigned short font_16seg[128] = {
 	0x0000,	// 0x7f
 };
 
+int decode_key(long long keycode) {
+
+	int key=0;
+
+	switch(keycode) {
+		case 0x0001:	key=0;	break;
+		case 0x0002:	key=1;	break;
+		case 0x0004:	key=2;	break;
+		case 0x0008:	key=3;	break;
+		case 0x0010:	key=4;	break;
+		case 0x0020:	key=5;	break;
+		case 0x0040:	key=6;	break;
+		case 0x0080:	key=7;  break;
+		case 0x0100:	key=8;	break;
+		case 0x0200:	key=9;	break;
+		case 0x0400:	key=10; break;
+		case 0x0800:	key=11;	break;
+		default:	key=-1;	break;
+	}
+	return key;
+}
+
+#define FIELD_MONTH_1  0
+#define FIELD_MONTH_2  1
+#define FIELD_DATE_1   2
+#define FIELD_DATE_2   3
+#define FIELD_YEAR_1   4
+#define FIELD_YEAR_2   5
+#define FIELD_YEAR_3   6
+#define FIELD_YEAR_4   7
+#define FIELD_HOUR_1   8
+#define FIELD_HOUR_2   9
+#define FIELD_MIN_1   10
+#define FIELD_MIN_2   11
+#define FIELD_DONE    12
+
+long long old_keypad=0;
+
+time_t keypad_change_time(long long keypad_in) {
+
+	time_t delta_time=0,entered_time;
+	struct tm new_time;
+	int keypresses=0;
+	int which_field=FIELD_MONTH_1,which_key=0;
+	long long keypad_result,keypad_change;
+	int done=0;
+	int new_month=0;
+	int new_date=0,new_year=0,new_hour=0,new_minute=0;
+
+	while(1) {
+
+		keypad_result=read_keypad();
+
+		keypad_change=old_keypad&~keypad_result;
+		if (keypad_change) {
+			which_key=decode_key(keypad_change);
+			printf("Keypad: %d %d\n",keypresses,which_key);
+
+			switch(which_field) {
+				case FIELD_MONTH_1:
+					if (which_key>1) {
+						new_month=which_key;
+						printf("Month now %d\n",new_month);
+						which_field=FIELD_DATE_1;
+					}
+					else {
+						new_month=which_key*10;
+						which_field=FIELD_MONTH_2;
+					}
+					break;
+				case FIELD_MONTH_2:
+					new_month+=which_key;
+					printf("Month now %d\n",new_month);
+					which_field=FIELD_DATE_1;
+					break;
+				case FIELD_DATE_1:
+					new_date=which_key*10;
+					which_field=FIELD_DATE_2;
+					break;
+				case FIELD_DATE_2:
+					new_date+=which_key;
+					printf("Day now %d\n",new_date);
+					which_field=FIELD_YEAR_1;
+					break;
+				case FIELD_YEAR_1:
+					new_year=which_key*1000;
+					which_field=FIELD_YEAR_2;
+					break;
+				case FIELD_YEAR_2:
+					new_year+=which_key*100;
+					which_field=FIELD_YEAR_3;
+					break;
+				case FIELD_YEAR_3:
+					new_year+=which_key*10;
+					which_field=FIELD_YEAR_4;
+					break;
+				case FIELD_YEAR_4:
+					new_year+=which_key;
+					printf("Year now %d\n",new_year);
+					which_field=FIELD_HOUR_1;
+					break;
+				case FIELD_HOUR_1:
+					new_hour=10*which_key;
+					which_field=FIELD_HOUR_2;
+					break;
+				case FIELD_HOUR_2:
+					new_hour+=which_key;
+					printf("Hour now %d\n",new_hour);
+					which_field=FIELD_MIN_1;
+					break;
+				case FIELD_MIN_1:
+					new_minute=10*which_key;
+					which_field=FIELD_MIN_2;
+					break;
+				case FIELD_MIN_2:
+					new_minute+=which_key;
+					printf("Minutes now %d\n",new_minute);
+					which_field=FIELD_DONE;
+					break;
+
+			}
+
+			keypresses++;
+		}
+		old_keypad=keypad_result;
+
+		if (which_field==FIELD_DONE) done=1;
+		if (done) break;
+
+		usleep(20000);
+	}
+
+	new_time.tm_year=new_year-1900;
+	new_time.tm_mon=new_month-1;
+	new_time.tm_mday=new_date;
+	new_time.tm_hour=new_hour;
+	new_time.tm_min=new_minute;
+	new_time.tm_sec=0;
+	new_time.tm_isdst=-1;
+
+	entered_time=mktime(&new_time);
+
+	if (entered_time==-1) {
+		printf("Error\n");
+	}
+
+	delta_time=(time(NULL))-entered_time;
+
+	return delta_time;
+}
+
 int main(int argc, char **argv) {
 
  	int result,pm,hour,blink=0,count=0;
 
  	unsigned short display_buffer[8];
-	long long keypad_result=0,old_keypad=0,keypad_change;
+	long long keypad_result=0,keypad_change;
 
-	time_t current_time,entered_time;
-	time_t delta_time,display_time;
-	struct tm new_time;
+	time_t current_time;
+	time_t delta_time=0,display_time;
 
 
 	char *ctime_result;
@@ -197,21 +347,6 @@ int main(int argc, char **argv) {
 	display_buffer[7]=font_7seg[1]|(font_7seg[3]<<8);
 */
 
-	new_time.tm_year=78;
-	new_time.tm_mon=1;
-	new_time.tm_mday=13;
-	new_time.tm_hour=14;
-	new_time.tm_min=40;
-	new_time.tm_sec=0;
-	new_time.tm_isdst=-1;
-
-	entered_time=mktime(&new_time);
-
-	if (entered_time==-1) {
-		printf("Error\n");
-	}
-
-	delta_time=(time(NULL))-entered_time;
 
 	while(1) {
 
@@ -271,10 +406,8 @@ int main(int argc, char **argv) {
 
 		keypad_change=old_keypad&~keypad_result;
 		if (keypad_change) {
-			printf("Keypad: %llx\n",keypad_change);
-			display_buffer[0]^=keypad_change;
+			delta_time=keypad_change_time(keypad_change);
 		}
-
 		old_keypad=keypad_result;
 
         	update_display_raw(display_buffer);
