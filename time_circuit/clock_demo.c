@@ -105,30 +105,30 @@ unsigned short font_16seg[128] = {
 	0x0000,	// 0x3f
 	0x0000,	// 0x40 '@'
 	SEG_A|SEG_B|SEG_C|SEG_D|SEG_G|SEG_H|SEG_U|SEG_P,	// 0x41 'A'
-	0x0000,	// 0x42 'B'
-	0x0000,	// 0x43 'C'
-	0x0000,	// 0x44 'D'
-	0x0000,	// 0x45 'E'
-	0x0000,	// 0x46 'F'
+	SEG_A|SEG_B|SEG_E|SEG_F|SEG_G|SEG_H|SEG_N|SEG_R|SEG_U,	// 0x42 'B'
+	SEG_A|SEG_B|SEG_E|SEG_F|SEG_G|SEG_H,			// 0x43 'C'
+	SEG_K|SEG_R|SEG_E|SEG_F|SEG_G|SEG_H,			// 0x44 'D'
+	SEG_A|SEG_D|SEG_E|SEG_F|SEG_G,				// 0x45 'E'
+	SEG_A|SEG_B|SEG_G|SEG_H|SEG_U|SEG_P,			// 0x46 'F'
 	SEG_A|SEG_B|SEG_D|SEG_E|SEG_F|SEG_G|SEG_H|SEG_P,	// 0x47 'G'
 	0x0000,	// 0x48 'H'
 	0x0000,	// 0x49 'I'
-	0x0000,	// 0x4a 'J'
+	SEG_C|SEG_D|SEG_E|SEG_F|SEG_G,				// 0x4a 'J'
 	0x0000,	// 0x4b 'K'
-	0x0000,	// 0x4c 'L'
-	0x0000,	// 0x4d 'M'
-	0x0000,	// 0x4e 'N'
-	0x0000,	// 0x4f 'O'
-	0x0000,	// 0x50 'P'
+	SEG_E|SEG_F|SEG_G|SEG_H,				// 0x4c 'L'
+	SEG_C|SEG_D|SEG_G|SEG_H|SEG_K|SEG_N,			// 0x4d 'M'
+	SEG_C|SEG_D|SEG_G|SEG_H|SEG_K|SEG_R,			// 0x4e 'N'
+	SEG_A|SEG_B|SEG_C|SEG_D|SEG_E|SEG_F|SEG_G|SEG_H,	// 0x4f 'O'
+	SEG_A|SEG_B|SEG_C|SEG_G|SEG_H|SEG_U|SEG_P,		// 0x50 'P'
 	0x0000,	// 0x51 'Q'
-	0x0000,	// 0x52 'R'
-	0x0000,	// 0x53 'S'
-	0x0000,	// 0x54 'T'
-	SEG_C|SEG_D|SEG_E|SEG_F|SEG_G|SEG_H,	// 0x55 'U'
-	0x0000,	// 0x56 'V'
+	SEG_A|SEG_B|SEG_C|SEG_G|SEG_H|SEG_P|SEG_R|SEG_U,	// 0x52 'R'
+	SEG_A|SEG_B|SEG_D|SEG_E|SEG_F|SEG_H|SEG_U|SEG_P,	// 0x53 'S'
+	SEG_A|SEG_B|SEG_M|SEG_S,				// 0x54 'T'
+	SEG_C|SEG_D|SEG_E|SEG_F|SEG_G|SEG_H,			// 0x55 'U'
+	SEG_K|SEG_R|SEG_C|SEG_D,				// 0x56 'V'
 	0x0000,	// 0x57 'W'
 	0x0000,	// 0x58 'X'
-	0x0000,	// 0x59 'Y'
+	SEG_S|SEG_K|SEG_N,					// 0x59 'Y'
 	0x0000,	// 0x5a 'Z'
 	0x0000,	// 0x5b
 	0x0000,	// 0x5c
@@ -180,8 +180,9 @@ int main(int argc, char **argv) {
 	char *ctime_result;
 
 	/* brightness 0 - 15 */
-	result=init_display(12);
+	result=init_display(13);
 
+/*
 	display_buffer[0]=font_16seg['A'];
 	display_buffer[1]=font_16seg['U'];
 	display_buffer[2]=font_16seg['G'];
@@ -190,7 +191,7 @@ int main(int argc, char **argv) {
 	display_buffer[5]=font_7seg[2]|(font_7seg[4]<<8);
 	display_buffer[6]=font_7seg[0]|(font_7seg[1]<<8);
 	display_buffer[7]=font_7seg[1]|(font_7seg[3]<<8);
-
+*/
 
 	while(1) {
 
