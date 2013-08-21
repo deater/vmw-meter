@@ -107,8 +107,8 @@ unsigned short font_16seg[128] = {
 	SEG_A|SEG_B|SEG_C|SEG_D|SEG_G|SEG_H|SEG_U|SEG_P,	// 0x41 'A'
 	SEG_A|SEG_B|SEG_E|SEG_F|SEG_G|SEG_H|SEG_N|SEG_R|SEG_U,	// 0x42 'B'
 	SEG_A|SEG_B|SEG_E|SEG_F|SEG_G|SEG_H,			// 0x43 'C'
-	SEG_K|SEG_R|SEG_E|SEG_F|SEG_G|SEG_H,			// 0x44 'D'
-	SEG_A|SEG_D|SEG_E|SEG_F|SEG_G,				// 0x45 'E'
+	SEG_A|SEG_B|SEG_C|SEG_D|SEG_E|SEG_F|SEG_M|SEG_S,	// 0x44 'D'
+	SEG_A|SEG_B|SEG_E|SEG_F|SEG_G|SEG_U|SEG_H,		// 0x45 'E'
 	SEG_A|SEG_B|SEG_G|SEG_H|SEG_U|SEG_P,			// 0x46 'F'
 	SEG_A|SEG_B|SEG_D|SEG_E|SEG_F|SEG_G|SEG_H|SEG_P,	// 0x47 'G'
 	SEG_C|SEG_D|SEG_G|SEG_H|SEG_U|SEG_P,			// 0x48 'H'
@@ -176,7 +176,11 @@ int main(int argc, char **argv) {
  	unsigned short display_buffer[8];
 	long long keypad_result=0,old_keypad=0,keypad_change;
 
-	time_t seconds;
+	time_t current_time,entered_time;
+	time_t delta_time,display_time;
+	struct tm new_time;
+
+
 	char *ctime_result;
 
 	/* brightness 0 - 15 */
@@ -193,10 +197,28 @@ int main(int argc, char **argv) {
 	display_buffer[7]=font_7seg[1]|(font_7seg[3]<<8);
 */
 
+	new_time.tm_year=78;
+	new_time.tm_mon=1;
+	new_time.tm_mday=13;
+	new_time.tm_hour=14;
+	new_time.tm_min=40;
+	new_time.tm_sec=0;
+	new_time.tm_isdst=-1;
+
+	entered_time=mktime(&new_time);
+
+	if (entered_time==-1) {
+		printf("Error\n");
+	}
+
+	delta_time=(time(NULL))-entered_time;
+
 	while(1) {
 
-		seconds=time(NULL);
-		ctime_result=ctime(&seconds);
+		current_time=time(NULL);
+		//ctime_result=ctime(&current_time);
+		display_time=current_time-delta_time;
+		ctime_result=ctime(&display_time );
 
 		//printf("%s\n",ctime_result);
 		/* "Wed Aug 21 19:00:52 2013" */
