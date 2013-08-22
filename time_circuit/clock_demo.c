@@ -379,6 +379,7 @@ int main(int argc, char **argv) {
 
 		hour=((ctime_result[11]-'0')*10)+(ctime_result[12]-'0');
 		if (hour>12) pm=1;
+		else pm=0;
 
 		/* minutes */
 		display_buffer[4]|=(font_7seg[ctime_result[14]-'0'])<<8;
