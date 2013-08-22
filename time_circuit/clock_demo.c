@@ -378,7 +378,7 @@ int main(int argc, char **argv) {
 		display_buffer[5]|=(font_7seg[ctime_result[12]-'0'])<<8;
 
 		hour=((ctime_result[11]-'0')*10)+(ctime_result[12]-'0');
-		if (hour>12) pm=1;
+		if (hour>11) pm=1;
 		else pm=0;
 
 		/* minutes */
