@@ -227,6 +227,14 @@ time_t keypad_change_time(long long keypad_in) {
 			which_key=decode_key(keypad_change);
 			printf("Keypad: %d %d\n",keypresses,which_key);
 
+
+			/* reset time if * or # pressed */
+			if (which_key>9) {
+				delta_time=0;
+				return delta_time;
+
+			}
+
 			switch(which_field) {
 				case FIELD_MONTH_1:
 					if (which_key>1) {
