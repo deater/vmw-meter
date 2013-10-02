@@ -342,7 +342,7 @@ int main(int argc, char **argv) {
 	char *ctime_result;
 
 	/* brightness 0 - 15 */
-	result=init_display(13);
+	result=init_display("/dev/i2c-1",13);
 
 /*
 	display_buffer[0]=font_16seg['A'];

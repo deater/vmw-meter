@@ -221,13 +221,13 @@ long long read_keypad(void) {
 
 
 /* should make the device settable */
-int init_display(int brightness) {
+int init_display(char *device,int brightness) {
 
    unsigned char buffer[17];
 
-   display_fd = open("/dev/i2c-1", O_RDWR);
+   display_fd = open(device, O_RDWR);
    if (display_fd < 0) {
-      fprintf(stderr,"Error opening i2c dev file /dev/i2c-1\n");
+      fprintf(stderr,"Error opening i2c dev file %s\n",device);
       return -1;
    }
 

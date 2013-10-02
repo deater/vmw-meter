@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
 
   int result;
 
-  result=init_display(10);
+  result=init_display("/dev/i2c-1",10);
 
   result=flame_demo();
 
