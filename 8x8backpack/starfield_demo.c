@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
 
   int result;
 
-  result=init_display();
+  result=init_display(10);
 
   result=starfield_demo();
 

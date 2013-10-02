@@ -279,7 +279,7 @@ int main(int argc, char **argv) {
      }
   }
 
-  result=init_display();
+  result=init_display(10);
 
   /* Scroll */
 

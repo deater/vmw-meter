@@ -1,18 +1,18 @@
 CC = gcc
-CFLAGS = -Wall -O2 -g
+CFLAGS = -Wall -O2 -g -I../lib
 LFLAGS =
 
 all:	clock_demo
 
-i2c_lib.o:	i2c_lib.c i2c_lib.h
-	$(CC) $(CFLAGS) -c i2c_lib.c
+../lib/i2c_lib.o:	../lib/i2c_lib.c ../lib/i2c_lib.h
+	cd ../lib && make
 
 ####
 
-clock_demo:	clock_demo.o i2c_lib.o
-	$(CC) $(LFLASG) -o clock_demo clock_demo.o i2c_lib.o
+clock_demo:	clock_demo.o ../lib/i2c_lib.o
+	$(CC) $(LFLASG) -o clock_demo clock_demo.o ../lib/i2c_lib.o
 
-clock_demo.o:	clock_demo.c i2c_lib.h
+clock_demo.o:	clock_demo.c ../lib/i2c_lib.h
 	$(CC) $(CFLAGS) -c clock_demo.c
 
 ####
