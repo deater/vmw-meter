@@ -7,29 +7,29 @@
 
 #include "i2c_lib.h"
 
-unsigned char digits[16][8] = {
-	{0,1,1,1,1,1,1,0},	// 0
-	{0,0,0,0,1,1,0,0},	// 1
-	{1,0,1,1,0,1,1,0},	// 2
-	{1,0,0,1,1,1,1,0},	// 3
-	{1,1,0,0,1,1,0,0},	// 4
-	{1,1,0,1,1,0,1,0},	// 5
-	{1,1,1,1,1,0,1,0},	// 6
-	{0,0,0,0,1,1,1,0},	// 7
-	{1,1,1,1,1,1,1,0},	// 8
-	{1,1,0,1,1,1,1,0},	// 9
-	{1,1,1,0,1,1,1,0},	// A
-	{1,1,1,1,1,0,0,0},	// B
-	{0,1,1,1,0,0,1,0},	// C
-	{1,0,1,1,1,1,0,0},	// D
-	{1,1,1,1,0,0,1,0},	// E
-	{1,1,1,0,0,0,1,0},	// F
+unsigned short digits[16] = {
+	0x003f,	// 0
+	0x0006,	// 1
+	0x005b,	// 2
+	0x004f,	// 3
+	0x0066,	// 4
+	0x006d, // 5
+	0x007d, // 6
+	0x0007, // 7
+	0x007f, // 8
+	0x0067, // 9
+	0x0077, // A
+	0x007c, // B
+	0x0039, // C
+	0x005e, // D
+	0x0079, // E
+	0x0071, // F
 };
 
 
 int main(int argc, char **argv) {
 
-	unsigned char display_buffer[8];
+	unsigned short display_buffer[8];
 	int result,i;
 	int blink=0;
 
@@ -45,39 +45,27 @@ int main(int argc, char **argv) {
 
 
 /*
-
-The adafruit setup for these displays is crazy.
-Not sure why they couldn't make it much more
-straightforward.
-
-   --6A-
+   --0A-
   |     |
-  1F    5B       : = 5
+  5F    1B       : = 1
   |     |
-   -G0--
+   -G6--
   |     |
-  2E    4C
+  4E    2C
   |     |
    -3D--        . = 7DP
 
 
-  number = which display_buffer[]
-
   8  8  :  8  8
- 128 64 32 16 8
+  0  1  2  3  4  Column
 
- so to set segment 0 of the far right element, then
-     display_buffer[0]=128;
+ so to set segment G of the far left element, then 16 bit display_buffer
+
+    display_buffer[0]=1<<6; // 0x40
 
  To put 0 in the far right display
 
-	display_buffer[1]=8;
-	display_buffer[2]=8;
-	display_buffer[3]=8;
-	display_buffer[4]=8;
-	display_buffer[5]=8;
-	display_buffer[6]=8;
-
+	display_buffer[4]=0x003f;
 
 */
 	while(1) {
@@ -88,30 +76,18 @@ straightforward.
 		seconds=time(NULL);
 		breakdown=localtime(&seconds);
 
-		for(i=0;i<8;i++) {
+		/* hour */
+		display_buffer[0]=digits[(breakdown->tm_hour / 10)];
+		display_buffer[1]=digits[(breakdown->tm_hour % 10)];
 
-			/* hour */
-			if (digits[(breakdown->tm_hour / 10)][i]) {
-                           display_buffer[i]|=0x80;
-			}
-			if (digits[(breakdown->tm_hour % 10)][i]) {
-                           display_buffer[i]|=0x40;
-			}
+		/* minutes */
+		display_buffer[3]=digits[(breakdown->tm_min / 10)];
+		display_buffer[4]=digits[(breakdown->tm_min % 10)];
 
-
-			/* minutes */
-			if (digits[(breakdown->tm_min / 10)][i]) {
-                           display_buffer[i]|=0x10;
-			}
-			if (digits[(breakdown->tm_min % 10)][i]) {
-                           display_buffer[i]|=0x08;
-			}
-		}
 		blink=!blink;
 		if (blink) {
-			display_buffer[5]|=0x20;
+			display_buffer[2]|=0x02;
 		}
-
 
 		update_display(display_buffer);
 

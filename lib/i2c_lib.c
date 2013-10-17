@@ -50,7 +50,7 @@ void reset_display(unsigned short *display_state) {
   }
 }
 
-int update_display(unsigned char *display_state) {
+int update_display_rotated(unsigned char *display_state) {
 
    unsigned char buffer[17];
 
@@ -147,11 +147,11 @@ int update_display(unsigned char *display_state) {
 }
 
 
-int update_display_raw(unsigned short *display_state) {
+int update_display(unsigned short *display_state) {
 
 	unsigned char buffer[17];
 
-	int i,x,y,newi;
+	int i;
 
 	buffer[0]=0x00;
 
@@ -195,8 +195,6 @@ long long read_keypad(void) {
 	unsigned char keypad_buffer[6];
 	unsigned char buffer[17];
 	long long keypress;
-
-	int i;
 
 	buffer[0]= HT16K33_REGISTER_KEY_DATA_POINTER;
 	if ( (write(display_fd, buffer, 1)) !=1) {

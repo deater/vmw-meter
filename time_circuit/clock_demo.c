@@ -419,7 +419,7 @@ int main(int argc, char **argv) {
 		}
 		old_keypad=keypad_result;
 
-        	update_display_raw(display_buffer);
+        	update_display(display_buffer);
 
 
 		usleep(100000);
