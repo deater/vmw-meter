@@ -58,16 +58,21 @@ double read_temp(void) {
 int main(int argc, char **argv) {
 
 	unsigned short display_buffer[8];
-	int result,i,int_digit;
+	int i2c_fd,i,int_digit;
 	double temp_f;
 
-	result=init_display("/dev/i2c-3",10);
-
-	if (result) {
+	/* init i2c */
+	i2c_fd=init_i2c("/dev/i2c-3");
+	if (i2c_fd < 0) {
 		fprintf(stderr,"Error opening device!\n");
 		return -1;
 	}
 
+	/* Init display */
+        if (init_display(i2c_fd,HT16K33_ADDRESS1,10)) {
+		fprintf(stderr,"Error opening display\n");
+		return -1;
+	}
 
 /*
    --0A-
@@ -130,7 +135,7 @@ int main(int argc, char **argv) {
 
 		display_buffer[4]=0x63;			// degrees
 
-		update_display(display_buffer);
+		update_display(i2c_fd,HT16K33_ADDRESS1,display_buffer);
 
 		sleep(5);
 	}

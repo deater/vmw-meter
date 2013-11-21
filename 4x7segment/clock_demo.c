@@ -30,18 +30,25 @@ unsigned short digits[16] = {
 int main(int argc, char **argv) {
 
 	unsigned short display_buffer[8];
-	int result,i;
+	int i;
 	int blink=0;
+	int i2c_fd;
 
 	time_t seconds;
 	struct tm *breakdown;
 
-	result=init_display("/dev/i2c-3",10);
-
-	if (result) {
+	/* Init i2c */
+	i2c_fd=init_i2c("/dev/i2c-3");
+	if (i2c_fd < 0) {
 		fprintf(stderr,"Error opening device!\n");
 		return -1;
 	}
+
+	/* Init display */
+        if (init_display(i2c_fd,HT16K33_ADDRESS1,10)) {
+		fprintf(stderr,"Error opening display\n");
+		return -1;
+        }
 
 
 /*
@@ -89,7 +96,7 @@ int main(int argc, char **argv) {
 			display_buffer[2]|=0x02;
 		}
 
-		update_display(display_buffer);
+		update_display(i2c_fd,HT16K33_ADDRESS1,display_buffer);
 
 		usleep(500000);
 	}
