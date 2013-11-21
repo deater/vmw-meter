@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <errno.h>
 
 #include <linux/i2c-dev.h>
 
@@ -26,37 +27,41 @@
 #define HT16K33_BLINKRATE_1HZ			0x02
 #define HT16K33_BLINKRATE_HALFHZ		0x03
 
-#define HT16K33_ADDRESS				0x70
+int shutdown_display(int i2c_fd) {
 
-//static unsigned char subaddress=0;
-//static int brightness=5;
+	if (i2c_fd>=0) {
+		return close(i2c_fd);
+	}
 
-static int display_fd=-1;
-
-
-void shutdown_display(void) {
-   if (display_fd>=0) {
-      close(display_fd);
-   }
+	return -1;
 }
 
 
 
 void reset_display(unsigned short *display_state) {
-  int i;
 
-  for(i=0;i<DISPLAY_LINES;i++) {
-     display_state[i]=0;
-  }
+	int i;
+
+	for(i=0;i<DISPLAY_LINES;i++) {
+		display_state[i]=0;
+	}
 }
 
-int update_display_rotated(unsigned char *display_state) {
+int update_display_rotated(int i2c_fd, int i2c_addr,
+				unsigned short *display_state) {
 
-   unsigned char buffer[17];
+	unsigned char buffer[17];
 
-   int big_hack[8][8];
+	int big_hack[8][8];
 
-   int i,x,y,newi;
+	int i,x,y,newi;
+
+	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
+		fprintf(stderr,"Error setting i2c address %x\n",
+			i2c_addr);
+		return -1;
+	}
+
 
    /* only update if there's been a change */
 //     if ( (existing_state[i*2]!=state[i*2]) ||
@@ -114,44 +119,39 @@ int update_display_rotated(unsigned char *display_state) {
       newi=i;
 //      if (newi==0) newi=7;
 //      else newi-=1;
-      buffer[(newi*2)+1]=0;
-      buffer[(newi*2)+1]|=big_hack[7-i][0]<<6;
-      buffer[(newi*2)+1]|=big_hack[7-i][1]<<5;
-      buffer[(newi*2)+1]|=big_hack[7-i][2]<<4;
-      buffer[(newi*2)+1]|=big_hack[7-i][3]<<3;
-      buffer[(newi*2)+1]|=big_hack[7-i][4]<<2;
-      buffer[(newi*2)+1]|=big_hack[7-i][5]<<1;
-      buffer[(newi*2)+1]|=big_hack[7-i][6]<<0;
-      buffer[(newi*2)+1]|=big_hack[7-i][7]<<7;
+		buffer[(newi*2)+1]=0;
+		buffer[(newi*2)+1]|=big_hack[7-i][0]<<6;
+		buffer[(newi*2)+1]|=big_hack[7-i][1]<<5;
+		buffer[(newi*2)+1]|=big_hack[7-i][2]<<4;
+		buffer[(newi*2)+1]|=big_hack[7-i][3]<<3;
+		buffer[(newi*2)+1]|=big_hack[7-i][4]<<2;
+		buffer[(newi*2)+1]|=big_hack[7-i][5]<<1;
+		buffer[(newi*2)+1]|=big_hack[7-i][6]<<0;
+		buffer[(newi*2)+1]|=big_hack[7-i][7]<<7;
 
+		buffer[(newi*2)+2]=0x00;
+	}
 
-      buffer[(newi*2)+2]=0x00;
-   }
-   if ( (write(display_fd, buffer, 17)) !=17) {
-      fprintf(stderr,"Erorr writing display!\n");
-      return -1;
-   }
+	if ( (write(i2c_fd, buffer, 17)) !=17) {
+		fprintf(stderr,"Erorr writing display!\n");
+		return -1;
+	}
 
-
-
-//    # Turn blink off
-//    self.setBlinkRate(self.__HT16K33_BLINKRATE_OFF)
-
-//    # Set maximum brightness
-//    self.setBrightness(15)
-
-//    # Clear the screen
-//    self.clear()
-
-    return 0;
+	return 0;
 }
 
 
-int update_display(unsigned short *display_state) {
+int update_display(int i2c_fd, int i2c_addr, unsigned short *display_state) {
 
 	unsigned char buffer[17];
 
 	int i;
+
+	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
+		fprintf(stderr,"Error setting i2c address %x\n",
+			i2c_addr);
+		return -1;
+	}
 
 	buffer[0]=0x00;
 
@@ -160,7 +160,7 @@ int update_display(unsigned short *display_state) {
 		buffer[2+(i*2)]=(display_state[i]>>8)&0xff;
 	}
 
-	if ( (write(display_fd, buffer, 17)) !=17) {
+	if ( (write(i2c_fd, buffer, 17)) !=17) {
 		fprintf(stderr,"Erorr writing display!\n");
       		return -1;
 	}
@@ -170,39 +170,52 @@ int update_display(unsigned short *display_state) {
 
 
 /* Set brightness from 0 - 15 */
-int set_brightness(int value) {
+int set_brightness(int i2c_fd, int i2c_addr, int value) {
 
-   unsigned char buffer[17];
+	unsigned char buffer[17];
 
-   if ((value<0) || (value>15)) {
-      fprintf(stderr,"Brightness value of %d out of range (0-15)\n",value);
-      return -1;
-   }
+	if ((value<0) || (value>15)) {
+		fprintf(stderr,"Brightness value of %d out of range (0-15)\n",
+			value);
+		return -1;
+	}
 
-   /* Set Brightness */
-   buffer[0]= HT16K33_REGISTER_DIMMING | value;
-   if ( (write(display_fd, buffer, 1)) !=1) {
-      fprintf(stderr,"Error setting brightness!\n");
-      return -1;
-   }
+	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
+		fprintf(stderr,"Error setting i2c address %x\n",
+			i2c_addr);
+		return -1;
+	}
 
-   return 0;
+	/* Set Brightness */
+	buffer[0]= HT16K33_REGISTER_DIMMING | value;
+	if ( (write(i2c_fd, buffer, 1)) !=1) {
+		fprintf(stderr,"Error setting brightness!\n");
+		return -1;
+	}
+
+	return 0;
 }
 
 /* Read keypad */
-long long read_keypad(void) {
+long long read_keypad(int i2c_fd, int i2c_addr) {
 
 	unsigned char keypad_buffer[6];
 	unsigned char buffer[17];
 	long long keypress;
 
+	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
+		fprintf(stderr,"Error setting i2c address %x\n",
+			i2c_addr);
+		return -1;
+	}
+
 	buffer[0]= HT16K33_REGISTER_KEY_DATA_POINTER;
-	if ( (write(display_fd, buffer, 1)) !=1) {
+	if ( (write(i2c_fd, buffer, 1)) !=1) {
 		fprintf(stderr,"Error setting data_pointer!\n");
       		return -1;
 	}
 
-	read(display_fd,keypad_buffer,6);
+	read(i2c_fd,keypad_buffer,6);
 
 	//for(i=0;i<6;i++) printf("%x ",keypad_buffer[i]);
 	//printf("\n");
@@ -219,37 +232,122 @@ long long read_keypad(void) {
 
 
 /* should make the device settable */
-int init_display(char *device,int brightness) {
+int init_display(int i2c_fd, int i2c_addr, int brightness) {
 
-   unsigned char buffer[17];
+	unsigned char buffer[17];
 
-   display_fd = open(device, O_RDWR);
-   if (display_fd < 0) {
-      fprintf(stderr,"Error opening i2c dev file %s\n",device);
-      return -1;
-   }
+	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
+		fprintf(stderr,"Error setting i2c address %x\n",
+			i2c_addr);
+		return -1;
+	}
 
-   if (ioctl(display_fd, I2C_SLAVE, HT16K33_ADDRESS) < 0) {
-      fprintf(stderr,"Error setting i2c address %x\n",HT16K33_ADDRESS);
-      return -1;
-   }
+	/* Turn the oscillator on */
+	buffer[0]= HT16K33_REGISTER_SYSTEM_SETUP | 0x01;
+	if ( (write(i2c_fd, buffer, 1)) !=1) {
+		fprintf(stderr,"Error starting display!\n");
+		return -1;
+	}
 
-   /* Turn the oscillator on */
-   buffer[0]= HT16K33_REGISTER_SYSTEM_SETUP | 0x01;
-   if ( (write(display_fd, buffer, 1)) !=1) {
-      fprintf(stderr,"Error starting display!\n");
-      return -1;
-   }
+	/* Turn Display On, No Blink */
+	buffer[0]= HT16K33_REGISTER_DISPLAY_SETUP | HT16K33_BLINKRATE_OFF | 0x1;
+	if ( (write(i2c_fd, buffer, 1)) !=1) {
+		fprintf(stderr,"Error starting display!\n");
+		return -1;
+	}
 
-   /* Turn Display On, No Blink */
-   buffer[0]= HT16K33_REGISTER_DISPLAY_SETUP | HT16K33_BLINKRATE_OFF | 0x1;
-   if ( (write(display_fd, buffer, 1)) !=1) {
-      fprintf(stderr,"Error starting display!\n");
-      return -1;
-   }
+	set_brightness(i2c_fd, i2c_addr, brightness);
 
-   set_brightness(brightness);
+	return 0;
+}
 
-   return 0;
+
+int init_nunchuck(int i2c_fd) {
+
+	unsigned char buffer[17];
+
+	if (ioctl(i2c_fd, I2C_SLAVE, WII_NUNCHUCK_ADDRESS) < 0) {
+		fprintf(stderr,"Error setting i2c address %x\n",
+			WII_NUNCHUCK_ADDRESS);
+		return -1;
+        }
+
+	/* Start the nunchuck */
+	/* Note: official Nintendo one apparently works by sending 0x40/0x00 */
+	/* but third party ones you sed 0xf0/0x55/0xfb/0x00 ???		     */
+	/* info from: http://wiibrew.org/wiki/Wiimote/Extension_Controllers/Nuncuck */
+
+        buffer[0]=0xf0;
+        buffer[1]=0x55;
+
+	if ( (write(i2c_fd, buffer, 2)) !=2) {
+		fprintf(stderr,"Error starting nunchuck! %s\n",
+			strerror(errno));
+		return -1;
+	}
+
+	buffer[0]=0xfb;
+	buffer[1]=0x00;
+
+	if ( (write(i2c_fd, buffer, 2)) !=2) {
+		fprintf(stderr,"Error starting nunchuck! %s\n",
+			strerror(errno));
+		return -1;
+	}
+
+	return 0;
+
+}
+
+
+int read_nunchuck(int i2c_fd, struct nunchuck_data *results) {
+
+	char buffer[6];
+	int result;
+
+	if (ioctl(i2c_fd, I2C_SLAVE, WII_NUNCHUCK_ADDRESS) < 0) {
+		fprintf(stderr,"Error setting i2c address %x\n",
+			WII_NUNCHUCK_ADDRESS);
+		return -1;
+        }
+
+	buffer[0]=0x00;
+	if ( (write(i2c_fd, buffer, 1)) !=1) {
+		fprintf(stderr,"Error enabling read!\n");
+		return -1;
+	}
+
+	/* needed? */
+	// usleep(100000);
+
+	result=read(i2c_fd,buffer,6);
+
+	if (result!=6) {
+		printf("Error reading %d\n",result);
+	}
+
+	results->joy_x=buffer[0];
+	results->joy_y=buffer[1];
+	results->acc_x=(buffer[2]<<2) | ((buffer[5]>>2)&0x3);
+        results->acc_y=(buffer[3]<<2) | ((buffer[5]>>4)&0x3);
+        results->acc_z=(buffer[4]<<2) | ((buffer[5]>>6)&0x3);
+	results->z_pressed=!(buffer[5]&1);
+	results->c_pressed=!((buffer[5]&2)>>1);
+
+	return 0;
+}
+
+
+int init_i2c(char *device) {
+
+	int i2c_fd=-1;
+
+	i2c_fd = open(device, O_RDWR);
+	if (i2c_fd < 0) {
+		fprintf(stderr,"Error opening i2c dev file %s\n",device);
+		return -1;
+	}
+
+	return i2c_fd;
 }
 
