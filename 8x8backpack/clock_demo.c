@@ -263,61 +263,77 @@ int put_digit(int c, int x, int y, int scroll_buffer[XSIZE][YSIZE]) {
 
 int main(int argc, char **argv) {
 
-  int result,x,y;
-  int x_scroll=0,scroll_dir=1;
+	int result,x,y;
+	int x_scroll=0,scroll_dir=1;
 
-  int scroll_buffer[XSIZE][YSIZE];
-  unsigned char display_buffer[8];
+	int scroll_buffer[XSIZE][YSIZE];
+	unsigned short display_buffer[8];
 
-  time_t seconds;
-  struct tm *breakdown;
+	int i2c_fd;
 
-  /* init scroll buffer */
-  for(x=0;x<XSIZE;x++) {
-     for(y=0;y<YSIZE;y++) {
-        scroll_buffer[x][y]=0;
-     }
-  }
+	time_t seconds;
+	struct tm *breakdown;
 
-  result=init_display("/dev/i2c-1",10);
+	/* init scroll buffer */
+	for(x=0;x<XSIZE;x++) {
+		for(y=0;y<YSIZE;y++) {
+			scroll_buffer[x][y]=0;
+		}
+	}
 
-  /* Scroll */
+	/* Open device */
+	i2c_fd=init_i2c("/dev/i2c-1");
+	if (i2c_fd < 0) {
+		fprintf(stderr,"Error opening device!\n");
+		return -1;
+	}
 
-  while(1) {
+	/* Init display */
+	if (init_display(i2c_fd,HT16K33_ADDRESS1,10)) {
+		fprintf(stderr,"Error opening display\n");
+		return -1;
+	}
 
-     seconds=time(NULL);
-     breakdown=localtime(&seconds);
 
-     /* hour */
-     put_digit((breakdown->tm_hour / 10),1,1,scroll_buffer);
-     put_digit((breakdown->tm_hour % 10),5,1,scroll_buffer);
+	/* Scroll */
 
-     /* colon */
-     put_digit(10,9,1,scroll_buffer);
+	while(1) {
 
-     /* minutes */
-     put_digit((breakdown->tm_min / 10),13,1,scroll_buffer);
-     put_digit((breakdown->tm_min % 10),17,1,scroll_buffer);
+		seconds=time(NULL);
+		breakdown=localtime(&seconds);
 
-     /* Put scroll buffer into output buffer */
-     for(y=0;y<YSIZE;y++) {
-        /* clear the line before drawing to it */
-        display_buffer[y]=0;
-        for(x=0;x<XSIZE;x++) {
-           if (scroll_buffer[x+x_scroll][y]) plotxy(display_buffer,x,y);
-        }
-     }
+		/* hour */
+		put_digit((breakdown->tm_hour / 10),1,1,scroll_buffer);
+		put_digit((breakdown->tm_hour % 10),5,1,scroll_buffer);
 
-     update_display(display_buffer);
+		/* colon */
+		put_digit(10,9,1,scroll_buffer);
 
-     x_scroll+=scroll_dir;
-     if ((x_scroll>13) || (x_scroll<1)) {
-        scroll_dir=-scroll_dir;
-     }
+		/* minutes */
+		put_digit((breakdown->tm_min / 10),13,1,scroll_buffer);
+		put_digit((breakdown->tm_min % 10),17,1,scroll_buffer);
 
-     usleep(100000);
-  }
+		/* Put scroll buffer into output buffer */
+		for(y=0;y<YSIZE;y++) {
+			/* clear the line before drawing to it */
+			display_buffer[y]=0;
+			for(x=0;x<XSIZE;x++) {
+				if (scroll_buffer[x+x_scroll][y]) {
+					plotxy(display_buffer,x,y);
+				}
+			}
+		}
 
-  return result;
+		update_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer);
+
+		x_scroll+=scroll_dir;
+		if ((x_scroll>13) || (x_scroll<1)) {
+			scroll_dir=-scroll_dir;
+		}
+
+		usleep(100000);
+	}
+
+	return result;
 }
 

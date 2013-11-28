@@ -23,75 +23,86 @@ static int debug=0;
 
 void animate_flame(void) {
 
-   int i,x,y;
-   char a[XSIZE*(YSIZE+2)];
-   int n=0;
+	int i,x,y;
+	char a[XSIZE*(YSIZE+2)];
+	int n=0;
 
 
-   /* Set 10 random locations in second-to-last row to be 70 */
-   for (i = 0; i < SEEDS; i++) {
-         b[ rand() % XSIZE][YSIZE-2] = 70;
-   }
+	/* Set 10 random locations in second-to-last row to be 70 */
+	for (i = 0; i < SEEDS; i++) {
+		b[ rand() % XSIZE][YSIZE-2] = 70;
+	}
 
-   n = 0;
+	n = 0;
 
-   for(y=1;y<YSIZE-1;y++) {
-      for(x=1;x<XSIZE-1;x++) {
-         /* New value is the average of the 4-pixel block */
-         b[x][y] = ((b[x-1][y]+ b[x][y] + b[x+1][y] +
-                     b[x-1][y+1] + b[x][y+1] + b[x+1][y+1]) / 6);
-         a[n]= b[x][y]>THRESH?'*':' ';
-         n++;
-      }
-      a[n]='\n';
-      n++;
+	for(y=1;y<YSIZE-1;y++) {
+		for(x=1;x<XSIZE-1;x++) {
+			/* New value is the average of the 4-pixel block */
+			b[x][y] = ((b[x-1][y]+ b[x][y] + b[x+1][y] +
+				b[x-1][y+1] + b[x][y+1] + b[x+1][y+1]) / 6);
+			a[n]= b[x][y]>THRESH?'*':' ';
+			n++;
+		}
+		a[n]='\n';
+		n++;
 
-      if (debug) {
-         printf("%c[2J",27); /* ANSI clear screen */
-         printf("%s",a);     /* Print framebuffer */
-      }
-   }
+		if (debug) {
+			printf("%c[2J",27); /* ANSI clear screen */
+			printf("%s",a);     /* Print framebuffer */
+		}
+	}
 }
 
 
-int flame_demo(void) {
+int flame_demo(int i2c_fd) {
 
-   int x,y;
-   unsigned char display_buffer[DISPLAY_LINES];
+	int x,y;
+	unsigned short display_buffer[DISPLAY_LINES];
 
-   /* Initialize Framebuffer */
-   for(y=0; y<YSIZE+1; y++) {
-      for(x=0;x<XSIZE;x++) {
-         b[x][y]=0;
-      }
-   }
+	/* Initialize Framebuffer */
+	for(y=0; y<YSIZE+1; y++) {
+		for(x=0;x<XSIZE;x++) {
+			b[x][y]=0;
+		}
+	}
 
-   while(1) {
-      for (y=0;y<8;y++) display_buffer[y]=0;
-      animate_flame();
-      for(y=1;y<9;y++) {
-         for(x=1;x<9;x++) {
-            if (b[x][y]>THRESH) {
-               plotxy(display_buffer,x-1,y-1);
-            }
-         }
-      }
-      update_display(display_buffer);
-      usleep(SLEEP);
-   }
+	while(1) {
+		for (y=0;y<8;y++) display_buffer[y]=0;
+		animate_flame();
+		for(y=1;y<9;y++) {
+			for(x=1;x<9;x++) {
+				if (b[x][y]>THRESH) {
+					plotxy(display_buffer,x-1,y-1);
+				}
+			}
+		}
+		update_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer);
+		usleep(SLEEP);
+	}
 
-   return 0;
+	return 0;
 }
 
 
 int main(int argc, char **argv) {
 
-  int result;
+	int result;
+	int i2c_fd;
 
-  result=init_display("/dev/i2c-1",10);
+	i2c_fd=init_i2c("/dev/i2c-1");
+	if (i2c_fd < 0) {
+		fprintf(stderr,"Error opening device!\n");
+		return -1;
+	}
 
-  result=flame_demo();
+	/* Init display */
+	if (init_display(i2c_fd,HT16K33_ADDRESS1,10)) {
+		fprintf(stderr,"Error opening display\n");
+		return -1;
+	}
 
-  return result;
+	result=flame_demo(i2c_fd);
+
+	return result;
 }
 
