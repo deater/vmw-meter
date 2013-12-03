@@ -2,7 +2,17 @@ CC = gcc
 CFLAGS = -O2 -Wall -I../lib
 LFLAGS =
 
-all:	nunchuck_test nunchuck_display
+all:	nunchuck_test nunchuck_display nunchuck_tetris
+
+
+###
+
+nunchuck_tetris:	nunchuck_tetris.o ../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o nunchuck_tetris nunchuck_tetris.o ../lib/i2c_lib.o
+
+nunchuck_tetris.o:	nunchuck_tetris.c
+	$(CC) $(CFLAGS) -c nunchuck_tetris.c
+
 
 ###
 
@@ -22,6 +32,6 @@ nunchuck_display.o:	nunchuck_display.c
 
 
 clean:	
-	rm -f *~ *.o nunchuck_test nunchuck_display
+	rm -f *~ *.o nunchuck_test nunchuck_display nunchuck_tetris
 
 
