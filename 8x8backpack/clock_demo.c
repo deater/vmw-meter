@@ -267,7 +267,7 @@ int main(int argc, char **argv) {
 	int x_scroll=0,scroll_dir=1;
 
 	int scroll_buffer[XSIZE][YSIZE];
-	unsigned short display_buffer[8];
+	unsigned char display_buffer[8];
 
 	int i2c_fd;
 
@@ -324,7 +324,7 @@ int main(int argc, char **argv) {
 			}
 		}
 
-		update_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer);
+		update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer,0);
 
 		x_scroll+=scroll_dir;
 		if ((x_scroll>13) || (x_scroll<1)) {

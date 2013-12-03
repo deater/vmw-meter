@@ -34,12 +34,12 @@ int load_font(char *filename) {
 int put_letter(unsigned char letter, int i2c_fd) {
 
 	int i;
-	unsigned short display_buffer[8];
+	unsigned char display_buffer[8];
 
 	for(i=0;i<8;i++) {
 		display_buffer[i]=font[letter][i];
 	}
-	update_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer);
+	update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer,0);
 
 	return 0;
 }

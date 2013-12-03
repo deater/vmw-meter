@@ -57,7 +57,7 @@ int starfield_demo(int i2c_fd) {
 	int i,y,newx,newy;
 	int odd=0;
 
-	unsigned short display_buffer[DISPLAY_LINES];
+	unsigned char display_buffer[DISPLAY_LINES];
 
 	for(i=0;i<NUM_STARS;i++) stars[i].active=0;
 
@@ -78,7 +78,7 @@ int starfield_demo(int i2c_fd) {
 			}
 		}
 
-		update_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer);
+		update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer,0);
 
 		/* create new stars if any off screen */
 

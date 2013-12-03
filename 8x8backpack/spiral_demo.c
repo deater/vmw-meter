@@ -91,7 +91,7 @@ struct coord_list {
 int spiral_demo(int i2c_fd) {
 
 	int i;
-	unsigned short display_buffer[DISPLAY_LINES];
+	unsigned char display_buffer[DISPLAY_LINES];
 
 	while(1) {
 		for(i=0;i<DISPLAY_LINES;i++) display_buffer[i]=0;
@@ -103,7 +103,7 @@ int spiral_demo(int i2c_fd) {
 
 			plotxy(display_buffer,spiral_coords[i].x,
 					spiral_coords[i].y);
-			update_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer);
+			update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer,0);
 			i++;
 		}
 		usleep(500000);

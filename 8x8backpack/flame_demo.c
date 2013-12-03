@@ -57,7 +57,7 @@ void animate_flame(void) {
 int flame_demo(int i2c_fd) {
 
 	int x,y;
-	unsigned short display_buffer[DISPLAY_LINES];
+	unsigned char display_buffer[DISPLAY_LINES];
 
 	/* Initialize Framebuffer */
 	for(y=0; y<YSIZE+1; y++) {
@@ -76,7 +76,7 @@ int flame_demo(int i2c_fd) {
 				}
 			}
 		}
-		update_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer);
+		update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer,0);
 		usleep(SLEEP);
 	}
 

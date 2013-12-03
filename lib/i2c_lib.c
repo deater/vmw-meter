@@ -47,90 +47,97 @@ void reset_display(unsigned short *display_state) {
 	}
 }
 
-int update_display_rotated(int i2c_fd, int i2c_addr,
-				unsigned short *display_state) {
+/* Takes in 8 shorts */
+/*  76543210 <-x     */
+/*          0        */
+/*          1        */
+/*        ...        */
+/*          7        */
+/* And maps to actual output */
+/*  70123456         */
+/*          0        */
+/*          1        */
+/*         ...       */
+/*          7        */
+
+int update_8x8_display_rotated(int i2c_fd, int i2c_addr,
+				unsigned char *display_state,
+				int degrees) {
 
 	unsigned char buffer[17];
 
-	int big_hack[8][8];
+	unsigned char rotated_display[8];
 
-	int i,x,y,newi;
+	int i,x,y;
 
 	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
 		fprintf(stderr,"Error setting i2c address %x\n",
 			i2c_addr);
 		return -1;
+ 	}
+
+	/* TODO: only update if there's been a change ?*/
+
+
+	/* write out to hardware */
+	buffer[0]=0x00;
+
+	/* clear rotated_display */
+	for(i=0;i<8;i++) rotated_display[i]=0;
+
+	switch(degrees) {
+		case 0:	/* No Rotate */
+			for(i=0;i<8;i++) rotated_display[i]=display_state[i];
+			break;
+		case 90: /* Rotate 90 degrees clockwise */
+			for(y=0;y<8;y++) {
+				for(x=0;x<8;x++) {
+					rotated_display[y]|=
+					(!! (display_state[x]&(1<<(7-y))))<<x;
+				}
+			}
+			break;
+		case 180: /* Rotate 180 degrees clockwise */
+			for(y=0;y<8;y++) {
+				for(x=0;x<8;x++) {
+					rotated_display[y]|=
+					(!! (display_state[7-y]&(1<<(x))))<<(7-x);
+				}
+			}
+			break;
+		case 270: /* Rotate 270 degrees clockwise */
+			for(y=0;y<8;y++) {
+				for(x=0;x<8;x++) {
+					rotated_display[y]|=
+					(!! (display_state[7-x]&(1<<(y))))<<x;
+				}
+			}
+
+			break;
+
+		default:	fprintf(stderr,"Invalid rotation: %d\n",degrees);
+				return -1;
 	}
 
+	/* ugh bug in backpack?  bit 0 is actually LED 1, bit 128 LED 0 */
+	/* Verify that somehow the python code is outputting like this */
+	/* Fix bits mirrored error */
 
-   /* only update if there's been a change */
-//     if ( (existing_state[i*2]!=state[i*2]) ||
-//        (existing_state[(i*2)+1]!=state[(i*2)+1])) {
+	for(i=0;i<8;i++) {
+		unsigned char temp;
 
-//        existing_state[i*2]=state[i*2];
-//        existing_state[(i*2)+1]=state[(i*2)+1];
+		/* reverse bits */
+		temp = (rotated_display[i]&0x55)<<1 |
+			(rotated_display[i]&0xaa)>>1;
+		temp=(temp&0x33) << 2 |
+			(temp&0xcc) >> 2;
+		temp = (temp&0x0f) << 4 |
+			(temp&0xF0) >> 4;
 
-      /* ugh bug in backpack?  bit 0 is actually LED 1, bit 128 LED 0 */
-      /* Verify that somehow the python code is outputting like this */
-      /* Fix bits mirrored error */
-
-      for(y=0;y<8;y++) {
-	 for(x=0;x<8;x++) {
-            big_hack[x][y]=((display_state[y]>>(x))&1);
-         }
-      }
-
-      /* write out to hardware */
-   buffer[0]=0x00;
-   for(i=0;i<DISPLAY_LINES;i++) {
-      /* Fix off by one error */
-
-
-      /* reconstruct */
-
-	/* no rotate */
-#if 0
-      buffer[(i*2)+1]=0;
-      buffer[(i*2)+1]|=big_hack[6][i]<<0;
-      buffer[(i*2)+1]|=big_hack[5][i]<<1;
-      buffer[(i*2)+1]|=big_hack[4][i]<<2;
-      buffer[(i*2)+1]|=big_hack[3][i]<<3;
-      buffer[(i*2)+1]|=big_hack[2][i]<<4;
-      buffer[(i*2)+1]|=big_hack[1][i]<<5;
-      buffer[(i*2)+1]|=big_hack[0][i]<<6;
-      buffer[(i*2)+1]|=big_hack[7][i]<<7;
-#endif
-	/* rotate 270 degrees clockwise */
-#if 0
-      newi=i;
-      if (newi==0) newi=7;
-      else newi-=1;
-      buffer[(newi*2)+1]=0;
-      buffer[(newi*2)+1]|=big_hack[i][7]<<7;
-      buffer[(newi*2)+1]|=big_hack[i][6]<<6;
-      buffer[(newi*2)+1]|=big_hack[i][5]<<5;
-      buffer[(newi*2)+1]|=big_hack[i][4]<<4;
-      buffer[(newi*2)+1]|=big_hack[i][3]<<3;
-      buffer[(newi*2)+1]|=big_hack[i][2]<<2;
-      buffer[(newi*2)+1]|=big_hack[i][1]<<1;
-      buffer[(newi*2)+1]|=big_hack[i][0]<<0;
-#endif
-      /* rotate 90 degrees clockwise */
-      newi=i;
-//      if (newi==0) newi=7;
-//      else newi-=1;
-		buffer[(newi*2)+1]=0;
-		buffer[(newi*2)+1]|=big_hack[7-i][0]<<6;
-		buffer[(newi*2)+1]|=big_hack[7-i][1]<<5;
-		buffer[(newi*2)+1]|=big_hack[7-i][2]<<4;
-		buffer[(newi*2)+1]|=big_hack[7-i][3]<<3;
-		buffer[(newi*2)+1]|=big_hack[7-i][4]<<2;
-		buffer[(newi*2)+1]|=big_hack[7-i][5]<<1;
-		buffer[(newi*2)+1]|=big_hack[7-i][6]<<0;
-		buffer[(newi*2)+1]|=big_hack[7-i][7]<<7;
-
-		buffer[(newi*2)+2]=0x00;
+		/* rotate right by 1 */
+		buffer[(i*2)+1]=(temp>>1) | ((temp&0x1)<<7);
 	}
+
 
 	if ( (write(i2c_fd, buffer, 17)) !=17) {
 		fprintf(stderr,"Erorr writing display!\n");

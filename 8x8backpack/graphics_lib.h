@@ -1,1 +1,1 @@
-int plotxy(unsigned short *display, int x, int y);
+int plotxy(unsigned char *display, int x, int y);

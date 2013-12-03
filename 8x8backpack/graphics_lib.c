@@ -2,7 +2,7 @@
 
 #include "i2c_lib.h"
 
-int plotxy(unsigned short *display, int x, int y) {
+int plotxy(unsigned char *display, int x, int y) {
 
 	if ((y<0) || (y>=DISPLAY_LINES)) {
 		fprintf(stderr,"Y %d out of bounds!\n",y);

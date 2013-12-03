@@ -21,7 +21,8 @@ void reset_display(unsigned short *display_state);
 int set_brightness(int i2c_fd, int i2c_addr,int value);
 long long read_keypad(int i2c_fd, int i2c_addr);
 
-int update_display_rotated(int i2c_fd, int i2c_addr, unsigned short *display_state);
+int update_8x8_display_rotated(int i2c_fd, int i2c_addr, unsigned char *display_state,int degrees);
+
 int update_display(int i2c_fd, int i2c_addr, unsigned short *display_state);
 
 int init_nunchuck(int i2c_fd);
