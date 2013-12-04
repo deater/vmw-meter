@@ -1,6 +1,7 @@
 #define DISPLAY_LINES 8
 
 #define HT16K33_ADDRESS1	0x70
+#define HT16K33_ADDRESS2	0x71
 #define WII_NUNCHUCK_ADDRESS	0x52
 
 struct nunchuck_data {
