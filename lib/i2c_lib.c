@@ -461,3 +461,20 @@ int emulate_8x8_display(unsigned char *display_state) {
 	}
 	return 0;
 }
+
+
+int emulate_8x16_display(unsigned char *display_state) {
+
+	int i,j;
+
+	clear_screen();
+
+	for(i=0;i<16;i++) {
+		for(j=0;j<8;j++) {
+			if (display_state[i]&1<<j) printf("*");
+			else printf(" ");
+		}
+		printf("\n");
+	}
+	return 0;
+}
