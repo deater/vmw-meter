@@ -16,6 +16,9 @@
 
 #include "i2c_lib.h"
 
+#define NUM_PIECES	7
+#define ROTATIONS	4
+
 #define T_O	0
 #define T_I	1
 #define T_T	2
@@ -24,7 +27,60 @@
 #define T_J	5
 #define T_L	6
 
-int pieces[7][4][4]= {
+struct piece_info_t {
+	int xsize;
+	int ysize;
+	int x_left_edge;
+	int x_right_edge;
+	int y_top_edge;
+	int y_bottom_edge;
+} piece_info[NUM_PIECES][ROTATIONS] = {
+
+	/* O */
+	{
+		/* Start */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=1,
+			.x_right_edge=1,
+			.y_top_edge=1,
+			.y_bottom_edge=1,
+		},
+		/* 90 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=1,
+			.x_right_edge=1,
+			.y_top_edge=1,
+			.y_bottom_edge=1,
+		},
+
+		/* 180 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=1,
+			.x_right_edge=1,
+			.y_top_edge=1,
+			.y_bottom_edge=1,
+		},
+
+		/* 270 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=1,
+			.x_right_edge=1,
+			.y_top_edge=1,
+			.y_bottom_edge=1,
+		},
+	},
+};
+
+int pieces[NUM_PIECES][ROTATIONS][4][4]= {
+	{
 
 	/* O */
 	{{0,0,0,0},
@@ -43,7 +99,7 @@ int pieces[7][4][4]= {
 	 {0,1,1,0},
 	 {0,1,1,0},
 	 {0,0,0,0}},
-
+	},
 };
 
 /* http://tetris.wikia.com/wiki/Random_Generator */
@@ -57,12 +113,65 @@ static int Random_Generator(void) {
 //	return rand()%7;
 }
 
-static void draw_piece(unsigned char *display_buffer, int which_piece,
-		int piece_x, int piece_y, int piece_rotate) {
+static void draw_piece(unsigned char *display_buffer, int which,
+		int piece_x, int piece_y, int rotate) {
 
-	display_buffer[piece_y]|=1<<piece_x;
+	int x,y;
+//	display_buffer[piece_y]|=1<<piece_x;
+
+	for(x=0;x<piece_info[which][rotate].xsize;x++) {
+		for(y=0;y<piece_info[which][rotate].ysize;y++) {
+			if (pieces[which][rotate][x][y])
+				display_buffer[(y+piece_y)]|=1<<(x+piece_x);
+		}
+	}
 
 }
+
+int bottom_collision(unsigned char *framebuffer,
+		int which,int piece_x,int piece_y,int rotate) {
+
+	int y_offset;
+
+	y_offset=piece_info[which][rotate].ysize-
+		piece_info[which][rotate].y_bottom_edge;
+
+	/* check for floor */
+	if (piece_y+y_offset > 7) return 1;
+
+	/* Check for bottom collision */
+	if (framebuffer[piece_y+1]&1<<piece_x) return 1;
+
+	/* No collision */
+	return 0;
+}
+
+
+
+int side_collision(unsigned char *framebuffer,
+		int which,int piece_x,int piece_y,int rotate) {
+
+	int x_left_offset;
+	int x_right_offset;
+
+	x_left_offset=
+		piece_info[which][rotate].x_left_edge;
+
+	x_right_offset=piece_info[which][rotate].xsize-
+		piece_info[which][rotate].x_right_edge;
+
+
+	/* check for left wall */
+	if (piece_x+x_left_offset<0) return 1;
+
+	/* check for right wall */
+	if (piece_x+x_right_offset>8) return 1;
+
+	/* No collision */
+	return 0;
+}
+
+
 
 
 int main(int arg, char **argv) {
@@ -70,7 +179,7 @@ int main(int arg, char **argv) {
 	struct nunchuck_data n_data;
 	unsigned char display_buffer[DISPLAY_LINES];
 	unsigned char framebuffer[8];
-	int piece_x=4, piece_y=0,piece_rotate=0;
+	int piece_x=4, piece_y=0,piece_rotate=0,new_piece_x=0;
 	int piece_type=0;
 	int l,k;
 	int score=0;
@@ -115,15 +224,17 @@ int main(int arg, char **argv) {
 
 	while(1) {
 
+		new_piece_x=piece_x;
+
 		/* Read Keyboard */
 		ch=read_keyboard();
 		if (ch) {
 			if ((ch=='q') || (ch=='Q')) break;
 			if (ch==KEYBOARD_RIGHT) {
-				piece_x++;
+				new_piece_x++;
 			}
 			if (ch==KEYBOARD_LEFT) {
-				piece_x--;
+				new_piece_x--;
 			}
 		}
 
@@ -154,17 +265,24 @@ int main(int arg, char **argv) {
 			}
 
 			if (n_data.acc_x<400) {
-				piece_x++;
+				new_piece_x++;
 			}
 
 			if (n_data.acc_x>624) {
-				piece_x--;
+				new_piece_x--;
 			}
 		}
 
-		/* Fix movement */
-		if (piece_x>7) piece_x=7;
-		if (piece_x<0) piece_x=0;
+		/* Check side collision */
+		if (side_collision(framebuffer,piece_type,
+					new_piece_x,piece_y,piece_rotate)) {
+			/* do not update */
+		}
+		else {
+			piece_x=new_piece_x;
+		}
+
+		/* Handle rotate overflow */
 		if (piece_rotate>3) piece_rotate=0;
 		if (piece_rotate<0) piece_rotate=3;
 
@@ -189,8 +307,8 @@ int main(int arg, char **argv) {
 
 		/* Drop piece! */
 
-		/* check for collision */
-		if ((piece_y>6) || (framebuffer[piece_y+1]&1<<piece_x)) {
+		/* check for bottom collision */
+		if (bottom_collision(framebuffer,piece_type,piece_x,piece_y,piece_rotate)) {
 
 			/* check if off top */
 			if (piece_y==0) {
