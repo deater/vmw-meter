@@ -64,28 +64,38 @@ int main(int arg, char **argv) {
 	int piece_x=4, piece_y=4,piece_rotate=0;
 	int piece_type=0;
 
+	int no_display=1,no_nunchuck=1;
+
 	char *device="/dev/i2c-1";
 
-	int i2c_fd,i;
+	int i2c_fd,i,ch;
 
 	/* Init i2c */
 
 	i2c_fd=init_i2c(device);
 	if (i2c_fd < 0) {
 		fprintf(stderr,"Error opening i2c dev file %s\n",device);
-      		return -1;
+	}
+	else {
+		/* Init nunchuck */
+		no_nunchuck=0;
+		if (init_nunchuck(i2c_fd)) {
+			fprintf(stderr,"Error initializing nunchuck\n");
+			no_nunchuck=1;
+		}
+
+		/* Init display */
+		no_display=0;
+		if (init_display(i2c_fd,HT16K33_ADDRESS1,15)) {
+			fprintf(stderr,"Error opening display\n");
+			no_display=1;
+		}
 	}
 
-	/* Init nunchuck */
 
-	if (init_nunchuck(i2c_fd)) {
-		fprintf(stderr,"Error initializing nunchuck\n");
-		return -1;
-	}
-
-	/* Init display */
-	if (init_display(i2c_fd,HT16K33_ADDRESS1,15)) {
-		fprintf(stderr,"Error opening display\n");
+	/* Init keyboard */
+	if (init_keyboard()) {
+		fprintf(stderr,"Error initializing keyboard\n");
 		return -1;
 	}
 
@@ -94,43 +104,49 @@ int main(int arg, char **argv) {
 
 	while(1) {
 
+		/* Read Keyboard */
+		ch=read_keyboard();
+		if ((ch=='q') || (ch=='Q')) break;
+
 		/* Read Nunchuck */
 
-		read_nunchuck(i2c_fd,&n_data);
+		if (!no_nunchuck) {
+			read_nunchuck(i2c_fd,&n_data);
 
 
-		if (n_data.c_pressed) {
-			piece_rotate++;
-			if (piece_rotate>3) piece_rotate=0;
-		}
+			if (n_data.c_pressed) {
+				piece_rotate++;
+				if (piece_rotate>3) piece_rotate=0;
+			}
 
-		if (n_data.z_pressed) {
-			piece_rotate--;
-			if (piece_rotate<0) piece_rotate=3;
-		}
-
-
-		if (n_data.joy_y>140) {
-			/* Fast Drop */
-			piece_y--;
-			if (piece_y<0) piece_y=0;
-		}
-
-		if (n_data.joy_y<100) {
-			/* slow drop */
-			piece_y++;
-			if (piece_y>7) piece_y=7;
-		}
-
-		if (n_data.acc_x<400) {
-			piece_x++;
-			if (piece_x>7) piece_x=7;
-		}
+			if (n_data.z_pressed) {
+				piece_rotate--;
+				if (piece_rotate<0) piece_rotate=3;
+			}
 
 
-		if (n_data.acc_x>624) {
-			piece_x--;
-			if (piece_x<0) piece_x=0;
+			if (n_data.joy_y>140) {
+				/* Fast Drop */
+				piece_y--;
+				if (piece_y<0) piece_y=0;
+			}
+
+			if (n_data.joy_y<100) {
+				/* slow drop */
+				piece_y++;
+				if (piece_y>7) piece_y=7;
+			}
+
+			if (n_data.acc_x<400) {
+				piece_x++;
+				if (piece_x>7) piece_x=7;
+			}
+
+
+			if (n_data.acc_x>624) {
+				piece_x--;
+				if (piece_x<0) piece_x=0;
+			}
 		}
 
 		/* Copy framebuffer to screen */
@@ -142,7 +158,12 @@ int main(int arg, char **argv) {
 		display_buffer[piece_y]|=1<<piece_x;
 
 		/* Write Display */
-		update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer,0);
+		if (!no_display) {
+			update_8x8_display_rotated(i2c_fd,
+				HT16K33_ADDRESS1,display_buffer,0);
+		}
+		else {
+		}
 
 		/* move down */
 		piece_y++;
@@ -154,6 +175,8 @@ int main(int arg, char **argv) {
 
 		usleep(100000);
 	}
+
+	reset_keyboard();
 
 	return 0;
 
