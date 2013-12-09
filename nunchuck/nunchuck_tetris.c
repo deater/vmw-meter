@@ -163,6 +163,7 @@ int main(int arg, char **argv) {
 				HT16K33_ADDRESS1,display_buffer,0);
 		}
 		else {
+			emulate_8x8_display(display_buffer);
 		}
 
 		/* move down */
