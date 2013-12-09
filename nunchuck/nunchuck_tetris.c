@@ -16,6 +16,8 @@
 
 #include "i2c_lib.h"
 
+#define DISPLAY_SIZE	16
+
 #define NUM_PIECES	7
 #define ROTATIONS	4
 
@@ -512,7 +514,7 @@ int bottom_collision(unsigned char *framebuffer,
 		piece_info[which][rotate].y_bottom_edge;
 
 	/* check for floor */
-	if (piece_y+y_offset > 7) return 1;
+	if (piece_y+y_offset > 15) return 1;
 
 	/* Check for bottom collision */
 	if (framebuffer[piece_y+1]&1<<piece_x) return 1;
@@ -552,8 +554,8 @@ int side_collision(unsigned char *framebuffer,
 int main(int arg, char **argv) {
 
 	struct nunchuck_data n_data;
-	unsigned char display_buffer[DISPLAY_LINES];
-	unsigned char framebuffer[8];
+	unsigned char display_buffer[DISPLAY_SIZE];
+	unsigned char framebuffer[DISPLAY_SIZE];
 	int piece_x=4, piece_y=0,piece_rotate=0,new_piece_x=0;
 	int piece_type;
 	int l,k;
@@ -582,9 +584,14 @@ int main(int arg, char **argv) {
 		/* Init display */
 		no_display=0;
 		if (init_display(i2c_fd,HT16K33_ADDRESS1,15)) {
-			fprintf(stderr,"Error opening display\n");
+			fprintf(stderr,"Error opening display 1\n");
 			no_display=1;
 		}
+		if (init_display(i2c_fd,HT16K33_ADDRESS2,15)) {
+			fprintf(stderr,"Error opening display 2\n");
+			no_display=1;
+		}
+
 	}
 
 
@@ -595,7 +602,7 @@ int main(int arg, char **argv) {
 	}
 
 	/* Clear Framebuffer */
-	for(i=0;i<8;i++) framebuffer[i]=0;
+	for(i=0;i<DISPLAY_SIZE;i++) framebuffer[i]=0;
 
 	piece_type=Random_Generator();
 
@@ -670,7 +677,7 @@ int main(int arg, char **argv) {
 		}
 
 		/* Copy framebuffer to screen */
-		for(i=0;i<DISPLAY_LINES;i++) {
+		for(i=0;i<DISPLAY_SIZE;i++) {
 			display_buffer[i]=framebuffer[i];
 		}
 
@@ -681,10 +688,15 @@ int main(int arg, char **argv) {
 		/* Write Display */
 		if (!no_display) {
 			update_8x8_display_rotated(i2c_fd,
-				HT16K33_ADDRESS1,display_buffer,0);
+				HT16K33_ADDRESS2,display_buffer,0);
+			update_8x8_display_rotated(i2c_fd,
+				HT16K33_ADDRESS1,display_buffer+8,0);
+
 		}
 		else {
-			emulate_8x8_display(display_buffer);
+			emulate_8x16_display(display_buffer);
+			printf("Piece %d x %d y %d rotate %d score %d\n",
+				piece_type,piece_x,piece_y,piece_rotate,score);
 		}
 
 		/* Drop piece! */
@@ -722,8 +734,6 @@ int main(int arg, char **argv) {
 			/* move down */
 			piece_y++;
 		}
-		printf("Piece %d x %d y %d rotate %d score %d\n",
-			piece_type,piece_x,piece_y,piece_rotate,score);
 		usleep(500000);
 	}
 
