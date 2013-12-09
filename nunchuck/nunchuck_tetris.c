@@ -313,7 +313,7 @@ int main(int arg, char **argv) {
 	unsigned char display_buffer[DISPLAY_SIZE];
 	unsigned char framebuffer[DISPLAY_SIZE];
 	int piece_x=4, piece_y=0,piece_rotate=0,new_piece_x=0;
-	int piece_type;
+	int piece_type,next_piece;
 	int l,k;
 	int score=0;
 	int fractional_y=0;
@@ -365,6 +365,7 @@ int main(int arg, char **argv) {
 	for(i=0;i<DISPLAY_SIZE;i++) framebuffer[i]=0;
 
 	piece_type=Random_Generator();
+	next_piece=Random_Generator();
 
 	while(1) {
 
@@ -463,6 +464,17 @@ int main(int arg, char **argv) {
 			emulate_8x16_display(display_buffer);
 			printf("Piece %d x %d y %d rotate %d lines %d level %d score %d\n",
 				piece_type,piece_x,piece_y,piece_rotate,lines,level,score);
+			printf("Next piece: ");
+			switch(next_piece) {
+				case T_O: printf("O"); break;
+				case T_I: printf("I"); break;
+				case T_S: printf("S"); break;
+				case T_Z: printf("Z"); break;
+				case T_J: printf("J"); break;
+				case T_L: printf("L"); break;
+				case T_T: printf("T"); break;
+			}
+			printf("\n");
 		}
 
 		/* Gravity */
@@ -514,7 +526,8 @@ int main(int arg, char **argv) {
 
 			piece_y=0;
 			piece_x=4;
-			piece_type=Random_Generator();
+			piece_type=next_piece;
+			next_piece=Random_Generator();
 			piece_rotate=0;
 			score+=level;
 		}
