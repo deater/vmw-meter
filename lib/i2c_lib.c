@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <errno.h>
+#include <termios.h>
 
 #include <linux/i2c-dev.h>
 
@@ -358,3 +359,81 @@ int init_i2c(char *device) {
 	return i2c_fd;
 }
 
+
+
+static struct termios old_term;
+
+int init_keyboard(void) {
+
+	struct termios new_term;
+
+	/* save current terminal settings for fd 0 (stdin) */
+	tcgetattr (0, &old_term);
+
+	/* get the current terminal settings to modify */
+	tcgetattr (0, &new_term);
+
+	/* Unset ICANON "canonical mode" bit */
+	/* Canonical mode means one-line at a time wait until enter */
+	new_term.c_lflag &= ~ICANON;
+
+	/* Set VMIN (minimum number of chars to input before returning  */
+	/* from read) to 1						*/
+	new_term.c_cc[VMIN] = 1;
+
+	/* Don't echo characters to the display */
+	new_term.c_lflag &= ~ECHO;
+
+	/* Set stdin to the new settings */
+	tcsetattr (0, TCSANOW, &new_term);
+
+	/* Set stdin to Non-Blocking, meaning don't wait for keypresses */
+	/* Just return 0 if nothing being pressed.			*/
+	fcntl (0, F_SETFL, fcntl (0, F_GETFL) | O_NONBLOCK);
+
+
+	return 0;
+}
+
+
+int read_keyboard(void) {
+
+	int ch=0,result;
+
+	/* read from stdin */
+	result=read(0,&ch,1);
+
+	if (result!=-1) {
+		/* See if was special "escape" character */
+		if (ch==27) {
+			result=read(0,&ch,1);
+			if (result!=-1) {
+				if (ch=='[') {
+					result=read(0,&ch,1);
+					if (result!=-1) {
+						switch(ch) {
+						case 'A': return KEYBOARD_UP;
+						case 'B': return KEYBOARD_DOWN;
+						case 'C': return KEYBOARD_RIGHT;
+						case 'D': return KEYBOARD_LEFT;
+						default: return KEYBOARD_UNKNOWN;
+						}
+					}
+				}
+			}
+		}
+
+		else {
+			return ch;
+		}
+	}
+	return -1;
+
+}
+
+int reset_keyboard(void) {
+	/* Restore original settings */
+	tcsetattr (0, TCSANOW, &old_term);
+
+	return 0;
+}

@@ -28,3 +28,16 @@ int update_display(int i2c_fd, int i2c_addr, unsigned short *display_state);
 
 int init_nunchuck(int i2c_fd);
 int read_nunchuck(int i2c_fd, struct nunchuck_data *data);
+
+
+int init_keyboard(void);
+int read_keyboard(void);
+int reset_keyboard(void);
+
+#define KEYBOARD_UNKNOWN	0
+#define KEYBOARD_UP	1
+#define KEYBOARD_DOWN	2
+#define KEYBOARD_RIGHT	3
+#define KEYBOARD_LEFT	4
+
+
