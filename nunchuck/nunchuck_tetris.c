@@ -319,6 +319,7 @@ int main(int arg, char **argv) {
 	int fractional_y=0;
 	int level=1;
 	int lines=0;
+	int cleared_lines=0;
 
 	int no_display=1,no_nunchuck=1;
 
@@ -416,7 +417,7 @@ int main(int arg, char **argv) {
 			if (n_data.joy_y<100) {
 				/* slow drop */
 				piece_y++;
-				if (piece_y>7) piece_y=7;
+				score+=level;
 			}
 
 			if (n_data.acc_x<400) {
@@ -486,18 +487,29 @@ int main(int arg, char **argv) {
 				piece_x,piece_y,piece_rotate);
 
 			/* check if lines complete */
+			cleared_lines=0;
 			for(l=0;l<DISPLAY_SIZE;l++) {
 				if (framebuffer[l]==0xff) {
 					for(k=l;k>0;k--) {
 						framebuffer[k]=framebuffer[k-1];
 					}
 					framebuffer[0]=0x00;
-					score+=100;
-					lines++;
-					if (lines%10==0) {
-						level++;
-					}
+					cleared_lines++;
 				}
+			}
+
+			if (cleared_lines) {
+				switch (cleared_lines) {
+					case 1:	score+=50*level; break;
+					case 2: score+=125*level; break;
+					case 3: score+=250*level; break;
+					case 4:	score+=500*level; break;
+				}
+
+				if (((lines+cleared_lines)/10)>(lines/10)) {
+					level++;
+				}
+				lines+=cleared_lines;
 			}
 
 			piece_y=0;
