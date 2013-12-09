@@ -158,7 +158,7 @@ int pieces[NUM_PIECES][ROTATIONS][SPRITE_SIZE][SPRITE_SIZE]= {
 	{{0,1,0,0},
 	 {0,1,1,0},
 	 {0,0,1,0},
-	 {0,0,1,0}},
+	 {0,0,0,0}},
 	{{0,0,0,0},
 	 {0,1,1,0},
 	 {1,1,0,0},
@@ -317,6 +317,8 @@ int main(int arg, char **argv) {
 	int l,k;
 	int score=0;
 	int fractional_y=0;
+	int level=1;
+	int lines=0;
 
 	int no_display=1,no_nunchuck=1;
 
@@ -376,6 +378,12 @@ int main(int arg, char **argv) {
 			}
 			if (ch==KEYBOARD_LEFT) {
 				new_piece_x--;
+			}
+			if (ch==KEYBOARD_DOWN) {
+				piece_y++;
+				score+=level;
+			}
+			if (ch==KEYBOARD_UP) {
 			}
 			if (ch=='z') {
 				piece_rotate--;
@@ -452,14 +460,20 @@ int main(int arg, char **argv) {
 		}
 		else {
 			emulate_8x16_display(display_buffer);
-			printf("Piece %d x %d y %d rotate %d score %d\n",
-				piece_type,piece_x,piece_y,piece_rotate,score);
+			printf("Piece %d x %d y %d rotate %d lines %d level %d score %d\n",
+				piece_type,piece_x,piece_y,piece_rotate,lines,level,score);
 		}
 
-		/* Drop piece! */
+		/* Gravity */
+		fractional_y+=level;
+		if (fractional_y>33) {
+			fractional_y-=33;
+			piece_y++;
+		}
 
 		/* check for bottom collision */
-		if (bottom_collision(framebuffer,piece_type,piece_x,piece_y,piece_rotate)) {
+		if (bottom_collision(framebuffer,piece_type,piece_x,
+					piece_y,piece_rotate)) {
 
 			/* check if off top */
 			if (piece_y==0) {
@@ -479,6 +493,10 @@ int main(int arg, char **argv) {
 					}
 					framebuffer[0]=0x00;
 					score+=100;
+					lines++;
+					if (lines%10==0) {
+						level++;
+					}
 				}
 			}
 
@@ -486,16 +504,9 @@ int main(int arg, char **argv) {
 			piece_x=4;
 			piece_type=Random_Generator();
 			piece_rotate=0;
-			score++;
+			score+=level;
 		}
-		else {
-			/* move down */
-			fractional_y++;
-			if (fractional_y==33) {
-				fractional_y=0;
-				piece_y++;
-			}
-		}
+
 		/* 30 frames per second? */
 		usleep(33000);
 	}
