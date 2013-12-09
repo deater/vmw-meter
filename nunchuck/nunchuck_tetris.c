@@ -51,11 +51,13 @@ int pieces[7][4][4]= {
 /* Empties bag before moving on */
 static int Random_Generator(void) {
 
+	return 0;
+
 	/* FIXME */
-	return rand()%7;
+//	return rand()%7;
 }
 
-static void draw_piece(unsigned char *display_buffer,
+static void draw_piece(unsigned char *display_buffer, int which_piece,
 		int piece_x, int piece_y, int piece_rotate) {
 
 	display_buffer[piece_y]|=1<<piece_x;
@@ -172,7 +174,7 @@ int main(int arg, char **argv) {
 		}
 
 		/* Draw Piece */
-		draw_piece(display_buffer,
+		draw_piece(display_buffer,piece_type,
 			piece_x,piece_y,piece_rotate);
 
 		/* Write Display */
@@ -195,7 +197,8 @@ int main(int arg, char **argv) {
 				break;
 			}
 
-			draw_piece(framebuffer,piece_x,piece_y,piece_rotate);
+			draw_piece(framebuffer,piece_type,
+				piece_x,piece_y,piece_rotate);
 
 			/* check if lines complete */
 			for(l=0;l<8;l++) {
@@ -209,6 +212,7 @@ int main(int arg, char **argv) {
 
 			piece_y=0;
 			piece_x=4;
+			piece_type=Random_Generator();
 		}
 		else {
 			/* move down */
