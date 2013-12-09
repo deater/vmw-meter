@@ -77,11 +77,267 @@ struct piece_info_t {
 			.y_bottom_edge=1,
 		},
 	},
+
+	/* I */
+	{
+		/* Start */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=0,
+			.y_top_edge=1,
+			.y_bottom_edge=2,
+		},
+		/* 90 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=2,
+			.x_right_edge=1,
+			.y_top_edge=0,
+			.y_bottom_edge=0,
+		},
+
+		/* 180 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=0,
+			.y_top_edge=2,
+			.y_bottom_edge=1,
+		},
+
+		/* 270 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=1,
+			.x_right_edge=2,
+			.y_top_edge=0,
+			.y_bottom_edge=0,
+		},
+	},
+
+
+	/* T */
+	{
+		/* Start */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=1,
+			.y_top_edge=0,
+			.y_bottom_edge=2,
+		},
+		/* 90 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=1,
+			.x_right_edge=1,
+			.y_top_edge=0,
+			.y_bottom_edge=1,
+		},
+
+		/* 180 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=1,
+			.y_top_edge=1,
+			.y_bottom_edge=1,
+		},
+
+		/* 270 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=2,
+			.y_top_edge=0,
+			.y_bottom_edge=1,
+		},
+	},
+
+
+	/* S */
+	{
+		/* Start */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=1,
+			.y_top_edge=0,
+			.y_bottom_edge=2,
+		},
+		/* 90 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=1,
+			.x_right_edge=1,
+			.y_top_edge=0,
+			.y_bottom_edge=1,
+		},
+
+		/* 180 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=1,
+			.y_top_edge=1,
+			.y_bottom_edge=1,
+		},
+
+		/* 270 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=2,
+			.y_top_edge=0,
+			.y_bottom_edge=1,
+		},
+	},
+
+
+	/* Z */
+	{
+		/* Start */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=1,
+			.y_top_edge=0,
+			.y_bottom_edge=2,
+		},
+		/* 90 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=1,
+			.x_right_edge=1,
+			.y_top_edge=0,
+			.y_bottom_edge=1,
+		},
+
+		/* 180 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=1,
+			.y_top_edge=1,
+			.y_bottom_edge=1,
+		},
+
+		/* 270 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=2,
+			.y_top_edge=0,
+			.y_bottom_edge=1,
+		},
+	},
+
+	/* J */
+	{
+		/* Start */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=1,
+			.y_top_edge=0,
+			.y_bottom_edge=1,
+		},
+		/* 90 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=1,
+			.x_right_edge=1,
+			.y_top_edge=0,
+			.y_bottom_edge=1,
+		},
+
+		/* 180 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=1,
+			.y_top_edge=1,
+			.y_bottom_edge=1,
+		},
+
+		/* 270 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=2,
+			.y_top_edge=0,
+			.y_bottom_edge=1,
+		},
+	},
+
+
+	/* L */
+	{
+		/* Start */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=1,
+			.y_top_edge=0,
+			.y_bottom_edge=1,
+		},
+		/* 90 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=1,
+			.x_right_edge=1,
+			.y_top_edge=0,
+			.y_bottom_edge=1,
+		},
+
+		/* 180 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=1,
+			.y_top_edge=1,
+			.y_bottom_edge=1,
+		},
+
+		/* 270 CW */
+		{
+			.xsize=4,
+			.ysize=4,
+			.x_left_edge=0,
+			.x_right_edge=2,
+			.y_top_edge=0,
+			.y_bottom_edge=1,
+		},
+	},
+
 };
 
 int pieces[NUM_PIECES][ROTATIONS][4][4]= {
 	{
-
 	/* O */
 	{{0,0,0,0},
 	 {0,1,1,0},
@@ -100,6 +356,127 @@ int pieces[NUM_PIECES][ROTATIONS][4][4]= {
 	 {0,1,1,0},
 	 {0,0,0,0}},
 	},
+
+	{
+	/* I */
+	{{0,0,0,0},
+	 {1,1,1,1},
+	 {0,0,0,0},
+	 {0,0,0,0}},
+	{{0,0,1,0},
+	 {0,0,1,0},
+	 {0,0,1,0},
+	 {0,0,1,0}},
+	{{0,0,0,0},
+	 {0,0,0,0},
+	 {1,1,1,1},
+	 {0,0,0,0}},
+	{{0,1,0,0},
+	 {0,1,0,0},
+	 {0,1,0,0},
+	 {0,1,0,0}},
+	},
+
+	{
+	/* T */
+	{{0,1,0,0},
+	 {1,1,1,0},
+	 {0,0,0,0},
+	 {0,0,0,0}},
+	{{0,1,0,0},
+	 {0,1,1,0},
+	 {0,1,0,0},
+	 {0,0,1,0}},
+	{{0,0,0,0},
+	 {1,1,1,0},
+	 {0,1,0,1},
+	 {0,0,0,0}},
+	{{0,1,0,0},
+	 {1,1,0,0},
+	 {0,1,0,0},
+	 {0,0,0,0}},
+	},
+
+	{
+	/* S */
+	{{0,1,1,0},
+	 {1,1,0,0},
+	 {0,0,0,0},
+	 {0,0,0,0}},
+	{{0,1,0,0},
+	 {0,1,1,0},
+	 {0,0,1,0},
+	 {0,0,1,0}},
+	{{0,0,0,0},
+	 {0,1,1,0},
+	 {1,1,1,0},
+	 {0,0,0,0}},
+	{{1,0,0,0},
+	 {1,1,0,0},
+	 {0,1,0,0},
+	 {0,0,0,0}},
+	},
+
+	{
+	/* Z */
+	{{1,1,0,0},
+	 {0,1,1,0},
+	 {0,0,0,0},
+	 {0,0,0,0}},
+	{{0,0,1,0},
+	 {0,1,1,0},
+	 {0,1,0,0},
+	 {0,0,1,0}},
+	{{0,0,0,0},
+	 {1,1,0,0},
+	 {0,1,1,0},
+	 {0,0,0,0}},
+	{{0,1,0,0},
+	 {1,1,0,0},
+	 {1,0,0,0},
+	 {0,0,0,0}},
+	},
+
+	{
+	/* J */
+	{{1,0,0,0},
+	 {1,1,1,0},
+	 {0,0,0,0},
+	 {0,0,0,0}},
+	{{0,1,1,0},
+	 {0,1,0,0},
+	 {0,1,0,0},
+	 {0,0,0,0}},
+	{{0,0,0,0},
+	 {1,1,1,0},
+	 {0,0,1,0},
+	 {0,0,0,0}},
+	{{0,1,0,0},
+	 {0,1,0,0},
+	 {1,1,0,0},
+	 {0,0,0,0}},
+	},
+
+	{
+	/* L */
+	{{0,0,1,0},
+	 {1,1,1,0},
+	 {0,0,0,0},
+	 {0,0,0,0}},
+	{{0,1,0,0},
+	 {0,1,0,0},
+	 {0,1,1,0},
+	 {0,0,0,0}},
+	{{0,0,0,0},
+	 {1,1,1,0},
+	 {1,0,0,0},
+	 {0,0,0,0}},
+	{{1,1,0,0},
+	 {0,1,0,0},
+	 {0,1,0,0},
+	 {0,0,0,0}},
+	},
+
 };
 
 /* http://tetris.wikia.com/wiki/Random_Generator */
@@ -107,10 +484,8 @@ int pieces[NUM_PIECES][ROTATIONS][4][4]= {
 /* Empties bag before moving on */
 static int Random_Generator(void) {
 
-	return 0;
-
 	/* FIXME */
-//	return rand()%7;
+	return rand()%7;
 }
 
 static void draw_piece(unsigned char *display_buffer, int which,
@@ -119,9 +494,9 @@ static void draw_piece(unsigned char *display_buffer, int which,
 	int x,y;
 //	display_buffer[piece_y]|=1<<piece_x;
 
-	for(x=0;x<piece_info[which][rotate].xsize;x++) {
-		for(y=0;y<piece_info[which][rotate].ysize;y++) {
-			if (pieces[which][rotate][x][y])
+	for(y=0;y<piece_info[which][rotate].ysize;y++) {
+		for(x=0;x<piece_info[which][rotate].xsize;x++) {
+			if (pieces[which][rotate][y][x])
 				display_buffer[(y+piece_y)]|=1<<(x+piece_x);
 		}
 	}
@@ -180,7 +555,7 @@ int main(int arg, char **argv) {
 	unsigned char display_buffer[DISPLAY_LINES];
 	unsigned char framebuffer[8];
 	int piece_x=4, piece_y=0,piece_rotate=0,new_piece_x=0;
-	int piece_type=0;
+	int piece_type;
 	int l,k;
 	int score=0;
 
@@ -222,6 +597,8 @@ int main(int arg, char **argv) {
 	/* Clear Framebuffer */
 	for(i=0;i<8;i++) framebuffer[i]=0;
 
+	piece_type=Random_Generator();
+
 	while(1) {
 
 		new_piece_x=piece_x;
@@ -235,6 +612,12 @@ int main(int arg, char **argv) {
 			}
 			if (ch==KEYBOARD_LEFT) {
 				new_piece_x--;
+			}
+			if (ch=='z') {
+				piece_rotate--;
+			}
+			if (ch=='c') {
+				piece_rotate++;
 			}
 		}
 
@@ -273,6 +656,10 @@ int main(int arg, char **argv) {
 			}
 		}
 
+		/* Handle rotate overflow */
+		if (piece_rotate>3) piece_rotate=0;
+		if (piece_rotate<0) piece_rotate=3;
+
 		/* Check side collision */
 		if (side_collision(framebuffer,piece_type,
 					new_piece_x,piece_y,piece_rotate)) {
@@ -281,11 +668,6 @@ int main(int arg, char **argv) {
 		else {
 			piece_x=new_piece_x;
 		}
-
-		/* Handle rotate overflow */
-		if (piece_rotate>3) piece_rotate=0;
-		if (piece_rotate<0) piece_rotate=3;
-
 
 		/* Copy framebuffer to screen */
 		for(i=0;i<DISPLAY_LINES;i++) {
@@ -334,12 +716,14 @@ int main(int arg, char **argv) {
 			piece_y=0;
 			piece_x=4;
 			piece_type=Random_Generator();
+			piece_rotate=0;
 		}
 		else {
 			/* move down */
 			piece_y++;
 		}
-
+		printf("Piece %d x %d y %d rotate %d score %d\n",
+			piece_type,piece_x,piece_y,piece_rotate,score);
 		usleep(500000);
 	}
 
