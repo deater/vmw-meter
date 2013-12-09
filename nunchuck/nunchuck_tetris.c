@@ -17,6 +17,7 @@
 #include "i2c_lib.h"
 
 #define DISPLAY_SIZE	16
+#define SPRITE_SIZE	4
 
 #define NUM_PIECES	7
 #define ROTATIONS	4
@@ -30,8 +31,6 @@
 #define T_L	6
 
 struct piece_info_t {
-	int xsize;
-	int ysize;
 	int x_left_edge;
 	int x_right_edge;
 	int y_top_edge;
@@ -40,305 +39,56 @@ struct piece_info_t {
 
 	/* O */
 	{
-		/* Start */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=1,
-			.x_right_edge=1,
-			.y_top_edge=1,
-			.y_bottom_edge=1,
-		},
-		/* 90 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=1,
-			.x_right_edge=1,
-			.y_top_edge=1,
-			.y_bottom_edge=1,
-		},
-
-		/* 180 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=1,
-			.x_right_edge=1,
-			.y_top_edge=1,
-			.y_bottom_edge=1,
-		},
-
-		/* 270 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=1,
-			.x_right_edge=1,
-			.y_top_edge=1,
-			.y_bottom_edge=1,
-		},
+{.x_left_edge=1,.x_right_edge=1,.y_top_edge=1,.y_bottom_edge=1,},/* Start  */
+{.x_left_edge=1,.x_right_edge=1,.y_top_edge=1,.y_bottom_edge=1,},/* 90 CW  */
+{.x_left_edge=1,.x_right_edge=1,.y_top_edge=1,.y_bottom_edge=1,},/* 180 CW */
+{.x_left_edge=1,.x_right_edge=1,.y_top_edge=1,.y_bottom_edge=1,},/* 270 CW */
 	},
-
 	/* I */
 	{
-		/* Start */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=0,
-			.y_top_edge=1,
-			.y_bottom_edge=2,
-		},
-		/* 90 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=2,
-			.x_right_edge=1,
-			.y_top_edge=0,
-			.y_bottom_edge=0,
-		},
-
-		/* 180 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=0,
-			.y_top_edge=2,
-			.y_bottom_edge=1,
-		},
-
-		/* 270 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=1,
-			.x_right_edge=2,
-			.y_top_edge=0,
-			.y_bottom_edge=0,
-		},
+{.x_left_edge=0,.x_right_edge=0,.y_top_edge=1,.y_bottom_edge=2,},
+{.x_left_edge=2,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=0,},
+{.x_left_edge=0,.x_right_edge=0,.y_top_edge=2,.y_bottom_edge=1,},
+{.x_left_edge=1,.x_right_edge=2,.y_top_edge=0,.y_bottom_edge=0,},
 	},
-
-
 	/* T */
 	{
-		/* Start */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=1,
-			.y_top_edge=0,
-			.y_bottom_edge=2,
-		},
-		/* 90 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=1,
-			.x_right_edge=1,
-			.y_top_edge=0,
-			.y_bottom_edge=1,
-		},
-
-		/* 180 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=1,
-			.y_top_edge=1,
-			.y_bottom_edge=1,
-		},
-
-		/* 270 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=2,
-			.y_top_edge=0,
-			.y_bottom_edge=1,
-		},
+{.x_left_edge=0,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=2,},
+{.x_left_edge=1,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=1,},
+{.x_left_edge=0,.x_right_edge=1,.y_top_edge=1,.y_bottom_edge=1,},
+{.x_left_edge=0,.x_right_edge=2,.y_top_edge=0,.y_bottom_edge=1,},
 	},
-
-
 	/* S */
 	{
-		/* Start */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=1,
-			.y_top_edge=0,
-			.y_bottom_edge=2,
-		},
-		/* 90 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=1,
-			.x_right_edge=1,
-			.y_top_edge=0,
-			.y_bottom_edge=1,
-		},
-
-		/* 180 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=1,
-			.y_top_edge=1,
-			.y_bottom_edge=1,
-		},
-
-		/* 270 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=2,
-			.y_top_edge=0,
-			.y_bottom_edge=1,
-		},
+{.x_left_edge=0,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=2,},
+{.x_left_edge=1,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=1,},
+{.x_left_edge=0,.x_right_edge=1,.y_top_edge=1,.y_bottom_edge=1,},
+{.x_left_edge=0,.x_right_edge=2,.y_top_edge=0,.y_bottom_edge=1,},
 	},
-
-
 	/* Z */
 	{
-		/* Start */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=1,
-			.y_top_edge=0,
-			.y_bottom_edge=2,
-		},
-		/* 90 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=1,
-			.x_right_edge=1,
-			.y_top_edge=0,
-			.y_bottom_edge=1,
-		},
-
-		/* 180 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=1,
-			.y_top_edge=1,
-			.y_bottom_edge=1,
-		},
-
-		/* 270 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=2,
-			.y_top_edge=0,
-			.y_bottom_edge=1,
-		},
+{.x_left_edge=0,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=2,},
+{.x_left_edge=1,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=1,},
+{.x_left_edge=0,.x_right_edge=1,.y_top_edge=1,.y_bottom_edge=1,},
+{.x_left_edge=0,.x_right_edge=2,.y_top_edge=0,.y_bottom_edge=1,},
 	},
-
 	/* J */
 	{
-		/* Start */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=1,
-			.y_top_edge=0,
-			.y_bottom_edge=1,
-		},
-		/* 90 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=1,
-			.x_right_edge=1,
-			.y_top_edge=0,
-			.y_bottom_edge=1,
-		},
-
-		/* 180 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=1,
-			.y_top_edge=1,
-			.y_bottom_edge=1,
-		},
-
-		/* 270 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=2,
-			.y_top_edge=0,
-			.y_bottom_edge=1,
-		},
+{.x_left_edge=0,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=1,},
+{.x_left_edge=1,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=1,},
+{.x_left_edge=0,.x_right_edge=1,.y_top_edge=1,.y_bottom_edge=1,},
+{.x_left_edge=0,.x_right_edge=2,.y_top_edge=0,.y_bottom_edge=1,},
 	},
-
-
 	/* L */
 	{
-		/* Start */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=1,
-			.y_top_edge=0,
-			.y_bottom_edge=1,
-		},
-		/* 90 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=1,
-			.x_right_edge=1,
-			.y_top_edge=0,
-			.y_bottom_edge=1,
-		},
-
-		/* 180 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=1,
-			.y_top_edge=1,
-			.y_bottom_edge=1,
-		},
-
-		/* 270 CW */
-		{
-			.xsize=4,
-			.ysize=4,
-			.x_left_edge=0,
-			.x_right_edge=2,
-			.y_top_edge=0,
-			.y_bottom_edge=1,
-		},
+{.x_left_edge=0,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=1,},
+{.x_left_edge=1,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=1,},
+{.x_left_edge=0,.x_right_edge=1,.y_top_edge=1,.y_bottom_edge=1,},
+{.x_left_edge=0,.x_right_edge=2,.y_top_edge=0,.y_bottom_edge=1,},
 	},
-
 };
 
-int pieces[NUM_PIECES][ROTATIONS][4][4]= {
+int pieces[NUM_PIECES][ROTATIONS][SPRITE_SIZE][SPRITE_SIZE]= {
 	{
 	/* O */
 	{{0,0,0,0},
@@ -494,10 +244,9 @@ static void draw_piece(unsigned char *display_buffer, int which,
 		int piece_x, int piece_y, int rotate) {
 
 	int x,y;
-//	display_buffer[piece_y]|=1<<piece_x;
 
-	for(y=0;y<piece_info[which][rotate].ysize;y++) {
-		for(x=0;x<piece_info[which][rotate].xsize;x++) {
+	for(y=0;y<SPRITE_SIZE;y++) {
+		for(x=0;x<SPRITE_SIZE;x++) {
 			if (pieces[which][rotate][y][x])
 				display_buffer[(y+piece_y)]|=1<<(x+piece_x);
 		}
@@ -510,7 +259,7 @@ int bottom_collision(unsigned char *framebuffer,
 
 	int y_offset;
 
-	y_offset=piece_info[which][rotate].ysize-
+	y_offset=SPRITE_SIZE-
 		piece_info[which][rotate].y_bottom_edge;
 
 	/* check for floor */
@@ -534,7 +283,7 @@ int side_collision(unsigned char *framebuffer,
 	x_left_offset=
 		piece_info[which][rotate].x_left_edge;
 
-	x_right_offset=piece_info[which][rotate].xsize-
+	x_right_offset=SPRITE_SIZE-
 		piece_info[which][rotate].x_right_edge;
 
 
