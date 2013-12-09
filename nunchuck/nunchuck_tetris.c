@@ -73,6 +73,7 @@ int main(int arg, char **argv) {
 	int piece_x=4, piece_y=0,piece_rotate=0;
 	int piece_type=0;
 	int l,k;
+	int score=0;
 
 	int no_display=1,no_nunchuck=1;
 
@@ -194,6 +195,7 @@ int main(int arg, char **argv) {
 			/* check if off top */
 			if (piece_y==0) {
 				printf("GAME OVER!\n");
+				printf("Score=%d\n",score);
 				break;
 			}
 
@@ -207,6 +209,7 @@ int main(int arg, char **argv) {
 						framebuffer[k]=framebuffer[k-1];
 					}
 					framebuffer[0]=0x00;
+					score+=100;
 				}
 			}
 
