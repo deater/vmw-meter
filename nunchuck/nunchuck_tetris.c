@@ -55,6 +55,13 @@ static int Random_Generator(void) {
 	return rand()%7;
 }
 
+static void draw_piece(unsigned char *display_buffer,
+		int piece_x, int piece_y, int piece_rotate) {
+
+	display_buffer[piece_y]|=1<<piece_x;
+
+}
+
 
 int main(int arg, char **argv) {
 
@@ -165,7 +172,8 @@ int main(int arg, char **argv) {
 		}
 
 		/* Draw Piece */
-		display_buffer[piece_y]|=1<<piece_x;
+		draw_piece(display_buffer,
+			piece_x,piece_y,piece_rotate);
 
 		/* Write Display */
 		if (!no_display) {
@@ -187,7 +195,7 @@ int main(int arg, char **argv) {
 				break;
 			}
 
-			framebuffer[piece_y]|=1<<piece_x;
+			draw_piece(framebuffer,piece_x,piece_y,piece_rotate);
 
 			/* check if lines complete */
 			for(l=0;l<8;l++) {
@@ -198,7 +206,6 @@ int main(int arg, char **argv) {
 					framebuffer[0]=0x00;
 				}
 			}
-
 
 			piece_y=0;
 			piece_x=4;
