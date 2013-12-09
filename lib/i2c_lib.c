@@ -1,5 +1,3 @@
-/* Makes a spinning pattern on the display */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -435,5 +433,31 @@ int reset_keyboard(void) {
 	/* Restore original settings */
 	tcsetattr (0, TCSANOW, &old_term);
 
+	return 0;
+}
+
+void clear_screen(void) {
+
+	/* clear screen */
+	printf("\033[2J\n");
+
+	/* move to upper left */
+	printf("\033[1;1H");
+
+}
+
+int emulate_8x8_display(unsigned char *display_state) {
+
+	int i,j;
+
+	clear_screen();
+
+	for(i=0;i<8;i++) {
+		for(j=0;j<8;j++) {
+			if (display_state[i]&1<<j) printf("*");
+			else printf(" ");
+		}
+		printf("\n");
+	}
 	return 0;
 }

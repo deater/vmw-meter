@@ -29,6 +29,7 @@ int update_display(int i2c_fd, int i2c_addr, unsigned short *display_state);
 int init_nunchuck(int i2c_fd);
 int read_nunchuck(int i2c_fd, struct nunchuck_data *data);
 
+int emulate_8x8_display(unsigned char *display_state);
 
 int init_keyboard(void);
 int read_keyboard(void);
