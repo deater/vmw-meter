@@ -74,14 +74,14 @@ struct piece_info_t {
 	},
 	/* J */
 	{
-{.x_left_edge=0,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=1,},
+{.x_left_edge=0,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=2,},
 {.x_left_edge=1,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=1,},
 {.x_left_edge=0,.x_right_edge=1,.y_top_edge=1,.y_bottom_edge=1,},
 {.x_left_edge=0,.x_right_edge=2,.y_top_edge=0,.y_bottom_edge=1,},
 	},
 	/* L */
 	{
-{.x_left_edge=0,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=1,},
+{.x_left_edge=0,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=2,},
 {.x_left_edge=1,.x_right_edge=1,.y_top_edge=0,.y_bottom_edge=1,},
 {.x_left_edge=0,.x_right_edge=1,.y_top_edge=1,.y_bottom_edge=1,},
 {.x_left_edge=0,.x_right_edge=2,.y_top_edge=0,.y_bottom_edge=1,},
@@ -138,10 +138,10 @@ int pieces[NUM_PIECES][ROTATIONS][SPRITE_SIZE][SPRITE_SIZE]= {
 	{{0,1,0,0},
 	 {0,1,1,0},
 	 {0,1,0,0},
-	 {0,0,1,0}},
+	 {0,0,0,0}},
 	{{0,0,0,0},
 	 {1,1,1,0},
-	 {0,1,0,1},
+	 {0,1,0,0},
 	 {0,0,0,0}},
 	{{0,1,0,0},
 	 {1,1,0,0},
@@ -161,7 +161,7 @@ int pieces[NUM_PIECES][ROTATIONS][SPRITE_SIZE][SPRITE_SIZE]= {
 	 {0,0,1,0}},
 	{{0,0,0,0},
 	 {0,1,1,0},
-	 {1,1,1,0},
+	 {1,1,0,0},
 	 {0,0,0,0}},
 	{{1,0,0,0},
 	 {1,1,0,0},
@@ -178,7 +178,7 @@ int pieces[NUM_PIECES][ROTATIONS][SPRITE_SIZE][SPRITE_SIZE]= {
 	{{0,0,1,0},
 	 {0,1,1,0},
 	 {0,1,0,0},
-	 {0,0,1,0}},
+	 {0,0,0,0}},
 	{{0,0,0,0},
 	 {1,1,0,0},
 	 {0,1,1,0},
@@ -257,7 +257,7 @@ static void draw_piece(unsigned char *display_buffer, int which,
 int bottom_collision(unsigned char *framebuffer,
 		int which,int piece_x,int piece_y,int rotate) {
 
-	int y_offset;
+	int y_offset,x,y;
 
 	y_offset=SPRITE_SIZE-
 		piece_info[which][rotate].y_bottom_edge;
@@ -266,7 +266,14 @@ int bottom_collision(unsigned char *framebuffer,
 	if (piece_y+y_offset > 15) return 1;
 
 	/* Check for bottom collision */
-	if (framebuffer[piece_y+1]&1<<piece_x) return 1;
+	for(x=piece_info[which][rotate].x_left_edge;
+			x<SPRITE_SIZE-piece_info[which][rotate].x_right_edge;x++) {
+		for(y=y_offset-1;y>=0;y--) {
+			if (pieces[which][rotate][y][x])
+				if (framebuffer[piece_y+y+1]&
+					1<<(piece_x+x)) return 1;
+		}
+	}
 
 	/* No collision */
 	return 0;
@@ -464,7 +471,7 @@ int main(int arg, char **argv) {
 				piece_x,piece_y,piece_rotate);
 
 			/* check if lines complete */
-			for(l=0;l<8;l++) {
+			for(l=0;l<DISPLAY_SIZE;l++) {
 				if (framebuffer[l]==0xff) {
 					for(k=l;k>0;k--) {
 						framebuffer[k]=framebuffer[k-1];
