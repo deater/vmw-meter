@@ -61,8 +61,9 @@ int main(int arg, char **argv) {
 	struct nunchuck_data n_data;
 	unsigned char display_buffer[DISPLAY_LINES];
 	unsigned char framebuffer[8];
-	int piece_x=4, piece_y=4,piece_rotate=0;
+	int piece_x=4, piece_y=0,piece_rotate=0;
 	int piece_type=0;
+	int l,k;
 
 	int no_display=1,no_nunchuck=1;
 
@@ -106,22 +107,27 @@ int main(int arg, char **argv) {
 
 		/* Read Keyboard */
 		ch=read_keyboard();
-		if ((ch=='q') || (ch=='Q')) break;
+		if (ch) {
+			if ((ch=='q') || (ch=='Q')) break;
+			if (ch==KEYBOARD_RIGHT) {
+				piece_x++;
+			}
+			if (ch==KEYBOARD_LEFT) {
+				piece_x--;
+			}
+		}
 
 		/* Read Nunchuck */
 
 		if (!no_nunchuck) {
 			read_nunchuck(i2c_fd,&n_data);
 
-
 			if (n_data.c_pressed) {
 				piece_rotate++;
-				if (piece_rotate>3) piece_rotate=0;
 			}
 
 			if (n_data.z_pressed) {
 				piece_rotate--;
-				if (piece_rotate<0) piece_rotate=3;
 			}
 
 
@@ -139,15 +145,19 @@ int main(int arg, char **argv) {
 
 			if (n_data.acc_x<400) {
 				piece_x++;
-				if (piece_x>7) piece_x=7;
 			}
-
 
 			if (n_data.acc_x>624) {
 				piece_x--;
-				if (piece_x<0) piece_x=0;
 			}
 		}
+
+		/* Fix movement */
+		if (piece_x>7) piece_x=7;
+		if (piece_x<0) piece_x=0;
+		if (piece_rotate>3) piece_rotate=0;
+		if (piece_rotate<0) piece_rotate=3;
+
 
 		/* Copy framebuffer to screen */
 		for(i=0;i<DISPLAY_LINES;i++) {
@@ -166,15 +176,39 @@ int main(int arg, char **argv) {
 			emulate_8x8_display(display_buffer);
 		}
 
-		/* move down */
-		piece_y++;
-		/* collision */
-		if (piece_y>7) {
+		/* Drop piece! */
+
+		/* check for collision */
+		if ((piece_y>6) || (framebuffer[piece_y+1]&1<<piece_x)) {
+
+			/* check if off top */
+			if (piece_y==0) {
+				printf("GAME OVER!\n");
+				break;
+			}
+
+			framebuffer[piece_y]|=1<<piece_x;
+
+			/* check if lines complete */
+			for(l=0;l<8;l++) {
+				if (framebuffer[l]==0xff) {
+					for(k=l;k>0;k--) {
+						framebuffer[k]=framebuffer[k-1];
+					}
+					framebuffer[0]=0x00;
+				}
+			}
+
+
 			piece_y=0;
+			piece_x=4;
+		}
+		else {
+			/* move down */
+			piece_y++;
 		}
 
-
-		usleep(100000);
+		usleep(500000);
 	}
 
 	reset_keyboard();
