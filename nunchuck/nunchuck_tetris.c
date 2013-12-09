@@ -316,6 +316,7 @@ int main(int arg, char **argv) {
 	int piece_type;
 	int l,k;
 	int score=0;
+	int fractional_y=0;
 
 	int no_display=1,no_nunchuck=1;
 
@@ -485,12 +486,18 @@ int main(int arg, char **argv) {
 			piece_x=4;
 			piece_type=Random_Generator();
 			piece_rotate=0;
+			score++;
 		}
 		else {
 			/* move down */
-			piece_y++;
+			fractional_y++;
+			if (fractional_y==33) {
+				fractional_y=0;
+				piece_y++;
+			}
 		}
-		usleep(500000);
+		/* 30 frames per second? */
+		usleep(33000);
 	}
 
 	reset_keyboard();
