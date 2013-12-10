@@ -304,6 +304,51 @@ int side_collision(unsigned char *framebuffer,
 	return 0;
 }
 
+int num_to_seg(int num) {
+
+	switch(num) {
+		case 0:	return 0x3f;
+		case 1: return 0x06;
+		case 2: return 0x5b;
+		case 3: return 0x4f;
+		case 4: return 0x66;
+		case 5: return 0x6d;
+		case 6: return 0x7d;
+		case 7: return 0x07;
+		case 8: return 0x7f;
+		case 9: return 0x67;
+	}
+
+	return 0;
+}
+
+void update_aux_display(unsigned short *aux_display,int next_piece,int lines) {
+
+	int i;
+	int hundreds,tens,ones;
+
+	for(i=0;i<8;i++) {
+		aux_display[i]=0;
+	}
+
+	switch(next_piece) {
+		case T_O: aux_display[0]=0x63; break;
+		case T_I: aux_display[0]=0x06; break;
+		case T_T: aux_display[0]=0x46; break;
+		case T_J: aux_display[0]=0x0e; break;
+		case T_L: aux_display[0]=0x38; break;
+		case T_S: aux_display[0]=0x64; break;
+		case T_Z: aux_display[0]=0x52; break;
+	}
+
+	hundreds=lines/100;
+	tens=(lines-(hundreds*100))/10;
+	ones=lines%10;
+
+	if (hundreds) aux_display[1]=num_to_seg(hundreds);
+	if ((tens) || ((hundreds) && (!tens))) aux_display[3]=num_to_seg(tens);
+	aux_display[4]=num_to_seg(ones);
+}
 
 
 
@@ -312,6 +357,7 @@ int main(int arg, char **argv) {
 	struct nunchuck_data n_data;
 	unsigned char display_buffer[DISPLAY_SIZE];
 	unsigned char framebuffer[DISPLAY_SIZE];
+	unsigned short aux_buffer[8];
 	int piece_x=4, piece_y=0,piece_rotate=0,new_piece_x=0;
 	int piece_type,next_piece;
 	int l,k;
@@ -321,7 +367,7 @@ int main(int arg, char **argv) {
 	int lines=0;
 	int cleared_lines=0;
 
-	int no_display=1,no_nunchuck=1;
+	int no_display=1,no_nunchuck=1,no_aux_display=1;
 
 	char *device="/dev/i2c-1";
 
@@ -351,7 +397,12 @@ int main(int arg, char **argv) {
 			fprintf(stderr,"Error opening display 2\n");
 			no_display=1;
 		}
-
+		/* Init aux display */
+		no_aux_display=0;
+		if (init_display(i2c_fd,HT16K33_ADDRESS3,15)) {
+			fprintf(stderr,"Error opening aux display\n");
+			no_display=1;
+		}
 	}
 
 
@@ -368,6 +419,9 @@ start:
 
 	piece_type=Random_Generator();
 	next_piece=Random_Generator();
+
+	update_aux_display(aux_buffer,next_piece,lines);
+
 
 	while(1) {
 
@@ -492,6 +546,15 @@ start:
 			printf("\n");
 		}
 
+		if (!no_aux_display) {
+			update_display(i2c_fd,
+				HT16K33_ADDRESS3,aux_buffer);
+		}
+		else {
+			emulate_4x7seg_display(aux_buffer);
+		}
+
+
 		/* Gravity */
 		fractional_y+=level;
 		if (fractional_y>33) {
@@ -537,6 +600,7 @@ start:
 					level++;
 				}
 				lines+=cleared_lines;
+
 			}
 
 			piece_y=0;
@@ -545,6 +609,9 @@ start:
 			next_piece=Random_Generator();
 			piece_rotate=0;
 			score+=level;
+
+			update_aux_display(aux_buffer,next_piece,lines);
+
 		}
 
 		/* 30 frames per second? */

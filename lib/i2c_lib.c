@@ -480,3 +480,90 @@ int emulate_8x16_display(unsigned char *display_state) {
 
 	return 0;
 }
+
+int emulate_4x7seg_display(unsigned short *display_state) {
+
+	/* line 1 */
+	printf("\x1b[30;1m");
+	printf("\x1b[3%dm",(display_state[0]&1)?2:0);
+	printf(" __ ");
+	printf("\x1b[3%dm",(display_state[1]&1)?2:0);
+	printf("  __  ");
+	printf("\x1b[3%dm",(display_state[3]&1)?2:0);
+	printf("   __ ");
+	printf("\x1b[3%dm",(display_state[4]&1)?2:0);
+	printf("  __  \n");
+
+	/* line 2 */
+	printf("\x1b[3%dm",(display_state[0]&0x20)?2:0);
+	printf("| ");
+	printf("\x1b[3%dm",(display_state[0]&0x02)?2:0);
+	printf(" | ");
+	printf("\x1b[3%dm",(display_state[1]&0x20)?2:0);
+	printf("| ");
+	printf("\x1b[3%dm",(display_state[1]&0x02)?2:0);
+	printf(" | ");
+	printf("\x1b[3%dm",(display_state[2]&0x02)?2:0);
+	printf(".");
+	printf("\x1b[3%dm",(display_state[3]&0x20)?2:0);
+	printf(" |");
+	printf("\x1b[3%dm",(display_state[3]&0x02)?2:0);
+	printf("  |");
+	printf("\x1b[3%dm",(display_state[4]&0x20)?2:0);
+	printf(" |");
+	printf("\x1b[3%dm",(display_state[4]&0x02)?2:0);
+	printf("  | \n");
+
+	/* line 3 */
+	printf("\x1b[3%dm",(display_state[0]&0x40)?2:0);
+	printf(" -- ");
+	printf("\x1b[3%dm",(display_state[1]&0x40)?2:0);
+	printf("  --  ");
+	printf("\x1b[3%dm",(display_state[3]&0x40)?2:0);
+	printf("   -- ");
+	printf("\x1b[3%dm",(display_state[4]&0x40)?2:0);
+	printf("  --  \n");
+
+	/* line 4 */
+	printf("\x1b[3%dm",(display_state[0]&0x10)?2:0);
+	printf("| ");
+	printf("\x1b[3%dm",(display_state[0]&0x04)?2:0);
+	printf(" |");
+	printf("\x1b[3%dm",(display_state[1]&0x10)?2:0);
+	printf(" |");
+	printf("\x1b[3%dm",(display_state[1]&0x04)?2:0);
+	printf("  |");
+	printf("\x1b[3%dm",(display_state[2]&0x02)?2:0);
+	printf(" .");
+	printf("\x1b[3%dm",(display_state[3]&0x10)?2:0);
+	printf(" |");
+	printf("\x1b[3%dm",(display_state[3]&0x04)?2:0);
+	printf("  |");
+	printf("\x1b[3%dm",(display_state[4]&0x10)?2:0);
+	printf(" |");
+	printf("\x1b[3%dm",(display_state[4]&0x04)?2:0);
+	printf("  | \n");
+
+	/* line 5 */
+	printf("\x1b[3%dm",(display_state[0]&0x08)?2:0);
+	printf(" -- ");
+	printf("\x1b[3%dm",(display_state[0]&0x80)?2:0);
+	printf(".");
+	printf("\x1b[3%dm",(display_state[1]&0x08)?2:0);
+	printf(" -- ");
+	printf("\x1b[3%dm",(display_state[1]&0x80)?2:0);
+	printf(".");
+	printf("\x1b[3%dm",(display_state[3]&0x08)?2:0);
+	printf("   -- ");
+	printf("\x1b[3%dm",(display_state[3]&0x80)?2:0);
+	printf(".");
+	printf("\x1b[3%dm",(display_state[4]&0x08)?2:0);
+	printf(" -- ");
+	printf("\x1b[3%dm",(display_state[4]&0x80)?2:0);
+	printf(".\n");
+
+	/* reset colors */
+	printf("\x1b[0m");
+
+	return 0;
+}
