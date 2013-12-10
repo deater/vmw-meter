@@ -10,7 +10,7 @@ all:	nunchuck_test nunchuck_display nunchuck_tetris make_bitmap
 nunchuck_tetris:	nunchuck_tetris.o ../lib/i2c_lib.o
 	$(CC) $(LFLAGS) -o nunchuck_tetris nunchuck_tetris.o ../lib/i2c_lib.o
 
-nunchuck_tetris.o:	nunchuck_tetris.c
+nunchuck_tetris.o:	nunchuck_tetris.c messages.h
 	$(CC) $(CFLAGS) -c nunchuck_tetris.c
 
 

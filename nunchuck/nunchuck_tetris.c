@@ -16,6 +16,8 @@
 
 #include "i2c_lib.h"
 
+#include "messages.h"
+
 #define DISPLAY_SIZE	16
 #define SPRITE_SIZE	4
 
@@ -351,6 +353,70 @@ void update_aux_display(unsigned short *aux_display,int next_piece,int lines) {
 }
 
 
+void update_our_display(unsigned char *display_buffer, int i2c_fd,int no_display) {
+
+	/* Write Display */
+	if (!no_display) {
+		update_8x8_display_rotated(i2c_fd,
+			HT16K33_ADDRESS2,display_buffer,0);
+		update_8x8_display_rotated(i2c_fd,
+			HT16K33_ADDRESS1,display_buffer+8,0);
+	}
+	else {
+		emulate_8x16_display(display_buffer);
+//		printf("Piece %d x %d y %d rotate %d lines %d level %d score %d\n",
+//			piece_type,piece_x,piece_y,piece_rotate,lines,level,score);
+//		printf("Next piece: ");
+//		switch(next_piece) {
+//			case T_O: printf("O"); break;
+//			case T_I: printf("I"); break;
+//			case T_S: printf("S"); break;
+//			case T_Z: printf("Z"); break;
+//			case T_J: printf("J"); break;
+//			case T_L: printf("L"); break;
+//			case T_T: printf("T"); break;
+//		}
+//		printf("\n");
+	}
+}
+
+
+int repeat_until_keypressed(int i2c_fd, int no_nunchuck, int give_up) {
+
+	int ch;
+	int length=0;
+	struct nunchuck_data n_data;
+
+	while(1) {
+
+		/* Read Keyboard */
+		ch=read_keyboard();
+		if (ch>0) {
+			return ch;
+		}
+
+		/* Read Nunchuck */
+
+		if (!no_nunchuck) {
+			read_nunchuck(i2c_fd,&n_data);
+
+			if (n_data.c_pressed) {
+				return 'c';
+			}
+
+			if (n_data.z_pressed) {
+				return 'z';
+			}
+		}
+
+		length++;
+		if (length>give_up) return 0;
+
+		usleep(33000);
+	}
+	return 0;
+}
+
 
 int main(int arg, char **argv) {
 
@@ -375,6 +441,8 @@ int main(int arg, char **argv) {
 	char *device="/dev/i2c-1";
 
 	int i2c_fd,i,ch;
+
+	int result;
 
 	/* Init i2c */
 
@@ -416,6 +484,12 @@ int main(int arg, char **argv) {
 	}
 
 start:
+
+	/* Display "Hit C" */
+	for(i=0;i<DISPLAY_SIZE;i++) display_buffer[i]=hit_c[i];
+	update_our_display(display_buffer,i2c_fd,no_display);
+
+	result=repeat_until_keypressed(i2c_fd,no_nunchuck,30*33);
 
 	/* Clear Framebuffer */
 	for(i=0;i<DISPLAY_SIZE;i++) framebuffer[i]=0;
@@ -535,30 +609,8 @@ start:
 		draw_piece(display_buffer,piece_type,
 			piece_x,piece_y,piece_rotate);
 
-		/* Write Display */
-		if (!no_display) {
-			update_8x8_display_rotated(i2c_fd,
-				HT16K33_ADDRESS2,display_buffer,0);
-			update_8x8_display_rotated(i2c_fd,
-				HT16K33_ADDRESS1,display_buffer+8,0);
 
-		}
-		else {
-			emulate_8x16_display(display_buffer);
-			printf("Piece %d x %d y %d rotate %d lines %d level %d score %d\n",
-				piece_type,piece_x,piece_y,piece_rotate,lines,level,score);
-			printf("Next piece: ");
-			switch(next_piece) {
-				case T_O: printf("O"); break;
-				case T_I: printf("I"); break;
-				case T_S: printf("S"); break;
-				case T_Z: printf("Z"); break;
-				case T_J: printf("J"); break;
-				case T_L: printf("L"); break;
-				case T_T: printf("T"); break;
-			}
-			printf("\n");
-		}
+		update_our_display(display_buffer,i2c_fd,no_display);
 
 		if (!no_aux_display) {
 			update_display(i2c_fd,
@@ -584,6 +636,21 @@ start:
 			if (piece_y==0) {
 				printf("GAME OVER!\n");
 				printf("Score=%d\n",score);
+				level=0;
+				for(i=0;i<DISPLAY_SIZE;i++) {
+					display_buffer[i]=0xff;
+					update_our_display(display_buffer,i2c_fd,no_display);
+					usleep(100000);
+				}
+				/* Display "Game" */
+				for(i=0;i<DISPLAY_SIZE;i++) display_buffer[i]=game[i];
+				update_our_display(display_buffer,i2c_fd,no_display);
+				usleep(500000);
+
+				/* Display "Over" */
+				for(i=0;i<DISPLAY_SIZE;i++) display_buffer[i]=over[i];
+				update_our_display(display_buffer,i2c_fd,no_display);
+
 				break;
 			}
 
