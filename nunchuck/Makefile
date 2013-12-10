@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -O2 -Wall -I../lib
 LFLAGS =
 
-all:	nunchuck_test nunchuck_display nunchuck_tetris
+all:	nunchuck_test nunchuck_display nunchuck_tetris make_bitmap
 
 
 ###
@@ -30,8 +30,16 @@ nunchuck_display:	nunchuck_display.o ../lib/i2c_lib.o
 nunchuck_display.o:	nunchuck_display.c
 	$(CC) $(CFLAGS) -c nunchuck_display.c
 
+###
+
+make_bitmap:	make_bitmap.o
+	$(CC) $(LFLAGS) -o make_bitmap make_bitmap.o
+
+make_bitmap.o:	make_bitmap.c
+	$(CC) $(CFLAGS) -c make_bitmap.c
+
 
 clean:	
-	rm -f *~ *.o nunchuck_test nunchuck_display nunchuck_tetris
+	rm -f *~ *.o nunchuck_test nunchuck_display nunchuck_tetris make_bitmap
 
 
