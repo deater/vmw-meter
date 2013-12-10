@@ -361,6 +361,8 @@ int main(int arg, char **argv) {
 		return -1;
 	}
 
+start:
+
 	/* Clear Framebuffer */
 	for(i=0;i<DISPLAY_SIZE;i++) framebuffer[i]=0;
 
@@ -374,7 +376,10 @@ int main(int arg, char **argv) {
 		/* Read Keyboard */
 		ch=read_keyboard();
 		if (ch) {
-			if ((ch=='q') || (ch=='Q')) break;
+			if ((ch=='q') || (ch=='Q')) {
+				reset_keyboard();
+				return 0;
+			}
 			if (ch==KEYBOARD_RIGHT) {
 				new_piece_x++;
 			}
@@ -421,9 +426,19 @@ int main(int arg, char **argv) {
 				score+=level;
 			}
 
+			if (n_data.acc_y<400) {
+				piece_y++;
+				score+=level;
+			}
+
+
+
+
 			if (n_data.acc_x<400) {
 				new_piece_x++;
 			}
+
+
 
 			if (n_data.acc_x>624) {
 				new_piece_x--;
@@ -536,7 +551,10 @@ int main(int arg, char **argv) {
 		usleep(33000);
 	}
 
-	reset_keyboard();
+	sleep(2);
+
+	goto start;
+
 
 	return 0;
 
