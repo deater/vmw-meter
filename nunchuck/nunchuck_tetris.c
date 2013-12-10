@@ -354,7 +354,7 @@ void update_aux_display(unsigned short *aux_display,int next_piece,int lines) {
 }
 
 
-void update_our_display(unsigned char *display_buffer, int i2c_fd,int no_display) {
+static void update_our_display(unsigned char *display_buffer, int i2c_fd,int no_display) {
 
 	/* Write Display */
 	if (!no_display) {
@@ -382,7 +382,18 @@ void update_our_display(unsigned char *display_buffer, int i2c_fd,int no_display
 }
 
 
-int repeat_until_keypressed(int i2c_fd, int no_nunchuck, int give_up) {
+static void clear_keyboard(void) {
+
+	int ch;
+
+	do {
+		/* Read Keyboard */
+		ch=read_keyboard();
+	} while(ch>0);
+}
+
+
+static int repeat_until_keypressed(int i2c_fd, int no_nunchuck, int give_up) {
 
 	int ch;
 	int length=0;
@@ -425,7 +436,7 @@ int main(int arg, char **argv) {
 	unsigned char display_buffer[DISPLAY_SIZE];
 	unsigned char framebuffer[DISPLAY_SIZE];
 	unsigned short aux_buffer[8];
-	int piece_x=4, piece_y=0,piece_rotate=0,new_piece_x=0;
+	int piece_x=3, piece_y=0,piece_rotate=0,new_piece_x=0;
 	int piece_type,next_piece;
 	int l,k;
 	int score=0;
@@ -433,6 +444,8 @@ int main(int arg, char **argv) {
 	int level=1;
 	int lines=0;
 	int cleared_lines=0;
+
+	int which_lines[4];
 
 	int z_down=0;
 	int c_down=0;
@@ -483,6 +496,8 @@ int main(int arg, char **argv) {
 	}
 
 start:
+
+	clear_keyboard();
 
 	/* Display "Hit C" */
 	for(i=0;i<DISPLAY_SIZE;i++) display_buffer[i]=hit_c[i];
@@ -536,8 +551,12 @@ start:
 			read_nunchuck(i2c_fd,&n_data);
 
 			if (n_data.c_pressed) {
-				if (!c_down) piece_rotate++;
-				c_down=1;
+				if (!c_down) {
+					piece_rotate++;
+				}
+				c_down++;
+
+				if (c_down>10) c_down=0;
 			}
 			else {
 				c_down=0;
@@ -545,14 +564,14 @@ start:
 
 
 			if (n_data.z_pressed) {
-				z_down=1;
+				if (!z_down) {
+					piece_rotate--;
+				}
+				z_down++;
+				if (z_down>10) z_down=0;
 			}
 			else {
-				if (z_down) {
-					z_down=0;
-					piece_rotate--;
-
-				}
+				z_down=0;
 			}
 
 			if (n_data.joy_y>140) {
@@ -653,19 +672,55 @@ start:
 			draw_piece(framebuffer,piece_type,
 				piece_x,piece_y,piece_rotate);
 
-			/* check if lines complete */
+			/***********************************/
+			/* Clear lines if any are complete */
+			/***********************************/
 			cleared_lines=0;
+
+			/* count cleared lines */
+
 			for(l=0;l<DISPLAY_SIZE;l++) {
 				if (framebuffer[l]==0xff) {
-					for(k=l;k>0;k--) {
-						framebuffer[k]=framebuffer[k-1];
-					}
-					framebuffer[0]=0x00;
+					which_lines[cleared_lines]=l;
 					cleared_lines++;
 				}
 			}
 
 			if (cleared_lines) {
+
+				/* Blink the lines */
+				for(l=0;l<cleared_lines;l++) {
+					for(k=0;k<cleared_lines;k++) {
+						display_buffer[which_lines[k]]=0xff;
+					}
+					update_our_display(display_buffer,i2c_fd,no_display);
+					usleep(100000);
+					for(k=0;k<cleared_lines;k++) {
+						display_buffer[which_lines[k]]=0x00;
+					}
+					update_our_display(display_buffer,i2c_fd,no_display);
+					usleep(100000);
+					for(k=0;k<cleared_lines;k++) {
+						display_buffer[which_lines[k]]=0xff;
+					}
+					update_our_display(display_buffer,i2c_fd,no_display);
+					usleep(100000);
+
+				}
+
+				/* clear the lines */
+				for(l=0;l<DISPLAY_SIZE;l++) {
+					if (framebuffer[l]==0xff) {
+						for(k=l;k>0;k--) {
+							framebuffer[k]=framebuffer[k-1];
+						}
+						framebuffer[0]=0x00;
+					}
+				}
+
+
+
+				/* Adjust score */
 				switch (cleared_lines) {
 					case 1:	score+=50*level; break;
 					case 2: score+=125*level; break;
@@ -673,6 +728,7 @@ start:
 					case 4:	score+=500*level; break;
 				}
 
+				/* Advance level */
 				if (((lines+cleared_lines)/10)>(lines/10)) {
 					level++;
 				}
@@ -680,8 +736,9 @@ start:
 
 			}
 
+			clear_keyboard();
 			piece_y=0;
-			piece_x=4;
+			piece_x=3;
 			piece_type=next_piece;
 			next_piece=Random_Generator();
 			piece_rotate=0;
