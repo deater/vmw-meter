@@ -471,10 +471,12 @@ int emulate_8x16_display(unsigned char *display_state) {
 
 	for(i=0;i<16;i++) {
 		for(j=0;j<8;j++) {
-			if (display_state[i]&1<<j) printf("*");
-			else printf(" ");
+			if (display_state[i]&1<<j) printf("\x1b[42m ");
+			else printf("\x1b[40m ");
 		}
-		printf("\n");
+		printf("\x1b[40m.\n");
 	}
+	printf("\x1b[0m");
+
 	return 0;
 }
