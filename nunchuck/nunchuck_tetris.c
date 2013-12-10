@@ -367,6 +367,9 @@ int main(int arg, char **argv) {
 	int lines=0;
 	int cleared_lines=0;
 
+	int z_down=0;
+	int c_down=0;
+
 	int no_display=1,no_nunchuck=1,no_aux_display=1;
 
 	char *device="/dev/i2c-1";
@@ -401,7 +404,7 @@ int main(int arg, char **argv) {
 		no_aux_display=0;
 		if (init_display(i2c_fd,HT16K33_ADDRESS3,15)) {
 			fprintf(stderr,"Error opening aux display\n");
-			no_display=1;
+			no_aux_display=1;
 		}
 	}
 
@@ -460,13 +463,24 @@ start:
 			read_nunchuck(i2c_fd,&n_data);
 
 			if (n_data.c_pressed) {
-				piece_rotate++;
+				if (!c_down) piece_rotate++;
+				c_down=1;
 			}
+			else {
+				c_down=0;
+			}
+
 
 			if (n_data.z_pressed) {
-				piece_rotate--;
+				z_down=1;
 			}
+			else {
+				if (z_down) {
+					z_down=0;
+					piece_rotate--;
 
+				}
+			}
 
 			if (n_data.joy_y>140) {
 				/* Fast Drop */
