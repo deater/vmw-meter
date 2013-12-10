@@ -469,11 +469,26 @@ int emulate_8x16_display(unsigned char *display_state) {
 
 	clear_screen();
 
+	int current_color=0;
+
 	for(i=0;i<16;i++) {
-		for(j=0;j<8;j++) {
-			if (display_state[i]&1<<j) printf("\x1b[42m ");
-			else printf("\x1b[40m ");
+		for(j=7;j>=0;j--) {
+			if (display_state[i]&1<<j) {
+				if (current_color==0) {
+					printf("\x1b[42m");
+					current_color=1;
+				}
+				printf(" ");
+			}
+			else {
+				if (current_color==1) {
+					printf("\x1b[40m");
+					current_color=0;
+				}
+				printf(" ");
+			}
 		}
+		current_color=0;
 		printf("\x1b[40m.\n");
 	}
 	printf("\x1b[0m");
@@ -481,85 +496,100 @@ int emulate_8x16_display(unsigned char *display_state) {
 	return 0;
 }
 
+static int change_color(int current_color,int new_color) {
+
+	if (new_color) new_color=2;
+
+	if (current_color==new_color) {
+	}
+	else {
+		printf("\x1b[3%dm",new_color);
+	}
+
+	return new_color;
+}
+
 int emulate_4x7seg_display(unsigned short *display_state) {
+
+	int current_color=0;
 
 	/* line 1 */
 	printf("\x1b[30;1m");
-	printf("\x1b[3%dm",(display_state[0]&1)?2:0);
+	current_color=change_color(current_color,display_state[0]&1);
 	printf(" __ ");
-	printf("\x1b[3%dm",(display_state[1]&1)?2:0);
+	current_color=change_color(current_color,display_state[1]&1);
 	printf("  __  ");
-	printf("\x1b[3%dm",(display_state[3]&1)?2:0);
+	current_color=change_color(current_color,display_state[3]&1);
 	printf("   __ ");
-	printf("\x1b[3%dm",(display_state[4]&1)?2:0);
+	current_color=change_color(current_color,display_state[4]&1);
 	printf("  __  \n");
 
 	/* line 2 */
-	printf("\x1b[3%dm",(display_state[0]&0x20)?2:0);
+	current_color=change_color(current_color,display_state[0]&0x20);
 	printf("| ");
-	printf("\x1b[3%dm",(display_state[0]&0x02)?2:0);
+	current_color=change_color(current_color,display_state[0]&0x02);
 	printf(" | ");
-	printf("\x1b[3%dm",(display_state[1]&0x20)?2:0);
+	current_color=change_color(current_color,display_state[1]&0x20);
 	printf("| ");
-	printf("\x1b[3%dm",(display_state[1]&0x02)?2:0);
+	current_color=change_color(current_color,display_state[1]&0x02);
 	printf(" | ");
-	printf("\x1b[3%dm",(display_state[2]&0x02)?2:0);
+	current_color=change_color(current_color,display_state[2]&0x02);
 	printf(".");
-	printf("\x1b[3%dm",(display_state[3]&0x20)?2:0);
+	current_color=change_color(current_color,display_state[3]&0x20);
 	printf(" |");
-	printf("\x1b[3%dm",(display_state[3]&0x02)?2:0);
+	current_color=change_color(current_color,display_state[3]&0x02);
 	printf("  |");
-	printf("\x1b[3%dm",(display_state[4]&0x20)?2:0);
+	current_color=change_color(current_color,display_state[4]&0x20);
 	printf(" |");
-	printf("\x1b[3%dm",(display_state[4]&0x02)?2:0);
+	current_color=change_color(current_color,display_state[4]&0x02);
 	printf("  | \n");
 
 	/* line 3 */
-	printf("\x1b[3%dm",(display_state[0]&0x40)?2:0);
+	current_color=change_color(current_color,display_state[0]&0x40);
 	printf(" -- ");
-	printf("\x1b[3%dm",(display_state[1]&0x40)?2:0);
+	current_color=change_color(current_color,display_state[1]&0x40);
 	printf("  --  ");
-	printf("\x1b[3%dm",(display_state[3]&0x40)?2:0);
+	current_color=change_color(current_color,display_state[3]&0x40);
 	printf("   -- ");
-	printf("\x1b[3%dm",(display_state[4]&0x40)?2:0);
+	current_color=change_color(current_color,display_state[4]&0x40);
 	printf("  --  \n");
 
 	/* line 4 */
-	printf("\x1b[3%dm",(display_state[0]&0x10)?2:0);
+	current_color=change_color(current_color,display_state[0]&0x10);
 	printf("| ");
-	printf("\x1b[3%dm",(display_state[0]&0x04)?2:0);
+	current_color=change_color(current_color,display_state[0]&0x04);
 	printf(" |");
-	printf("\x1b[3%dm",(display_state[1]&0x10)?2:0);
+	current_color=change_color(current_color,display_state[1]&0x10);
 	printf(" |");
-	printf("\x1b[3%dm",(display_state[1]&0x04)?2:0);
+	current_color=change_color(current_color,display_state[1]&0x04);
 	printf("  |");
-	printf("\x1b[3%dm",(display_state[2]&0x02)?2:0);
+	current_color=change_color(current_color,display_state[2]&0x02);
 	printf(" .");
-	printf("\x1b[3%dm",(display_state[3]&0x10)?2:0);
+	current_color=change_color(current_color,display_state[3]&0x10);
 	printf(" |");
-	printf("\x1b[3%dm",(display_state[3]&0x04)?2:0);
+	current_color=change_color(current_color,display_state[3]&0x04);
 	printf("  |");
-	printf("\x1b[3%dm",(display_state[4]&0x10)?2:0);
+	current_color=change_color(current_color,display_state[4]&0x10);
 	printf(" |");
-	printf("\x1b[3%dm",(display_state[4]&0x04)?2:0);
+	current_color=change_color(current_color,display_state[4]&0x04);
 	printf("  | \n");
 
 	/* line 5 */
-	printf("\x1b[3%dm",(display_state[0]&0x08)?2:0);
+	current_color=change_color(current_color,display_state[0]&0x08);
 	printf(" -- ");
-	printf("\x1b[3%dm",(display_state[0]&0x80)?2:0);
+	current_color=change_color(current_color,display_state[0]&0x80);
 	printf(".");
-	printf("\x1b[3%dm",(display_state[1]&0x08)?2:0);
+	current_color=change_color(current_color,display_state[1]&0x08);
 	printf(" -- ");
-	printf("\x1b[3%dm",(display_state[1]&0x80)?2:0);
+	current_color=change_color(current_color,display_state[1]&0x80);
 	printf(".");
-	printf("\x1b[3%dm",(display_state[3]&0x08)?2:0);
+	current_color=change_color(current_color,display_state[3]&0x08);
 	printf("   -- ");
-	printf("\x1b[3%dm",(display_state[3]&0x80)?2:0);
+	current_color=change_color(current_color,display_state[3]&0x80);
 	printf(".");
-	printf("\x1b[3%dm",(display_state[4]&0x08)?2:0);
+	current_color=change_color(current_color,display_state[4]&0x08);
 	printf(" -- ");
-	printf("\x1b[3%dm",(display_state[4]&0x80)?2:0);
+	current_color=change_color(current_color,display_state[4]&0x80);
 	printf(".\n");
 
 	/* reset colors */

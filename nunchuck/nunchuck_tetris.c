@@ -250,7 +250,7 @@ static void draw_piece(unsigned char *display_buffer, int which,
 	for(y=0;y<SPRITE_SIZE;y++) {
 		for(x=0;x<SPRITE_SIZE;x++) {
 			if (pieces[which][rotate][y][x])
-				display_buffer[(y+piece_y)]|=1<<(x+piece_x);
+				display_buffer[(y+piece_y)]|=1<<(7-(x+piece_x));
 		}
 	}
 
@@ -269,11 +269,12 @@ int bottom_collision(unsigned char *framebuffer,
 
 	/* Check for bottom collision */
 	for(x=piece_info[which][rotate].x_left_edge;
-			x<SPRITE_SIZE-piece_info[which][rotate].x_right_edge;x++) {
+			x<SPRITE_SIZE-piece_info[which][rotate].x_right_edge;
+			x++) {
 		for(y=y_offset-1;y>=0;y--) {
 			if (pieces[which][rotate][y][x])
 				if (framebuffer[piece_y+y+1]&
-					1<<(piece_x+x)) return 1;
+					1<<(7-(piece_x+x))) return 1;
 		}
 	}
 
@@ -442,8 +443,6 @@ int main(int arg, char **argv) {
 
 	int i2c_fd,i,ch;
 
-	int result;
-
 	/* Init i2c */
 
 	i2c_fd=init_i2c(device);
@@ -489,7 +488,7 @@ start:
 	for(i=0;i<DISPLAY_SIZE;i++) display_buffer[i]=hit_c[i];
 	update_our_display(display_buffer,i2c_fd,no_display);
 
-	result=repeat_until_keypressed(i2c_fd,no_nunchuck,30*33);
+	repeat_until_keypressed(i2c_fd,no_nunchuck,30*33);
 
 	/* Clear Framebuffer */
 	for(i=0;i<DISPLAY_SIZE;i++) framebuffer[i]=0;
@@ -573,17 +572,12 @@ start:
 				score+=level;
 			}
 
-
-
-
 			if (n_data.acc_x<400) {
-				new_piece_x++;
+				new_piece_x--;
 			}
 
-
-
 			if (n_data.acc_x>624) {
-				new_piece_x--;
+				new_piece_x++;
 			}
 		}
 
@@ -636,7 +630,6 @@ start:
 			if (piece_y==0) {
 				printf("GAME OVER!\n");
 				printf("Score=%d\n",score);
-				level=0;
 				for(i=0;i<DISPLAY_SIZE;i++) {
 					display_buffer[i]=0xff;
 					update_our_display(display_buffer,i2c_fd,no_display);
@@ -650,6 +643,9 @@ start:
 				/* Display "Over" */
 				for(i=0;i<DISPLAY_SIZE;i++) display_buffer[i]=over[i];
 				update_our_display(display_buffer,i2c_fd,no_display);
+
+				level=1;
+				lines=0;
 
 				break;
 			}
