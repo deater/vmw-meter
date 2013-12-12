@@ -28,12 +28,13 @@ i2c:	pulse_demo.i2c spin_demo.i2c string_demo.i2c
 
 ###
 
-char_test:	char_test.o meter_tools.o meter-ascii.o
-	$(CC) $(LFLAGS) -o char_test char_test.o meter_tools.o meter-ascii.o
+char_test:	char_test.o 14seg_font.o
+	$(CC) $(LFLAGS) -o char_test char_test.o 14seg_font.o
 
-char_test.o:	char_test.c meter.h meter_tools.h
+char_test.o:	char_test.c ../../lib/i2c_lib.h
 	$(CC) $(CFLAGS) -c char_test.c
 
+###
 
 meter-ascii.o:	meter-ascii.c meter.h
 	$(CC) $(CFLAGS) -c meter-ascii.c

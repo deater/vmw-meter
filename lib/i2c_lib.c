@@ -743,7 +743,7 @@ int update_saa1064_ascii(unsigned short *global_meter_state) {
 
 	int i;
 
-	unsigned short meter_state[SAA1064_METER_DIGITS],temp;
+	unsigned short meter_state[SAA1064_METER_DIGITS];
 
 	for(i=0;i<8;i++) {
 		meter_state[i]=global_meter_state[i];
