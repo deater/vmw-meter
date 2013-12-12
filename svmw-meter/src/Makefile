@@ -8,9 +8,9 @@ all:	char_test \
 	enemy_attack \
 	music_demo \
 	pulse_demo \
+        scroll_string \
 	spin_demo \
 	string_demo \
-        scroll_string \
 	set_display 
 
 ###
@@ -75,6 +75,15 @@ pulse_demo.o:	pulse_demo.c ../../lib/i2c_lib.h
 
 ###
 
+scroll_string:	scroll_string.o 14seg_font.o ../../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o scroll_string scroll_string.o 14seg_font.o ../../lib/i2c_lib.o
+
+scroll_string.o:	scroll_string.c ../../lib/i2c_lib.h
+	$(CC) $(CFLAGS) -c scroll_string.c
+
+
+###
+
 spin_demo:	spin_demo.o ../../lib/i2c_lib.o
 	$(CC) $(LFLAGS) -o spin_demo spin_demo.o ../../lib/i2c_lib.o	
 
@@ -94,23 +103,16 @@ string_demo.o:	string_demo.c ../../lib/i2c_lib.h
 
 ###
 
-set_display.i2c:	set_display.o meter-i2c.o meter_tools.o
-	$(CC) $(LFLAGS) -o set_display.i2c set_display.o meter-i2c.o meter_tools.o	
+set_display:	set_display.o 14seg_font.o ../../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o set_display set_display.o 14seg_font.o ../../lib/i2c_lib.o
 
-set_display.o:	set_display.c meter.h meter_tools.h
+set_display.o:	set_display.c ../../lib/i2c_lib.h
 	$(CC) $(CFLAGS) -c set_display.c	
 
 
 
 
 
-###
-
-scroll_string.i2c:	scroll_string.o meter-i2c.o meter_tools.o
-	$(CC) $(LFLAGS) -o scroll_string.i2c scroll_string.o meter-i2c.o meter_tools.o
-
-scroll_string.o:	scroll_string.c meter.h meter_tools.h
-	$(CC) $(CFLAGS) -c scroll_string.c
 
 
 clean:	
