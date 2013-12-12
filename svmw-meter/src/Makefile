@@ -84,6 +84,16 @@ spin_demo.o:	spin_demo.c ../../lib/i2c_lib.h
 
 ###
 
+string_demo:	string_demo.o 14seg_font.o ../../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o string_demo string_demo.o 14seg_font.o ../../lib/i2c_lib.o
+
+string_demo.o:	string_demo.c ../../lib/i2c_lib.h
+	$(CC) $(CFLAGS) -c string_demo.c
+
+
+
+###
+
 set_display.i2c:	set_display.o meter-i2c.o meter_tools.o
 	$(CC) $(LFLAGS) -o set_display.i2c set_display.o meter-i2c.o meter_tools.o	
 
@@ -92,13 +102,6 @@ set_display.o:	set_display.c meter.h meter_tools.h
 
 
 
-###
-
-string_demo.i2c:	string_demo.o meter-i2c.o meter_tools.o
-	$(CC) $(LFLAGS) -o string_demo.i2c string_demo.o meter-i2c.o meter_tools.o
-
-string_demo.o:	string_demo.c meter.h meter_tools.h
-	$(CC) $(CFLAGS) -c string_demo.c
 
 
 ###
