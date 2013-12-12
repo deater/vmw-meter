@@ -29,7 +29,7 @@ static int reverse_bits32(int v) {
 
 int main(int argc, char **argv) {
 
-	int i,meter_fd;
+	int i,meter_fd,display_present=1;
 	unsigned short display_state[8];
 	char string[256];
 	time_t seconds;  /* Y2038 problem! */
@@ -53,21 +53,30 @@ int main(int argc, char **argv) {
     };
 #endif
 
+	display_present=1;
 	meter_fd=init_i2c("/dev/i2c-6");
 	if (meter_fd < 0) {
 		fprintf(stderr,"Error opening device!\n");
-		return -1;
+		display_present=0;
 	}
 
-	init_saa1064_display(meter_fd,SAA1064_ADDRESS1);
-	init_saa1064_display(meter_fd,SAA1064_ADDRESS2);
-	init_saa1064_display(meter_fd,SAA1064_ADDRESS3);
-	init_saa1064_display(meter_fd,SAA1064_ADDRESS4);
+	if (display_present) {
+		init_saa1064_display(meter_fd,SAA1064_ADDRESS1);
+		init_saa1064_display(meter_fd,SAA1064_ADDRESS2);
+		init_saa1064_display(meter_fd,SAA1064_ADDRESS3);
+		init_saa1064_display(meter_fd,SAA1064_ADDRESS4);
+	}
 
 	/* clear display */
 	for(i=0;i<8;i++) display_state[i]=0;
 
-	update_saa1064_display(meter_fd, SAA1064_ADDRESS1, display_state);
+	if (display_present) {
+		update_saa1064_display(meter_fd, SAA1064_ADDRESS1,
+					display_state);
+	}
+	else {
+		update_saa1064_ascii(display_state);
+	}
 
 	while(1) {
 		seconds=time(NULL);
@@ -136,7 +145,13 @@ int main(int argc, char **argv) {
 			display_state[breakdown->tm_wday - 1]|=SAA1064_SEGMENT_EX;
 		}
 
-		update_saa1064_display(meter_fd, SAA1064_ADDRESS1, display_state);
+		if (display_present) {
+			update_saa1064_display(meter_fd,
+				SAA1064_ADDRESS1, display_state);
+		}
+		else {
+			update_saa1064_ascii(display_state);
+		}
 
 		usleep(200000);
 	}
