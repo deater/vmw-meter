@@ -67,18 +67,13 @@ music_demo.o:	music_demo.c ../../lib/i2c_lib.h
 
 ###
 
-pulse_demo.ascii:	pulse_demo.o meter-ascii.o meter_tools.o
-	$(CC) $(LFLAGS) -o pulse_demo.ascii pulse_demo.o meter-ascii.o meter_tools.o
+pulse_demo:	pulse_demo.o 14seg_font.o ../../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o pulse_demo pulse_demo.o 14seg_font.o ../../lib/i2c_lib.o
 
-pulse_demo.i2c:	pulse_demo.o meter-i2c.o meter_tools.o
-	$(CC) $(LFLAGS) -o pulse_demo.i2c pulse_demo.o meter-i2c.o meter_tools.o	
-
-pulse_demo.o:	pulse_demo.c meter.h meter_tools.h
+pulse_demo.o:	pulse_demo.c ../../lib/i2c_lib.h
 	$(CC) $(CFLAGS) -c pulse_demo.c
 
-
-spin_demo.ascii:	spin_demo.o meter-ascii.o meter_tools.o
-	$(CC) $(LFLAGS) -o spin_demo.ascii spin_demo.o meter-ascii.o meter_tools.o
+###
 
 spin_demo.i2c:	spin_demo.o meter-i2c.o meter_tools.o
 	$(CC) $(LFLAGS) -o spin_demo.i2c spin_demo.o meter-i2c.o meter_tools.o	
@@ -87,8 +82,7 @@ spin_demo.o:	spin_demo.c meter.h meter_tools.h
 	$(CC) $(CFLAGS) -c spin_demo.c
 
 
-set_display.ascii:	set_display.o meter-ascii.o meter_tools.o
-	$(CC) $(LFLAGS) -o set_display.ascii set_display.o meter-ascii.o meter_tools.o
+###
 
 set_display.i2c:	set_display.o meter-i2c.o meter_tools.o
 	$(CC) $(LFLAGS) -o set_display.i2c set_display.o meter-i2c.o meter_tools.o	
@@ -100,9 +94,6 @@ set_display.o:	set_display.c meter.h meter_tools.h
 
 ###
 
-string_demo.ascii:	string_demo.o meter-ascii.o meter_tools.o
-	$(CC) $(LFLAGS) -o string_demo.ascii string_demo.o meter-ascii.o meter_tools.o
-
 string_demo.i2c:	string_demo.o meter-i2c.o meter_tools.o
 	$(CC) $(LFLAGS) -o string_demo.i2c string_demo.o meter-i2c.o meter_tools.o
 
@@ -110,8 +101,7 @@ string_demo.o:	string_demo.c meter.h meter_tools.h
 	$(CC) $(CFLAGS) -c string_demo.c
 
 
-scroll_string.ascii:	scroll_string.o meter-ascii.o meter_tools.o
-	$(CC) $(LFLAGS) -o scroll_string.ascii scroll_string.o meter-ascii.o meter_tools.o
+###
 
 scroll_string.i2c:	scroll_string.o meter-i2c.o meter_tools.o
 	$(CC) $(LFLAGS) -o scroll_string.i2c scroll_string.o meter-i2c.o meter_tools.o
@@ -122,10 +112,6 @@ scroll_string.o:	scroll_string.c meter.h meter_tools.h
 
 clean:	
 	rm -f *.o *~ char_test \
-	clock_demo spin_demo.ascii pulse_demo.ascii string_demo.ascii \
-	spin_demo.i2c pulse_demo.i2c string_demo.i2c \
-	scroll_string.ascii scroll_string.i2c \
-	cpu_meter.i2c cpu_meter.ascii \
-	music_demo.i2c music_demo.ascii \
-	set_display.i2c set_display.ascii \
-	enemy_attack.i2c enemy_attack.ascii
+	clock_demo spin_demo pulse_demo string_demo \
+	scroll_string cpu_meter music_demo \
+	set_display enemy_attack
