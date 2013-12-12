@@ -4,19 +4,16 @@ LFLAGS =
 
 all:	char_test \
         clock_demo \
-	cpu_meter.ascii cpu_meter.i2c \
-	music_demo.ascii music_demo.i2c \
-	pulse_demo.ascii pulse_demo.i2c \
-	spin_demo.ascii spin_demo.i2c \
-	string_demo.ascii string_demo.i2c \
-        scroll_string.ascii scroll_string.i2c \
-	set_display.ascii set_display.i2c \
-	enemy_attack.ascii enemy_attack.i2c
+	cpu_meter \
+	enemy_attack \
+	music_demo \
+	pulse_demo \
+	spin_demo \
+	string_demo \
+        scroll_string \
+	set_display 
 
-
-ascii:	pulse_demo.ascii spin_demo.ascii string_demo.ascii
-
-i2c:	pulse_demo.i2c spin_demo.i2c string_demo.i2c
+###
 
 14seg_font.o:	14seg_font.c 14seg_font.h
 	$(CC) $(CFLAGS) -c 14seg_font.c
@@ -36,18 +33,6 @@ char_test.o:	char_test.c ../../lib/i2c_lib.h
 
 ###
 
-meter-ascii.o:	meter-ascii.c meter.h
-	$(CC) $(CFLAGS) -c meter-ascii.c
-
-meter-i2c.o:	meter-i2c.c meter.h
-	$(CC) $(CFLAGS) -c meter-i2c.c	
-
-meter_tools.o:	meter_tools.c meter_tools.h
-	$(CC) $(CFLAGS) -c meter_tools.c
-
-
-###
-
 clock_demo:	clock_demo.o 14seg_font.o ../../lib/i2c_lib.o
 	$(CC) $(LFLAGS) -o clock_demo clock_demo.o 14seg_font.o ../../lib/i2c_lib.o
 
@@ -57,14 +42,22 @@ clock_demo.o:	clock_demo.c 14seg_font.h ../../lib/i2c_lib.h
 
 ###
 
-cpu_meter.ascii:	cpu_meter.o meter-ascii.o meter_tools.o
-	$(CC) $(LFLAGS) -o cpu_meter.ascii cpu_meter.o meter-ascii.o meter_tools.o
+cpu_meter:	cpu_meter.o 14seg_font.o ../../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o cpu_meter cpu_meter.o 14seg_font.o ../../lib/i2c_lib.o
 
-cpu_meter.i2c:	cpu_meter.o meter-i2c.o meter_tools.o
-	$(CC) $(LFLAGS) -o cpu_meter.i2c cpu_meter.o meter-i2c.o meter_tools.o
-
-cpu_meter.o:	cpu_meter.c meter.h meter_tools.h
+cpu_meter.o:	cpu_meter.c 14seg_font.h ../../lib/i2c_lib.h
 	$(CC) $(CFLAGS) -c cpu_meter.c	
+
+###
+
+enemy_attack:	enemy_attack.o 14seg_font.o ../../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o enemy_attack enemy_attack.o 14seg_font.o ../../lib/i2c_lib.o
+
+enemy_attack.o:	enemy_attack.c 14seg_font.h ../../lib/i2c_lib.h
+	$(CC) $(CFLAGS) -c enemy_attack.c	
+
+
+###
 
 
 music_demo.ascii:	music_demo.o meter-ascii.o meter_tools.o
@@ -107,16 +100,8 @@ set_display.o:	set_display.c meter.h meter_tools.h
 	$(CC) $(CFLAGS) -c set_display.c	
 
 
-enemy_attack.ascii:	enemy_attack.o meter-ascii.o meter_tools.o
-	$(CC) $(LFLAGS) -o enemy_attack.ascii enemy_attack.o meter-ascii.o meter_tools.o
 
-enemy_attack.i2c:	enemy_attack.o meter-i2c.o meter_tools.o
-	$(CC) $(LFLAGS) -o enemy_attack.i2c enemy_attack.o meter-i2c.o meter_tools.o	
-
-enemy_attack.o:	enemy_attack.c meter.h meter_tools.h
-	$(CC) $(CFLAGS) -c enemy_attack.c	
-
-
+###
 
 string_demo.ascii:	string_demo.o meter-ascii.o meter_tools.o
 	$(CC) $(LFLAGS) -o string_demo.ascii string_demo.o meter-ascii.o meter_tools.o
