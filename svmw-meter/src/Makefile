@@ -59,16 +59,13 @@ enemy_attack.o:	enemy_attack.c 14seg_font.h ../../lib/i2c_lib.h
 
 ###
 
+music_demo:	music_demo.o 14seg_font.o ../../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o music_demo music_demo.o 14seg_font.o ../../lib/i2c_lib.o -lm
 
-music_demo.ascii:	music_demo.o meter-ascii.o meter_tools.o
-	$(CC) $(LFLAGS) -o music_demo.ascii music_demo.o meter-ascii.o meter_tools.o -lm
-
-music_demo.i2c:	music_demo.o meter-i2c.o meter_tools.o
-	$(CC) $(LFLAGS) -o music_demo.i2c music_demo.o meter-i2c.o meter_tools.o -lm
-
-music_demo.o:	music_demo.c meter.h meter_tools.h
+music_demo.o:	music_demo.c ../../lib/i2c_lib.h
 	$(CC) $(CFLAGS) -c music_demo.c	
 
+###
 
 pulse_demo.ascii:	pulse_demo.o meter-ascii.o meter_tools.o
 	$(CC) $(LFLAGS) -o pulse_demo.ascii pulse_demo.o meter-ascii.o meter_tools.o

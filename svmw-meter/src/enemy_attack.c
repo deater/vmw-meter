@@ -60,6 +60,13 @@ int main(int argc, char **argv) {
 		display_present=0;
 	}
 
+	if (display_present) {
+		init_saa1064_display(meter_fd,SAA1064_ADDRESS1);
+		init_saa1064_display(meter_fd,SAA1064_ADDRESS2);
+		init_saa1064_display(meter_fd,SAA1064_ADDRESS3);
+		init_saa1064_display(meter_fd,SAA1064_ADDRESS4);
+	}
+
 	for(i=0;i<8;i++) display_state[i]=0;
 
 	update_our_display(display_present);
