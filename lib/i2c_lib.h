@@ -54,9 +54,7 @@ int reset_keyboard(void);
 
 int init_saa1064_display(int i2c_fd, int i2c_addr);
 int update_saa1064_display(int i2c_fd, int i2c_addr, unsigned short *in_state);
-void init_meter();
-void reset_display();
-void emulate_i2c(char *buffer, int length);
+int update_saa1064_ascii(unsigned short *in_state);
 
 
 #define SAA1064_CONTROL_STATIC    0x01

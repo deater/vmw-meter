@@ -698,3 +698,198 @@ int update_saa1064_display(int i2c_fd, int i2c_addr, unsigned short *in_state) {
 	}
 	return 0;
 }
+
+
+
+static void red_or_grey(int condition) {
+
+	if (condition) {
+		/* bright red */
+		printf("\033[1;31m");
+	}
+	else {
+		/* dark grey */
+		printf("\033[1;30m");
+	}
+}
+
+static void bargraph(int condition1, int condition2) {
+
+	if (condition1 && condition2) {
+		/* bright green  */
+		printf("\033[1;32m");
+		printf(";; ");
+	}
+	else if (condition1) {
+		/* bright green  */
+		printf("\033[1;32m");
+		printf(",, ");
+	}
+	else if (condition2) {
+		/* bright green  */
+		printf("\033[1;32m");
+		printf("'' ");
+	}
+	else {
+		/* dark grey */
+		printf("\033[1;30m");
+		printf(";; ");
+	}
+}
+
+#define SAA1064_METER_DIGITS 8
+
+int update_saa1064_ascii(unsigned short *global_meter_state) {
+
+	int i;
+
+	unsigned short meter_state[SAA1064_METER_DIGITS],temp;
+
+	for(i=0;i<8;i++) {
+		meter_state[i]=global_meter_state[i];
+	}
+
+	/* clear screen */
+	printf("\033[2J\n");
+
+	/* move to upper left */
+	printf("\033[1;1H");
+
+	//                @ @ @ @ @ @
+	//     @ @   @ @   @ @   @ @   @ @   @ @
+	// ;;  ___   ___   ___   ___   ___   ___  ;;
+	// ;; |\|/| |\|/| |\|/| |\|/| |\|/| |\|/| ;;
+	// ;;  - -   - -   - -   - -   - -   - -  ;;
+	// ;; |/|\| |/|\| |/|\| |/|\| |/|\| |/|\| ;;
+	// ;;  ---   ---   ---   ---   ---   ---  ;;
+	//
+
+	/* first line */
+	printf("                ");
+
+	for(i=0;i<6;i++) {
+		if (meter_state[i]&SAA1064_SEGMENT_EX) {
+			switch(i) {
+			case 0: printf("\033[0;31m"); break; /* bright red */
+			case 1: printf("\033[1;31m"); break; /* bright orange */
+			case 2: printf("\033[1;33m"); break; /* bright yellow */
+			case 3: printf("\033[1;32m"); break; /* bright green */
+			case 4: printf("\033[1;34m"); break; /* bright blue */
+			case 5: printf("\033[1;35m"); break; /* bright purple */
+			}
+		}
+		else {
+			/* dark grey */
+			printf("\033[1;30m");
+		}
+		printf("@ ");
+	}
+	printf("\n");
+
+	/* second line */
+	printf("     ");
+	red_or_grey(meter_state[6]&SAA1064_SEGMENT_L);
+	printf("@ ");
+	red_or_grey(meter_state[6]&SAA1064_SEGMENT_M);
+	printf("@   ");
+	red_or_grey(meter_state[6]&SAA1064_SEGMENT_N);
+	printf("@ ");
+	red_or_grey(meter_state[6]&SAA1064_SEGMENT_P);
+	printf("@   ");
+	red_or_grey(meter_state[6]&SAA1064_SEGMENT_DP);
+	printf("@ ");
+	red_or_grey(meter_state[6]&SAA1064_SEGMENT_EX);
+	printf("@   ");
+
+	red_or_grey(meter_state[7]&SAA1064_SEGMENT_EX);
+	printf("@ ");
+	red_or_grey(meter_state[7]&SAA1064_SEGMENT_DP);
+	printf("@   ");
+	red_or_grey(meter_state[7]&SAA1064_SEGMENT_P);
+	printf("@ ");
+	red_or_grey(meter_state[7]&SAA1064_SEGMENT_N);
+	printf("@   ");
+	red_or_grey(meter_state[7]&SAA1064_SEGMENT_M);
+	printf("@ ");
+	red_or_grey(meter_state[7]&SAA1064_SEGMENT_L);
+	printf("@");
+	printf("\n");
+
+	/* third line */
+	printf(" ");
+	bargraph(meter_state[6]&SAA1064_SEGMENT_J,
+		meter_state[6]&SAA1064_SEGMENT_K);
+	for(i=0;i<6;i++) {
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_A);
+		printf(" ___  ");
+	}
+	bargraph(meter_state[7]&SAA1064_SEGMENT_J,
+		meter_state[7]&SAA1064_SEGMENT_K);
+	printf("\n");
+
+	/* fourth line */
+	printf(" ");
+	bargraph(meter_state[6]&SAA1064_SEGMENT_G,meter_state[6]&SAA1064_SEGMENT_H);
+	for(i=0;i<6;i++) {
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_F);
+		printf("|");
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_P);
+		printf("\\");
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_G);
+		printf("|");
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_H);
+		printf("/");
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_B);
+		printf("| ");
+	}
+	bargraph(meter_state[7]&SAA1064_SEGMENT_G,meter_state[7]&SAA1064_SEGMENT_H);
+	printf("\n");
+
+	/* fifth line */
+	printf(" ");
+	bargraph(meter_state[6]&SAA1064_SEGMENT_E,meter_state[6]&SAA1064_SEGMENT_F);
+	for(i=0;i<6;i++) {
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_N);
+		printf(" - ");
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_J);
+		printf("-  ");
+	}
+	bargraph(meter_state[7]&SAA1064_SEGMENT_E,meter_state[7]&SAA1064_SEGMENT_F);
+	printf("\n");
+
+	/* sixth line */
+	printf(" ");
+	bargraph(meter_state[6]&SAA1064_SEGMENT_C,meter_state[6]&SAA1064_SEGMENT_D);
+	for(i=0;i<6;i++) {
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_E);
+		printf("|");
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_M);
+		printf("/");
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_L);
+		printf("|");
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_K);
+		printf("\\");
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_C);
+		printf("| ");
+	}
+	bargraph(meter_state[7]&SAA1064_SEGMENT_C,meter_state[7]&SAA1064_SEGMENT_D);
+	printf("\n");
+
+	/* seventh line */
+	printf(" ");
+	bargraph(meter_state[6]&SAA1064_SEGMENT_A,meter_state[6]&SAA1064_SEGMENT_B);
+	for(i=0;i<6;i++) {
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_D);
+		printf(" --- ");
+		red_or_grey(meter_state[i]&SAA1064_SEGMENT_DP);
+		printf(".");
+	}
+	bargraph(meter_state[7]&SAA1064_SEGMENT_A,meter_state[7]&SAA1064_SEGMENT_B);
+	printf("\n");
+
+	/* restore default colors */
+	printf("\033[0;39;49m\n");
+
+	return 0;
+}
+
