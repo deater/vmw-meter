@@ -289,6 +289,7 @@ int side_collision(unsigned char *framebuffer,
 
 	int x_left_offset;
 	int x_right_offset;
+	int x,y;
 
 	x_left_offset=
 		piece_info[which][rotate].x_left_edge;
@@ -302,6 +303,30 @@ int side_collision(unsigned char *framebuffer,
 
 	/* check for right wall */
 	if (piece_x+x_right_offset>8) return 1;
+
+	/* check if left edges are in a tower */
+	for(y=piece_info[which][rotate].y_top_edge;
+			y<SPRITE_SIZE-piece_info[which][rotate].y_bottom_edge;
+			y++) {
+		for(x=x_right_offset-1;x>=0;x--) {
+			if (pieces[which][rotate][y][x])
+				if (framebuffer[piece_y+y+1]&
+					1<<(7-(piece_x+x))) return 1;
+		}
+	}
+
+	/* check if right edges are in a tower */
+	for(y=piece_info[which][rotate].y_top_edge;
+			y<SPRITE_SIZE-piece_info[which][rotate].y_bottom_edge;
+			y++) {
+		for(x=x_left_offset;x<SPRITE_SIZE;x++) {
+			if (pieces[which][rotate][y][x])
+				if (framebuffer[piece_y+y+1]&
+					1<<(7-(piece_x+x))) return 1;
+		}
+	}
+
+
 
 	/* No collision */
 	return 0;
@@ -437,6 +462,7 @@ int main(int arg, char **argv) {
 	unsigned char framebuffer[DISPLAY_SIZE];
 	unsigned short aux_buffer[8];
 	int piece_x=3, piece_y=0,piece_rotate=0,new_piece_x=0;
+	int new_rotate;
 	int piece_type,next_piece;
 	int l,k;
 	int score=0;
@@ -517,6 +543,7 @@ start:
 	while(1) {
 
 		new_piece_x=piece_x;
+		new_rotate=piece_rotate;
 
 		/* Read Keyboard */
 		ch=read_keyboard();
@@ -538,10 +565,10 @@ start:
 			if (ch==KEYBOARD_UP) {
 			}
 			if (ch=='z') {
-				piece_rotate--;
+				new_rotate--;
 			}
 			if (ch=='c') {
-				piece_rotate++;
+				new_rotate++;
 			}
 		}
 
@@ -552,7 +579,7 @@ start:
 
 			if (n_data.c_pressed) {
 				if (!c_down) {
-					piece_rotate++;
+					new_rotate++;
 				}
 				c_down++;
 
@@ -565,7 +592,7 @@ start:
 
 			if (n_data.z_pressed) {
 				if (!z_down) {
-					piece_rotate--;
+					new_rotate--;
 				}
 				z_down++;
 				if (z_down>10) z_down=0;
@@ -601,16 +628,17 @@ start:
 		}
 
 		/* Handle rotate overflow */
-		if (piece_rotate>3) piece_rotate=0;
-		if (piece_rotate<0) piece_rotate=3;
+		if (new_rotate>3) new_rotate=0;
+		if (new_rotate<0) new_rotate=3;
 
 		/* Check side collision */
 		if (side_collision(framebuffer,piece_type,
-					new_piece_x,piece_y,piece_rotate)) {
+					new_piece_x,piece_y,new_rotate)) {
 			/* do not update */
 		}
 		else {
 			piece_x=new_piece_x;
+			piece_rotate=new_rotate;
 		}
 
 		/* Copy framebuffer to screen */
