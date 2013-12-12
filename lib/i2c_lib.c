@@ -597,3 +597,104 @@ int emulate_4x7seg_display(unsigned short *display_state) {
 
 	return 0;
 }
+
+int init_saa1064_display(int i2c_fd, int i2c_addr) {
+
+	unsigned char buffer[6]="\x00\x47\x00\x00\x00\x00";
+
+
+	/* set dynamic mode, noblank */
+	/* notest, 12mA current, blank all segments */
+
+	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
+		fprintf(stderr,"Error setting i2c address %x\n",i2c_addr);
+		return -1;
+	}
+
+	if (write(i2c_fd,buffer,6)!=6) {
+		fprintf(stderr,"Error writing to SAA1064 %d\n",i2c_addr);
+		return -1;
+	}
+
+	return 0;
+
+}
+
+static unsigned short reverse_bits16(unsigned short v) {
+
+	unsigned int s = 16;
+	unsigned int mask = ~0;
+	while ((s >>= 1) > 0) {
+		mask ^= (mask << s);
+		v = ((v >> s) & mask) | ((v << s) & ~mask);
+	}
+	return v;
+}
+
+/* non-reentrant :( */
+
+static unsigned short existing_state[8]= {
+   0x0,0x0,0x0,0x0,
+   0x0,0x0,0x0,0x0,
+};
+
+
+int update_saa1064_display(int i2c_fd, int i2c_addr, unsigned short *in_state) {
+
+	int i;
+	char buffer[6];
+	unsigned short temp;
+	unsigned short state[8];
+
+	/* c passes arrays by reference so we have to do this         */
+	/* otherwise changes to state[] are propogated back to caller */
+	for(i=0;i<8;i++) state[i]=in_state[i];
+
+	/* state[0]=digit0 */
+	/* state[1]=digit1 */
+	/* state[2]=digit2 */
+	/* state[3]=digit3 */
+	/* state[4]=digit4 */
+	/* state[5]=digit5 */
+	/* state[6]=left bargraph */
+	/* state[7]=right bargraph */
+
+	for(i=0;i<4;i++) {
+
+		/* the bargraph was wired backward on actual hardware */
+		/* fix it here to make software easier to write       */
+		if (i==3) {
+
+			temp=(reverse_bits16(state[6])<<6)|(state[6]&0x3f);
+			state[6]=temp;
+
+			temp=(reverse_bits16(state[7])<<6)|(state[7]&0x3f);
+			state[7]=temp;
+		}
+
+		/* only update if there's been a change */
+		if ( (existing_state[i*2]!=state[i*2]) ||
+			(existing_state[(i*2)+1]!=state[(i*2)+1])) {
+
+			existing_state[i*2]=state[i*2];
+			existing_state[(i*2)+1]=state[(i*2)+1];
+
+			/* write out to hardware */
+			if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr+i) < 0) {
+				fprintf(stderr,"Error setting i2c address %x\n",i2c_addr);
+				return -1;
+			}
+
+			buffer[0]=0x01;
+			buffer[1]=(state[i*2]>>8)&0xff;
+			buffer[2]=(state[(i*2)+1]>>8)&0xff;
+			buffer[3]=(state[i*2])&0xff;
+			buffer[4]=(state[(i*2)+1])&0xff;
+			if (write(i2c_fd,buffer,5)!=5) {
+				fprintf(stderr,"Error writing!\n");
+				return -1;
+			}
+		}
+	}
+	return 0;
+}

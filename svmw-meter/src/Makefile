@@ -1,9 +1,9 @@
 CC = gcc
-CFLAGS = -O2 -Wall
+CFLAGS = -O2 -Wall -I../../lib
 LFLAGS =
 
 all:	char_test \
-        clock_demo.ascii clock_demo.i2c \
+        clock_demo \
 	cpu_meter.ascii cpu_meter.i2c \
 	music_demo.ascii music_demo.i2c \
 	pulse_demo.ascii pulse_demo.i2c \
@@ -14,9 +14,19 @@ all:	char_test \
 	enemy_attack.ascii enemy_attack.i2c
 
 
-ascii:	clock_demo.ascii pulse_demo.ascii spin_demo.ascii string_demo.ascii
+ascii:	pulse_demo.ascii spin_demo.ascii string_demo.ascii
 
-i2c:	clock_demo.i2c pulse_demo.i2c spin_demo.i2c string_demo.i2c
+i2c:	pulse_demo.i2c spin_demo.i2c string_demo.i2c
+
+14seg_font.o:	14seg_font.c 14seg_font.h
+	$(CC) $(CFLAGS) -c 14seg_font.c
+
+###
+
+../../lib/i2c_lib.o:	../../lib/i2c_lib.c ../../lib/i2c_lib.h
+	cd ../../lib && make
+
+###
 
 char_test:	char_test.o meter_tools.o meter-ascii.o
 	$(CC) $(LFLAGS) -o char_test char_test.o meter_tools.o meter-ascii.o
@@ -31,20 +41,20 @@ meter-ascii.o:	meter-ascii.c meter.h
 meter-i2c.o:	meter-i2c.c meter.h
 	$(CC) $(CFLAGS) -c meter-i2c.c	
 
-
 meter_tools.o:	meter_tools.c meter_tools.h
 	$(CC) $(CFLAGS) -c meter_tools.c
 
 
-clock_demo.ascii:	clock_demo.o meter-ascii.o meter_tools.o
-	$(CC) $(LFLAGS) -o clock_demo.ascii clock_demo.o meter-ascii.o meter_tools.o
+###
 
-clock_demo.i2c:	clock_demo.o meter-i2c.o meter_tools.o
-	$(CC) $(LFLAGS) -o clock_demo.i2c clock_demo.o meter-i2c.o meter_tools.o
+clock_demo:	clock_demo.o 14seg_font.o ../../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o clock_demo clock_demo.o 14seg_font.o ../../lib/i2c_lib.o
 
-clock_demo.o:	clock_demo.c meter.h meter_tools.h
+clock_demo.o:	clock_demo.c 14seg_font.h ../../lib/i2c_lib.h
 	$(CC) $(CFLAGS) -c clock_demo.c
 
+
+###
 
 cpu_meter.ascii:	cpu_meter.o meter-ascii.o meter_tools.o
 	$(CC) $(LFLAGS) -o cpu_meter.ascii cpu_meter.o meter-ascii.o meter_tools.o
@@ -129,8 +139,8 @@ scroll_string.o:	scroll_string.c meter.h meter_tools.h
 
 clean:	
 	rm -f *.o *~ char_test \
-	clock_demo.ascii spin_demo.ascii pulse_demo.ascii string_demo.ascii \
-	clock_demo.i2c spin_demo.i2c pulse_demo.i2c string_demo.i2c \
+	clock_demo spin_demo.ascii pulse_demo.ascii string_demo.ascii \
+	spin_demo.i2c pulse_demo.i2c string_demo.i2c \
 	scroll_string.ascii scroll_string.i2c \
 	cpu_meter.i2c cpu_meter.ascii \
 	music_demo.i2c music_demo.ascii \
