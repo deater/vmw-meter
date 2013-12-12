@@ -67,18 +67,18 @@ music_demo.o:	music_demo.c ../../lib/i2c_lib.h
 
 ###
 
-pulse_demo:	pulse_demo.o 14seg_font.o ../../lib/i2c_lib.o
-	$(CC) $(LFLAGS) -o pulse_demo pulse_demo.o 14seg_font.o ../../lib/i2c_lib.o
+pulse_demo:	pulse_demo.o ../../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o pulse_demo pulse_demo.o ../../lib/i2c_lib.o
 
 pulse_demo.o:	pulse_demo.c ../../lib/i2c_lib.h
 	$(CC) $(CFLAGS) -c pulse_demo.c
 
 ###
 
-spin_demo.i2c:	spin_demo.o meter-i2c.o meter_tools.o
-	$(CC) $(LFLAGS) -o spin_demo.i2c spin_demo.o meter-i2c.o meter_tools.o	
+spin_demo:	spin_demo.o ../../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o spin_demo spin_demo.o ../../lib/i2c_lib.o	
 
-spin_demo.o:	spin_demo.c meter.h meter_tools.h
+spin_demo.o:	spin_demo.c ../../lib/i2c_lib.h
 	$(CC) $(CFLAGS) -c spin_demo.c
 
 
