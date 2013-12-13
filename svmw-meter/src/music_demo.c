@@ -46,6 +46,30 @@ static unsigned short bargraph_lut[11]=
          0xffc0
 };
 
+static void properly_escape(char *in, char *out) {
+
+	int i=0,j;
+
+	for(j=0;j<strlen(in);j++) {
+#if 0
+		if (in[j]==' ') {
+			out[i]='\\';
+			i++;
+		} else
+		if (in[j]=='\'') {
+			out[i]='\\';
+			i++;
+		} else
+		if (in[j]=='\"') {
+			out[i]='\\';
+			i++;
+		}
+#endif
+		out[i]=in[j];
+		i++;
+	}
+}
+
 
 int main(int argc, char **argv) {
 
@@ -61,6 +85,15 @@ int main(int argc, char **argv) {
 
 	unsigned short display_state[8];
 	int i;
+
+	FILE *input,*output;
+	char input_string[BUFSIZ];
+	char song_name[BUFSIZ];
+
+	if (argc<2) {
+		printf("Usage: %s file.mp3\n\n",argv[0]);
+		exit(1);
+	}
 
 	/* Init Display */
 	display_present=1;
@@ -113,6 +146,23 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	properly_escape(argv[1],song_name);
+
+	sprintf(input_string,"/usr/bin/mpg321 \"%s\" -s",song_name);
+	printf("Trying %s\n",input_string);
+
+	input=popen(input_string,"r");
+	if (input==NULL) {
+		printf("Error executing %s\n",input_string);
+		exit(1);
+	}
+
+	output=popen("/usr/bin/aplay -f cd","w");
+	if (output==NULL) {
+		printf("Error executing /usr/bin/aplay\n");
+		exit(1);
+	}
+
 	/* maximum amplitude for this many bits */
 	maximum = ((1<<SAMPLE_WIDTH ) / 2) - 1;
 
@@ -129,7 +179,7 @@ int main(int argc, char **argv) {
 				sample[channel] = 0;
 
 				if (fread(&sample[channel] ,
-					(SAMPLE_WIDTH / 8), 1, stdin) != 1) {
+					(SAMPLE_WIDTH / 8), 1, input) != 1) {
 					not_done = 0;
 					break;
 				}
@@ -149,7 +199,7 @@ int main(int argc, char **argv) {
 
 			for(channel = 0; channel < NUM_CHANNELS; channel++){
 				/* write sample back out to stderr */
-				if (fwrite(&sample[channel] , SAMPLE_WIDTH/8, 1 , stderr) != 1){
+				if (fwrite(&sample[channel] , SAMPLE_WIDTH/8, 1 , output) != 1){
 					not_done = 0;
 					break;
 				}
@@ -202,6 +252,9 @@ int main(int argc, char **argv) {
 	else {
 		update_saa1064_ascii(display_state);
 	}
+
+	fclose(input);
+	fclose(output);
 
 	return 0;
 }
