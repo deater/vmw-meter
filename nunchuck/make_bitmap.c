@@ -11,11 +11,12 @@ int main(int argc, char **argv) {
 	int max_length[8];
 	int value;
 
+loop:
 	while(1) {
 		if (i==8) break;
 
 		ptr=fgets(line[i],BUFSIZ,stdin);
-		if (ptr==NULL) break;
+		if (ptr==NULL) return 0;
 
 		i++;
 
@@ -46,6 +47,12 @@ int main(int argc, char **argv) {
 			}
 		}
 		printf(" */\n");
+	}
+
+	if (i==8) {
+		i=0;
+		overall_max_length=0;
+		goto loop;
 	}
 
 	return 0;

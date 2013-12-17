@@ -3,7 +3,7 @@ CFLAGS = -Wall -O2 -g -I../lib
 LFLAGS =
 
 all:	ball_bounce_demo clock_demo fill_demo flame_demo font_demo \
-	sine_demo spiral_demo starfield_demo
+	sine_demo spiral_demo starfield_demo tengwar_passwd
 
 ../lib/i2c_lib.o:	../lib/i2c_lib.c ../lib/i2c_lib.h
 	cd ../lib && make
@@ -86,6 +86,15 @@ starfield_demo:	starfield_demo.o ../lib/i2c_lib.o graphics_lib.o
 starfield_demo.o:	starfield_demo.c ../lib/i2c_lib.h graphics_lib.h
 	$(CC) $(CFLAGS) -c starfield_demo.c
 
+####
+
+tengwar_passwd:	tengwar_passwd.o ../lib/i2c_lib.o graphics_lib.o
+	$(CC) $(LFLASG) -o tengwar_passwd tengwar_passwd.o \
+			../lib/i2c_lib.o graphics_lib.o
+
+tengwar_passwd.o:	tengwar_passwd.c ../lib/i2c_lib.h graphics_lib.h tengwar_messages.h
+	$(CC) $(CFLAGS) -c tengwar_passwd.c
+
 
 ####
 
@@ -93,5 +102,5 @@ clean:
 	rm -f *~ *.o \
 		ball_bounce_demo clock_demo fill_demo flame_demo \
 		font_demo \
-		sine_demo spiral_demo starfield_demo
+		sine_demo spiral_demo starfield_demo tengwar_passwd
 
