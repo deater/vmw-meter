@@ -207,7 +207,7 @@ int decode_key(long long keycode) {
 
 long long old_keypad=0;
 
-time_t keypad_change_time(long long keypad_in) {
+time_t keypad_change_time(int i2c_fd,long long keypad_in) {
 
 	time_t delta_time=0,entered_time;
 	struct tm new_time;
@@ -220,7 +220,7 @@ time_t keypad_change_time(long long keypad_in) {
 
 	while(1) {
 
-		keypad_result=read_keypad();
+		keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS1);
 
 		keypad_change=old_keypad&~keypad_result;
 		if (keypad_change) {
@@ -334,15 +334,25 @@ int main(int argc, char **argv) {
 
  	unsigned short display_buffer[8];
 	long long keypad_result=0,keypad_change;
+	int i2c_fd;
 
 	time_t current_time;
 	time_t delta_time=0,display_time;
 
-
 	char *ctime_result;
 
-	/* brightness 0 - 15 */
-	result=init_display("/dev/i2c-1",13);
+	/* open device */
+	i2c_fd=init_i2c("/dev/i2c-1");
+	if (i2c_fd < 0) {
+		fprintf(stderr,"Error opening device!\n");
+		return -1;
+	}
+
+	/* Init display */
+	if (init_display(i2c_fd,HT16K33_ADDRESS1,13)) {
+		fprintf(stderr,"Error opening display\n");
+		return -1;
+	}
 
 /*
 	display_buffer[0]=font_16seg['A'];
@@ -408,19 +418,18 @@ int main(int argc, char **argv) {
 			display_buffer[4]|=0x8000;
 		}
 
-		keypad_result=read_keypad();
+		keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS1);
 //		if (keypad_result!=-1) {
 //			printf("keypad: %lld\n",keypad_result);
 //		}
 
 		keypad_change=old_keypad&~keypad_result;
 		if (keypad_change) {
-			delta_time=keypad_change_time(keypad_change);
+			delta_time=keypad_change_time(i2c_fd,keypad_change);
 		}
 		old_keypad=keypad_result;
 
-        	update_display(display_buffer);
-
+        	update_display(i2c_fd,HT16K33_ADDRESS1,display_buffer);
 
 		usleep(100000);
 		count++;
