@@ -4,7 +4,7 @@
 # ElementArc( centre_x centre_y radius_x radius_y startAngle deltaAngle thickness)  startAngle in degs, 0=East, +ve deltaAngle anti-clockwise
 # Measurements are taken from the datasheet
 #
-Element[0x0 "DIP-18-500" "" "" 0 0 -36000 -51500 0 100 0x0]
+Element[0x0 "DIP-18-500" "" "" 0 0 -31000 -57000 0 100 0x0]
 (
    Pad[-26500 -40000 -23500 -40000 6000 2000 8000 "" "1" 0x0800]
    Pad[-26500 -40000 -23500 -40000 6000 2000 8000 "" "1" 0x0880]
