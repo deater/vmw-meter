@@ -7,9 +7,9 @@ description=ht16k33 breakout
 T 5100 1500 9 10 0 0 0 0 1
 device=ht16k33
 T 5100 1700 9 10 0 0 0 0 1
-distlicense=GPL
+dist-license=GPL
 T 5100 1900 9 10 0 0 0 0 1
-uselicense=unlimited
+use-license=unlimited
 T 5100 2100 9 10 0 0 0 0 1
 author=Vince Weaver
 T 5100 2300 9 10 0 0 0 0 1
