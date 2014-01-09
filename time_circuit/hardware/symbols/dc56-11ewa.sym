@@ -15,7 +15,7 @@ author=Vince Weaver
 T 3700 2800 9 10 0 0 0 0 1
 copryright=2014 Vince Weaver
 T 2000 600 9 10 1 1 0 3 1
-refdes=LED?
+refdes=2x7SEG?
 T 2000 900 9 10 1 1 0 3 1
 DC56-11EWA
 P 2200 1800 2200 1500 1 0 0
@@ -23,7 +23,7 @@ P 2200 1800 2200 1500 1 0 0
 T 2200 1450 9 10 1 1 0 5 1
 pinlabel=E1
 T 2250 1550 5 8 1 1 0 0 1
-pinseq=1
+pinnumber=1
 T 2250 1550 5 8 0 1 0 0 1
 pinseq=1
 }
@@ -32,7 +32,7 @@ P 1800 0 1800 300 1 0 0
 T 1800 350 9 10 1 1 0 3 1
 pinlabel=D2
 T 1850 250 5 8 1 1 0 2 1
-pinseq=6
+pinnumber=6
 T 1850 250 5 8 0 1 0 2 1
 pinseq=6
 }
@@ -41,7 +41,7 @@ P 1400 0 1400 300 1 0 0
 T 1400 350 9 10 1 1 0 3 1
 pinlabel=C2
 T 1450 250 5 8 1 1 0 2 1
-pinseq=8
+pinnumber=8
 T 1450 250 5 8 0 1 0 2 1
 pinseq=8
 }
@@ -50,7 +50,7 @@ P 1000 0 1000 300 1 0 0
 T 1000 350 9 10 1 1 0 3 1
 pinlabel=B2
 T 1050 250 5 8 1 1 0 2 1
-pinseq=10
+pinnumber=10
 T 1050 250 5 8 0 1 0 2 1
 pinseq=10
 }
@@ -59,7 +59,7 @@ P 600 0 600 300 1 0 0
 T 600 350 9 10 1 1 0 3 1
 pinlabel=A2
 T 650 250 5 8 1 1 0 2 1
-pinseq=11
+pinnumber=11
 T 650 250 5 8 0 1 0 2 1
 pinseq=11
 }
@@ -68,7 +68,7 @@ P 1800 1800 1800 1500 1 0 0
 T 1800 1450 9 10 1 1 0 5 1
 pinlabel=D1
 T 1850 1550 5 8 1 1 0 0 1
-pinseq=2
+pinnumber=2
 T 1850 1550 5 8 0 1 0 0 1
 pinseq=2
 }
@@ -77,7 +77,7 @@ P 3400 0 3400 300 1 0 0
 T 3400 350 9 10 1 1 0 3 1
 pinlabel=DP2
 T 3450 250 5 8 1 1 0 2 1
-pinseq=9
+pinnumber=9
 T 3450 250 5 8 0 1 0 2 1
 pinseq=9
 }
@@ -86,7 +86,7 @@ P 1400 1800 1400 1500 1 0 0
 T 1400 1450 9 10 1 1 0 5 1
 pinlabel=C1
 T 1450 1550 5 8 1 1 0 0 1
-pinseq=3
+pinnumber=3
 T 1450 1550 5 8 0 1 0 0 1
 pinseq=3
 }
@@ -95,7 +95,7 @@ P 1000 1800 1000 1500 1 0 0
 T 1000 1450 9 10 1 1 0 5 1
 pinlabel=B1
 T 1050 1550 5 8 1 1 0 0 1
-pinseq=15
+pinnumber=15
 T 1050 1550 5 8 0 1 0 0 1
 pinseq=15
 }
@@ -115,7 +115,7 @@ pinlabel=A1
 T 650 1550 5 8 1 1 0 0 1
 pinseq=16
 T 650 1550 5 8 0 1 0 0 1
-pinseq=16
+pinnumber=16
 T 600 1800 5 10 0 1 0 0 1
 pintype=in
 }
@@ -124,7 +124,7 @@ P 2200 0 2200 300 1 0 0
 T 2200 350 9 10 1 1 0 3 1
 pinlabel=E2
 T 2250 250 5 8 1 1 0 2 1
-pinseq=5
+pinnumber=5
 T 2250 250 5 8 0 1 0 2 1
 pinseq=5
 }
@@ -133,7 +133,7 @@ P 3400 1800 3400 1500 1 0 0
 T 3400 1450 9 10 1 1 0 5 1
 pinlabel=DP1
 T 3450 1550 5 8 1 1 0 0 1
-pinseq=4
+pinnumber=4
 T 3450 1550 5 8 0 1 0 0 1
 pinseq=4
 }
@@ -142,7 +142,7 @@ P 3000 1800 3000 1500 1 0 0
 T 3000 1450 9 10 1 1 0 5 1
 pinlabel=G1
 T 3050 1550 5 8 1 1 0 0 1
-pinseq=17
+pinnumber=17
 T 3050 1550 5 8 0 1 0 0 1
 pinseq=17
 }
@@ -162,7 +162,7 @@ pinlabel=F2
 T 2650 250 5 8 1 1 0 2 1
 pinseq=12
 T 2650 250 5 8 0 1 0 2 1
-pinseq=12
+pinnumber=12
 }
 P 2600 1800 2600 1500 1 0 0
 {
@@ -171,7 +171,7 @@ pinlabel=F1
 T 2650 1550 5 8 1 1 0 0 1
 pinseq=18
 T 2650 1550 5 8 0 1 0 0 1
-pinseq=18
+pinnumber=18
 }
 P 3000 0 3000 300 1 0 0
 {
@@ -180,5 +180,5 @@ pinlabel=G2
 T 3050 250 5 8 1 1 0 2 1
 pinseq=7
 T 3050 250 5 8 0 1 0 2 1
-pinseq=7
+pinnumber=7
 }
