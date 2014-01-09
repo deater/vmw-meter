@@ -1,0 +1,56 @@
+v 20130925 2
+B 200 300 1600 500 3 0 0 0 -1 -1 0 -1 -1 -1 -1 -1
+T 5300 800 9 10 0 0 0 0 1
+footprint=4
+T 5300 1000 9 10 0 0 0 0 1
+description=i2c connector
+T 5300 1200 9 10 0 0 0 0 1
+device=i2c connector
+T 5300 1400 9 10 0 0 0 0 1
+distlicense=GPL
+T 5300 1600 9 10 0 0 0 0 1
+uselicense=unlimited
+T 5300 1800 9 10 0 0 0 0 1
+author=Vince Weaver
+T 5300 2000 9 10 0 0 0 0 1
+copryright=2014 Vince Weaver
+T 2800 -300 9 10 1 1 0 3 1
+refdes=SOCKET?
+T 1000 600 9 10 1 1 0 3 1
+i2c ?
+P 1200 0 1200 300 1 0 0
+{
+T 1200 350 9 10 1 1 0 3 1
+pinlabel=SDA
+T 1250 250 5 8 1 1 0 2 1
+pinnumber=3
+T 1250 250 5 8 0 1 0 2 1
+pinseq=3
+}
+P 1500 0 1500 300 1 0 0
+{
+T 1500 350 9 10 1 1 0 3 1
+pinlabel=SCL
+T 1550 250 5 8 1 1 0 2 1
+pinnumber=4
+T 1550 250 5 8 0 1 0 2 1
+pinseq=4
+}
+P 500 0 500 300 1 0 0
+{
+T 500 350 9 10 1 1 0 3 1
+pinlabel=GND
+T 550 250 5 8 1 1 0 2 1
+pinnumber=1
+T 550 250 5 8 0 1 0 2 1
+pinseq=1
+}
+P 900 0 900 300 1 0 0
+{
+T 900 350 9 10 1 1 0 3 1
+pinlabel=VDD
+T 950 250 5 8 1 1 0 2 1
+pinnumber=2
+T 950 250 5 8 0 1 0 2 1
+pinseq=2
+}
