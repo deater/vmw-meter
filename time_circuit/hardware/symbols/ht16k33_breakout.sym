@@ -13,7 +13,7 @@ use-license=unlimited
 T 5100 2100 9 10 0 0 0 0 1
 author=Vince Weaver
 T 5100 2300 9 10 0 0 0 0 1
-copryright=2014 Vince Weaver
+copyright=2014 Vince Weaver
 T 2300 1000 9 10 1 1 0 3 2
 ht16k33 breakout
 

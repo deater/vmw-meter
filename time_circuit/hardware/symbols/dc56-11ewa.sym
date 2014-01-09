@@ -13,7 +13,7 @@ use-license=unlimited
 T 3700 2600 9 10 0 0 0 0 1
 author=Vince Weaver
 T 3700 2800 9 10 0 0 0 0 1
-copryright=2014 Vince Weaver
+copyright=2014 Vince Weaver
 T 2000 600 9 10 1 1 0 3 1
 refdes=2x7SEG?
 T 2000 900 9 10 1 1 0 3 1

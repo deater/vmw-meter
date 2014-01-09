@@ -1,19 +1,19 @@
 v 20130925 2
 B 300 300 5000 400 3 0 0 0 -1 -1 0 -1 -1 -1 -1 -1
 T 5300 800 9 10 0 0 0 0 1
-footprint=QFN-20
+footprint=DIP-20-300
 T 5300 1000 9 10 0 0 0 0 1
 description=keypad bus
 T 5300 1200 9 10 0 0 0 0 1
-device=sample device
+device=keypad connector
 T 5300 1400 9 10 0 0 0 0 1
-distlicense=GPL
+dist-license=GPL
 T 5300 1600 9 10 0 0 0 0 1
-uselicense=unlimited
+use-license=unlimited
 T 5300 1800 9 10 0 0 0 0 1
 author=Vince Weaver
 T 5300 2000 9 10 0 0 0 0 1
-copryright=2014 Vince Weaver
+copyright=2014 Vince Weaver
 T 2800 -300 9 10 1 1 0 3 1
 refdes=SOCKET?
 T 2800 100 9 10 1 1 0 3 2
@@ -99,6 +99,8 @@ T 750 250 5 8 1 1 0 2 1
 pinnumber=20
 T 750 250 5 8 0 1 0 2 1
 pinseq=20
+T 700 0 5 10 0 1 0 0 1
+pintype=pwr
 }
 P 1300 0 1300 300 1 0 0
 {
@@ -126,6 +128,8 @@ T 950 750 5 8 1 1 0 0 1
 pinnumber=1
 T 950 750 5 8 0 1 0 0 1
 pinseq=1
+T 900 1000 5 10 0 1 0 0 1
+pintype=pwr
 }
 P 4800 1000 4800 700 1 0 0
 {
