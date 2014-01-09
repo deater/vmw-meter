@@ -1,0 +1,7 @@
+
+refdes_renum  redgreen_ledboard.sch
+
+gsch2pcb -d ../footprints/ redgreen_ledboard.sch
+
+pcb redgreen_ledboard.pcb
+
