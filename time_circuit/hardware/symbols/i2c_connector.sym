@@ -15,7 +15,7 @@ author=Vince Weaver
 T 5300 2000 9 10 0 0 0 0 1
 copyright=2014 Vince Weaver
 T 2800 -300 9 10 1 1 0 3 1
-refdes=i2c?
+refdes=ISQUAREDC?
 P 1200 0 1200 300 1 0 0
 {
 T 1200 350 9 10 1 1 0 3 1

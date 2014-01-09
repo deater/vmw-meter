@@ -15,7 +15,7 @@ author=Vince Weaver
 T 3700 2800 9 10 0 0 0 0 1
 copyright=2014 Vince Weaver
 T 2000 600 9 10 1 1 0 3 1
-refdes=16SEG?
+refdes=SXTNSEG?
 T 2000 900 9 10 1 1 0 3 1
 DC56-11EWA
 P 2200 1800 2200 1500 1 0 0
