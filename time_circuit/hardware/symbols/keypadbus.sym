@@ -22,7 +22,7 @@ keypad connector
 P 1800 0 1800 300 1 0 0
 {
 T 1800 350 9 10 1 1 0 3 1
-pinlabel=L2
+pinlabel=L3
 T 1850 250 5 8 1 1 0 2 1
 pinnumber=18
 T 1850 250 5 8 0 1 0 2 1
@@ -31,7 +31,7 @@ pinseq=18
 P 2200 0 2200 300 1 0 0
 {
 T 2200 350 9 10 1 1 0 3 1
-pinlabel=L3
+pinlabel=L4
 T 2250 250 5 8 1 1 0 2 1
 pinnumber=17
 T 2250 250 5 8 0 1 0 2 1
@@ -40,7 +40,7 @@ pinseq=17
 P 2600 0 2600 300 1 0 0
 {
 T 2600 350 9 10 1 1 0 3 1
-pinlabel=L4
+pinlabel=L5
 T 2650 250 5 8 1 1 0 2 1
 pinnumber=16
 T 2650 250 5 8 0 1 0 2 1
@@ -94,18 +94,18 @@ pinseq=11
 P 700 0 700 300 1 0 0
 {
 T 700 350 9 10 1 1 0 3 1
-pinlabel=GND
+pinlabel=L1
 T 750 250 5 8 1 1 0 2 1
 pinnumber=20
 T 750 250 5 8 0 1 0 2 1
 pinseq=20
 T 700 0 5 10 0 1 0 0 1
-pintype=pwr
+pintype=in
 }
 P 1300 0 1300 300 1 0 0
 {
 T 1300 350 9 10 1 1 0 3 1
-pinlabel=L1
+pinlabel=L2
 T 1350 250 5 8 1 1 0 2 1
 pinnumber=19
 T 1350 250 5 8 0 1 0 2 1
