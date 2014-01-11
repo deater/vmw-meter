@@ -6,7 +6,7 @@ FileVersion[20070407]
 PCB["" 1000000 160000]
 
 Grid[500.0 0 0 1]
-Cursor[0 0 0.000000]
+Cursor[323500 2000 0.000000]
 PolyArea[200000000.000000]
 Thermal[0.500000]
 DRC[1000 1000 1000 1000 1500 1000]
@@ -1830,6 +1830,14 @@ Layer(10 "silk")
 	Text[728000 7500 0 300 "HOUR" "clearline"]
 	Text[884500 7000 0 300 "MIN" "clearline"]
 	Text[666000 22500 0 300 "PM" "clearline"]
+	Text[407500 127500 1 100 "GND" "clearline"]
+	Text[417000 127500 1 100 "VDD" "clearline"]
+	Text[427500 128000 1 100 "SDA" "clearline"]
+	Text[437500 127000 1 100 "SCL" "clearline"]
+	Text[407500 18500 1 100 "GND" "clearline"]
+	Text[418000 18500 1 100 "VDD" "clearline"]
+	Text[427500 18500 1 100 "SDA" "clearline"]
+	Text[438000 18500 1 100 "SCL" "clearline"]
 )
 NetList()
 (
