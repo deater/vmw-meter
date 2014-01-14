@@ -1656,7 +1656,7 @@ Layer(9 "silk")
 Layer(10 "silk")
 (
 	Text[767500 136500 0 235 "A VMW HARDWARE PRODUCTION" "clearline"]
-	Text[50000 138500 0 220 "TIME-RGLED-MK1" "clearline"]
+	Text[50000 138500 0 220 "TIME-YELLOW-MK1" "clearline"]
 	Text[120500 5000 0 300 "MONTH" "clearline"]
 	Text[335500 5000 0 300 "DAY" "clearline"]
 	Text[532000 5000 0 300 "YEAR" "clearline"]
