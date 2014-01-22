@@ -1,0 +1,16 @@
+sudo apt-get install openocd
+
+Install embedian cross-compile
+
++ apt-get install emdebian-archive-keyring
+
++ add 
+  deb http://www.emdebian.org/debian unstable main 
+  to sources list
+ 
++ apt-get install gcc-4.7-arm-linux-gnueabihf
+
+Connect:
+
++ sudo openocd -f /usr/share/openocd/scripts/board/stm32ldiscovery.cfg
+

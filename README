@@ -1,4 +1,7 @@
-This is code for running various LED displays
+This is code for running various LED displays.
+
+It has grown to also be where I dump code for doing low-level I/O
+with various development boards.
 
 Originally intended to function as CPU usage meters, the code
 also includes demos for things such as clocks, space battles, 
@@ -8,11 +11,17 @@ vmw-meter   : a simple string of LEDs hooked to a PC's parallel port
 svmw-meter  : a complex LED display with 6 14-segment characters,
               two bargraphs, and a rainbow display.  Run via i2c
               either over a parallel port or USB
-8x8backpack : The ADAfruit Raspberry Pi 8x8 backpack
+8x8backpack : The adafruit Raspberry Pi 8x8 backpack
+4x7segment  : a 7-segment backpack
+gpio        : code to fiddle with gpios
+nunchuck    : code that runs displays while reading a Wii nunchuck
+pov2        : code for use with adafruit pov2 display
+time_circuit: code for driving a time-circuit like display
+stm32l      : code for driving a STM32L discovery board
 
 -----------------
 
 http://www.deater.net/weave/vmwprod/meter/
 
-20 February 2013
+22 January 2014
 Vince Weaver   <vince _at_ deater.net>

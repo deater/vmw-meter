@@ -1,0 +1,4 @@
+Some Linux code for interfacing with a STM32L discovery board.
+
+Uses an arm-linux-gnueabihf toolchain and openocd for programming.
+
