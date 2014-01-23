@@ -169,24 +169,38 @@ unsigned short font_16seg[128] = {
 	0x0000,	// 0x7f
 };
 
+#define KEY_STAR	10
+#define KEY_POUND	11
+#define KEY_TOP_RED	12
+#define KEY_TOP_YELLOW	13
+#define KEY_TOP_GREEN	14
+#define KEY_BOT_YELLOW	15
+#define KEY_WHITE	16
+
 int decode_key(long long keycode) {
 
 	int key=0;
 
 	switch(keycode) {
-		case 0x0001:	key=0;	break;
-		case 0x0002:	key=1;	break;
-		case 0x0004:	key=2;	break;
-		case 0x0008:	key=3;	break;
-		case 0x0010:	key=4;	break;
-		case 0x0020:	key=5;	break;
-		case 0x0040:	key=6;	break;
-		case 0x0080:	key=7;  break;
-		case 0x0100:	key=8;	break;
-		case 0x0200:	key=9;	break;
-		case 0x0400:	key=10; break;
-		case 0x0800:	key=11;	break;
-		default:	key=-1;	break;
+		case 0x000001:	key=0;	break;
+		case 0x000002:	key=1;	break;
+		case 0x000004:	key=2;	break;
+		case 0x000008:	key=3;	break;
+		case 0x000010:	key=4;	break;
+		case 0x000020:	key=5;	break;
+		case 0x000040:	key=6;	break;
+		case 0x000080:	key=7;  break;
+		case 0x000100:	key=8;	break;
+		case 0x000200:	key=9;	break;
+		case 0x000400:	key=KEY_STAR; break;
+		case 0x000800:	key=KEY_POUND;	break;
+		case 0x010000:	key=KEY_TOP_RED; break;
+		case 0x020000:	key=KEY_TOP_YELLOW; break;
+		case 0x040000:	key=KEY_TOP_GREEN; break;
+		case 0x080000:	key=KEY_BOT_YELLOW; break;
+		case 0x100000:	key=KEY_WHITE; break;
+		default:	printf("Unknown keycode %llx!\n",keycode);
+				key=-1;	break;
 	}
 	return key;
 }
@@ -205,7 +219,10 @@ int decode_key(long long keycode) {
 #define FIELD_MIN_2   11
 #define FIELD_DONE    12
 
-long long old_keypad=0;
+static long long old_keypad=0;
+static int top_red=0,top_yellow=0,top_green=0,bot_yellow=0,white=0;
+
+
 
 time_t keypad_change_time(int i2c_fd,long long keypad_in) {
 
@@ -229,10 +246,37 @@ time_t keypad_change_time(int i2c_fd,long long keypad_in) {
 
 
 			/* reset time if * or # pressed */
-			if (which_key>9) {
+			if ((which_key==KEY_POUND || which_key==KEY_STAR)) {
 				delta_time=0;
 				return delta_time;
 
+			}
+
+			if (which_key==KEY_TOP_RED) {
+				top_red=!top_red;
+				return 0;
+			}
+
+
+			if (which_key==KEY_TOP_YELLOW) {
+				top_yellow=!top_yellow;
+				return 0;
+			}
+
+
+			if (which_key==KEY_TOP_GREEN) {
+				top_green=!top_green;
+				return 0;
+			}
+
+			if (which_key==KEY_BOT_YELLOW) {
+				bot_yellow=!bot_yellow;
+				return 0;
+			}
+
+			if (which_key==KEY_WHITE) {
+				white=!white;
+				return 0;
 			}
 
 			switch(which_field) {
@@ -364,8 +408,19 @@ int main(int argc, char **argv) {
 	display_buffer[6]=font_7seg[0]|(font_7seg[1]<<8);
 	display_buffer[7]=font_7seg[1]|(font_7seg[3]<<8);
 */
+/*
 
-
+	display_buffer[7]=0xffff;
+	display_buffer[6]=0xffff;
+	display_buffer[5]=0xffff;
+	display_buffer[4]=0xffff;
+	display_buffer[3]=0xffff;
+	display_buffer[2]=0xffff;
+	display_buffer[1]=0xffff;
+	display_buffer[0]=0xffff;
+        update_display(i2c_fd,HT16K33_ADDRESS1,display_buffer);
+	return 0;
+*/
 	while(1) {
 
 		current_time=time(NULL);
@@ -377,46 +432,53 @@ int main(int argc, char **argv) {
 		/* "Wed Aug 21 19:00:52 2013" */
 
 		/* Month */
-		display_buffer[0]=font_16seg[toupper(ctime_result[4])];
-		display_buffer[1]=font_16seg[toupper(ctime_result[5])];
-		display_buffer[2]=font_16seg[toupper(ctime_result[6])];
+		display_buffer[5]=font_16seg[toupper(ctime_result[4])];
+		display_buffer[6]=font_16seg[toupper(ctime_result[5])];
+		display_buffer[7]=font_16seg[toupper(ctime_result[6])];
 
 		/* Date */
-		display_buffer[3]=font_7seg[ctime_result[8]-'0'];
-		display_buffer[4]=font_7seg[ctime_result[9]-'0'];
+		display_buffer[0]=font_7seg[ctime_result[8]-'0'];
+		display_buffer[1]=font_7seg[ctime_result[9]-'0'];
 
 		/* Year */
-		display_buffer[5]=font_7seg[ctime_result[20]-'0'];
-		display_buffer[6]=font_7seg[ctime_result[21]-'0'];
-		display_buffer[7]=font_7seg[ctime_result[22]-'0'];
-		display_buffer[7]|=(font_7seg[ctime_result[23]-'0'])<<8;
+		display_buffer[2]=font_7seg[ctime_result[20]-'0'];
+		display_buffer[3]=font_7seg[ctime_result[21]-'0'];
+		display_buffer[4]=font_7seg[ctime_result[22]-'0'];
+		display_buffer[4]|=(font_7seg[ctime_result[23]-'0'])<<8;
 
 		/* hours */
-		display_buffer[6]|=(font_7seg[ctime_result[11]-'0'])<<8;
-		display_buffer[5]|=(font_7seg[ctime_result[12]-'0'])<<8;
+		display_buffer[3]|=(font_7seg[ctime_result[11]-'0'])<<8;
+		display_buffer[2]|=(font_7seg[ctime_result[12]-'0'])<<8;
 
 		hour=((ctime_result[11]-'0')*10)+(ctime_result[12]-'0');
 		if (hour>11) pm=1;
 		else pm=0;
 
 		/* minutes */
-		display_buffer[4]|=(font_7seg[ctime_result[14]-'0'])<<8;
-		display_buffer[3]|=(font_7seg[ctime_result[15]-'0'])<<8;
+		display_buffer[1]|=(font_7seg[ctime_result[14]-'0'])<<8;
+		display_buffer[0]|=(font_7seg[ctime_result[15]-'0'])<<8;
 
 		/* AM/PM */
 
 		if (pm) {
-			display_buffer[6]|=0x8000;
+			display_buffer[3]|=0x8000;
 		}
 		else {
-			display_buffer[5]|=0x8000;
+			display_buffer[2]|=0x8000;
 		}
 
 		/* Blink */
 		if (blink) {
-			display_buffer[3]|=0x8000;
-			display_buffer[4]|=0x8000;
+			display_buffer[0]|=0x8000;
+			display_buffer[1]|=0x8000;
 		}
+
+		/* buttons */
+		if (top_red) display_buffer[1]|=0x0080;
+		if (top_yellow) display_buffer[2]|=0x0080;
+		if (top_green) display_buffer[3]|=0x0080;
+		if (bot_yellow) display_buffer[4]|=0x0080;
+		if (white) display_buffer[4]|=0x8000;
 
 		keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS1);
 //		if (keypad_result!=-1) {
