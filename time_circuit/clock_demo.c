@@ -364,8 +364,18 @@ int main(int argc, char **argv) {
 	display_buffer[6]=font_7seg[0]|(font_7seg[1]<<8);
 	display_buffer[7]=font_7seg[1]|(font_7seg[3]<<8);
 */
-
-
+/*
+	display_buffer[7]=0xffff;
+	display_buffer[6]=0xffff;
+	display_buffer[5]=0xffff;
+	display_buffer[4]=0xffff;
+	display_buffer[3]=0xffff;
+	display_buffer[2]=0xffff;
+	display_buffer[1]=0xffff;
+	display_buffer[0]=0xffff;
+        update_display(i2c_fd,HT16K33_ADDRESS1,display_buffer);
+	return 0;
+*/
 	while(1) {
 
 		current_time=time(NULL);
@@ -377,45 +387,45 @@ int main(int argc, char **argv) {
 		/* "Wed Aug 21 19:00:52 2013" */
 
 		/* Month */
-		display_buffer[0]=font_16seg[toupper(ctime_result[4])];
-		display_buffer[1]=font_16seg[toupper(ctime_result[5])];
-		display_buffer[2]=font_16seg[toupper(ctime_result[6])];
+		display_buffer[5]=font_16seg[toupper(ctime_result[4])];
+		display_buffer[6]=font_16seg[toupper(ctime_result[5])];
+		display_buffer[7]=font_16seg[toupper(ctime_result[6])];
 
 		/* Date */
-		display_buffer[3]=font_7seg[ctime_result[8]-'0'];
-		display_buffer[4]=font_7seg[ctime_result[9]-'0'];
+		display_buffer[0]=font_7seg[ctime_result[8]-'0'];
+		display_buffer[1]=font_7seg[ctime_result[9]-'0'];
 
 		/* Year */
-		display_buffer[5]=font_7seg[ctime_result[20]-'0'];
-		display_buffer[6]=font_7seg[ctime_result[21]-'0'];
-		display_buffer[7]=font_7seg[ctime_result[22]-'0'];
-		display_buffer[7]|=(font_7seg[ctime_result[23]-'0'])<<8;
+		display_buffer[2]=font_7seg[ctime_result[20]-'0'];
+		display_buffer[3]=font_7seg[ctime_result[21]-'0'];
+		display_buffer[4]=font_7seg[ctime_result[22]-'0'];
+		display_buffer[4]|=(font_7seg[ctime_result[23]-'0'])<<8;
 
 		/* hours */
-		display_buffer[6]|=(font_7seg[ctime_result[11]-'0'])<<8;
-		display_buffer[5]|=(font_7seg[ctime_result[12]-'0'])<<8;
+		display_buffer[3]|=(font_7seg[ctime_result[11]-'0'])<<8;
+		display_buffer[2]|=(font_7seg[ctime_result[12]-'0'])<<8;
 
 		hour=((ctime_result[11]-'0')*10)+(ctime_result[12]-'0');
 		if (hour>11) pm=1;
 		else pm=0;
 
 		/* minutes */
-		display_buffer[4]|=(font_7seg[ctime_result[14]-'0'])<<8;
-		display_buffer[3]|=(font_7seg[ctime_result[15]-'0'])<<8;
+		display_buffer[1]|=(font_7seg[ctime_result[14]-'0'])<<8;
+		display_buffer[0]|=(font_7seg[ctime_result[15]-'0'])<<8;
 
 		/* AM/PM */
 
 		if (pm) {
-			display_buffer[6]|=0x8000;
+			display_buffer[3]|=0x8000;
 		}
 		else {
-			display_buffer[5]|=0x8000;
+			display_buffer[2]|=0x8000;
 		}
 
 		/* Blink */
 		if (blink) {
-			display_buffer[3]|=0x8000;
-			display_buffer[4]|=0x8000;
+			display_buffer[0]|=0x8000;
+			display_buffer[1]|=0x8000;
 		}
 
 		keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS1);
