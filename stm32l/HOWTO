@@ -14,3 +14,15 @@ Connect:
 
 + sudo openocd -f /usr/share/openocd/scripts/board/stm32ldiscovery.cfg
 
+Using GDB:
+
++ install gdb-arm-none-eabi
+
++ start openocd
+
++ arm-none-eabi-gdb ./program.elf
++ target remote localhost:3333
++ monitor reset halt
++ load
++ continue
+
