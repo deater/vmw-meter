@@ -50,6 +50,7 @@ __IO uint32_t LCKR;	/* 0x1C = Configuration Lock Register */
 __IO uint32_t AFR[2];	/* 0x20 = Alternate Function (Low/High) Registers */
 } GPIO_TypeDef;
 
+#define GPIOA_BASE	(AHBPERIPH_BASE + 0x0000)
 #define GPIOB_BASE	(AHBPERIPH_BASE + 0x0400)
 
 #define MODER_INPUT	0x00
