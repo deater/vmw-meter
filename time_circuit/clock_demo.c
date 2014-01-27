@@ -20,8 +20,8 @@
 #define SEG_M 0x0200
 #define SEG_N 0x0400
 #define SEG_P 0x0800
-#define SEG_R 0x1000
-#define SEG_S 0x2000
+#define SEG_R 0x2000 /* Hooked up R and S backwards? */
+#define SEG_S 0x1000 /* hmmmm			     */
 #define SEG_T 0x4000
 #define SEG_U 0x8000
 
@@ -435,6 +435,7 @@ int main(int argc, char **argv) {
 		display_buffer[5]=font_16seg[toupper(ctime_result[4])];
 		display_buffer[6]=font_16seg[toupper(ctime_result[5])];
 		display_buffer[7]=font_16seg[toupper(ctime_result[6])];
+
 
 		/* Date */
 		display_buffer[0]=font_7seg[ctime_result[8]-'0'];

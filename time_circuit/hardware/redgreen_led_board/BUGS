@@ -1,0 +1,8 @@
+Known bugs with MK1:
+
+  + R and S segments on alphanum reversed
+    (fixed in software)
+  + AM/PM and colon LED silkscreen has the polarity
+    backward (just reverse the LED when installing)
+
+
