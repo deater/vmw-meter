@@ -145,6 +145,18 @@ void lcd_config(void) {
 	lcd->CR&=~LCD_CR_DUTY_MASK;
 	lcd->CR|=LCD_CR_DUTY_1_4;
 
+#if 0
+	/* not needed? */
+
+	/* Set CLKPS = LCDCLK */
+	lcd->FCR &= ~LCD_FCR_PS_MASK;  // PS[3:0]= 0000
+
+	/* Set clock divider */
+	lcd->FCR |=  0xF<<18;      // DIV[3:0] = 1111
+
+	/* end not needed */
+#endif
+
 	/* contrast = mean */
 	lcd->FCR&=~LCD_FCR_CC_MASK;
 	lcd->FCR|=LCD_FCR_CC_LCD4;
@@ -178,7 +190,7 @@ int main(void) {
 	lcd_config();
 
 	/* wait until protection gone */
-	while(!(lcd->SR & LCD_SR_UDR)) ;
+	while((lcd->SR & LCD_SR_UDR)) ;
 
 	/* Display W */
 	lcd->RAM[0]=0x10000001;
