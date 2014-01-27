@@ -137,6 +137,10 @@ void lcd_pin_init(void) {
 
 void lcd_config(void) {
 
+	/************/
+	/* Setup CR */
+	/************/
+
 	/* Set Bias to 1/3 */
 	lcd->CR&=~LCD_CR_BIAS_MASK;
 	lcd->CR|=LCD_CR_BIAS_1_3;
@@ -145,27 +149,36 @@ void lcd_config(void) {
 	lcd->CR&=~LCD_CR_DUTY_MASK;
 	lcd->CR|=LCD_CR_DUTY_1_4;
 
-#if 0
-	/* not needed? */
-
-	/* Set CLKPS = LCDCLK */
-	lcd->FCR &= ~LCD_FCR_PS_MASK;  // PS[3:0]= 0000
-
-	/* Set clock divider */
-	lcd->FCR |=  0xF<<18;      // DIV[3:0] = 1111
-
-	/* end not needed */
-#endif
-
-	/* contrast = mean */
-	lcd->FCR&=~LCD_FCR_CC_MASK;
-	lcd->FCR|=LCD_FCR_CC_LCD4;
-
 	/* Set enable mux segment */
 	lcd->CR|=LCD_CR_MUX_SEG;
 
 	/* select internal voltage */
 	lcd->CR&=~LCD_CR_VSEL;
+
+	/*************/
+	/* Setup FCR */
+	/*************/
+
+	lcd->FCR = 0;	// reset
+
+	/* See Table 60 in the manual */
+	/* set to 30.12Hz: ps=4 div=1 duty = 1/4 */
+
+	/* Set prescaler to 4 */
+	lcd->FCR &= ~LCD_FCR_PS_MASK;
+	lcd->FCR |= (4<<22);
+
+	/* Set clock divider to 1 */
+	lcd->FCR &=  ~LCD_FCR_DIV_MASK
+	lcd->FCR |= (1<<18);
+
+	/* contrast = mean */
+	lcd->FCR &= ~LCD_FCR_CC_MASK;
+	lcd->FCR |= LCD_FCR_CC_LCD4;
+
+	/* Pulse width.  Longer takes more energy */
+	//lcd->FCR &= LCD_FCR_PON_MASK;
+	lcd->FCR |= (7<<4) ;
 
 	/* wait until FCRSF of LCD_SR set */
 	while( !(lcd->SR & LCD_SR_FCRSF));
@@ -192,11 +205,11 @@ int main(void) {
 	/* wait until protection gone */
 	while((lcd->SR & LCD_SR_UDR)) ;
 
-	/* Display W */
-	lcd->RAM[0]=0x10000001;
-	lcd->RAM[2]=0x20000002;
-	lcd->RAM[4]=0x20000000;
-	lcd->RAM[6]=0x00000001;
+	/* Display WEAVER */
+	lcd->RAM[0]=0x190bd605;
+	lcd->RAM[2]=0x2c2f1206;
+	lcd->RAM[4]=0x23300000;
+	lcd->RAM[6]=0x00004001;
 
 	/* request update of display */
 	lcd->SR |= LCD_SR_UDR;

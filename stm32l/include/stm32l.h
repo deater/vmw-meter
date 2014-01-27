@@ -30,8 +30,11 @@ __IO uint32_t RAM[16];	/* LCD display memory		0x14 */
 #define LCD_CR_LCDEN		(0x1<<0)
 
 /* Frame Control 0x04 */
+#define LCD_FCR_PS_MASK		(0xf<<22)
+#define LCD_FCR_DIV_MASK	(0xf<<18)
 #define LCD_FCR_CC_MASK		(0x7<<10)
 #define LCD_FCR_CC_LCD4		(0x4<<10)
+#define LCD_FCR_PON_MASK	(0x7<<4)
 
 /* Status Register 0x8 */
 #define LCD_SR_FCRSF	(1<<5)
