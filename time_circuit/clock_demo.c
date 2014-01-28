@@ -237,7 +237,7 @@ time_t keypad_change_time(int i2c_fd,long long keypad_in) {
 
 	while(1) {
 
-		keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS1);
+		keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS0);
 
 		keypad_change=old_keypad&~keypad_result;
 		if (keypad_change) {
@@ -528,26 +528,26 @@ int main(int argc, char **argv) {
 	else {
 
 		/* Init Red Display (top) */
-		if (init_display(i2c_fd,HT16K33_ADDRESS1,13)) {
-			fprintf(stderr,"Error opening display\n");
+		if (init_display(i2c_fd,HT16K33_ADDRESS4,13)) {
+			fprintf(stderr,"Error opening red display\n");
 			red_missing=1;
 		}
 
 		/* Init Green Display (middle) */
-		if (init_display(i2c_fd,HT16K33_ADDRESS2,13)) {
-			fprintf(stderr,"Error opening display\n");
+		if (init_display(i2c_fd,HT16K33_ADDRESS5,13)) {
+			fprintf(stderr,"Error opening green display\n");
 			green_missing=1;
 		}
 
 		/* Init Yellow Display (bottom) */
-		if (init_display(i2c_fd,HT16K33_ADDRESS3,13)) {
-			fprintf(stderr,"Error opening display\n");
+		if (init_display(i2c_fd,HT16K33_ADDRESS0,13)) {
+			fprintf(stderr,"Error opening yellow display\n");
 			yellow_missing=1;
 		}
 
 		/* Init Flux Capacitor */
-		if (init_display(i2c_fd,HT16K33_ADDRESS4,13)) {
-			fprintf(stderr,"Error opening display\n");
+		if (init_display(i2c_fd,HT16K33_ADDRESS7,13)) {
+			fprintf(stderr,"Error opening flux display\n");
 			flux_missing=1;
 		}
 	}
@@ -624,7 +624,9 @@ int main(int argc, char **argv) {
 			if (bot_yellow) red_buffer[4]|=0x0080;
 			if (white) red_buffer[4]|=0x8000;
 
-			keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS1);
+			if (!yellow_missing) {
+				keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS0);
+			}
 //		if (keypad_result!=-1) {
 //			printf("keypad: %lld\n",keypad_result);
 //		}
@@ -636,16 +638,16 @@ int main(int argc, char **argv) {
 			old_keypad=keypad_result;
 
 			if (!red_missing) {
-				update_display(i2c_fd,HT16K33_ADDRESS1,red_buffer);
+				update_display(i2c_fd,HT16K33_ADDRESS4,red_buffer);
 			}
 			if (!green_missing) {
-				update_display(i2c_fd,HT16K33_ADDRESS2,green_buffer);
+				update_display(i2c_fd,HT16K33_ADDRESS5,green_buffer);
 			}
 			if (!yellow_missing) {
-				update_display(i2c_fd,HT16K33_ADDRESS3,yellow_buffer);
+				update_display(i2c_fd,HT16K33_ADDRESS0,yellow_buffer);
 			}
 			if (!flux_missing) {
-				update_display(i2c_fd,HT16K33_ADDRESS4,flux_buffer);
+				update_display(i2c_fd,HT16K33_ADDRESS7,flux_buffer);
 			}
 		}
 
