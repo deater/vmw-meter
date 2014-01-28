@@ -372,11 +372,67 @@ time_t keypad_change_time(int i2c_fd,long long keypad_in) {
 	return delta_time;
 }
 
+struct tcircuit {
+	int month;
+	int day;
+	int year;
+	int hour;
+	int minutes;
+	int seconds;
+};
+
+static char month_names[12][4]={
+	"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+	"JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
+
+};
+
+void print_time(struct tcircuit *tctime, int blink) {
+
+	printf("%s ",month_names[tctime->month]);
+	printf("%02d %04d",tctime->day,tctime->year);
+	if (tctime->hour>11) {
+		printf("\'");
+	}
+	else {
+		printf(".");
+	}
+	printf("%02d",tctime->hour);
+	if (blink) {
+		printf(":");
+	}
+	else {
+		printf(" ");
+	}
+	printf("%02d\n",tctime->minutes);
+}
+
+void convert_time(struct tm *ltime, struct tcircuit *tctime) {
+	tctime->month=ltime->tm_mon;
+	tctime->day=ltime->tm_mday;
+	tctime->year=ltime->tm_year+1900;
+	tctime->hour=ltime->tm_hour;
+	tctime->minutes=ltime->tm_min;
+	tctime->seconds=ltime->tm_sec;
+}
+
 int main(int argc, char **argv) {
 
  	int result,pm,hour,blink=0,count=0;
+	int display_missing=0;
+	int red_missing=0,green_missing=0,yellow_missing=0,flux_missing=0;
 
- 	unsigned short display_buffer[8];
+ 	unsigned short red_buffer[8];
+ 	unsigned short green_buffer[8];
+ 	unsigned short yellow_buffer[8];
+	unsigned short flux_buffer[8];
+
+	struct tcircuit red_time;
+	struct tcircuit yellow_time;
+	struct tcircuit green_time;
+
+	struct tm *ltime;
+
 	long long keypad_result=0,keypad_change;
 	int i2c_fd;
 
@@ -385,42 +441,68 @@ int main(int argc, char **argv) {
 
 	char *ctime_result;
 
-	/* open device */
+	/* open i2c bus */
 	i2c_fd=init_i2c("/dev/i2c-1");
 	if (i2c_fd < 0) {
 		fprintf(stderr,"Error opening device!\n");
-		return -1;
+		display_missing=1;
 	}
 
-	/* Init display */
-	if (init_display(i2c_fd,HT16K33_ADDRESS1,13)) {
-		fprintf(stderr,"Error opening display\n");
-		return -1;
+	if (display_missing) {
+
+	}
+	else {
+
+		/* Init Red Display (top) */
+		if (init_display(i2c_fd,HT16K33_ADDRESS1,13)) {
+			fprintf(stderr,"Error opening display\n");
+			red_missing=1;
+		}
+
+		/* Init Green Display (middle) */
+		if (init_display(i2c_fd,HT16K33_ADDRESS2,13)) {
+			fprintf(stderr,"Error opening display\n");
+			green_missing=1;
+		}
+
+		/* Init Yellow Display (bottom) */
+		if (init_display(i2c_fd,HT16K33_ADDRESS3,13)) {
+			fprintf(stderr,"Error opening display\n");
+			yellow_missing=1;
+		}
+
+		/* Init Flux Capacitor */
+		if (init_display(i2c_fd,HT16K33_ADDRESS4,13)) {
+			fprintf(stderr,"Error opening display\n");
+			flux_missing=1;
+		}
 	}
 
 /*
-	display_buffer[0]=font_16seg['A'];
-	display_buffer[1]=font_16seg['U'];
-	display_buffer[2]=font_16seg['G'];
-	display_buffer[3]=font_7seg[2]|(font_7seg[8]<<8);
-	display_buffer[4]=font_7seg[1]|(font_7seg[5]<<8);
-	display_buffer[5]=font_7seg[2]|(font_7seg[4]<<8);
-	display_buffer[6]=font_7seg[0]|(font_7seg[1]<<8);
-	display_buffer[7]=font_7seg[1]|(font_7seg[3]<<8);
+	red_buffer[0]=font_16seg['A'];
+	red_buffer[1]=font_16seg['U'];
+	red_buffer[2]=font_16seg['G'];
+	red_buffer[3]=font_7seg[2]|(font_7seg[8]<<8);
+	red_buffer[4]=font_7seg[1]|(font_7seg[5]<<8);
+	red_buffer[5]=font_7seg[2]|(font_7seg[4]<<8);
+	red_buffer[6]=font_7seg[0]|(font_7seg[1]<<8);
+	red_buffer[7]=font_7seg[1]|(font_7seg[3]<<8);
 */
 /*
 
-	display_buffer[7]=0xffff;
-	display_buffer[6]=0xffff;
-	display_buffer[5]=0xffff;
-	display_buffer[4]=0xffff;
-	display_buffer[3]=0xffff;
-	display_buffer[2]=0xffff;
-	display_buffer[1]=0xffff;
-	display_buffer[0]=0xffff;
-        update_display(i2c_fd,HT16K33_ADDRESS1,display_buffer);
+	red_buffer[7]=0xffff;
+	red_buffer[6]=0xffff;
+	red_buffer[5]=0xffff;
+	red_buffer[4]=0xffff;
+	red_buffer[3]=0xffff;
+	red_buffer[2]=0xffff;
+	red_buffer[1]=0xffff;
+	red_buffer[0]=0xffff;
+        update_display(i2c_fd,HT16K33_ADDRESS1,red_buffer);
 	return 0;
 */
+
+	/* Time Loop */
 	while(1) {
 
 		current_time=time(NULL);
@@ -428,71 +510,105 @@ int main(int argc, char **argv) {
 		display_time=current_time-delta_time;
 		ctime_result=ctime(&display_time );
 
-		//printf("%s\n",ctime_result);
-		/* "Wed Aug 21 19:00:52 2013" */
+		ltime=localtime(&display_time);
 
-		/* Month */
-		display_buffer[5]=font_16seg[toupper(ctime_result[4])];
-		display_buffer[6]=font_16seg[toupper(ctime_result[5])];
-		display_buffer[7]=font_16seg[toupper(ctime_result[6])];
+		convert_time(ltime,&red_time);
+		convert_time(ltime,&yellow_time);
+		convert_time(ltime,&green_time);
 
 
-		/* Date */
-		display_buffer[0]=font_7seg[ctime_result[8]-'0'];
-		display_buffer[1]=font_7seg[ctime_result[9]-'0'];
+		if (display_missing) {
 
-		/* Year */
-		display_buffer[2]=font_7seg[ctime_result[20]-'0'];
-		display_buffer[3]=font_7seg[ctime_result[21]-'0'];
-		display_buffer[4]=font_7seg[ctime_result[22]-'0'];
-		display_buffer[4]|=(font_7seg[ctime_result[23]-'0'])<<8;
+			/* clear screen */
+			printf("\x1b[2J\x1b[0;0H");
 
-		/* hours */
-		display_buffer[3]|=(font_7seg[ctime_result[11]-'0'])<<8;
-		display_buffer[2]|=(font_7seg[ctime_result[12]-'0'])<<8;
+			/* red */
+			printf("\x1b[31;1m");
+			print_time(&red_time,blink);
 
-		hour=((ctime_result[11]-'0')*10)+(ctime_result[12]-'0');
-		if (hour>11) pm=1;
-		else pm=0;
+			/* green */
+			printf("\x1b[32;1m");
+			print_time(&green_time,blink);
 
-		/* minutes */
-		display_buffer[1]|=(font_7seg[ctime_result[14]-'0'])<<8;
-		display_buffer[0]|=(font_7seg[ctime_result[15]-'0'])<<8;
-
-		/* AM/PM */
-
-		if (pm) {
-			display_buffer[3]|=0x8000;
+			/* yellow */
+			printf("\x1b[33;1m");
+			print_time(&yellow_time,blink);
 		}
+
 		else {
-			display_buffer[2]|=0x8000;
-		}
 
-		/* Blink */
-		if (blink) {
-			display_buffer[0]|=0x8000;
-			display_buffer[1]|=0x8000;
-		}
+			/* Month */
+			red_buffer[5]=font_16seg[toupper(ctime_result[4])];
+			red_buffer[6]=font_16seg[toupper(ctime_result[5])];
+			red_buffer[7]=font_16seg[toupper(ctime_result[6])];
 
-		/* buttons */
-		if (top_red) display_buffer[1]|=0x0080;
-		if (top_yellow) display_buffer[2]|=0x0080;
-		if (top_green) display_buffer[3]|=0x0080;
-		if (bot_yellow) display_buffer[4]|=0x0080;
-		if (white) display_buffer[4]|=0x8000;
+			/* Date */
+			red_buffer[0]=font_7seg[ctime_result[8]-'0'];
+			red_buffer[1]=font_7seg[ctime_result[9]-'0'];
 
-		keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS1);
+			/* Year */
+			red_buffer[2]=font_7seg[ctime_result[20]-'0'];
+			red_buffer[3]=font_7seg[ctime_result[21]-'0'];
+			red_buffer[4]=font_7seg[ctime_result[22]-'0'];
+			red_buffer[4]|=(font_7seg[ctime_result[23]-'0'])<<8;
+
+			/* hours */
+			red_buffer[3]|=(font_7seg[ctime_result[11]-'0'])<<8;
+			red_buffer[2]|=(font_7seg[ctime_result[12]-'0'])<<8;
+
+			hour=((ctime_result[11]-'0')*10)+(ctime_result[12]-'0');
+			if (hour>11) pm=1;
+			else pm=0;
+
+			/* minutes */
+			red_buffer[1]|=(font_7seg[ctime_result[14]-'0'])<<8;
+			red_buffer[0]|=(font_7seg[ctime_result[15]-'0'])<<8;
+
+			/* AM/PM */
+			if (pm) {
+				red_buffer[3]|=0x8000;
+			}
+			else {
+				red_buffer[2]|=0x8000;
+			}
+
+			/* Blink */
+			if (blink) {
+				red_buffer[0]|=0x8000;
+				red_buffer[1]|=0x8000;
+			}
+
+			/* buttons */
+			if (top_red) red_buffer[1]|=0x0080;
+			if (top_yellow) red_buffer[2]|=0x0080;
+			if (top_green) red_buffer[3]|=0x0080;
+			if (bot_yellow) red_buffer[4]|=0x0080;
+			if (white) red_buffer[4]|=0x8000;
+
+			keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS1);
 //		if (keypad_result!=-1) {
 //			printf("keypad: %lld\n",keypad_result);
 //		}
 
-		keypad_change=old_keypad&~keypad_result;
-		if (keypad_change) {
-			delta_time=keypad_change_time(i2c_fd,keypad_change);
-		}
-		old_keypad=keypad_result;
+			keypad_change=old_keypad&~keypad_result;
+			if (keypad_change) {
+				delta_time=keypad_change_time(i2c_fd,keypad_change);
+			}
+			old_keypad=keypad_result;
 
-        	update_display(i2c_fd,HT16K33_ADDRESS1,display_buffer);
+			if (!red_missing) {
+				update_display(i2c_fd,HT16K33_ADDRESS1,red_buffer);
+			}
+			if (!green_missing) {
+				update_display(i2c_fd,HT16K33_ADDRESS2,green_buffer);
+			}
+			if (!yellow_missing) {
+				update_display(i2c_fd,HT16K33_ADDRESS3,yellow_buffer);
+			}
+			if (!flux_missing) {
+				update_display(i2c_fd,HT16K33_ADDRESS4,flux_buffer);
+			}
+		}
 
 		usleep(100000);
 		count++;
