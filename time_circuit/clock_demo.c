@@ -407,7 +407,7 @@ void print_time(struct tcircuit *tctime, int blink) {
 	printf("%02d\n",tctime->minutes);
 }
 
-void convert_time(struct tm *ltime, struct tcircuit *tctime) {
+static void convert_time(struct tm *ltime, struct tcircuit *tctime) {
 	tctime->month=ltime->tm_mon;
 	tctime->day=ltime->tm_mday;
 	tctime->year=ltime->tm_year+1900;
@@ -416,9 +416,85 @@ void convert_time(struct tm *ltime, struct tcircuit *tctime) {
 	tctime->seconds=ltime->tm_sec;
 }
 
+/* FIXME: use BCD? */
+/* That will avoid lots of division */
+static void convert_for_display(unsigned short *buffer,
+				struct tcircuit *tctime, int blink) {
+
+	int day_tens,day_ones;
+	int year,year_thousands, year_hundreds, year_tens, year_ones;
+	int hour_tens, hour_ones;
+	int minute_tens,minute_ones;
+
+	/* Month */
+	buffer[5]=font_16seg[(int)month_names[tctime->month][0]];
+	buffer[6]=font_16seg[(int)month_names[tctime->month][1]];
+	buffer[7]=font_16seg[(int)month_names[tctime->month][2]];
+
+	/* Date */
+	day_tens=tctime->day/10;
+	day_ones=tctime->day%10;
+	if (day_tens!=0) {
+		buffer[0]=font_7seg[day_tens];
+	}
+	buffer[1]=font_7seg[day_ones];
+
+	/* Year */
+	year=tctime->year;
+	year_thousands=year/1000;
+	year=year-(year_thousands*1000);
+
+	year_hundreds=year/100;
+	year=year-(year_hundreds*100);
+
+	year_tens=year/10;
+	year_ones=year%10;
+
+	if (year_thousands>9) {
+		year_thousands=0;
+		year_hundreds=0;
+		year_tens=0;
+		year_ones=0;
+	}
+
+	buffer[2]=font_7seg[year_thousands];
+	buffer[3]=font_7seg[year_hundreds];
+	buffer[4]=font_7seg[year_tens];
+	buffer[4]|=(font_7seg[year_ones])<<8;
+
+	/* hours */
+	hour_tens=tctime->hour/10;
+	hour_ones=tctime->hour%10;
+
+	buffer[3]|=(font_7seg[hour_tens])<<8;
+	buffer[2]|=(font_7seg[hour_ones])<<8;
+
+	/* AM/PM */
+	if (tctime->hour > 11) {
+		buffer[3]|=0x8000;
+	}
+	else {
+		buffer[2]|=0x8000;
+	}
+
+
+	/* minutes */
+	minute_tens=tctime->minutes/10;
+	minute_ones=tctime->minutes%10;
+	buffer[1]|=(font_7seg[minute_tens])<<8;
+	buffer[0]|=(font_7seg[minute_ones])<<8;
+
+	/* Blink */
+	if (blink) {
+		buffer[0]|=0x8000;
+		buffer[1]|=0x8000;
+	}
+
+}
+
 int main(int argc, char **argv) {
 
- 	int result,pm,hour,blink=0,count=0;
+ 	int result,blink=0,count=0;
 	int display_missing=0;
 	int red_missing=0,green_missing=0,yellow_missing=0,flux_missing=0;
 
@@ -438,8 +514,6 @@ int main(int argc, char **argv) {
 
 	time_t current_time;
 	time_t delta_time=0,display_time;
-
-	char *ctime_result;
 
 	/* open i2c bus */
 	i2c_fd=init_i2c("/dev/i2c-1");
@@ -508,7 +582,6 @@ int main(int argc, char **argv) {
 		current_time=time(NULL);
 		//ctime_result=ctime(&current_time);
 		display_time=current_time-delta_time;
-		ctime_result=ctime(&display_time );
 
 		ltime=localtime(&display_time);
 
@@ -537,46 +610,12 @@ int main(int argc, char **argv) {
 
 		else {
 
-			/* Month */
-			red_buffer[5]=font_16seg[toupper(ctime_result[4])];
-			red_buffer[6]=font_16seg[toupper(ctime_result[5])];
-			red_buffer[7]=font_16seg[toupper(ctime_result[6])];
+			convert_for_display(red_buffer,&red_time,blink);
 
-			/* Date */
-			red_buffer[0]=font_7seg[ctime_result[8]-'0'];
-			red_buffer[1]=font_7seg[ctime_result[9]-'0'];
+			convert_for_display(green_buffer,&green_time,blink);
 
-			/* Year */
-			red_buffer[2]=font_7seg[ctime_result[20]-'0'];
-			red_buffer[3]=font_7seg[ctime_result[21]-'0'];
-			red_buffer[4]=font_7seg[ctime_result[22]-'0'];
-			red_buffer[4]|=(font_7seg[ctime_result[23]-'0'])<<8;
+			convert_for_display(yellow_buffer,&yellow_time,blink);
 
-			/* hours */
-			red_buffer[3]|=(font_7seg[ctime_result[11]-'0'])<<8;
-			red_buffer[2]|=(font_7seg[ctime_result[12]-'0'])<<8;
-
-			hour=((ctime_result[11]-'0')*10)+(ctime_result[12]-'0');
-			if (hour>11) pm=1;
-			else pm=0;
-
-			/* minutes */
-			red_buffer[1]|=(font_7seg[ctime_result[14]-'0'])<<8;
-			red_buffer[0]|=(font_7seg[ctime_result[15]-'0'])<<8;
-
-			/* AM/PM */
-			if (pm) {
-				red_buffer[3]|=0x8000;
-			}
-			else {
-				red_buffer[2]|=0x8000;
-			}
-
-			/* Blink */
-			if (blink) {
-				red_buffer[0]|=0x8000;
-				red_buffer[1]|=0x8000;
-			}
 
 			/* buttons */
 			if (top_red) red_buffer[1]|=0x0080;
