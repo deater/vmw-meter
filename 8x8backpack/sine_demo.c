@@ -86,26 +86,26 @@ int main(int argc, char **argv) {
 	}
 
 	/* Init display */
-	available[HT16K33_ADDRESS1]=1;
-	if (sine_demo_init(i2c_fd,HT16K33_ADDRESS1,10,0.0)) {
+	available[HT16K33_ADDRESS0]=1;
+	if (sine_demo_init(i2c_fd,HT16K33_ADDRESS0,10,0.0)) {
 		fprintf(stderr,"Error opening display 1\n");
-		available[HT16K33_ADDRESS1]=0;
+		available[HT16K33_ADDRESS0]=0;
 	}
 
 	/* Init display */
-	available[HT16K33_ADDRESS2]=1;
-	if (sine_demo_init(i2c_fd,HT16K33_ADDRESS2,10,90.0)) {
+	available[HT16K33_ADDRESS1]=1;
+	if (sine_demo_init(i2c_fd,HT16K33_ADDRESS1,10,90.0)) {
 		fprintf(stderr,"Error opening display\n");
-		available[HT16K33_ADDRESS2]=0;
+		available[HT16K33_ADDRESS1]=0;
 	}
 
 
 	while(1) {
+		if (available[HT16K33_ADDRESS0]) {
+			sine_demo(i2c_fd,HT16K33_ADDRESS0);
+		}
 		if (available[HT16K33_ADDRESS1]) {
 			sine_demo(i2c_fd,HT16K33_ADDRESS1);
-		}
-		if (available[HT16K33_ADDRESS2]) {
-			sine_demo(i2c_fd,HT16K33_ADDRESS2);
 		}
 		usleep(50000);
 	}

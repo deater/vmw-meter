@@ -40,7 +40,7 @@ int main(int arg, char **argv) {
 	}
 
 	/* Init display */
-	if (init_display(i2c_fd,HT16K33_ADDRESS1,15)) {
+	if (init_display(i2c_fd,HT16K33_ADDRESS0,15)) {
 		fprintf(stderr,"Error opening display\n");
 		return -1;
 	}
@@ -128,7 +128,7 @@ int main(int arg, char **argv) {
 
 
 		/* Write Display */
-		update_display(i2c_fd,HT16K33_ADDRESS1,display_buffer);
+		update_display(i2c_fd,HT16K33_ADDRESS0,display_buffer);
 
 
 

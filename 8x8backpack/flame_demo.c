@@ -76,7 +76,7 @@ int flame_demo(int i2c_fd) {
 				}
 			}
 		}
-		update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer,0);
+		update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS0,display_buffer,0);
 		usleep(SLEEP);
 	}
 
@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* Init display */
-	if (init_display(i2c_fd,HT16K33_ADDRESS1,10)) {
+	if (init_display(i2c_fd,HT16K33_ADDRESS0,10)) {
 		fprintf(stderr,"Error opening display\n");
 		return -1;
 	}

@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* Init display */
-        if (init_display(i2c_fd,HT16K33_ADDRESS1,10)) {
+        if (init_display(i2c_fd,HT16K33_ADDRESS0,10)) {
 		fprintf(stderr,"Error opening display\n");
 		return -1;
 	}
@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
 
 		display_buffer[4]=0x63;			// degrees
 
-		update_display(i2c_fd,HT16K33_ADDRESS1,display_buffer);
+		update_display(i2c_fd,HT16K33_ADDRESS0,display_buffer);
 
 		sleep(5);
 	}

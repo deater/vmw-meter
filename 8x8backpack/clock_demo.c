@@ -289,7 +289,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* Init display */
-	if (init_display(i2c_fd,HT16K33_ADDRESS1,10)) {
+	if (init_display(i2c_fd,HT16K33_ADDRESS0,10)) {
 		fprintf(stderr,"Error opening display\n");
 		return -1;
 	}
@@ -324,7 +324,7 @@ int main(int argc, char **argv) {
 			}
 		}
 
-		update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS1,display_buffer,0);
+		update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS0,display_buffer,0);
 
 		x_scroll+=scroll_dir;
 		if ((x_scroll>13) || (x_scroll<1)) {

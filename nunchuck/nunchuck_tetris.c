@@ -384,9 +384,9 @@ static void update_our_display(unsigned char *display_buffer, int i2c_fd,int no_
 	/* Write Display */
 	if (!no_display) {
 		update_8x8_display_rotated(i2c_fd,
-			HT16K33_ADDRESS2,display_buffer,0);
+			HT16K33_ADDRESS1,display_buffer,0);
 		update_8x8_display_rotated(i2c_fd,
-			HT16K33_ADDRESS1,display_buffer+8,0);
+			HT16K33_ADDRESS0,display_buffer+8,0);
 	}
 	else {
 		emulate_8x16_display(display_buffer);
@@ -498,17 +498,17 @@ int main(int arg, char **argv) {
 
 		/* Init display */
 		no_display=0;
-		if (init_display(i2c_fd,HT16K33_ADDRESS1,15)) {
+		if (init_display(i2c_fd,HT16K33_ADDRESS0,15)) {
 			fprintf(stderr,"Error opening display 1\n");
 			no_display=1;
 		}
-		if (init_display(i2c_fd,HT16K33_ADDRESS2,15)) {
+		if (init_display(i2c_fd,HT16K33_ADDRESS1,15)) {
 			fprintf(stderr,"Error opening display 2\n");
 			no_display=1;
 		}
 		/* Init aux display */
 		no_aux_display=0;
-		if (init_display(i2c_fd,HT16K33_ADDRESS3,15)) {
+		if (init_display(i2c_fd,HT16K33_ADDRESS2,15)) {
 			fprintf(stderr,"Error opening aux display\n");
 			no_aux_display=1;
 		}
@@ -655,7 +655,7 @@ start:
 
 		if (!no_aux_display) {
 			update_display(i2c_fd,
-				HT16K33_ADDRESS3,aux_buffer);
+				HT16K33_ADDRESS2,aux_buffer);
 		}
 		else {
 			emulate_4x7seg_display(aux_buffer);
