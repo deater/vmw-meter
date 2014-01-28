@@ -25,17 +25,26 @@ different PCB layout.
 Part No   &  Description    &  Quantity    &   Source \\
 \hline
 \hline
-
-TIME-RGLED-MK1 &Red/Green PCB Board            & 2 & Ohloh\\ %$26 each
+TIME-RGLED-MK1 & VMW Red/Green PCB Board       & 2 & VMW/Ohloh\\ %$26 each
+\hline
 DC56-11EWA     & Dual Red 7-segment 0.56" CC   & 5 & Kingsbright\\ %??
+\hline
 DC56-11GWA     & Dual Green 7-segment 0.56" CC & 5 & Kingsbright\\ %??
+\hline
 PSC05-11EWA    & 16-segment alphanum 0.5" CC   & 3 & Kingsbright\\ %??
+\hline
 PSC05-11GWA    & 16-segment alphanum 0.5" CC   & 3 & Kingsbright\\ %??
+\hline
 LED-1          & Red T 1 3/4 LED               & 4 & All Electronics\\ %??
+\hline
 LED-2          & Green T 1 3/4 LED             & 4 & All Electronics\\ %??
+\hline
 1427           & HT16K33 Breakout              & 2 & Adafruit\\ % $10?
+\hline
 SIP-30	       & 30-pin SIP header             & 10 & All Electronics\\ %5@1.20
+\hline
                & 28-pin DIP socket             & 2 & ?? \\ %??
+\hline
 \end{tabular}
 
 %approx $??.0 / one
@@ -52,6 +61,82 @@ abilities.
       Solder both halves on the back of the board.
       (I don't use SIP socket here as the breakout's pins are too
        wide to fit into it).
+\item Cut the SIPs into the following pieces:
+\begin{itemize}
+\item 19 + 9 + 2
+\item 19 + 4 + 4 + 2
+\item 9 + 9 + 9 + 2
+\item 9 + 9 + 9 + 2
+\item 9 + 9
+\end{itemize}
+\item Solder the two 4-length SIP to the back of the board
+      for the i2c sockets
+\item Solder the 9-length SIPs to the front of the board for LED
+      sockets.  This is easier if the LEDs are in the sockets to
+      hold them parallel.
+\item Take the two 19-length SIPs and trim off the middle pin
+      (measure twice cut once).  Solder these in the year spot
+\item Solder the 4 2-length SIPs where the colon and AM/PM LEDs go
+\item Put the various displays in the proper sockets
+\item Trim the LED legs and put in the LED spots
+\item Aseemble the HT16K33 breakout and put in place in back
+\end{enumerate}
+
+You should be assembled!  Hook up to the i2c bus.  From above
+the signals are ground, 5V, SDA, SCL.
+
+
+
+\section{Yellow Display}
+
+The red and green displays are separate from the yellow because
+the 16-segment LEDs I could source had different pinouts, requiring
+different PCB layout.
+
+The yellow display is on the bottom so unlike the red/green we
+hook up the keypad socket.
+
+\subsection{Yellow LED board Parts List}
+
+\begin{tabular}{|c|l|c|c|}
+\hline
+Part No   &  Description    &  Quantity    &   Source \\
+\hline
+\hline
+TIME-YELLOW-MK1& VMW Yellow PCB Board          & 2 & VMW/Ohloh\\ %$26 each
+\hline
+DC56-11YWA     & Dual Yellow 7-segment 0.56" CC& 5 & Kingsbright\\ %??
+\hline
+PSC05-12YWA    & 16-segment alphanum 0.5" CC   & 3 & Kingsbright\\ %??
+\hline
+LED-3          & Yellow T 1 3/4 LED            & 4 & All Electronics\\ %??
+\hline
+1427           & HT16K33 Breakout              & 2 & Adafruit\\ % $10?
+\hline
+SIP-30	       & 30-pin SIP header             & 5 & All Electronics\\ %5@1.20
+\hline
+               & 28-pin DIP socket             & 1 & ?? \\ %??
+\hline
+               & 20-pin DIP socket             & 1 & ?? \\ %??
+\hline
+\end{tabular}
+
+%approx $??.0 / one
+
+\subsection{Building the Yellow LED Board}
+
+Note, this assumes you want to socket everything (I typically do).
+You can leave out all of the sockets if you're confident in your
+abilities.
+
+\begin{enumerate}
+\item Take the 28-pin DIP socket and cut it into two pieces.
+      The breakout board is too wide for a regular socket.
+      Solder both halves on the back of the board.
+      (I don't use SIP socket here as the breakout's pins are too
+       wide to fit into it).
+\item Solder the 20-pin DIP socket on the bottom for the
+      keypad cable.
 \item Cut the SIPs into the following pieces:
 \begin{itemize}
 \item 19 + 9 + 2
