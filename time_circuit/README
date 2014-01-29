@@ -1,2 +1,11 @@
-Code for interfacing with a ht16K33 hooked to a raspberry-pi
+Code and hardware for making time displays similar to that in the
+BTTF movie.
+
+Differences from movie:
++ The alphanum for the month in the movie are not physically
+  realizable with 16-seg displays (see the 'D' in December)
++ The movie version uses a weird layout for the "6" without a top bar
++ Which LED (top or bottom) is AM/PM changed over the course of the movies
++ I prefer to use military time instead of PM anyway.
+
 
