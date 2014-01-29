@@ -618,11 +618,11 @@ int main(int argc, char **argv) {
 
 
 			/* buttons */
-			if (top_red) red_buffer[1]|=0x0080;
-			if (top_yellow) red_buffer[2]|=0x0080;
-			if (top_green) red_buffer[3]|=0x0080;
-			if (bot_yellow) red_buffer[4]|=0x0080;
-			if (white) red_buffer[4]|=0x8000;
+			if (top_red) yellow_buffer[1]|=0x0080;
+			if (top_yellow) yellow_buffer[2]|=0x0080;
+			if (top_green) yellow_buffer[3]|=0x0080;
+			if (bot_yellow) yellow_buffer[4]|=0x0080;
+			if (white) yellow_buffer[4]|=0x8000;
 
 			if (!yellow_missing) {
 				keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS0);
