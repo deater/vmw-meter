@@ -492,6 +492,98 @@ static void convert_for_display(unsigned short *buffer,
 
 }
 
+#define MONTH_JAN	0
+#define MONTH_FEB	1
+#define MONTH_MAR	2
+#define MONTH_APR	3
+#define MONTH_MAY	4
+#define MONTH_JUN	5
+#define MONTH_JUL	6
+#define MONTH_AUG	7
+#define MONTH_SEP	8
+#define MONTH_OCT	9
+#define MONTH_NOV	10
+#define MONTH_DEC	11
+
+
+static void adjust_current_time(struct tcircuit *tctime, int seconds) {
+
+	tctime->seconds+=seconds;
+
+	if (tctime->seconds>=60) {
+		tctime->minutes+=(tctime->seconds/60);
+		tctime->seconds%=60;
+	}
+
+	if (tctime->minutes>60) {
+		tctime->hour+=(tctime->minutes/60);
+		tctime->minutes%=60;
+	}
+
+	if (tctime->hour>23) {
+		tctime->day+=(tctime->hour/24);
+		tctime->hour%=24;
+	}
+
+	/* OK this gets harder when a month overflows */
+
+	switch (tctime->month) {
+
+		case MONTH_JAN:
+		case MONTH_MAR:
+		case MONTH_MAY:
+		case MONTH_JUL:
+		case MONTH_AUG:
+		case MONTH_OCT:
+		case MONTH_DEC:
+			if (tctime->day>31) {
+				tctime->month+=1;
+				tctime->day=1;
+			}
+			break;
+
+		case MONTH_SEP:
+		case MONTH_APR:
+		case MONTH_JUN:
+		case MONTH_NOV:
+			if (tctime->day>30) {
+				tctime->month+=1;
+				tctime->day=1;
+			}
+			break;
+
+		case MONTH_FEB:
+			/* Ugh leap year */
+			if (((tctime->year%4==0) && (tctime->year%100!=0)) ||
+				(tctime->year%400==0)) {
+
+				if (tctime->day>29) {
+					tctime->month+=1;
+					tctime->day=1;
+				}
+			} else {
+				if (tctime->day>28) {
+					tctime->month+=1;
+					tctime->day=1;
+				}
+
+			}
+			break;
+
+	}
+
+	if (tctime->month>MONTH_DEC) {
+		tctime->year+=1;
+		tctime->month=MONTH_JAN;
+	}
+
+	/* How to handle overflow? */
+	if (tctime->year>9999) {
+		tctime->year=0;
+	}
+
+}
+
 int main(int argc, char **argv) {
 
  	int result,blink=0,count=0;
@@ -507,13 +599,11 @@ int main(int argc, char **argv) {
 	struct tcircuit yellow_time;
 	struct tcircuit green_time;
 
-	struct tm *ltime;
-
 	long long keypad_result=0,keypad_change;
 	int i2c_fd;
 
-	time_t current_time;
-	time_t delta_time=0,display_time;
+	time_t current_time=0,previous_time=0;
+	time_t delta_time=0;
 
 	/* open i2c bus */
 	i2c_fd=init_i2c("/dev/i2c-1");
@@ -576,19 +666,41 @@ int main(int argc, char **argv) {
 	return 0;
 */
 
+	/* Destination */
+	/* Special Time */
+	red_time.year=1978;
+	red_time.month=1;
+	red_time.day=13;
+	red_time.hour=14;
+	red_time.minutes=40;
+	red_time.seconds=0;
+
+	/* Green is Current time */
+	current_time=time(NULL);
+	previous_time=current_time;
+	convert_time(localtime(&current_time),&green_time);
+
+	/* Last time departed */
+	/* End of UNIX time */
+	yellow_time.year=2038;
+	yellow_time.month=0;
+	yellow_time.day=18;
+	yellow_time.hour=22;
+	yellow_time.minutes=14;
+	yellow_time.seconds=7;
+
 	/* Time Loop */
 	while(1) {
 
 		current_time=time(NULL);
-		//ctime_result=ctime(&current_time);
-		display_time=current_time-delta_time;
 
-		ltime=localtime(&display_time);
+		/* Update displays if a second or more has passed */
+		if (current_time!=previous_time) {
 
-		convert_time(ltime,&red_time);
-		convert_time(ltime,&yellow_time);
-		convert_time(ltime,&green_time);
+			adjust_current_time(&green_time,current_time-previous_time);
 
+			previous_time=current_time;
+		}
 
 		if (display_missing) {
 
@@ -616,7 +728,6 @@ int main(int argc, char **argv) {
 
 			convert_for_display(yellow_buffer,&yellow_time,blink);
 
-
 			/* buttons */
 			if (top_red) yellow_buffer[1]|=0x0080;
 			if (top_yellow) yellow_buffer[2]|=0x0080;
@@ -627,9 +738,6 @@ int main(int argc, char **argv) {
 			if (!yellow_missing) {
 				keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS0);
 			}
-//		if (keypad_result!=-1) {
-//			printf("keypad: %lld\n",keypad_result);
-//		}
 
 			keypad_change=old_keypad&~keypad_result;
 			if (keypad_change) {
