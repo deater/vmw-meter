@@ -222,12 +222,34 @@ int decode_key(long long keycode) {
 static long long old_keypad=0;
 static int top_red=0,top_yellow=0,top_green=0,bot_yellow=0,white=0;
 
+struct tcircuit {
+	int month;
+	int day;
+	int year;
+	int hour;
+	int minutes;
+	int seconds;
+};
 
+static char month_names[12][4]={
+	"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+	"JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
 
-time_t keypad_change_time(int i2c_fd,long long keypad_in) {
+};
 
-	time_t delta_time=0,entered_time;
-	struct tm new_time;
+static void convert_time(struct tm *ltime, struct tcircuit *tctime) {
+	tctime->month=ltime->tm_mon;
+	tctime->day=ltime->tm_mday;
+	tctime->year=ltime->tm_year+1900;
+	tctime->hour=ltime->tm_hour;
+	tctime->minutes=ltime->tm_min;
+	tctime->seconds=ltime->tm_sec;
+}
+
+static void keypad_change_time(int i2c_fd,long long keypad_in,
+				struct tcircuit *tc) {
+
+	time_t current_time;
 	int keypresses=0;
 	int which_field=FIELD_MONTH_1,which_key=0;
 	long long keypad_result,keypad_change;
@@ -244,39 +266,37 @@ time_t keypad_change_time(int i2c_fd,long long keypad_in) {
 			which_key=decode_key(keypad_change);
 			printf("Keypad: %d %d\n",keypresses,which_key);
 
-
 			/* reset time if * or # pressed */
 			if ((which_key==KEY_POUND || which_key==KEY_STAR)) {
-				delta_time=0;
-				return delta_time;
+				current_time=time(NULL);
+				convert_time(localtime(&current_time),tc);
+				return;
 
 			}
 
 			if (which_key==KEY_TOP_RED) {
 				top_red=!top_red;
-				return 0;
+				return;
 			}
-
 
 			if (which_key==KEY_TOP_YELLOW) {
 				top_yellow=!top_yellow;
-				return 0;
+				return;
 			}
-
 
 			if (which_key==KEY_TOP_GREEN) {
 				top_green=!top_green;
-				return 0;
+				return;
 			}
 
 			if (which_key==KEY_BOT_YELLOW) {
 				bot_yellow=!bot_yellow;
-				return 0;
+				return;
 			}
 
 			if (which_key==KEY_WHITE) {
 				white=!white;
-				return 0;
+				return;
 			}
 
 			switch(which_field) {
@@ -353,41 +373,24 @@ time_t keypad_change_time(int i2c_fd,long long keypad_in) {
 		usleep(20000);
 	}
 
-	new_time.tm_year=new_year-1900;
-	new_time.tm_mon=new_month-1;
-	new_time.tm_mday=new_date;
-	new_time.tm_hour=new_hour;
-	new_time.tm_min=new_minute;
-	new_time.tm_sec=0;
-	new_time.tm_isdst=-1;
+	tc->year=new_year;
+	tc->month=new_month;
+	tc->day=new_date;
+	tc->hour=new_hour;
+	tc->minutes=new_minute;
+	tc->seconds=0;
 
-	entered_time=mktime(&new_time);
+//	entered_time=mktime(&new_time);
+//
+//	if (entered_time==-1) {
+//		printf("Error\n");
+//	}
 
-	if (entered_time==-1) {
-		printf("Error\n");
-	}
-
-	delta_time=(time(NULL))-entered_time;
-
-	return delta_time;
+	return;
 }
 
-struct tcircuit {
-	int month;
-	int day;
-	int year;
-	int hour;
-	int minutes;
-	int seconds;
-};
 
-static char month_names[12][4]={
-	"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-	"JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
-
-};
-
-void print_time(struct tcircuit *tctime, int blink) {
+static void print_time(struct tcircuit *tctime, int blink) {
 
 	printf("%s ",month_names[tctime->month]);
 	printf("%02d %04d",tctime->day,tctime->year);
@@ -407,14 +410,6 @@ void print_time(struct tcircuit *tctime, int blink) {
 	printf("%02d\n",tctime->minutes);
 }
 
-static void convert_time(struct tm *ltime, struct tcircuit *tctime) {
-	tctime->month=ltime->tm_mon;
-	tctime->day=ltime->tm_mday;
-	tctime->year=ltime->tm_year+1900;
-	tctime->hour=ltime->tm_hour;
-	tctime->minutes=ltime->tm_min;
-	tctime->seconds=ltime->tm_sec;
-}
 
 /* FIXME: use BCD? */
 /* That will avoid lots of division */
@@ -603,7 +598,6 @@ int main(int argc, char **argv) {
 	int i2c_fd;
 
 	time_t current_time=0,previous_time=0;
-	time_t delta_time=0;
 
 	/* open i2c bus */
 	i2c_fd=init_i2c("/dev/i2c-1");
@@ -741,7 +735,7 @@ int main(int argc, char **argv) {
 
 			keypad_change=old_keypad&~keypad_result;
 			if (keypad_change) {
-				delta_time=keypad_change_time(i2c_fd,keypad_change);
+				keypad_change_time(i2c_fd,keypad_change,&green_time);
 			}
 			old_keypad=keypad_result;
 
