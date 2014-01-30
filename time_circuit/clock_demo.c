@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
-#include <ctype.h>
+#include <string.h>
 
 #include "i2c_lib.h"
 
@@ -246,6 +246,8 @@ static void convert_time(struct tm *ltime, struct tcircuit *tctime) {
 	tctime->seconds=ltime->tm_sec;
 }
 
+static int going_88mph=0;
+
 static void keypad_change_time(int i2c_fd,long long keypad_in,
 				struct tcircuit *tc) {
 
@@ -266,13 +268,20 @@ static void keypad_change_time(int i2c_fd,long long keypad_in,
 			which_key=decode_key(keypad_change);
 			printf("Keypad: %d %d\n",keypresses,which_key);
 
-			/* reset time if * or # pressed */
-			if ((which_key==KEY_POUND || which_key==KEY_STAR)) {
+			/* reset time if * pressed */
+			if (which_key==KEY_STAR) {
 				current_time=time(NULL);
 				convert_time(localtime(&current_time),tc);
 				return;
 
 			}
+
+			/* time travel if # pressed */
+			if (which_key==KEY_POUND) {
+				going_88mph=1;
+				return;
+			}
+
 
 			if (which_key==KEY_TOP_RED) {
 				top_red=!top_red;
@@ -374,7 +383,7 @@ static void keypad_change_time(int i2c_fd,long long keypad_in,
 	}
 
 	tc->year=new_year;
-	tc->month=new_month;
+	tc->month=new_month-1;
 	tc->day=new_date;
 	tc->hour=new_hour;
 	tc->minutes=new_minute;
@@ -500,6 +509,20 @@ static void convert_for_display(unsigned short *buffer,
 #define MONTH_NOV	10
 #define MONTH_DEC	11
 
+
+static void time_travel(struct tcircuit *dest,
+			struct tcircuit *curr,
+			struct tcircuit *last) {
+
+
+	/* Move Current to Last Departed */
+	memcpy(last,curr,sizeof(struct tcircuit));
+
+	/* Move Destination to Current */
+	memcpy(curr,dest,sizeof(struct tcircuit));
+
+
+}
 
 static void adjust_current_time(struct tcircuit *tctime, int seconds) {
 
@@ -735,7 +758,7 @@ int main(int argc, char **argv) {
 
 			keypad_change=old_keypad&~keypad_result;
 			if (keypad_change) {
-				keypad_change_time(i2c_fd,keypad_change,&green_time);
+				keypad_change_time(i2c_fd,keypad_change,&red_time);
 			}
 			old_keypad=keypad_result;
 
@@ -761,6 +784,11 @@ int main(int argc, char **argv) {
 		if (count==10) {
 			count=0;
 			blink=0;
+		}
+
+		if (going_88mph) {
+			time_travel(&red_time,&green_time,&yellow_time);
+			going_88mph=0;
 		}
 	}
 
