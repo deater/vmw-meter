@@ -1,0 +1,17 @@
+G04 start of page 8 for group 6 idx 6 *
+G04 Title: (unknown), outline *
+G04 Creator: pcb 20110918 *
+G04 CreationDate: Sat 01 Feb 2014 02:35:45 AM GMT UTC *
+G04 For: vince *
+G04 Format: Gerber/RS-274X *
+G04 PCB-Dimensions: 300000 110000 *
+G04 PCB-Coordinate-Origin: lower left *
+%MOIN*%
+%FSLAX25Y25*%
+%LNOUTLINE*%
+%ADD92C,0.0100*%
+G54D92*X0Y110000D02*Y0D01*
+Y110000D02*X300000D01*
+X0Y0D02*X300000D01*
+Y110000D02*Y0D01*
+M02*
