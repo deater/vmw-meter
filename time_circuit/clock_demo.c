@@ -21,7 +21,7 @@
 #define SEG_N 0x0400
 #define SEG_P 0x0800
 #define SEG_R 0x2000 /* Hooked up R and S backwards? */
-#define SEG_S 0x1000 /* hmmmm			     */
+#define SEG_S 0x1000 /* the data sheets list those two out of order, odd */
 #define SEG_T 0x4000
 #define SEG_U 0x8000
 
