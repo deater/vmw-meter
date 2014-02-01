@@ -92,5 +92,5 @@ yellow_ledboard.XLN:	yellow_ledboard.final.combined.cnc
 
 
 clean:	
-	rm -f *~ *.zip *.GTL *.GBL *.GTS *.GBS *.GTO *.GKO *.XLN
+	rm -f *~ *.zip *.GTL *.GBL *.GTS *.GBS *.GTO *.GKO *.XLN *.GBO
 
