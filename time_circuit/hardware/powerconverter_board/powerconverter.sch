@@ -70,15 +70,6 @@ refdes=J2
 T 45700 47900 5 10 0 0 0 0 1
 footprint=JUMPER3
 }
-C 46100 46200 1 0 0 jumper-1.sym
-{
-T 46400 46700 5 8 0 0 0 0 1
-device=JUMPER
-T 46400 46700 5 10 1 1 0 0 1
-refdes=J3
-T 46100 46200 5 10 0 0 0 0 1
-footprint=JUMPER2
-}
 C 48500 43800 1 0 0 levelshifter.sym
 {
 T 53600 44900 5 10 0 0 0 0 1
@@ -87,4 +78,13 @@ T 53600 45300 5 10 0 0 0 0 1
 device=levelshift
 T 49400 44800 5 10 1 1 0 0 1
 refdes=IC1
+}
+C 43800 44800 1 0 0 usba.sym
+{
+T 49100 45600 5 10 0 0 0 0 1
+footprint=USBA
+T 49100 46000 5 10 0 0 0 0 1
+device=usb-a connector
+T 46600 44500 5 10 1 1 0 3 1
+refdes=USB1
 }
