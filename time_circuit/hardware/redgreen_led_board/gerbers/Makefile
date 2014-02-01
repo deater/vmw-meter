@@ -7,6 +7,7 @@ redgreen_ledboard.zip:	\
 	redgreen_ledboard.GTS \
 	redgreen_ledboard.GBS \
 	redgreen_ledboard.GTO \
+	redgreen_ledboard.GBO \
 	redgreen_ledboard.GKO \
 	redgreen_ledboard.XLN
 	zip redgreen_ledboard.zip \
@@ -15,6 +16,7 @@ redgreen_ledboard.zip:	\
 		redgreen_ledboard.GTS \
 		redgreen_ledboard.GBS \
 		redgreen_ledboard.GTO \
+		redgreen_ledboard.GBO \
 		redgreen_ledboard.GKO \
 		redgreen_ledboard.XLN
 
@@ -24,6 +26,7 @@ yellow_ledboard.zip:	\
 	yellow_ledboard.GTS \
 	yellow_ledboard.GBS \
 	yellow_ledboard.GTO \
+	yellow_ledboard.GBO \
 	yellow_ledboard.GKO \
 	yellow_ledboard.XLN
 	zip yellow_ledboard.zip \
@@ -32,6 +35,7 @@ yellow_ledboard.zip:	\
 		yellow_ledboard.GTS \
 		yellow_ledboard.GBS \
 		yellow_ledboard.GTO \
+		yellow_ledboard.GBO \
 		yellow_ledboard.GKO \
 		yellow_ledboard.XLN
 
