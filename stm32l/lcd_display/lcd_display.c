@@ -6,6 +6,99 @@
 
 #define STACK_TOP 0x20000800
 
+#define SEGA	0x8000
+#define SEGB	0x4000
+#define SEGC	0x2000
+#define SEGD	0x1000
+#define SEGE	0x0800
+#define SEGF	0x0400
+#define SEGG	0x0200
+#define SEGH	0x0100
+#define SEGJ	0x0080
+#define SEGK	0x0040
+#define SEGM	0x0020
+#define SEGN	0x0010
+#define SEGP	0x0008
+#define SEGQ	0x0004
+#define SEGCOLON	0x0002
+#define SEGBAR		0x0002
+#define SEGDP		0x0001
+
+static short font[128]={
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,	/* 5 */
+	0,
+	0,
+	0,
+	0,
+	0,	/* 10 */
+	0,
+	0,
+	0,
+	0,
+	0,	/* 15 */
+	0,
+	0,
+	0,
+	0,
+	0,	/* 20 */
+	0,
+	0,
+	0,
+	0,
+	0,	/* 25 */
+	0,
+	0,
+	0,
+	0,
+	0,	/* 30 */
+	0,
+	0,	/* ' '	32 */
+	0,	/* !	33 */
+	0,      /* "	34 */
+	0,	/* #	35 */
+	0,	/* $	36 */
+	0,	/* %	37 */
+	0,	/* &	38 */
+	0,	/* '	39 */
+	0,	/* (	40 */
+	0,	/* )	41 */
+	0,	/* *	42 */
+	0,	/* +	43 */
+	0,	/* ,	44 */
+	0,	/* -	45 */
+	0,	/* .	46 */
+	0,	/* /	47 */
+	0,	/* 0	48 */
+	0,	/* 1	49 */
+	0,	/* 2	50 */
+	0,	/* 3	51 */
+	0,	/* 4	52 */
+	0,	/* 5	53 */
+	0,	/* 6	54 */
+	0,	/* 7	55 */
+	0,	/* 8	56 */
+	0,	/* 9	57 */
+	0,	/* :	58 */
+	0,	/* ;	59 */
+	0,	/* <	60 */
+	0,	/* =	61 */
+	0,	/* >	62 */
+	0,	/* ?	63 */
+	0,	/* @	64 */
+	SEGB|SEGC|SEGK|SEGM|SEGQ,	/* A	65 */
+	0,	/* B	66 */
+	0,	/* C	67 */
+	0,	/* D	68 */
+	SEGA|SEGD|SEGE|SEGF|SEGG,	/* E	69 */
+};
+
+
+
 static void delay(int length) {
 
 	volatile int i;
@@ -169,7 +262,7 @@ void lcd_config(void) {
 	lcd->FCR |= (4<<22);
 
 	/* Set clock divider to 1 */
-	lcd->FCR &=  ~LCD_FCR_DIV_MASK
+	lcd->FCR &=  ~LCD_FCR_DIV_MASK;
 	lcd->FCR |= (1<<18);
 
 	/* contrast = mean */
@@ -193,8 +286,57 @@ void lcd_config(void) {
 	while( !(lcd->SR & LCD_SR_RDY));
 }
 
+void lcd_display(unsigned int *buffer) {
+
+	int i;
+
+	/* wait until protection gone */
+	while((lcd->SR & LCD_SR_UDR)) ;
+
+	for(i=0;i<16;i++) {
+		lcd->RAM[i]=buffer[i];
+	}
+
+	/* request update of display */
+	lcd->SR |= LCD_SR_UDR;
+
+}
+
+static unsigned char lookup1[6]={28,26,24,20,18,17};
+static unsigned char lookup2[6]={1,7,9,11,13,15};
+static unsigned char lookup3[6]={0,2,8,10,12,14};
+static unsigned char lookup4[6]={29,27,25,21,19,16};
+
+void lcd_convert(char *string, unsigned int *buffer) {
+
+	int i;
+
+	for(i=0;i<16;i++) buffer[i]=0;
+
+	for(i=0;i<6;i++) {
+		if (string[i]&SEGA) buffer[1*2]|=1<<lookup1[i];
+		if (string[i]&SEGB) buffer[0*2]|=1<<lookup1[i];
+		if (string[i]&SEGC) buffer[1*2]|=1<<lookup2[i];
+		if (string[i]&SEGD) buffer[1*2]|=1<<lookup3[i];
+		if (string[i]&SEGE) buffer[0*2]|=1<<lookup3[i];
+		if (string[i]&SEGF) buffer[1*2]|=1<<lookup4[i];
+		if (string[i]&SEGG) buffer[0*2]|=1<<lookup4[i];
+		if (string[i]&SEGH) buffer[3*2]|=1<<lookup4[i];
+		if (string[i]&SEGJ) buffer[3*2]|=1<<lookup1[i];
+		if (string[i]&SEGK) buffer[2*2]|=1<<lookup1[i];
+		if (string[i]&SEGM) buffer[0*2]|=1<<lookup2[i];
+		if (string[i]&SEGN) buffer[3*2]|=1<<lookup3[i];
+		if (string[i]&SEGP) buffer[2*2]|=1<<lookup3[i];
+		if (string[i]&SEGQ) buffer[2*2]|=1<<lookup4[i];
+		if (string[i]&SEGCOLON) buffer[1*2]|=1<<lookup3[i];
+		if (string[i]&SEGDP) buffer[3*2]|=1<<lookup2[i];
+
+	}
+}
 
 int main(void) {
+
+	unsigned int lcd_buffer[16];
 
 	lcd_clock_init();
 
@@ -202,17 +344,17 @@ int main(void) {
 
 	lcd_config();
 
-	/* wait until protection gone */
-	while((lcd->SR & LCD_SR_UDR)) ;
+	lcd_convert("WEAVER",lcd_buffer);
 
-	/* Display WEAVER */
-	lcd->RAM[0]=0x190bd605;
-	lcd->RAM[2]=0x2c2f1206;
-	lcd->RAM[4]=0x23300000;
-	lcd->RAM[6]=0x00004001;
+#if 0
+	lcd_buffer[0]=0x190bd605;
+	lcd_buffer[2]=0x2c2f1206;
+	lcd_buffer[4]=0x23300000;
+	lcd_buffer[6]=0x00004001;
+#endif
 
-	/* request update of display */
-	lcd->SR |= LCD_SR_UDR;
+	lcd_display(lcd_buffer);
+
 
 	/* busy wait forever */
 	for(;;) {
