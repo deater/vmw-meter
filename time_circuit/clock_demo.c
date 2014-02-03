@@ -220,7 +220,7 @@ int decode_key(long long keycode) {
 #define FIELD_DONE    12
 
 static long long old_keypad=0;
-static int top_red=0,top_yellow=0,top_green=0,bot_yellow=0,white=0;
+static int top_red=1,top_yellow=1,top_green=1,bot_yellow=1,white=0;
 
 struct tcircuit {
 	int month;
@@ -399,7 +399,13 @@ static void keypad_change_time(int i2c_fd,long long keypad_in,
 }
 
 
-static void print_time(struct tcircuit *tctime, int blink) {
+static void print_time(struct tcircuit *tctime, int blink, int blank) {
+
+
+	if (blank) {
+		printf("\n");
+		return;
+	}
 
 	printf("%s ",month_names[tctime->month]);
 	printf("%02d %04d",tctime->day,tctime->year);
@@ -423,12 +429,19 @@ static void print_time(struct tcircuit *tctime, int blink) {
 /* FIXME: use BCD? */
 /* That will avoid lots of division */
 static void convert_for_display(unsigned short *buffer,
-				struct tcircuit *tctime, int blink) {
+				struct tcircuit *tctime, int blink,
+				int blank) {
 
 	int day_tens,day_ones;
 	int year,year_thousands, year_hundreds, year_tens, year_ones;
 	int hour_tens, hour_ones;
 	int minute_tens,minute_ones;
+
+
+	if (blank) {
+		memset(buffer,0,8*sizeof(short));
+		return;
+	}
 
 	/* Month */
 	buffer[5]=font_16seg[(int)month_names[tctime->month][0]];
@@ -726,24 +739,24 @@ int main(int argc, char **argv) {
 
 			/* red */
 			printf("\x1b[31;1m");
-			print_time(&red_time,blink);
+			print_time(&red_time,blink,!top_red);
 
 			/* green */
 			printf("\x1b[32;1m");
-			print_time(&green_time,blink);
+			print_time(&green_time,blink,!top_red);
 
 			/* yellow */
 			printf("\x1b[33;1m");
-			print_time(&yellow_time,blink);
+			print_time(&yellow_time,blink,!top_red);
 		}
 
 		else {
 
-			convert_for_display(red_buffer,&red_time,blink);
+			convert_for_display(red_buffer,&red_time,blink,!top_red);
 
-			convert_for_display(green_buffer,&green_time,blink);
+			convert_for_display(green_buffer,&green_time,blink,!top_red);
 
-			convert_for_display(yellow_buffer,&yellow_time,blink);
+			convert_for_display(yellow_buffer,&yellow_time,blink,!top_red);
 
 			/* buttons */
 			if (top_red) yellow_buffer[1]|=0x0080;
