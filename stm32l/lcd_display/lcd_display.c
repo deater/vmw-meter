@@ -73,16 +73,16 @@ static short font[128]={
 	0,	/* -	45 */
 	0,	/* .	46 */
 	0,	/* /	47 */
-	0,	/* 0	48 */
-	0,	/* 1	49 */
-	0,	/* 2	50 */
-	0,	/* 3	51 */
-	0,	/* 4	52 */
-	0,	/* 5	53 */
-	0,	/* 6	54 */
-	0,	/* 7	55 */
-	0,	/* 8	56 */
-	0,	/* 9	57 */
+	SEGA|SEGB|SEGC|SEGD|SEGE|SEGF|SEGK|SEGQ,	/* 0	48 */
+	SEGB|SEGC|SEGK,					/* 1	49 */
+	SEGA|SEGB|SEGM|SEGG|SEGE|SEGD,			/* 2	50 */
+	SEGA|SEGB|SEGM|SEGC|SEGD|SEGG,			/* 3	51 */
+	SEGF|SEGG|SEGM|SEGB|SEGC,			/* 4	52 */
+	SEGA|SEGF|SEGG|SEGN|SEGD,			/* 5	53 */
+	SEGA|SEGF|SEGE|SEGD|SEGC|SEGG|SEGM,		/* 6	54 */
+	SEGA|SEGK|SEGP|SEGG|SEGM,			/* 7	55 */
+	SEGA|SEGB|SEGC|SEGD|SEGE|SEGF|SEGG|SEGM,	/* 8	56 */
+	SEGF|SEGA|SEGB|SEGC|SEGG|SEGM,			/* 9	57 */
 	0,	/* :	58 */
 	0,	/* ;	59 */
 	0,	/* <	60 */
@@ -90,11 +90,32 @@ static short font[128]={
 	0,	/* >	62 */
 	0,	/* ?	63 */
 	0,	/* @	64 */
-	SEGB|SEGC|SEGK|SEGM|SEGQ,	/* A	65 */
-	0,	/* B	66 */
-	0,	/* C	67 */
-	0,	/* D	68 */
-	SEGA|SEGD|SEGE|SEGF|SEGG,	/* E	69 */
+	SEGB|SEGC|SEGK|SEGM|SEGQ,		/* A	65 */
+	SEGA|SEGD|SEGE|SEGF|SEGG|SEGK|SEGN,	/* B	66 */
+	SEGA|SEGD|SEGE|SEGF,			/* C	67 */
+	SEGA|SEGB|SEGC|SEGD|SEGJ|SEGP,		/* D	68 */
+	SEGA|SEGD|SEGE|SEGF|SEGG,		/* E	69 */
+	SEGA|SEGE|SEGF|SEGG,			/* F	70 */
+	SEGA|SEGC|SEGD|SEGE|SEGF|SEGM,		/* G	71 */
+	SEGB|SEGC|SEGE|SEGF|SEGG|SEGM,		/* H	72 */
+	SEGA|SEGD|SEGJ|SEGP,			/* I	73 */
+	SEGB|SEGC|SEGD|SEGE,			/* J	74 */
+	SEGF|SEGE|SEGG|SEGK|SEGN,		/* K	75 */
+	SEGD|SEGE|SEGF,				/* L	76 */
+	SEGB|SEGC|SEGE|SEGF|SEGH|SEGK,		/* M	77 */
+	SEGE|SEGF|SEGB|SEGC|SEGH|SEGN,		/* N	78 */
+	SEGA|SEGB|SEGC|SEGD|SEGE|SEGF,		/* O	79 */
+	SEGA|SEGB|SEGE|SEGF|SEGG|SEGM,		/* P	80 */
+	SEGA|SEGB|SEGC|SEGD|SEGE|SEGF|SEGQ,	/* Q	81 */
+	SEGA|SEGB|SEGE|SEGF|SEGG|SEGM|SEGN,	/* R	82 */
+	SEGA|SEGF|SEGG|SEGM|SEGC|SEGD,		/* S	83 */
+	SEGA|SEGJ|SEGP,				/* T	84 */
+	SEGB|SEGC|SEGD|SEGE|SEGF,		/* U	85 */
+	SEGK|SEGQ|SEGE|SEGF,			/* V	86 */
+	SEGF|SEGE|SEGQ|SEGN|SEGC|SEGB,		/* W	87 */
+	SEGH|SEGK|SEGN|SEGQ,			/* X	88 */
+	SEGH|SEGK|SEGP,				/* Y	89 */
+	SEGA|SEGK|SEGQ|SEGD,			/* Z	90 */
 };
 
 
@@ -314,22 +335,22 @@ void lcd_convert(char *string, unsigned int *buffer) {
 	for(i=0;i<16;i++) buffer[i]=0;
 
 	for(i=0;i<6;i++) {
-		if (string[i]&SEGA) buffer[1*2]|=1<<lookup1[i];
-		if (string[i]&SEGB) buffer[0*2]|=1<<lookup1[i];
-		if (string[i]&SEGC) buffer[1*2]|=1<<lookup2[i];
-		if (string[i]&SEGD) buffer[1*2]|=1<<lookup3[i];
-		if (string[i]&SEGE) buffer[0*2]|=1<<lookup3[i];
-		if (string[i]&SEGF) buffer[1*2]|=1<<lookup4[i];
-		if (string[i]&SEGG) buffer[0*2]|=1<<lookup4[i];
-		if (string[i]&SEGH) buffer[3*2]|=1<<lookup4[i];
-		if (string[i]&SEGJ) buffer[3*2]|=1<<lookup1[i];
-		if (string[i]&SEGK) buffer[2*2]|=1<<lookup1[i];
-		if (string[i]&SEGM) buffer[0*2]|=1<<lookup2[i];
-		if (string[i]&SEGN) buffer[3*2]|=1<<lookup3[i];
-		if (string[i]&SEGP) buffer[2*2]|=1<<lookup3[i];
-		if (string[i]&SEGQ) buffer[2*2]|=1<<lookup4[i];
-		if (string[i]&SEGCOLON) buffer[1*2]|=1<<lookup3[i];
-		if (string[i]&SEGDP) buffer[3*2]|=1<<lookup2[i];
+		if (font[(int)string[i]]&SEGA) buffer[1*2]|=1<<lookup1[i];
+		if (font[(int)string[i]]&SEGB) buffer[0*2]|=1<<lookup1[i];
+		if (font[(int)string[i]]&SEGC) buffer[1*2]|=1<<lookup2[i];
+		if (font[(int)string[i]]&SEGD) buffer[1*2]|=1<<lookup3[i];
+		if (font[(int)string[i]]&SEGE) buffer[0*2]|=1<<lookup3[i];
+		if (font[(int)string[i]]&SEGF) buffer[1*2]|=1<<lookup4[i];
+		if (font[(int)string[i]]&SEGG) buffer[0*2]|=1<<lookup4[i];
+		if (font[(int)string[i]]&SEGH) buffer[3*2]|=1<<lookup4[i];
+		if (font[(int)string[i]]&SEGJ) buffer[3*2]|=1<<lookup1[i];
+		if (font[(int)string[i]]&SEGK) buffer[2*2]|=1<<lookup1[i];
+		if (font[(int)string[i]]&SEGM) buffer[0*2]|=1<<lookup2[i];
+		if (font[(int)string[i]]&SEGN) buffer[3*2]|=1<<lookup3[i];
+		if (font[(int)string[i]]&SEGP) buffer[2*2]|=1<<lookup3[i];
+		if (font[(int)string[i]]&SEGQ) buffer[2*2]|=1<<lookup4[i];
+		if (font[(int)string[i]]&SEGCOLON) buffer[1*2]|=1<<lookup3[i];
+		if (font[(int)string[i]]&SEGDP) buffer[3*2]|=1<<lookup2[i];
 
 	}
 }
@@ -344,20 +365,45 @@ int main(void) {
 
 	lcd_config();
 
-	lcd_convert("WEAVER",lcd_buffer);
-
-#if 0
-	lcd_buffer[0]=0x190bd605;
-	lcd_buffer[2]=0x2c2f1206;
-	lcd_buffer[4]=0x23300000;
-	lcd_buffer[6]=0x00004001;
-#endif
-
-	lcd_display(lcd_buffer);
-
-
 	/* busy wait forever */
 	for(;;) {
+
+	lcd_convert("VINCE ",lcd_buffer);
+	lcd_display(lcd_buffer);
+	delay(500000);
+
+	lcd_convert("WEAVER",lcd_buffer);
+	lcd_display(lcd_buffer);
+	delay(500000);
+
+	lcd_convert("ABCDEF",lcd_buffer);
+	lcd_display(lcd_buffer);
+	delay(500000);
+
+	lcd_convert("GHIJKL",lcd_buffer);
+	lcd_display(lcd_buffer);
+	delay(500000);
+
+	lcd_convert("MNOPQR",lcd_buffer);
+	lcd_display(lcd_buffer);
+	delay(500000);
+
+	lcd_convert("STUVWX",lcd_buffer);
+	lcd_display(lcd_buffer);
+	delay(500000);
+
+	lcd_convert("YZ0123",lcd_buffer);
+	lcd_display(lcd_buffer);
+	delay(500000);
+
+	lcd_convert("456789",lcd_buffer);
+	lcd_display(lcd_buffer);
+	delay(500000);
+
+
+
+
+
 
 	}
 
