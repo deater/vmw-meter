@@ -205,5 +205,63 @@ __IO uint32_t AFR[2];	/* 0x20 = Alternate Function (Low/High) Registers */
 #define MODER_ALT	0x02
 #define MODER_ANALOG	0x03
 
+/* Alternate Function Definitions */
+/* From Figure 17 in manual       */
+#define AFR_SYSTEM	0x00
+#define AFR_TIM1	0x01
+#define AFR_TIM345	0x02
+#define AFR_TIM91011	0x03
+#define AFR_I2C12	0x04
+#define AFR_SPI12	0x05
+#define AFR_SPI3	0x06
+#define AFR_USART123	0x07
+#define AFR_USART45	0x08
+#define AFR_9		0x09
+#define AFR_USB		0x0a
+#define AFR_LCD		0x0b
+#define AFR_5FSMC	0x0c
+#define AFR_D		0x0d
+#define AFR_RO		0x0e
+#define AFR_EVENTOUT	0x0f
+
+
 #define MODER_SET(_s,_v)	(((_v&0x3) << (_s*2))
 
+
+/* General Purpose Timers TIM2 to TIM5 (Section 16) */
+typedef struct {
+__IO uint32_t CR1;	/* 0x00 = Control Register */
+__IO uint32_t CR2;	/* 0x04 = Control Register 2 */
+__IO uint32_t SMCR;	/* 0x08 = Slave Mode Control */
+__IO uint32_t DIER;	/* 0x0c = DMA/Interrupt Enable */
+__IO uint32_t SR;	/* 0x10 = Status Register */
+__IO uint32_t EGR;	/* 0x14 = Event generation Register */
+__IO uint32_t CCMR1;	/* 0x18 = capture/compare mode */
+__IO uint32_t CCMR2;	/* 0x1c = capture/compare mode 2 */
+__IO uint32_t CCER;	/* 0x20 = capture/compare enable */
+__IO uint32_t CNT;	/* 0x24 = counter value */
+__IO uint32_t PSC;	/* 0x28 = prescaler */
+__IO uint32_t ARR;	/* 0x2c = auto-reload register */
+uint32_t reserved;	/* 0x30 */
+__IO uint32_t CCR1;	/* 0x34 = capture/compare reg 1 */
+__IO uint32_t CCR2;	/* 0x38 = capture/compare reg 2 */
+__IO uint32_t CCR3;	/* 0x3c = capture/compare reg 3 */
+__IO uint32_t CCR4;	/* 0x40 = capture/compare reg 4 */
+uint32_t reserved2;	/* 0x44 */
+__IO uint32_t DCR;	/* 0x48 = DMA control register */
+__IO uint32_t DMAR;	/* 0x4c = DMA address for transfer */
+__IO uint32_t OR;	/* 0c50 = option register */
+} TIM_TypeDef;
+
+#define TIM_CR1_CEN		0x1
+
+#define TIM_CCMR1_OC1M_TOGGLE	(0x3<<4)
+
+#define TIM_CCER_CC1E		0x1
+
+#define TIM7_BASE	(APB1PERIPH_BASE + 0x1400)
+#define TIM6_BASE	(APB1PERIPH_BASE + 0x1000)
+#define TIM5_BASE	(APB1PERIPH_BASE + 0x0c00)
+#define TIM4_BASE	(APB1PERIPH_BASE + 0x0800)
+#define TIM3_BASE	(APB1PERIPH_BASE + 0x0400)
+#define TIM2_BASE	(APB1PERIPH_BASE + 0x0000)
