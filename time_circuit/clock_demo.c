@@ -437,11 +437,13 @@ static void convert_for_display(unsigned short *buffer,
 	int hour_tens, hour_ones;
 	int minute_tens,minute_ones;
 
+	/* Clear buffer */
+	memset(buffer,0,8*sizeof(short));
 
 	if (blank) {
-		memset(buffer,0,8*sizeof(short));
 		return;
 	}
+
 
 	/* Month */
 	buffer[5]=font_16seg[(int)month_names[tctime->month][0]];
