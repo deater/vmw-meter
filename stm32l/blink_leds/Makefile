@@ -2,11 +2,13 @@
 
 all:	blink_led.bin
 
+-include ../Makefile.lib
+
 blink_led.bin:	blink_led.elf
 	$(OBJCOPY) -Obinary blink_led.elf blink_led.bin
 
-blink_led.elf:	blink_led.o
-	$(LD) -v $(LINKER_SCRIPT) -nostartfiles -o blink_led.elf blink_led.o
+blink_led.elf:	blink_led.o ../lib/delay_lib.o
+	$(LD) -v $(LINKER_SCRIPT) -nostartfiles -o blink_led.elf blink_led.o ../lib/delay_lib.o
 
 blink_led.o:	blink_led.c
 	$(CC) $(CFLAGS)  -c -o blink_led.o blink_led.c

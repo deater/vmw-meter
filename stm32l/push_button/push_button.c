@@ -3,16 +3,9 @@
 #include <stdint.h>
 
 #include "stm32l.h"
+#include "delay_lib.h"
 
 #define STACK_TOP 0x20000800
-
-static void delay(int length) {
-
-	volatile int i;
-
-	for(i=0;i<length;i++) asm("nop");
-
-}
 
 int main(void) {
 
@@ -104,7 +97,7 @@ int main(void) {
 				gpiob->BSRRL |= 1<<7;
 				gpiob->BSRRH |= 1<<6;
 
-				delay(60000);
+				busy_delay(60000);
 				green=0;
 			}
 
@@ -114,7 +107,7 @@ int main(void) {
 				gpiob->BSRRH |= 1<<7;
 				gpiob->BSRRL |= 1<<6;
 
-				delay(60000);
+				busy_delay(60000);
 				green=1;
 			}
 		}

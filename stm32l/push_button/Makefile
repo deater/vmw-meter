@@ -2,11 +2,13 @@
 
 all:	push_button.bin
 
+-include ../Makefile.lib
+
 push_button.bin:	push_button.elf
 	$(OBJCOPY) -Obinary push_button.elf push_button.bin
 
-push_button.elf:	push_button.o
-	$(LD) -v $(LINKER_SCRIPT) -nostartfiles -o push_button.elf push_button.o
+push_button.elf:	push_button.o ../lib/delay_lib.o
+	$(LD) -v $(LINKER_SCRIPT) -nostartfiles -o push_button.elf push_button.o ../lib/delay_lib.o
 
 push_button.o:	push_button.c
 	$(CC) $(CFLAGS)  -c -o push_button.o push_button.c
