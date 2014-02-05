@@ -1,11 +1,4 @@
-CC = arm-linux-gnueabihf-gcc-4.7
-LD = arm-linux-gnueabihf-ld
-OBJCOPY = arm-linux-gnueabihf-objcopy
-OBJDUMP = arm-linux-gnueabihf-objdump
-
-CFLAGS = -Wall -I. -I../include -fno-common -O0 -g -mcpu=cortex-m3 -mthumb
-
-LINKER_SCRIPT = -T../common/STM32L152xB.ld
+-include ../Makefile.inc
 
 all:	lcd_display.bin
 
