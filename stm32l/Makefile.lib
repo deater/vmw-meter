@@ -1,0 +1,3 @@
+../lib/lcd_lib.o:
+	cd ../lib && make
+
