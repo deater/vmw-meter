@@ -253,6 +253,7 @@ __IO uint32_t DMAR;	/* 0x4c = DMA address for transfer */
 __IO uint32_t OR;	/* 0c50 = option register */
 } TIM_TypeDef;
 
+#define TIM_CR1_OPM		(0x1<<3)	/* one pulse mode */
 #define TIM_CR1_CEN		0x1
 
 #define TIM_CCMR1_OC1M_TOGGLE	(0x3<<4)
