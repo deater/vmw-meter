@@ -548,7 +548,7 @@ static void adjust_current_time(struct tcircuit *tctime, int seconds) {
 		tctime->seconds%=60;
 	}
 
-	if (tctime->minutes>60) {
+	if (tctime->minutes>=60) {
 		tctime->hour+=(tctime->minutes/60);
 		tctime->minutes%=60;
 	}
