@@ -4,16 +4,9 @@
 
 #include "stm32l.h"
 #include "lcd_lib.h"
+#include "delay_lib.h"
 
 #define STACK_TOP 0x20000800
-
-static void delay(int length) {
-
-	volatile int i;
-
-	for(i=0;i<length;i++) asm("nop");
-
-}
 
 int main(void) {
 
@@ -30,40 +23,35 @@ int main(void) {
 
 	lcd_convert("VINCE ",lcd_buffer);
 	lcd_display(lcd_buffer);
-	delay(500000);
+	busy_delay(500000);
 
 	lcd_convert("WEAVER",lcd_buffer);
 	lcd_display(lcd_buffer);
-	delay(500000);
+	busy_delay(500000);
 
 	lcd_convert("ABCDEF",lcd_buffer);
 	lcd_display(lcd_buffer);
-	delay(500000);
+	busy_delay(500000);
 
 	lcd_convert("GHIJKL",lcd_buffer);
 	lcd_display(lcd_buffer);
-	delay(500000);
+	busy_delay(500000);
 
 	lcd_convert("MNOPQR",lcd_buffer);
 	lcd_display(lcd_buffer);
-	delay(500000);
+	busy_delay(500000);
 
 	lcd_convert("STUVWX",lcd_buffer);
 	lcd_display(lcd_buffer);
-	delay(500000);
+	busy_delay(500000);
 
 	lcd_convert("YZ0123",lcd_buffer);
 	lcd_display(lcd_buffer);
-	delay(500000);
+	busy_delay(500000);
 
 	lcd_convert("456789",lcd_buffer);
 	lcd_display(lcd_buffer);
-	delay(500000);
-
-
-
-
-
+	busy_delay(500000);
 
 	}
 
