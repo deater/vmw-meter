@@ -41,20 +41,20 @@ static short font[128]={
 	0,
 	0,	/* ' '	32 */
 	0,	/* !	33 */
-	0,      /* "	34 */
+	SEGJ|SEGB,      /* "	34 */
 	0,	/* #	35 */
 	0,	/* $	36 */
 	0,	/* %	37 */
 	0,	/* &	38 */
-	0,	/* '	39 */
-	0,	/* (	40 */
-	0,	/* )	41 */
-	0,	/* *	42 */
-	0,	/* +	43 */
-	0,	/* ,	44 */
-	0,	/* -	45 */
-	0,	/* .	46 */
-	0,	/* /	47 */
+	SEGJ,						/* '	39 */
+	SEGK|SEGN,					/* (	40 */
+	SEGH|SEGQ,					/* )	41 */
+	SEGJ|SEGK|SEGM|SEGN|SEGP|SEGQ|SEGG|SEGH,	/* *	42 */
+	SEGJ|SEGM|SEGP|SEGG,				/* +	43 */
+	SEGQ,						/* ,	44 */
+	SEGG|SEGM,					/* -	45 */
+	SEGP,						/* .	46 */
+	SEGQ|SEGK,					/* /	47 */
 	SEGA|SEGB|SEGC|SEGD|SEGE|SEGF|SEGK|SEGQ,	/* 0	48 */
 	SEGB|SEGC|SEGK,					/* 1	49 */
 	SEGA|SEGB|SEGM|SEGG|SEGE|SEGD,			/* 2	50 */
