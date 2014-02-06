@@ -3,3 +3,6 @@
 
 ../lib/delay_lib.o:
 	cd ../lib && make
+
+../lib/num_to_string.o:	
+	cd ../lib && make

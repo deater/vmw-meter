@@ -7,8 +7,8 @@ all:	lcd_display.bin
 lcd_display.bin:	lcd_display.elf
 	$(OBJCOPY) -Obinary lcd_display.elf lcd_display.bin
 
-lcd_display.elf:	lcd_display.o ../lib/lcd_lib.o ../lib/delay_lib.o
-	$(LD) -v $(LINKER_SCRIPT) -nostartfiles -o lcd_display.elf lcd_display.o ../lib/lcd_lib.o ../lib/delay_lib.o
+lcd_display.elf:	lcd_display.o ../lib/lcd_lib.o ../lib/delay_lib.o ../lib/num_to_string.o
+	$(LD) $(LINKER_SCRIPT) -nostartfiles -o lcd_display.elf lcd_display.o ../lib/lcd_lib.o ../lib/delay_lib.o ../lib/num_to_string.o
 
 lcd_display.o:	lcd_display.c
 	$(CC) $(CFLAGS)  -c -o lcd_display.o lcd_display.c
