@@ -7,8 +7,8 @@ all:	range_finder.bin
 range_finder.bin:	range_finder.elf
 	$(OBJCOPY) -Obinary range_finder.elf range_finder.bin
 
-range_finder.elf:	range_finder.o ../lib/delay_lib.o
-	$(LD) -v $(LINKER_SCRIPT) -nostartfiles -o range_finder.elf range_finder.o ../lib/delay_lib.o
+range_finder.elf:	range_finder.o ../lib/delay_lib.o ../lib/lcd_lib.o ../lib/num_to_string.o
+	$(LD) -v $(LINKER_SCRIPT) -nostartfiles -o range_finder.elf range_finder.o ../lib/delay_lib.o ../lib/lcd_lib.o ../lib/num_to_string.o
 
 range_finder.o:	range_finder.c
 	$(CC) $(CFLAGS)  -c -o range_finder.o range_finder.c

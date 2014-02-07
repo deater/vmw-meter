@@ -4,22 +4,42 @@
 #include "stm32l.h"
 
 #include "delay_lib.h"
+#include "lcd_lib.h"
+#include "num_to_string.h"
 
 
 int main(void) {
+
+	unsigned int lcd_buffer[16];
+//	char string[7],number[7];
+//	unsigned int count=0,feet,inches,length;
 
 	GPIO_TypeDef *gpiob=(GPIO_TypeDef *)GPIOB_BASE;
 	RCC_TypeDef *rcc=(RCC_TypeDef *)RCC_BASE;
 	TIM_TypeDef *tim4=(TIM_TypeDef *)TIM4_BASE;
 	uint32_t temp;
 
-	/* Enable GPIOB */
 
-	rcc->AHBENR |= AHBENR_GPIOBEN;	/* Enable GPIOB clock */
+	/******************/
+	/* configure LCD  */
+	/******************/
+
+	lcd_clock_init();
+
+	lcd_pin_init();
+
+	lcd_config();
+
+
+
 
 	/*******************/
 	/* Configure GPIOB */
 	/*******************/
+
+	/* Enable GPIOB */
+
+	rcc->AHBENR |= AHBENR_GPIOBEN;	/* Enable GPIOB clock */
 
 	/* Set pin mode */
 	temp=gpiob->MODER;
@@ -84,6 +104,10 @@ int main(void) {
 	/* Loop forever */
 
 	for(;;) {
+
+		lcd_convert("WEAVER",lcd_buffer);
+                lcd_display(lcd_buffer);
+
 		busy_delay(50000);
 
 		tim4->CR1 |= TIM_CR1_CEN;	/* Enable timer */
