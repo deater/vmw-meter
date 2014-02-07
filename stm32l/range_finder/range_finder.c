@@ -41,27 +41,30 @@ int main(void) {
 
 	rcc->AHBENR |= AHBENR_GPIOBEN;	/* Enable GPIOB clock */
 
-	/* Set pin mode */
+	/* Set TIM4 for pins PB6 and PB7 */
 	temp=gpiob->MODER;
-	temp&=~0x00003000;		/* clear values for pin 6 */
+	temp&=~0x0000f000;		/* clear values for pin 6 */
 	temp|= (MODER_ALT<<(6*2));	/* Set output type to ALTERNATE */
+	temp|= (MODER_ALT<<(7*2));	/* Set output type to ALTERNATE */
 	gpiob->MODER = temp; 		/* Set Output mode */
 
 	gpiob->AFR[0] |= AFR_TIM345<<(4*6);
 					/* Pin B6 = AF2 (TIM4) */
+	gpiob->AFR[0] |= AFR_TIM345<<(4*7);
+					/* Pin B7 = AF2 (TIM4) */
 					/* i.e. hook up to TIM4 clock */
 
 
 	/* Clock Speed */
-	temp=gpiob->OSPEEDR&~0x00003000;
-	temp|= 0x00003000;		/* 40MHz clock speed */
+	temp=gpiob->OSPEEDR&~0x0000f000;
+	temp|= 0x0000f000;		/* 40MHz clock speed */
 	gpiob->OSPEEDR=temp;
 
 	/* Pull-Up/Pull-Down */
-	gpiob->PUPDR &=~0x00003000;	/* No pull-up pull-down */
+	gpiob->PUPDR &=~0x0000f000;	/* No pull-up pull-down */
 
 	/* Set output type */
-	gpiob->OTYPER &=~0x20;		/* Push-Pull */
+//	gpiob->OTYPER &=~0x20;		/* Push-Pull */
 
 
 	/******************/
