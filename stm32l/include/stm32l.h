@@ -258,6 +258,11 @@ __IO uint32_t OR;	/* 0c50 = option register */
 
 #define TIM_CCMR1_OC1M_TOGGLE	(0x3<<4)
 
+#define TIM_CCER_CC2NP		(0x1<<7)
+#define TIM_CCER_CC2P		(0x1<<5)
+#define TIM_CCER_CC2E		(0x1<<4)
+#define TIM_CCER_CC1NP		(0x1<<3)
+#define TIM_CCER_CC1P		(0x1<<1)
 #define TIM_CCER_CC1E		0x1
 
 #define TIM7_BASE	(APB1PERIPH_BASE + 0x1400)
