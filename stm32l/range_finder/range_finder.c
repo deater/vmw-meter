@@ -1,5 +1,17 @@
 /* Ultrasonic Range Finder */
 
+/* For a HC-SR04 Ultrasonic Sensor */
+
+/* It sends a 10us pulse to start ranging (3.3V tolerant) */
+/* Then it receives back a 5V pulse from 150us-38ms       */
+/*  the distance can be calculated based on the width of  */
+/*  the pulse.  i.e. time/148 = distance in inches        */
+
+/* This program hooks it to an STM32L discovery board     */
+/* The pulse is sent over PB5 (disabling some segments    */
+/*   on the LCD) using timer TIM2 in PWM one-pulse mode   */
+/* The length is captured using TIM4 in input capture mode*/
+
 #include <stdint.h>
 #include "stm32l.h"
 
