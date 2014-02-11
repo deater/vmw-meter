@@ -8,6 +8,16 @@
 
 #include "i2c_lib.h"
 
+/* globals */
+static struct tcircuit red_time;
+static struct tcircuit yellow_time;
+static struct tcircuit green_time;
+static struct tcircuit new_time;
+
+static int display_red=1;
+static int display_green=1;
+static int display_yellow=1;
+
 #define SEG_A 0x0001
 #define SEG_B 0x0002
 #define SEG_C 0x0004
@@ -205,18 +215,19 @@ int decode_key(long long keycode) {
 	return key;
 }
 
-#define FIELD_MONTH_1  0
-#define FIELD_MONTH_2  1
-#define FIELD_DATE_1   2
-#define FIELD_DATE_2   3
-#define FIELD_YEAR_1   4
-#define FIELD_YEAR_2   5
-#define FIELD_YEAR_3   6
-#define FIELD_YEAR_4   7
-#define FIELD_HOUR_1   8
-#define FIELD_HOUR_2   9
-#define FIELD_MIN_1   10
-#define FIELD_MIN_2   11
+#define FIELD_START	-1
+#define FIELD_MONTH_1	0
+#define FIELD_MONTH_2	1
+#define FIELD_DATE_1	2
+#define FIELD_DATE_2	3
+#define FIELD_YEAR_1	4
+#define FIELD_YEAR_2	5
+#define FIELD_YEAR_3	6
+#define FIELD_YEAR_4	7
+#define FIELD_HOUR_1	8
+#define FIELD_HOUR_2	9
+#define FIELD_MIN_1	10
+#define FIELD_MIN_2	11
 #define FIELD_DONE    12
 
 static long long old_keypad=0;
@@ -248,153 +259,155 @@ static void convert_time(struct tm *ltime, struct tcircuit *tctime) {
 
 static int going_88mph=0;
 
-static void keypad_change_time(int i2c_fd,long long keypad_in,
-				struct tcircuit *tc) {
 
-	time_t current_time;
+int which_field=FIELD_MONTH_1;
+
+
+static void handle_keypad(int i2c_fd,long long keypad_in) {
+
 	int keypresses=0;
-	int which_field=FIELD_MONTH_1,which_key=0;
-	long long keypad_result,keypad_change;
-	int done=0;
-	int new_month=0;
-	int new_date=0,new_year=0,new_hour=0,new_minute=0;
+	int which_key=0;
+	long long keypad_result;
+	time_t current_time;
 
-	while(1) {
+	which_key=decode_key(keypad_in);
+	printf("Keypad: %d %d\n",keypresses,which_key);
 
-		keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS0);
-
-		keypad_change=old_keypad&~keypad_result;
-		if (keypad_change) {
-			which_key=decode_key(keypad_change);
-			printf("Keypad: %d %d\n",keypresses,which_key);
-
-			/* reset time if * pressed */
-			if (which_key==KEY_STAR) {
-				current_time=time(NULL);
-				convert_time(localtime(&current_time),tc);
-				return;
-
-			}
-
-			/* time travel if # pressed */
-			if (which_key==KEY_POUND) {
-				going_88mph=1;
-				return;
-			}
-
-
-			if (which_key==KEY_TOP_RED) {
-				top_red=!top_red;
-				return;
-			}
-
-			if (which_key==KEY_TOP_YELLOW) {
-				top_yellow=!top_yellow;
-				return;
-			}
-
-			if (which_key==KEY_TOP_GREEN) {
-				top_green=!top_green;
-				return;
-			}
-
-			if (which_key==KEY_BOT_YELLOW) {
-				bot_yellow=!bot_yellow;
-				return;
-			}
-
-			if (which_key==KEY_WHITE) {
-				white=!white;
-				return;
-			}
-
-			switch(which_field) {
-				case FIELD_MONTH_1:
-					if (which_key>1) {
-						new_month=which_key;
-						printf("Month now %d\n",new_month);
-						which_field=FIELD_DATE_1;
-					}
-					else {
-						new_month=which_key*10;
-						which_field=FIELD_MONTH_2;
-					}
-					break;
-				case FIELD_MONTH_2:
-					new_month+=which_key;
-					printf("Month now %d\n",new_month);
-					which_field=FIELD_DATE_1;
-					break;
-				case FIELD_DATE_1:
-					new_date=which_key*10;
-					which_field=FIELD_DATE_2;
-					break;
-				case FIELD_DATE_2:
-					new_date+=which_key;
-					printf("Day now %d\n",new_date);
-					which_field=FIELD_YEAR_1;
-					break;
-				case FIELD_YEAR_1:
-					new_year=which_key*1000;
-					which_field=FIELD_YEAR_2;
-					break;
-				case FIELD_YEAR_2:
-					new_year+=which_key*100;
-					which_field=FIELD_YEAR_3;
-					break;
-				case FIELD_YEAR_3:
-					new_year+=which_key*10;
-					which_field=FIELD_YEAR_4;
-					break;
-				case FIELD_YEAR_4:
-					new_year+=which_key;
-					printf("Year now %d\n",new_year);
-					which_field=FIELD_HOUR_1;
-					break;
-				case FIELD_HOUR_1:
-					new_hour=10*which_key;
-					which_field=FIELD_HOUR_2;
-					break;
-				case FIELD_HOUR_2:
-					new_hour+=which_key;
-					printf("Hour now %d\n",new_hour);
-					which_field=FIELD_MIN_1;
-					break;
-				case FIELD_MIN_1:
-					new_minute=10*which_key;
-					which_field=FIELD_MIN_2;
-					break;
-				case FIELD_MIN_2:
-					new_minute+=which_key;
-					printf("Minutes now %d\n",new_minute);
-					which_field=FIELD_DONE;
-					break;
-
-			}
-
-			keypresses++;
-		}
-		old_keypad=keypad_result;
-
-		if (which_field==FIELD_DONE) done=1;
-		if (done) break;
-
-		usleep(20000);
+	/* reset time if * pressed */
+	if (which_key==KEY_STAR) {
+		current_time=time(NULL);
+		convert_time(localtime(&current_time),&green_time);
+		return;
 	}
 
-	tc->year=new_year;
-	tc->month=new_month-1;
-	tc->day=new_date;
-	tc->hour=new_hour;
-	tc->minutes=new_minute;
-	tc->seconds=0;
+	/* time travel if # pressed */
+	if (which_key==KEY_POUND) {
+		going_88mph=1;
+		return;
+	}
+
+
+	if (which_key==KEY_TOP_RED) {
+		top_red=!top_red;
+		if (top_red==1) {
+			display_red=1;
+			display_green=1;
+			display_yellow=1;
+		} else {
+			/* Turn off display */
+			display_red=0;
+			display_green=0;
+			display_yellow=0;
+		}
+
+		return;
+	}
+
+	if (which_key==KEY_TOP_YELLOW) {
+		top_yellow=!top_yellow;
+		return;
+	}
+
+	if (which_key==KEY_TOP_GREEN) {
+		top_green=!top_green;
+		return;
+	}
+
+	if (which_key==KEY_BOT_YELLOW) {
+		bot_yellow=!bot_yellow;
+		return;
+	}
+
+	if (which_key==KEY_WHITE) {
+		//white=!white;
+		memcpy(&red_time,&new_time,sizeof(struct tcircuit));
+		display_red=1;
+
+		return;
+	}
+
+
+	switch(which_field) {
+		case FIELD_MONTH_1:
+			display_red=0;	/* Turn off display */
+
+			if (which_key>1) {
+				new_time.month=which_key;
+				printf("Month now %d\n",new_time.month);
+				which_field=FIELD_DATE_1;
+			}
+			else {
+				new_time.month=which_key*10;
+				new_time.month--;
+				which_field=FIELD_MONTH_2;
+			}
+			break;
+		case FIELD_MONTH_2:
+			new_time.month+=which_key;
+			printf("Month now %d\n",new_time.month);
+			which_field=FIELD_DATE_1;
+			break;
+		case FIELD_DATE_1:
+			new_time.day=which_key*10;
+			which_field=FIELD_DATE_2;
+			break;
+		case FIELD_DATE_2:
+			new_time.day+=which_key;
+			printf("Day now %d\n",new_time.day);
+			which_field=FIELD_YEAR_1;
+			break;
+		case FIELD_YEAR_1:
+			new_time.year=which_key*1000;
+			which_field=FIELD_YEAR_2;
+			break;
+		case FIELD_YEAR_2:
+			new_time.year+=which_key*100;
+			which_field=FIELD_YEAR_3;
+			break;
+		case FIELD_YEAR_3:
+			new_time.year+=which_key*10;
+			which_field=FIELD_YEAR_4;
+			break;
+		case FIELD_YEAR_4:
+			new_time.year+=which_key;
+			printf("Year now %d\n",new_time.year);
+			which_field=FIELD_HOUR_1;
+			break;
+		case FIELD_HOUR_1:
+			new_time.hour=10*which_key;
+			which_field=FIELD_HOUR_2;
+			break;
+		case FIELD_HOUR_2:
+			new_time.hour+=which_key;
+			printf("Hour now %d\n",new_time.hour);
+			which_field=FIELD_MIN_1;
+			break;
+		case FIELD_MIN_1:
+			new_time.minutes=10*which_key;
+			which_field=FIELD_MIN_2;
+			break;
+		case FIELD_MIN_2:
+			new_time.minutes+=which_key;
+			printf("Minutes now %d\n",new_time.minutes);
+			which_field=FIELD_MONTH_1;
+			break;
+	}
+
+	old_keypad=keypad_result;
+
+
+//	tc->year=new_year;
+//	tc->month=new_month-1;
+//	tc->day=new_date;
+//	tc->hour=new_hour;
+//	tc->minutes=new_minute;
+//	tc->seconds=0;
 
 //	entered_time=mktime(&new_time);
 //
 //	if (entered_time==-1) {
 //		printf("Error\n");
 //	}
-
 	return;
 }
 
@@ -430,7 +443,7 @@ static void print_time(struct tcircuit *tctime, int blink, int blank) {
 /* That will avoid lots of division */
 static void convert_for_display(unsigned short *buffer,
 				struct tcircuit *tctime, int blink,
-				int blank) {
+				int display_count) {
 
 	int day_tens,day_ones;
 	int year,year_thousands, year_hundreds, year_tens, year_ones;
@@ -440,73 +453,82 @@ static void convert_for_display(unsigned short *buffer,
 	/* Clear buffer */
 	memset(buffer,0,8*sizeof(short));
 
-	if (blank) {
+	if (display_count==0) {
 		return;
 	}
 
-
-	/* Month */
-	buffer[5]=font_16seg[(int)month_names[tctime->month][0]];
-	buffer[6]=font_16seg[(int)month_names[tctime->month][1]];
-	buffer[7]=font_16seg[(int)month_names[tctime->month][2]];
-
-	/* Date */
-	day_tens=tctime->day/10;
-	day_ones=tctime->day%10;
-	if (day_tens!=0) {
-		buffer[0]=font_7seg[day_tens];
-	}
-	buffer[1]=font_7seg[day_ones];
-
-	/* Year */
-	year=tctime->year;
-	year_thousands=year/1000;
-	year=year-(year_thousands*1000);
-
-	year_hundreds=year/100;
-	year=year-(year_hundreds*100);
-
-	year_tens=year/10;
-	year_ones=year%10;
-
-	if (year_thousands>9) {
-		year_thousands=0;
-		year_hundreds=0;
-		year_tens=0;
-		year_ones=0;
+	if (display_count>4) {
+		/* Month */
+		buffer[5]=font_16seg[(int)month_names[tctime->month][0]];
+		buffer[6]=font_16seg[(int)month_names[tctime->month][1]];
+		buffer[7]=font_16seg[(int)month_names[tctime->month][2]];
 	}
 
-	buffer[2]=font_7seg[year_thousands];
-	buffer[3]=font_7seg[year_hundreds];
-	buffer[4]=font_7seg[year_tens];
-	buffer[4]|=(font_7seg[year_ones])<<8;
+	if (display_count>3) {
+		/* Date */
+		day_tens=tctime->day/10;
+		day_ones=tctime->day%10;
+		if (day_tens!=0) {
+			buffer[0]=font_7seg[day_tens];
+		}
+		buffer[1]=font_7seg[day_ones];
+	}
+
+	if (display_count>2) {
+		/* Year */
+		year=tctime->year;
+		year_thousands=year/1000;
+		year=year-(year_thousands*1000);
+
+		year_hundreds=year/100;
+		year=year-(year_hundreds*100);
+
+		year_tens=year/10;
+		year_ones=year%10;
+
+		if (year_thousands>9) {
+			year_thousands=0;
+			year_hundreds=0;
+			year_tens=0;
+			year_ones=0;
+		}
+
+		buffer[2]=font_7seg[year_thousands];
+		buffer[3]=font_7seg[year_hundreds];
+		buffer[4]=font_7seg[year_tens];
+		buffer[4]|=(font_7seg[year_ones])<<8;
+	}
 
 	/* hours */
-	hour_tens=tctime->hour/10;
-	hour_ones=tctime->hour%10;
+	if (display_count>1) {
+		hour_tens=tctime->hour/10;
+		hour_ones=tctime->hour%10;
 
-	buffer[3]|=(font_7seg[hour_tens])<<8;
-	buffer[2]|=(font_7seg[hour_ones])<<8;
+		buffer[3]|=(font_7seg[hour_tens])<<8;
+		buffer[2]|=(font_7seg[hour_ones])<<8;
 
-	/* AM/PM */
-	if (tctime->hour > 11) {
-		buffer[3]|=0x8000;
+		/* AM/PM */
+		if (tctime->hour > 11) {
+			buffer[3]|=0x8000;
+		}
+		else {
+			buffer[2]|=0x8000;
+		}
 	}
-	else {
-		buffer[2]|=0x8000;
-	}
 
 
-	/* minutes */
-	minute_tens=tctime->minutes/10;
-	minute_ones=tctime->minutes%10;
-	buffer[1]|=(font_7seg[minute_tens])<<8;
-	buffer[0]|=(font_7seg[minute_ones])<<8;
+	if (display_count>0) {
+		/* minutes */
+		minute_tens=tctime->minutes/10;
+		minute_ones=tctime->minutes%10;
+		buffer[1]|=(font_7seg[minute_tens])<<8;
+		buffer[0]|=(font_7seg[minute_ones])<<8;
 
-	/* Blink */
-	if (blink) {
-		buffer[0]|=0x8000;
-		buffer[1]|=0x8000;
+		/* Blink */
+		if (blink) {
+			buffer[0]|=0x8000;
+			buffer[1]|=0x8000;
+		}
 	}
 
 }
@@ -628,10 +650,6 @@ int main(int argc, char **argv) {
  	unsigned short yellow_buffer[8];
 	unsigned short flux_buffer[8];
 
-	struct tcircuit red_time;
-	struct tcircuit yellow_time;
-	struct tcircuit green_time;
-
 	long long keypad_result=0,keypad_change;
 	int i2c_fd;
 
@@ -741,24 +759,24 @@ int main(int argc, char **argv) {
 
 			/* red */
 			printf("\x1b[31;1m");
-			print_time(&red_time,blink,!top_red);
+			print_time(&red_time,blink,display_red);
 
 			/* green */
 			printf("\x1b[32;1m");
-			print_time(&green_time,blink,!top_red);
+			print_time(&green_time,blink,display_green);
 
 			/* yellow */
 			printf("\x1b[33;1m");
-			print_time(&yellow_time,blink,!top_red);
+			print_time(&yellow_time,blink,display_yellow);
 		}
 
 		else {
 
-			convert_for_display(red_buffer,&red_time,blink,!top_red);
+			convert_for_display(red_buffer,&red_time,blink,display_red);
 
-			convert_for_display(green_buffer,&green_time,blink,!top_red);
+			convert_for_display(green_buffer,&green_time,blink,display_green);
 
-			convert_for_display(yellow_buffer,&yellow_time,blink,!top_red);
+			convert_for_display(yellow_buffer,&yellow_time,blink,display_yellow);
 
 			/* buttons */
 			if (top_red) yellow_buffer[1]|=0x0080;
@@ -773,7 +791,7 @@ int main(int argc, char **argv) {
 
 			keypad_change=old_keypad&~keypad_result;
 			if (keypad_change) {
-				keypad_change_time(i2c_fd,keypad_change,&red_time);
+				handle_keypad(i2c_fd,keypad_change);
 			}
 			old_keypad=keypad_result;
 
@@ -805,6 +823,15 @@ int main(int argc, char **argv) {
 			time_travel(&red_time,&green_time,&yellow_time);
 			going_88mph=0;
 		}
+
+		if (display_red==1) {
+			system("aplay ./sounds/time_circuit.wav");
+		}
+
+		if ((display_red>0) && (display_red<6)) display_red++;
+		if ((display_green>0) && (display_green<6)) display_green++;
+		if ((display_yellow>0) && (display_yellow<6)) display_yellow++;
+
 	}
 
 	return result;
