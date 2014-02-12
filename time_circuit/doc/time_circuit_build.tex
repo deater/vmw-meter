@@ -9,10 +9,20 @@
 {\Large \bf Building the VMW Time Circuitry Meter}\\
 \url{http://www.deater.net/weave/vmwprod/hardware/time_circuit/}\\
 by Vincent M. Weaver\\
-28 January 2014
+12 February 2014
 \end{center}
 
+
+\section{Introduction}
+
+This is a work in progress.  I will update it as I complete more
+of the project.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagebreak
 \section{Red and Green Displays}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The red and green displays are separate from the yellow because
 the 16-segment LEDs I could source had different pinouts, requiring
@@ -27,13 +37,13 @@ Part No   &  Description    &  Quantity    &   Source \\
 \hline
 TIME-RGLED-MK1 & VMW Red/Green PCB Board       & 2 & VMW/OSH Park\\ %$26 each
 \hline
-DC56-11EWA     & Dual Red 7-segment 0.56" CC   & 5 & Kingsbright\\ %??
+DC56-11EWA     & Dual Red 7-segment 0.56" CC   & 5 & Kingbright\\ %??
 \hline
-DC56-11GWA     & Dual Green 7-segment 0.56" CC & 5 & Kingsbright\\ %??
+DC56-11GWA     & Dual Green 7-segment 0.56" CC & 5 & Kingbright\\ %??
 \hline
-PSC05-11EWA    & 16-segment alphanum 0.5" CC   & 3 & Kingsbright\\ %??
+PSC05-11EWA    & 16-segment alphanum 0.5" CC   & 3 & Kingbright\\ %??
 \hline
-PSC05-11GWA    & 16-segment alphanum 0.5" CC   & 3 & Kingsbright\\ %??
+PSC05-11GWA    & 16-segment alphanum 0.5" CC   & 3 & Kingbright\\ %??
 \hline
 LED-1          & Red T 1 3/4 LED               & 4 & All Electronics\\ %??
 \hline
@@ -87,9 +97,10 @@ abilities.
 You should be assembled!  Hook up to the i2c bus.  From above
 the signals are ground, 5V, SDA, SCL.
 
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagebreak
 \section{Yellow Display}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The red and green displays are separate from the yellow because
 the 16-segment LEDs I could source had different pinouts, requiring
@@ -107,9 +118,9 @@ Part No   &  Description    &  Quantity    &   Source \\
 \hline
 TIME-YELLOW-MK1& VMW Yellow PCB Board          & 2 & VMW/OSH Park\\ %$26 each
 \hline
-DC56-11YWA     & Dual Yellow 7-segment 0.56" CC& 5 & Kingsbright\\ %??
+DC56-11YWA     & Dual Yellow 7-segment 0.56" CC& 5 & Kingbright\\ %??
 \hline
-PSC05-12YWA    & 16-segment alphanum 0.5" CC   & 3 & Kingsbright\\ %??
+PSC05-12YWA    & 16-segment alphanum 0.5" CC   & 3 & Kingbright\\ %??
 \hline
 LED-3          & Yellow T 1 3/4 LED            & 4 & All Electronics\\ %??
 \hline
@@ -164,5 +175,163 @@ abilities.
 You should be assembled!  Hook up to the i2c bus.  From above
 the signals are ground, 5V, SDA, SCL.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagebreak
+\section{Amplifier/Speakers}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Parts List}
+
+\begin{tabular}{|c|l|c|c|}
+\hline
+Part No	&  Description			&  Quantity	& Source \\
+\hline
+\hline
+	& 3.5mm audio cable		& 1		& Mouser \\
+\hline
+	& Dual 8 ohm speakers		& 1		& Jameco \\
+\hline
+987	& Stereo 3.7W Class D Audio Amplifier & 1	& Adafruit \\ %14.95
+\hline
+\end{tabular}
+
+\subsection{Building}
+
+\begin{enumerate}
+\item Build the amplifier board
+\item Hook 5V and ground to main power and ground
+\item Hook up the audio cable ground to L- and R-,
+	the left channel to L+ and right channel to R+
+\item Hook up the speakers.  Left and left ground, Right and right ground
+\item Plug into the pi and test.  Note you might have to be root
+	for sound to play.
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagebreak
+\section{Power Converter}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+This provides 3.3V to 5V i2c conversion, allows powering from
+a wall-wart, and optionally (maybe) a USB connector to provide
+power to a pi so you don't need two power outlets.
+Also an optional power-on LED.
+
+\subsection{Parts List}
+
+\begin{tabular}{|c|l|c|c|}
+\hline
+Part No	&  Description			&  Quantity	& Source \\
+\hline
+\hline
+	& Power converter board		& 1		& VMW/OSHPark\\
+\hline
+	& USB-A connector		& 1		& Mouser \\
+\hline
+	& 26-pin shrouded male connector& 1		& Jameco \\
+\hline
+	& 5V 2A wall power supply	& 1		& ???? \\
+\hline
+	& 470 Ohm resistor		& 1		& ???? \\
+\hline
+	& LED				& 1		& ???? \\
+\hline 
+	& Power jack			& 1		& ???? \\
+\hline
+757	& 4-channel i2c bi-directional logic level converter & 1	& Adafruit \\ %$3.95
+\hline
+	& sockets/header pins		& ???		& ???? \\
+\hline
+\end{tabular}
+
+\subsection{Building}
+\begin{itemize}
+\item Get the PCB (still waiting)
+\item Put together the logic level converter
+\item Solder other pieces in place
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagebreak
+\section{Real Time Clock}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+This is useful to have if you ever plan to disconnect the pi from
+the network.  It will keep the current time, even if you're doing
+crazy things like installing time circuits into a car.
+
+\subsection{Parts List}
+
+\begin{tabular}{|c|l|c|c|}
+\hline
+Part No	&  Description			&  Quantity	& Source \\
+\hline
+\hline
+264	& DS1307 Real Time Clock breakout & 1	& Adafruit \\ % $9.00
+\hline
+\end{tabular}
+
+\subsection{Building}
+
+\begin{enumerate}
+\item Build the clock kit
+\item Hook to the i2c bus
+\item Configure Linux on the pi to use it (TODO)
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagebreak
+\section{Keypad}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The keypad is not really like in the movie.  For example
+it has star and pound buttons.
+
+
+\subsection{Parts List}
+
+\begin{tabular}{|c|l|c|c|}
+\hline
+Part No	&  Description			&  Quantity	& Source \\
+\hline
+\hline
+	& 3x4 keypad		& 1		& All Electronics \\
+\hline
+	& Signal Diode		& 2		& Jameco \\
+\hline
+	& 39k Resistors		& 12		& ??? \\
+
+\hline
+	& Light up Switches 	& 5		& Adafruit \\
+\hline
+	& Case			&		& ??? \\
+\hline
+\end{tabular}
+
+\subsection{Building}
+
+\begin{enumerate}
+\item Waiting until I get a PCB put together
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagebreak
+\section{Flux Capacitor / Speedometer}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Todo{\dots}
+
+\subsection{Parts List}
+
+\begin{tabular}{|c|l|c|c|}
+\hline
+Part No	&  Description			&  Quantity	& Source \\
+\hline
+\hline
+\end{tabular}
+
+\subsection{Building}
 
 \end{document}
