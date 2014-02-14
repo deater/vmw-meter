@@ -80,8 +80,6 @@ int main(void) {
 	lcd_config();
 
 
-
-
 	/*******************/
 	/* Configure GPIOB */
 	/*******************/
@@ -91,7 +89,7 @@ int main(void) {
 	rcc->AHBENR |= AHBENR_GPIOBEN;	/* Enable GPIOB clock */
 
 	/* Take over PB5 from LCD */
-	
+
 	/* Set TIM4 for pins PB6 and PB7 */
 	temp=gpiob->MODER;
 	temp&=~0x0000fc00;		/* clear values for pin 6 */
@@ -182,7 +180,7 @@ int main(void) {
 
 	tim4->PSC = (21)-1;		/* Pre-scalar value */
 
-//	tim4->ARR = 50000;		/* auto-reload register */
+	tim4->ARR = 0xffff;		/* auto-reload register */
 					/* causes overflow after 11 cycles */
 					/* 10.5us */
 
@@ -208,18 +206,20 @@ int main(void) {
 
 	for(;;) {
 
+//		tim4->SR &=~0xe0e;
+
 		tim3->CR1 |= TIM_CR1_CEN;	/* Enable timer */
 
-		busy_delay(250000);
+		busy_delay(25000);
 
 		/* Read CCR2 */
 		before=tim4->CCR1;
 		after=tim4->CCR2;
 
 		{int i; for(i=0;i<7;i++) string[i]=' ';}
-		num_to_string(string,before);
+//		num_to_string(string,after);
 
-//		convert_to_inches( (after-before)*10 );
+		convert_to_inches( (after)*10 );
 		lcd_convert(string,lcd_buffer);
                 lcd_display(lcd_buffer);
 
