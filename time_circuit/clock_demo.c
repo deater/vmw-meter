@@ -680,10 +680,16 @@ int main(int argc, char **argv) {
 		}
 
 		/* Init Yellow Display (bottom) */
-		if (init_display(i2c_fd,HT16K33_ADDRESS0,13)) {
+		if (init_display(i2c_fd,HT16K33_ADDRESS6,13)) {
 			fprintf(stderr,"Error opening yellow display\n");
 			yellow_missing=1;
 		}
+
+		/* Init old yellow (keypad placeholder) */
+		if (init_display(i2c_fd,HT16K33_ADDRESS0,13)) {
+			fprintf(stderr,"Error opening old yellow display\n");
+		}
+
 
 		/* Init Flux Capacitor */
 		if (init_display(i2c_fd,HT16K33_ADDRESS7,13)) {
@@ -802,7 +808,7 @@ int main(int argc, char **argv) {
 				update_display(i2c_fd,HT16K33_ADDRESS5,green_buffer);
 			}
 			if (!yellow_missing) {
-				update_display(i2c_fd,HT16K33_ADDRESS0,yellow_buffer);
+				update_display(i2c_fd,HT16K33_ADDRESS6,yellow_buffer);
 			}
 			if (!flux_missing) {
 				update_display(i2c_fd,HT16K33_ADDRESS7,flux_buffer);
