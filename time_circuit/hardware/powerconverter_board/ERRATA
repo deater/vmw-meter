@@ -1,0 +1,5 @@
+Mark1 board:
++ LED Symbol backward
++ Pi-power/Wall-power jumper labeled backward
++ USB shield not hooked to ground (this might not be a problem)
+
