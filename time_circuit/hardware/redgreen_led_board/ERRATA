@@ -1,8 +1,11 @@
-Known bugs with MK1:
+Known bugs with red/green Mark1:
 
   + R and S segments on alphanum reversed
     (fixed in software)
   + AM/PM and colon LED silkscreen has the polarity
     backward (just reverse the LED when installing)
 
+Known bugs with Yellow Mark1:
+  + R and S segments on alphanum reversed
+  + LED silkscreens backward
 
