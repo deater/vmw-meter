@@ -9,7 +9,7 @@
 {\Large \bf Building the VMW Time Circuitry Meter}\\
 \url{http://www.deater.net/weave/vmwprod/hardware/time_circuit/}\\
 by Vincent M. Weaver\\
-12 February 2014
+17 February 2014
 \end{center}
 
 
@@ -91,7 +91,9 @@ abilities.
 \item Trim the LED legs and put in the LED spots (the MK1 board
       the polarity is shown as reversed, so insert them backward)
 \item Assemble the HT16K33 breakout and put in place in back.
-	Red solder so address 0x74, green 0x75
+	Solder the i2c address pins so red has address 0x74
+        (addr2 soldered) and green has address 0x75 (addr0 and addr2
+	soldered).
 \end{enumerate}
 
 You should be assembled!  Hook up to the i2c bus.  From above
@@ -124,7 +126,7 @@ PSC05-12YWA    & 16-segment alphanum 0.5" CC   & 3 & Kingbright\\ %??
 \hline
 LED-3          & Yellow T 1 3/4 LED            & 4 & All Electronics\\ %??
 \hline
-1427           & HT16K33 Breakout              & 2 & Adafruit\\ % $10?
+1427           & HT16K33 Breakout              & 1 & Adafruit\\ % $10?
 \hline
 SIP-30	       & 30-pin SIP header             & 5 & All Electronics\\ %5@1.20
 \hline
@@ -169,7 +171,7 @@ abilities.
 \item Put the various displays in the proper sockets
 \item Trim the LED legs and put in the LED spots
 \item Assemble the HT16K33 breakout and put in place in back
-      Solder so address 0x76
+      Solder so it has i2c address 0x76 (addr2 and addr1).
 \end{enumerate}
 
 You should be assembled!  Hook up to the i2c bus.  From above
@@ -247,9 +249,19 @@ Part No	&  Description			&  Quantity	& Source \\
 
 \subsection{Building}
 \begin{itemize}
-\item Get the PCB (still waiting)
+\item Get the PCB
 \item Put together the logic level converter
-\item Solder other pieces in place
+\item Solder the 26-pin socket, the power-jack, and the usb-connector into 
+      place.
+\item If you want a power-on indicator, solder the LED and the resistor
+      into place.  *Note* on the Mark1 board the LED silkscreen is backwards.
+      Optionally you can socket the LED.
+\item Solder a 4-pin header into the i2c out socket
+\item Solder the logic level converter to the board
+\item We are always going to wall-power the device, so solder a jumper
+      wire to indicate this.  *NOTE* the silkscreen is backwards on
+      the Mark-1 board,
+      solder from the pi-power pin to the center pin.
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
