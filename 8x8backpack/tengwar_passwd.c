@@ -113,6 +113,10 @@ int main(int arg, char **argv) {
 	/* clear framebuffer */
 	for(i=0;i<FRAME_WIDTH;i++) framebuffer[i]=0;
 
+	update_our_display(framebuffer,i2c_fd,no_display);
+
+	sleep(1);
+
 	/***************************/
 	/* DISPLAY STARS OF FEANOR */
 	/***************************/
