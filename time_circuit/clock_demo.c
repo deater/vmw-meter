@@ -25,6 +25,7 @@ static int display_yellow=1;
 #define SEG_E 0x0010
 #define SEG_F 0x0020
 #define SEG_G 0x0040
+#define SEG7_DP 0x0080
 #define SEG_H 0x0080
 #define SEG_K 0x0100
 #define SEG_M 0x0200
@@ -644,6 +645,7 @@ int main(int argc, char **argv) {
  	int result,blink=0,count=0;
 	int display_missing=0;
 	int red_missing=0,green_missing=0,yellow_missing=0,flux_missing=0;
+	int flux_count=0;
 
  	unsigned short red_buffer[8];
  	unsigned short green_buffer[8];
@@ -685,14 +687,8 @@ int main(int argc, char **argv) {
 			yellow_missing=1;
 		}
 
-		/* Init old yellow (keypad placeholder) */
-		if (init_display(i2c_fd,HT16K33_ADDRESS0,13)) {
-			fprintf(stderr,"Error opening old yellow display\n");
-		}
-
-
 		/* Init Flux Capacitor */
-		if (init_display(i2c_fd,HT16K33_ADDRESS7,13)) {
+		if (init_display(i2c_fd,HT16K33_ADDRESS0,13)) {
 			fprintf(stderr,"Error opening flux display\n");
 			flux_missing=1;
 		}
@@ -721,6 +717,17 @@ int main(int argc, char **argv) {
         update_display(i2c_fd,HT16K33_ADDRESS1,red_buffer);
 	return 0;
 */
+
+	flux_buffer[7]=0xffff;
+	flux_buffer[6]=0xffff;
+	flux_buffer[5]=0xffff;
+	flux_buffer[4]=0xffff;
+	flux_buffer[3]=font_16seg['W'];	/* W */
+	flux_buffer[2]=font_16seg['G'];	/* G */
+	flux_buffer[1]= font_7seg[2] | font_7seg[1]<<8;
+	flux_buffer[0]= ( (font_7seg[1] | SEG7_DP)<<8) | 0xff;
+
+
 
 	/* Destination */
 	/* Special Time */
@@ -792,7 +799,7 @@ int main(int argc, char **argv) {
 			if (white) yellow_buffer[4]|=0x8000;
 
 			if (!yellow_missing) {
-				keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS0);
+				keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS6);
 			}
 
 			keypad_change=old_keypad&~keypad_result;
@@ -811,7 +818,7 @@ int main(int argc, char **argv) {
 				update_display(i2c_fd,HT16K33_ADDRESS6,yellow_buffer);
 			}
 			if (!flux_missing) {
-				update_display(i2c_fd,HT16K33_ADDRESS7,flux_buffer);
+				update_display(i2c_fd,HT16K33_ADDRESS0,flux_buffer);
 			}
 		}
 
@@ -837,6 +844,26 @@ int main(int argc, char **argv) {
 		if ((display_red>0) && (display_red<6)) display_red++;
 		if ((display_green>0) && (display_green<6)) display_green++;
 		if ((display_yellow>0) && (display_yellow<6)) display_yellow++;
+
+
+		if (count==5) flux_count++;
+		if (flux_count>4) flux_count=0;
+
+		switch(flux_count) {
+			case 0:	flux_buffer[5]=0x1 | 0x20 | 0x400;
+				break;
+			case 1:	flux_buffer[5]=0x2 | 0x40 | 0x800;
+				break;
+			case 2: flux_buffer[5]=0x4 | 0x80 | 0x1000;
+				break;
+			case 3: flux_buffer[5]=0x8 | 0x100 | 0x2000;
+				break;
+			case 4: flux_buffer[5]=0x10 | 0x200 | 0x4000;
+				break;
+			default:
+				break;
+		}
+
 
 	}
 
