@@ -1,4 +1,4 @@
-@ Dimm the LEDs using PWM
+@ Blink the LEDs using PWM
 
 .include "../include/stm32l_asm.h"
 
