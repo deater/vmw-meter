@@ -3,77 +3,97 @@
 .include "../include/stm32l_asm.h"
 
 .cpu cortex-m3
+.syntax unified
 .thumb
 
+
 .word	0x20008000	/* top of stack address */
-.word	_start		/* 1 Reset */
-.word	loop_forever	/* 2 NMI */
-.word	loop_forever	/* 3 HardFault */
-.word	loop_forever	/* 4 MemManage */
+.word	_start		/* reset vector*/
+.word	loop_forever	/* nmi vector */
+.word	loop_forever	/* hard fault vector */
+			/* There are more vectors, assume won't happen? */
+
+.globl _start
+.thumb_func
+_start:
+
+	ldr	r0,=GPIOB_BASE
+	ldr	r1,=RCC_BASE
+
+	/* Enable GPIOB */
+
+	/* Enable GPIOB clock */
+	ldr	r2,[r1,#AHBENR]		@ rcc->AHBENR
+	orr	r2,r2,#AHBENR_GPIOBEN
+	str	r2,[r1,#AHBENR]
 
 
-_start:	nop
+	/*******************/
+	/* Configure GPIOB */
+	/*******************/
 
+	/* Set pin mode */
+
+	ldr	r2,[r0,#MODER]		/* gpiob->MODER */
+	and	r2,r2,#~0x0000f000	/* clear values for pins 6 and 7 */
+	orr	r2, #( (MODER_OUTPUT<<(6*2)) | (MODER_OUTPUT<<(7*2)) )
+					/* Set output for pins 6 and 7 */
+	str	r2,[r0,#MODER]		/* Set Output mode */
+
+
+	/* Set output type */
+	ldrh	r2,[r0,#OTYPER]		/* gpiob->OTYPER */
+	and	r2,#~0x60		/* Push-Pull */
+	strh	r2,[r0,#OTYPER]
+
+	/* Clock Speed */
+	ldr	r2,[r0,#OSPEEDR]	/* gpiob->OSPEEDR */
+	and	r2,#~0x0000f000		/* clear bits */
+	orr	r2,#0x00005000		/* 2MHz clock speed */
+	str	r2,[r0,#OSPEEDR]
+
+	/* Pull-Up/Pull-Down */
+	ldr	r2,[r0,#PUPDR]		/* gpiob->PUPDR */
+	and	r2,#~0x0000f000		/* No pull-up pull-down */
+	str	r2,[r0,#PUPDR]
+
+blink_loop:
+
+	/* Green off, Blue On */
+	mov	r2,#(1<<7)		/* Set PB7 low  */
+	strh	r2,[r0,#BSRRL]		/* gpiob->BSRRL */
+
+	mov	r2,#(1<<6)		/* Set PB6 high */
+	strh	r2,[r0,#BSRRH]		/* gpiob->BSRRH */
+
+	mov	r3,#65536
+	bl	busy_delay
+
+	/* Green on, Blue Off */
+	mov	r2,#(1<<7)		/* Set PB7 high */
+	strh	r2,[r0,BSRRH]		/* gpiob->BSRRH */
+
+	mov	r2,#(1<<6)		/* Set PB6 low  */
+	strh	r2,[r0,BSRRL]		/* gpiob->BSRRL */
+
+	mov	r3,#65536
+	bl	busy_delay
+
+	b	blink_loop
+
+.thumb_func
 loop_forever:
 	b	loop_forever
 
+busy_delay:
+	cmp	r3,#0
+	beq	done_delay
+
+	sub	r3,r3,#1
+
+	b	busy_delay
+done_delay:
+	blx	lr
 
 
-@int main(void) {
-@
-@	GPIO_TypeDef *gpiob=(GPIO_TypeDef *)GPIOB_BASE;
-@	RCC_TypeDef *rcc=(RCC_TypeDef *)RCC_BASE;
-@	uint32_t temp;
 
-@	/* Enable GPIOB */
-
-@	rcc->AHBENR |= AHBENR_GPIOBEN;	/* Enable GPIOB clock */
-
-@	/*******************/
-@	/* Configure GPIOB */
-@	/*******************/
-
-@	/* Set pin mode */
-@	temp=gpiob->MODER;
-@	temp&=~0x0000f000;		/* clear values for pins 6 and 7 */
-@	temp|= (MODER_OUTPUT<<(6*2)) | (MODER_OUTPUT<<(7*2));
-					/* Set output for pins 6 and 7 */
-@	gpiob->MODER = temp; 		/* Set Output mode */
-
-
-@	/* Set output type */
-@	gpiob->OTYPER &=~0x60;		/* Push-Pull */
-
-
-@	/* Clock Speed */
-@	temp=gpiob->OSPEEDR&~0x0000f000;
-@	temp|= 0x00005000;	/* 2MHz clock speed */
-@	gpiob->OSPEEDR=temp;
-
-@	/* Pull-Up/Pull-Down */
-@	gpiob->PUPDR &=~0x0000f000;	/* No pull-up pull-down */
-
-@	//gpiob->IDR = input (read-only)
-@	//gpiob->ODR = output (read/write)
-
-@	//gpiob->ODR |= (1<<6) | (1<<7);
-
-@	/* Alternately you can set the BSRR registers */
-@	/* which allow one-shot setting/resetting of bits */
-
-@	for(;;) {
-@		/* Green on, Blue Off */
-@		gpiob->BSRRL |= 1<<7;
-@		gpiob->BSRRH |= 1<<6;
-
-@		busy_delay(60000);
-
-@		/* Green off, Blue On */
-@		gpiob->BSRRH |= 1<<7;
-@		gpiob->BSRRL |= 1<<6;
-
-@		busy_delay(60000);
-@	}
-
-@	for(;;);
-@}

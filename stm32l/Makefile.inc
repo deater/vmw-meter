@@ -4,6 +4,7 @@ endif
 
 ifneq (,$(findstring arm,$(ARCH)))
 
+AS = as
 CC = gcc
 LD = ld
 OBJCOPY = objcopy
@@ -11,6 +12,7 @@ OBJDUMP = objdump
 
 else
 
+AS = arm-linux-gnueabihf-as
 CC = arm-linux-gnueabihf-gcc-4.7
 LD = arm-linux-gnueabihf-ld
 OBJCOPY = arm-linux-gnueabihf-objcopy
