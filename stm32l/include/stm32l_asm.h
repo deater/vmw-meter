@@ -254,7 +254,17 @@
 .equ TIM_CR1_OPM,		(0x1<<3)	/* one pulse mode */
 .equ TIM_CR1_CEN,		0x1
 
+
+
+.equ TIM_CCMR1_OC1PE,		(0x1<<3)
 .equ TIM_CCMR1_OC1M_TOGGLE,	(0x3<<4)
+.equ TIM_CCMR1_OC1M_PWM1,	(0x6<<4)
+.equ TIM_CCMR1_OC1M_PWM2,	(0x7<<4)
+.equ TIM_CCMR1_OC2PE,		(0x1<<11)
+.equ TIM_CCMR1_OC2M_TOGGLE,	(0x3<<12)
+.equ TIM_CCMR1_OC2M_PWM1,	(0x6<<12)
+.equ TIM_CCMR1_OC2M_PWM2,	(0x7<<12)
+
 
 .equ TIM_CCER_CC2NP,		(0x1<<7)
 .equ TIM_CCER_CC2P,		(0x1<<5)
