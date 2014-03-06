@@ -121,7 +121,7 @@
 			@ uint32_t APB1RSTR;	/* 0x18 */
 .equ AHBENR,0x1C	@ uint32_t AHBENR;	/* 0x1c */
 			@ uint32_t APB2ENR;	/* 0x20 */
-			@ uint32_t APB1ENR;	/* 0x24 */
+.equ APB1ENR,0x24	@ uint32_t APB1ENR;	/* 0x24 */
 			@ uint32_t AHBLPENR;	/* 0x28 */
 			@ uint32_t APB2LPENR;	/* 0x2c */
 			@ uint32_t APB1LPENR;	/* 0x30 */
@@ -228,27 +228,27 @@
 
 /* General Purpose Timers TIM2 to TIM5 (Section 16) */
 @typedef struct {
-@__IO uint32_t CR1;	/* 0x00 = Control Register */
-@__IO uint32_t CR2;	/* 0x04 = Control Register 2 */
-@__IO uint32_t SMCR;	/* 0x08 = Slave Mode Control */
-@__IO uint32_t DIER;	/* 0x0c = DMA/Interrupt Enable */
-@__IO uint32_t SR;	/* 0x10 = Status Register */
-@__IO uint32_t EGR;	/* 0x14 = Event generation Register */
-@__IO uint32_t CCMR1;	/* 0x18 = capture/compare mode */
-@__IO uint32_t CCMR2;	/* 0x1c = capture/compare mode 2 */
-@__IO uint32_t CCER;	/* 0x20 = capture/compare enable */
-@__IO uint32_t CNT;	/* 0x24 = counter value */
-@__IO uint32_t PSC;	/* 0x28 = prescaler */
-@__IO uint32_t ARR;	/* 0x2c = auto-reload register */
-@uint32_t reserved;	/* 0x30 */
-@__IO uint32_t CCR1;	/* 0x34 = capture/compare reg 1 */
-@__IO uint32_t CCR2;	/* 0x38 = capture/compare reg 2 */
-@__IO uint32_t CCR3;	/* 0x3c = capture/compare reg 3 */
-@__IO uint32_t CCR4;	/* 0x40 = capture/compare reg 4 */
-@uint32_t reserved2;	/* 0x44 */
-@__IO uint32_t DCR;	/* 0x48 = DMA control register */
-@__IO uint32_t DMAR;	/* 0x4c = DMA address for transfer */
-@__IO uint32_t OR;	/* 0c50 = option register */
+.equ CR1,0x00		@ uint32_t CR1;	/* 0x00 = Control Register */
+.equ CR2,0x04		@ uint32_t CR2;	/* 0x04 = Control Register 2 */
+.equ SMCR,0x08		@ uint32_t SMCR;	/* 0x08 = Slave Mode Control */
+.equ DIER,0x0c		@ uint32_t DIER;	/* 0x0c = DMA/Interrupt Enable */
+.equ SR,0x10		@ uint32_t SR;	/* 0x10 = Status Register */
+.equ EGR,0x14		@ uint32_t EGR;	/* 0x14 = Event generation Register */
+.equ CCMR1,0x18		@ uint32_t CCMR1;	/* 0x18 = capture/compare mode */
+.equ CCMR2,0x1c		@ uint32_t CCMR2;	/* 0x1c = capture/compare mode 2 */
+.equ CCER,0x20		@ uint32_t CCER;	/* 0x20 = capture/compare enable */
+.equ CNT,0x24		@ uint32_t CNT;	/* 0x24 = counter value */
+.equ PSC,0x28		@ uint32_t PSC;	/* 0x28 = prescaler */
+.equ ARR,0x2c		@ uint32_t ARR;	/* 0x2c = auto-reload register */
+			@ uint32_t reserved;	/* 0x30 */
+.equ CCR1,0x34		@ uint32_t CCR1;	/* 0x34 = capture/compare reg 1 */
+.equ CCR2,0x38		@ uint32_t CCR2;	/* 0x38 = capture/compare reg 2 */
+.equ CCR3,0x3c		@ uint32_t CCR3;	/* 0x3c = capture/compare reg 3 */
+.equ CCR4,0x40		@ uint32_t CCR4;	/* 0x40 = capture/compare reg 4 */
+			@ uint32_t reserved2;	/* 0x44 */
+.equ DCR,0x48		@ uint32_t DCR;	/* 0x48 = DMA control register */
+.equ DMAR,0x4c		@ uint32_t DMAR;	/* 0x4c = DMA address for transfer */
+.equ OR,0x50		@ uint32_t OR;	/* 0x50 = option register */
 @} TIM_TypeDef;
 
 .equ TIM_CR1_OPM,		(0x1<<3)	/* one pulse mode */
