@@ -207,7 +207,9 @@ long long read_keypad(int i2c_fd, int i2c_addr) {
 
 	unsigned char keypad_buffer[6];
 	unsigned char buffer[17];
-	long long keypress;
+	long long keypress=0;
+
+	/* Point to i2c address of interest */
 
 	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
 		fprintf(stderr,"Error setting i2c address %x\n",
@@ -215,23 +217,40 @@ long long read_keypad(int i2c_fd, int i2c_addr) {
 		return -1;
 	}
 
-	buffer[0]= HT16K33_REGISTER_KEY_DATA_POINTER;
+	/* Check the interrupt register to see if any keys have been pressed */
+
+	buffer[0] = HT16K33_REGISTER_INT_ADDRESS_POINTER;
 	if ( (write(i2c_fd, buffer, 1)) !=1) {
 		fprintf(stderr,"Error setting data_pointer!\n");
       		return -1;
 	}
 
-	read(i2c_fd,keypad_buffer,6);
+	if (read(i2c_fd,keypad_buffer,1) !=1) {
+		return -1;
+	}
 
-	//for(i=0;i<6;i++) printf("%x ",keypad_buffer[i]);
-	//printf("\n");
+	/* check to see if any bits set, indicating data available */
 
-	keypress = (long long)keypad_buffer[0] |
-		((long long)keypad_buffer[1]<<8) |
-		((long long)keypad_buffer[2]<<16) |
-		((long long)keypad_buffer[3]<<24) |
-		((long long)keypad_buffer[4]<<32) |
-		((long long)keypad_buffer[5]<<40);
+	if (keypad_buffer[0]) {
+
+		buffer[0] = HT16K33_REGISTER_KEY_DATA_POINTER;
+		if ( (write(i2c_fd, buffer, 1)) !=1) {
+			fprintf(stderr,"Error setting data_pointer!\n");
+      			return -1;
+		}
+
+		read(i2c_fd,keypad_buffer,6);
+
+		//for(i=0;i<6;i++) printf("%x ",keypad_buffer[i]);
+		//printf("\n");
+
+		keypress = (long long)keypad_buffer[0] |
+			((long long)keypad_buffer[1]<<8) |
+			((long long)keypad_buffer[2]<<16) |
+			((long long)keypad_buffer[3]<<24) |
+			((long long)keypad_buffer[4]<<32) |
+			((long long)keypad_buffer[5]<<40);
+	}
 
 	return keypress;
 }

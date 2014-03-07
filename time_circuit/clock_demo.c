@@ -9,7 +9,8 @@
 #include "i2c_lib.h"
 
 /* globals */
-static struct tcircuit red_time;
+static struct tcircuit destination_time;
+
 static struct tcircuit yellow_time;
 static struct tcircuit green_time;
 static struct tcircuit new_time;
@@ -25,6 +26,7 @@ static int display_yellow=1;
 #define SEG_E 0x0010
 #define SEG_F 0x0020
 #define SEG_G 0x0040
+#define SEG7_DP 0x0080
 #define SEG_H 0x0080
 #define SEG_K 0x0100
 #define SEG_M 0x0200
@@ -230,7 +232,6 @@ int decode_key(long long keycode) {
 #define FIELD_MIN_2	11
 #define FIELD_DONE    12
 
-static long long old_keypad=0;
 static int top_red=1,top_yellow=1,top_green=1,bot_yellow=1,white=0;
 
 struct tcircuit {
@@ -257,17 +258,18 @@ static void convert_time(struct tm *ltime, struct tcircuit *tctime) {
 	tctime->seconds=ltime->tm_sec;
 }
 
-static int going_88mph=0;
+static int time_travel_count=0,current_speed=0,current_power=0;
 
 
-int which_field=FIELD_MONTH_1;
+static int which_field=FIELD_MONTH_1;
+static int entering_time=0;
+static unsigned short enter_buffer[8];
 
-
-static void handle_keypad(int i2c_fd,long long keypad_in) {
+/* Can't handle multiple keys at once? */
+static void handle_keypad(long long keypad_in) {
 
 	int keypresses=0;
 	int which_key=0;
-	long long keypad_result;
 	time_t current_time;
 
 	which_key=decode_key(keypad_in);
@@ -279,13 +281,13 @@ static void handle_keypad(int i2c_fd,long long keypad_in) {
 		convert_time(localtime(&current_time),&green_time);
 		return;
 	}
-
+#if 0
 	/* time travel if # pressed */
 	if (which_key==KEY_POUND) {
 		going_88mph=1;
 		return;
 	}
-
+#endif
 
 	if (which_key==KEY_TOP_RED) {
 		top_red=!top_red;
@@ -304,6 +306,13 @@ static void handle_keypad(int i2c_fd,long long keypad_in) {
 	}
 
 	if (which_key==KEY_TOP_YELLOW) {
+		/* Put last time as Destination Time */
+
+		display_red=1;
+		display_yellow=1;
+
+		memcpy(&destination_time,&yellow_time,sizeof(struct tcircuit));
+
 		top_yellow=!top_yellow;
 		return;
 	}
@@ -314,18 +323,23 @@ static void handle_keypad(int i2c_fd,long long keypad_in) {
 	}
 
 	if (which_key==KEY_BOT_YELLOW) {
+		/* Adjust Vol/Brightness/Song? */
 		bot_yellow=!bot_yellow;
 		return;
 	}
 
 	if (which_key==KEY_WHITE) {
 		//white=!white;
-		memcpy(&red_time,&new_time,sizeof(struct tcircuit));
+		memcpy(&destination_time,&new_time,sizeof(struct tcircuit));
 		display_red=1;
+		entering_time=0;
+		which_field=FIELD_MONTH_1;
 
 		return;
 	}
 
+	entering_time=1;
+	memset(enter_buffer,0,sizeof(enter_buffer));
 
 	switch(which_field) {
 		case FIELD_MONTH_1:
@@ -334,80 +348,147 @@ static void handle_keypad(int i2c_fd,long long keypad_in) {
 			if (which_key>1) {
 				new_time.month=which_key;
 				printf("Month now %d\n",new_time.month);
+
 				which_field=FIELD_DATE_1;
+				enter_buffer[0]=SEG_D;
+
 			}
 			else {
 				new_time.month=which_key*10;
 				new_time.month--;
+
 				which_field=FIELD_MONTH_2;
+				enter_buffer[5]=SEG_E | SEG_F;
+				enter_buffer[6]=SEG_E | SEG_F;
+				enter_buffer[7]=SEG_E | SEG_F;
+
 			}
+
+
 			break;
 		case FIELD_MONTH_2:
 			new_time.month+=which_key;
 			printf("Month now %d\n",new_time.month);
+
 			which_field=FIELD_DATE_1;
+			enter_buffer[0]=SEG_D;
+
 			break;
 		case FIELD_DATE_1:
 			new_time.day=which_key*10;
 			which_field=FIELD_DATE_2;
+			enter_buffer[1]=SEG_D;
+
 			break;
 		case FIELD_DATE_2:
 			new_time.day+=which_key;
 			printf("Day now %d\n",new_time.day);
+
 			which_field=FIELD_YEAR_1;
+			enter_buffer[2]=SEG_D;
+
+
 			break;
 		case FIELD_YEAR_1:
 			new_time.year=which_key*1000;
+
 			which_field=FIELD_YEAR_2;
+			enter_buffer[3]=SEG_D;
+
 			break;
 		case FIELD_YEAR_2:
 			new_time.year+=which_key*100;
+
 			which_field=FIELD_YEAR_3;
+			enter_buffer[4]=SEG_D;
+
 			break;
 		case FIELD_YEAR_3:
 			new_time.year+=which_key*10;
+
 			which_field=FIELD_YEAR_4;
+			enter_buffer[4]=SEG_D<<8;
+
 			break;
 		case FIELD_YEAR_4:
 			new_time.year+=which_key;
 			printf("Year now %d\n",new_time.year);
+
 			which_field=FIELD_HOUR_1;
+			enter_buffer[3]=SEG_D<<8;
+
 			break;
 		case FIELD_HOUR_1:
 			new_time.hour=10*which_key;
+
 			which_field=FIELD_HOUR_2;
+			enter_buffer[2]=SEG_D<<8;
+
+
 			break;
 		case FIELD_HOUR_2:
 			new_time.hour+=which_key;
 			printf("Hour now %d\n",new_time.hour);
+
 			which_field=FIELD_MIN_1;
+			enter_buffer[1]=SEG_D<<8;
+
+
 			break;
 		case FIELD_MIN_1:
 			new_time.minutes=10*which_key;
+
 			which_field=FIELD_MIN_2;
+			enter_buffer[0]=SEG_D<<8;
+
 			break;
 		case FIELD_MIN_2:
 			new_time.minutes+=which_key;
 			printf("Minutes now %d\n",new_time.minutes);
 			which_field=FIELD_MONTH_1;
+
+			enter_buffer[0]=(SEG_D<<8)|SEG_D;
+			enter_buffer[1]=(SEG_D<<8)|SEG_D;
+			enter_buffer[2]=(SEG_D<<8)|SEG_D;
+			enter_buffer[3]=(SEG_D<<8)|SEG_D;
+			enter_buffer[4]=(SEG_D<<8)|SEG_D;
+			enter_buffer[5]=SEG_E | SEG_F;
+			enter_buffer[6]=SEG_E | SEG_F;
+			enter_buffer[7]=SEG_E | SEG_F;
+
 			break;
 	}
 
-	old_keypad=keypad_result;
+	return;
+}
 
 
-//	tc->year=new_year;
-//	tc->month=new_month-1;
-//	tc->day=new_date;
-//	tc->hour=new_hour;
-//	tc->minutes=new_minute;
-//	tc->seconds=0;
+static void handle_flux_buttons(int i2c_fd,long long keypad_in) {
 
-//	entered_time=mktime(&new_time);
-//
-//	if (entered_time==-1) {
-//		printf("Error\n");
+	int keypresses=0;
+	int which_key=0;
+
+	which_key=decode_key(keypad_in);
+	printf("Flux: %d %d\n",keypresses,which_key);
+
+	if (which_key==0) {
+		printf("Activating power\n");
+		current_power=1;
+	}
+
+
+//	if (which_key==1) {
+//		printf("Accelerating\n");
+//		current_speed++;
+//		if (current_speed>=99) current_speed=99;
 //	}
+
+
+	if (which_key==2) {
+		printf("Brake\n");
+		current_speed=0;
+	}
+
 	return;
 }
 
@@ -457,14 +538,14 @@ static void convert_for_display(unsigned short *buffer,
 		return;
 	}
 
-	if (display_count>4) {
+	if (display_count>16) {
 		/* Month */
 		buffer[5]=font_16seg[(int)month_names[tctime->month][0]];
 		buffer[6]=font_16seg[(int)month_names[tctime->month][1]];
 		buffer[7]=font_16seg[(int)month_names[tctime->month][2]];
 	}
 
-	if (display_count>3) {
+	if (display_count>12) {
 		/* Date */
 		day_tens=tctime->day/10;
 		day_ones=tctime->day%10;
@@ -474,7 +555,7 @@ static void convert_for_display(unsigned short *buffer,
 		buffer[1]=font_7seg[day_ones];
 	}
 
-	if (display_count>2) {
+	if (display_count>8) {
 		/* Year */
 		year=tctime->year;
 		year_thousands=year/1000;
@@ -500,7 +581,7 @@ static void convert_for_display(unsigned short *buffer,
 	}
 
 	/* hours */
-	if (display_count>1) {
+	if (display_count>4) {
 		hour_tens=tctime->hour/10;
 		hour_ones=tctime->hour%10;
 
@@ -644,13 +725,16 @@ int main(int argc, char **argv) {
  	int result,blink=0,count=0;
 	int display_missing=0;
 	int red_missing=0,green_missing=0,yellow_missing=0,flux_missing=0;
+	int flux_count=0;
 
  	unsigned short red_buffer[8];
  	unsigned short green_buffer[8];
  	unsigned short yellow_buffer[8];
 	unsigned short flux_buffer[8];
 
+	long long old_keypad=0,old_fluxkey=0;
 	long long keypad_result=0,keypad_change;
+	long long fluxkey_result=0,fluxkey_change;
 	int i2c_fd;
 
 	time_t current_time=0,previous_time=0;
@@ -685,14 +769,8 @@ int main(int argc, char **argv) {
 			yellow_missing=1;
 		}
 
-		/* Init old yellow (keypad placeholder) */
-		if (init_display(i2c_fd,HT16K33_ADDRESS0,13)) {
-			fprintf(stderr,"Error opening old yellow display\n");
-		}
-
-
 		/* Init Flux Capacitor */
-		if (init_display(i2c_fd,HT16K33_ADDRESS7,13)) {
+		if (init_display(i2c_fd,HT16K33_ADDRESS0,13)) {
 			fprintf(stderr,"Error opening flux display\n");
 			flux_missing=1;
 		}
@@ -722,14 +800,27 @@ int main(int argc, char **argv) {
 	return 0;
 */
 
+#if 0
+	flux_buffer[7]=0xffff;
+	flux_buffer[6]=0xffff;
+	flux_buffer[5]=0xffff;
+	flux_buffer[4]=0xffff;
+	flux_buffer[3]=font_16seg['W'];	/* W */
+	flux_buffer[2]=font_16seg['G'];	/* G */
+	flux_buffer[1]= font_7seg[2] | font_7seg[1]<<8;
+	flux_buffer[0]= ( (font_7seg[1] | SEG7_DP)<<8) | 0xff;
+#endif
+	memset(flux_buffer,0,sizeof(flux_buffer));
+
+
 	/* Destination */
 	/* Special Time */
-	red_time.year=1978;
-	red_time.month=1;
-	red_time.day=13;
-	red_time.hour=14;
-	red_time.minutes=40;
-	red_time.seconds=0;
+	destination_time.year=1978;
+	destination_time.month=1;
+	destination_time.day=13;
+	destination_time.hour=14;
+	destination_time.minutes=40;
+	destination_time.seconds=0;
 
 	/* Green is Current time */
 	current_time=time(NULL);
@@ -765,7 +856,7 @@ int main(int argc, char **argv) {
 
 			/* red */
 			printf("\x1b[31;1m");
-			print_time(&red_time,blink,display_red);
+			print_time(&destination_time,blink,display_red);
 
 			/* green */
 			printf("\x1b[32;1m");
@@ -777,8 +868,20 @@ int main(int argc, char **argv) {
 		}
 
 		else {
+			if (!entering_time) {
+				convert_for_display(red_buffer,&destination_time,blink,display_red);
+				if (!red_missing) {
+					update_display(i2c_fd,HT16K33_ADDRESS4,red_buffer);
 
-			convert_for_display(red_buffer,&red_time,blink,display_red);
+				}
+			}
+			else {
+				if (!red_missing) {
+					update_display(i2c_fd,HT16K33_ADDRESS4,enter_buffer);
+				}
+			}
+
+
 
 			convert_for_display(green_buffer,&green_time,blink,display_green);
 
@@ -791,19 +894,44 @@ int main(int argc, char **argv) {
 			if (bot_yellow) yellow_buffer[4]|=0x0080;
 			if (white) yellow_buffer[4]|=0x8000;
 
+
+			/* Read main keypad */
 			if (!yellow_missing) {
-				keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS0);
+				keypad_result=read_keypad(i2c_fd,HT16K33_ADDRESS6);
+				/* Detect key release */
+				keypad_change=old_keypad&~keypad_result;
+				if (keypad_change) {
+					printf("new %lld old %lld\n",keypad_result,old_keypad);
+					handle_keypad(keypad_change);
+				}
+				old_keypad=keypad_result;
+
 			}
 
-			keypad_change=old_keypad&~keypad_result;
-			if (keypad_change) {
-				handle_keypad(i2c_fd,keypad_change);
-			}
-			old_keypad=keypad_result;
+			/* Read flux keys */
+			if (!flux_missing) {
+				fluxkey_result=read_keypad(i2c_fd,HT16K33_ADDRESS0);
 
-			if (!red_missing) {
-				update_display(i2c_fd,HT16K33_ADDRESS4,red_buffer);
+				/* Handle accelerator */
+				/* No debounce  */
+				if (fluxkey_result&0x2) {
+					current_speed++;
+					if (current_speed>=99) {
+						current_speed=99;
+					}
+				}
+
+				fluxkey_change=old_fluxkey&~fluxkey_result;
+				if (fluxkey_change) {
+					printf("Old %lld New %lld\n",
+						fluxkey_result,old_fluxkey);
+					handle_flux_buttons(i2c_fd,fluxkey_change);
+				}
+				old_fluxkey=fluxkey_result;
 			}
+
+			/* Update displays */
+
 			if (!green_missing) {
 				update_display(i2c_fd,HT16K33_ADDRESS5,green_buffer);
 			}
@@ -811,32 +939,108 @@ int main(int argc, char **argv) {
 				update_display(i2c_fd,HT16K33_ADDRESS6,yellow_buffer);
 			}
 			if (!flux_missing) {
-				update_display(i2c_fd,HT16K33_ADDRESS7,flux_buffer);
+				update_display(i2c_fd,HT16K33_ADDRESS0,flux_buffer);
 			}
 		}
 
-		usleep(100000);
+		/* Faster than 20000 and the keypad can't keep up */
+		usleep(25000);
 		count++;
-		if (count==5) {
+		if (count==20) {
 			blink=1;
 		}
-		if (count==10) {
+		if (count==40) {
 			count=0;
 			blink=0;
 		}
 
-		if (going_88mph) {
-			time_travel(&red_time,&green_time,&yellow_time);
-			going_88mph=0;
+		/* Time Travel */
+		if (!time_travel_count) {
+			if ((current_speed>=88) && (current_power>=121)) {
+				time_travel_count=1;
+			}
+		}
+
+		if (time_travel_count) {
+
+			current_speed=88;
+
+			if (time_travel_count==1) {
+				display_red=0;
+				display_green=0;
+				display_yellow=0;
+			}
+
+
+			if (time_travel_count==100) {
+				time_travel(&destination_time,&green_time,&yellow_time);
+				time_travel_count=0;
+				display_red=1;
+				display_green=1;
+				display_yellow=1;
+				current_speed=0;
+				current_power=0;
+			} else {
+				time_travel_count++;
+			}
+
 		}
 
 		if (display_red==1) {
 			system("aplay ./sounds/time_circuit.wav");
 		}
 
-		if ((display_red>0) && (display_red<6)) display_red++;
-		if ((display_green>0) && (display_green<6)) display_green++;
-		if ((display_yellow>0) && (display_yellow<6)) display_yellow++;
+		if ((display_red>0) && (display_red<60)) display_red++;
+		if ((display_green>0) && (display_green<60)) display_green++;
+		if ((display_yellow>0) && (display_yellow<60)) display_yellow++;
+
+
+		/* Update flux display */
+
+
+		/* Digit 1 of power plus Digit 2 of speed */
+		flux_buffer[0]= ( (font_7seg[current_power/100] | SEG7_DP)<<8) |
+				font_7seg[current_speed%10];
+
+		/* Digit 2 and 3 of power */
+		flux_buffer[1]= font_7seg[(current_power/10)%10] |
+			(font_7seg[current_power%10]&0xff)<<8;
+
+		/* Alphanum of power */
+		flux_buffer[2]=font_16seg['G'];	/* G */
+		flux_buffer[3]=font_16seg['W'];	/* W */
+
+		/* Digit 1 of speed */
+		flux_buffer[4]=font_7seg[current_speed/10];
+
+
+		/* Meters */
+		flux_buffer[6]=1 << (current_power/8);
+		flux_buffer[7]= (1<<(current_power/8))-1;
+
+		if ((current_power>0) && (current_power<121)) {
+			current_power+=1;
+		}
+
+		/* Make flux blinking proportional to velocity */
+		flux_count+=5+(current_speed/2);
+		if (flux_count>=500) flux_count%=500;
+
+		switch(flux_count/100) {
+			case 0:	flux_buffer[5]=0x1 | 0x20 | 0x400;
+				break;
+			case 1:	flux_buffer[5]=0x2 | 0x40 | 0x800;
+				break;
+			case 2: flux_buffer[5]=0x4 | 0x80 | 0x1000;
+				break;
+			case 3: flux_buffer[5]=0x8 | 0x100 | 0x2000;
+				break;
+			case 4: flux_buffer[5]=0x10 | 0x200 | 0x4000;
+				break;
+			default:
+				break;
+		}
+
 
 	}
 
