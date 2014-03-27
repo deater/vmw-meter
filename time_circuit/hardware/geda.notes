@@ -1,0 +1,16 @@
+http://www.delorie.com/pcb/docs/gs/gs.html
+
+S makes things bigger
+
+
+
+http://hobby-electrons.sourceforge.net/tutorials/gEDA/index.html
+
+First create schematic with gschem
+Create new symbols with gschem
+
+gschem:
+  put down parts "I" to insert
+  add local symbol library directory
+  connect netlists
+
