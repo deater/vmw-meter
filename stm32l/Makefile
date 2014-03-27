@@ -17,5 +17,5 @@ clean:
 	cd push_button && make clean
 	cd pwm && make clean
 	cd range_finder && make clean
-	rm *~
+	rm -f *~
 
