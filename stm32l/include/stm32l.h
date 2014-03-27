@@ -256,6 +256,15 @@ __IO uint32_t OR;	/* 0c50 = option register */
 #define TIM_CR1_OPM		(0x1<<3)	/* one pulse mode */
 #define TIM_CR1_CEN		0x1
 
+#define TIM_DIER_CC1IE		(0x1<<1)
+#define TIM_DIER_CC2IE		(0x1<<2)
+#define TIM_DIER_CC1DE		(0x1<<9)
+#define TIM_DIER_UIE		(0x1<<0)
+
+#define TIM_SR_UIF		0x1
+#define TIM_SR_CC1F		0x2
+#define TIM_SR_CC2F		0x4
+
 #define TIM_CCMR1_OC1M_TOGGLE	(0x3<<4)
 
 #define TIM_CCER_CC2NP		(0x1<<7)
@@ -271,3 +280,14 @@ __IO uint32_t OR;	/* 0c50 = option register */
 #define TIM4_BASE	(APB1PERIPH_BASE + 0x0800)
 #define TIM3_BASE	(APB1PERIPH_BASE + 0x0400)
 #define TIM2_BASE	(APB1PERIPH_BASE + 0x0000)
+
+
+/* NVIC */
+
+typedef struct {
+__IO uint32_t ISER[8];
+} NVIC_ISER_TypeDef;
+
+#define NVIC_ISER_BASE	0xe000e100
+
+#define TIM4_IRQn 30

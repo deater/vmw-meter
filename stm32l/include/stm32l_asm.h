@@ -280,3 +280,25 @@
 .equ TIM3_BASE,	(APB1PERIPH_BASE + 0x0400)
 .equ TIM2_BASE,	(APB1PERIPH_BASE + 0x0000)
 
+
+/* From the Cortex M3 manual *not* the stm32l manual */
+
+.equ	SYSTICK_BASE,		0xe000e010
+
+.equ	SYSTICK_CTRL,		0x0
+.equ	SYSTICK_RELOAD,		0x4
+.equ	SYSTICK_VAL,		0x8
+.equ	SYSTICK_CAL,		0xc
+
+.equ	SYSTICK_ENABLE,		0x1
+.equ	SYSTICK_TICKINT,	0x2
+.equ	SYSTICK_CLKSOURCE,	0x4
+
+.equ	SYSTICK_IRQ,		0xf
+
+
+/* also from Cortex M3 manual */
+.equ	NVIC_BASE,		0xe000e100
+
+.equ	NVIC_ISER0,		0x0	/* interrupts 31..0 */
+.equ	NVIC_IPR0,		0x300
