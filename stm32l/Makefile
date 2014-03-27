@@ -8,7 +8,7 @@ all:
 clean:
 	cd lib && make clean
 	cd asm_blink_leds && make clean
-	cd asm_int_delay && make clean
+	cd asm_systick_blink && make clean
 	cd asm_pwm_dimming && make clean
 	cd asm_pwm_leds && make clean
 	cd asm_range_finder && make clean
