@@ -9,7 +9,7 @@
 {\Large \bf Building the VMW Time Circuitry Meter}\\
 \url{http://www.deater.net/weave/vmwprod/hardware/time_circuit/}\\
 by Vincent M. Weaver\\
-17 February 2014
+28 March 2014
 \end{center}
 
 
@@ -330,7 +330,70 @@ Part No	&  Description			&  Quantity	& Source \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \pagebreak
-\section{Flux Capacitor / Speedometer}
+\section{Flux Capacitor}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Only vaguely like the movie version and much smaller.
+Also I wanted the right-angle sockets to be functional rather
+than ornamental, which complicates things a bit.
+
+\subsection{Parts List}
+
+\begin{tabular}{|c|l|c|c|}
+\hline
+Part No	&  Description			&  Quantity	& Source \\
+\hline
+\hline
+	& Waterpoof XxX case		& 1		& Adafruit \\
+\hline
+FLUX-CAP-MK-1	& Circuit Board		& 1		& VMW / OSH Park \\
+\hline
+	& 20-pin socket			& 1		& Jameco \\
+\hline
+	& 30-pin SIP header		& 1		&	\\
+\hline
+	& Off-white LEDs		& 15		& SuperBrightLEDs \\
+\hline
+	& Transparent Heat-shrink Tubing &	1	& Adafruit \\
+\hline
+	& Offsets			& 2		& \\
+\hline
+	& Screws			& 2		& \\
+\hline
+	& Banana Jack Sockets		& 3		& Jameco \\
+\hline
+	& Right-angle probe leads	& 3		& Jameco \\
+\hline
+\hline
+\end{tabular}
+
+\subsection{Building}
+
+\begin{enumerate}
+
+\item Get the circuit board.  MK1 version has an issue where the
+	banana jack holes are not drilled out properly so you will
+	need to drill them out to the right size.
+\item Break up the SIP socket into 15 2-wide pieces.
+	Solder those on for the LED sockets.
+\item Solder in the 20-pin socket.
+\item Place the banana jacks in place.  
+	Bend the lug at a right angle so it fits better.
+	Solder a bit of wire from the lug to the position on the
+	circuit board.
+\item Insert and cut the teast leads with X inches of wire.  Strip
+	and solder the wire in place.
+\item Place the LEDs inside the shrink wrap (haven't done this step
+	yet, need more details).
+\item Cut a notch on the case so the ribbon cable can get out.
+\item Optionally get an embossing label maker and make a 
+	``shield your eyes'' label.
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagebreak
+\section{Power Meters / Speedomoter}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Todo{\dots}

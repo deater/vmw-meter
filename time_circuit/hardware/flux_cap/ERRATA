@@ -1,0 +1,7 @@
+
+In MK1:
+
+* The holes for the banana jack sockets aren't implemented right,
+  the drill holes aren't wide enough.  You need to manually make them wider.
+  Not sure how to fix this either as with proper sized holes they might
+  go too close to the edge or traces.
