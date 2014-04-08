@@ -258,8 +258,35 @@ static void convert_time(struct tm *ltime, struct tcircuit *tctime) {
 	tctime->seconds=ltime->tm_sec;
 }
 
-static int time_travel_count=0,current_speed=0,current_power=0;
+static void reset_default_times(void) {
 
+	time_t current_time=0;
+
+	/* Destination */
+	/* Special Time */
+	destination_time.year=1978;
+	destination_time.month=1;
+	destination_time.day=13;
+	destination_time.hour=14;
+	destination_time.minutes=40;
+	destination_time.seconds=0;
+
+	/* Green is Current time */
+	current_time=time(NULL);
+	convert_time(localtime(&current_time),&green_time);
+
+	/* Last time departed */
+	/* End of UNIX time */
+	yellow_time.year=2038;
+	yellow_time.month=0;
+	yellow_time.day=18;
+	yellow_time.hour=22;
+	yellow_time.minutes=14;
+	yellow_time.seconds=7;
+
+}
+
+static int time_travel_count=0,current_speed=0,current_power=0;
 
 static int which_field=FIELD_MONTH_1;
 static int entering_time=0;
@@ -306,25 +333,38 @@ static void handle_keypad(long long keypad_in) {
 	}
 
 	if (which_key==KEY_TOP_YELLOW) {
-		/* Put last time as Destination Time */
+		/* Reset to default times */
 
+		reset_default_times();
+
+		display_red=1;
+		display_yellow=1;
+		display_green=1;
+
+		//top_yellow=!top_yellow;
+		return;
+	}
+
+	if (which_key==KEY_TOP_GREEN) {
+
+		/* Put last time as Destination Time */
 		display_red=1;
 		display_yellow=1;
 
 		memcpy(&destination_time,&yellow_time,sizeof(struct tcircuit));
 
-		top_yellow=!top_yellow;
-		return;
-	}
-
-	if (which_key==KEY_TOP_GREEN) {
 		top_green=!top_green;
 		return;
 	}
 
 	if (which_key==KEY_BOT_YELLOW) {
-		/* Adjust Vol/Brightness/Song? */
-		bot_yellow=!bot_yellow;
+		/* Cancel */
+
+		display_red=0xff;
+		entering_time=0;
+		which_field=FIELD_MONTH_1;
+		bot_yellow=1;
+		//bot_yellow=!bot_yellow;
 		return;
 	}
 
@@ -334,11 +374,12 @@ static void handle_keypad(long long keypad_in) {
 		display_red=1;
 		entering_time=0;
 		which_field=FIELD_MONTH_1;
-
+		bot_yellow=1;
 		return;
 	}
 
 	entering_time=1;
+	bot_yellow=0;
 	memset(enter_buffer,0,sizeof(enter_buffer));
 
 	switch(which_field) {
@@ -821,29 +862,8 @@ int main(int argc, char **argv) {
 #endif
 	memset(flux_buffer,0,sizeof(flux_buffer));
 
-
-	/* Destination */
-	/* Special Time */
-	destination_time.year=1978;
-	destination_time.month=1;
-	destination_time.day=13;
-	destination_time.hour=14;
-	destination_time.minutes=40;
-	destination_time.seconds=0;
-
-	/* Green is Current time */
-	current_time=time(NULL);
-	previous_time=current_time;
-	convert_time(localtime(&current_time),&green_time);
-
-	/* Last time departed */
-	/* End of UNIX time */
-	yellow_time.year=2038;
-	yellow_time.month=0;
-	yellow_time.day=18;
-	yellow_time.hour=22;
-	yellow_time.minutes=14;
-	yellow_time.seconds=7;
+	reset_default_times();
+	previous_time=time(NULL);
 
 	/* Time Loop */
 	while(1) {
@@ -1031,7 +1051,7 @@ int main(int argc, char **argv) {
 		if (!d2a_missing) {
 			if ((current_power*33)!=old_dac) {
 				set_dac(i2c_fd,MCP4725_ADDRESS1,0,current_power*33);
-				printf("Setting dac: %d\n",current_power*33);
+				//printf("Setting dac: %d\n",current_power*33);
 				old_dac=current_power*33;
 			}
 		}
