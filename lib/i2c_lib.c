@@ -256,6 +256,58 @@ long long read_keypad(int i2c_fd, int i2c_addr) {
 }
 
 
+int init_dac(int i2c_fd, int i2c_addr, int powerdown) {
+
+	unsigned char buffer[2];
+
+	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
+		fprintf(stderr,"Error setting i2c address %x\n",
+			i2c_addr);
+		return -1;
+	}
+
+	/* Set to generate 0V */
+	buffer[0]= (0<<6) | /* Fast mode */
+			(powerdown<<4) | /* power down value */
+			0;
+	buffer[1]= 0;
+
+	if ( (write(i2c_fd, buffer, 2)) !=2) {
+		fprintf(stderr,"Error starting dac!\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+
+
+int set_dac(int i2c_fd, int i2c_addr, int powerdown, int value) {
+
+	unsigned char buffer[2];
+
+	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
+		fprintf(stderr,"Error setting i2c address %x\n",
+			i2c_addr);
+		return -1;
+	}
+
+	/* Set to generate 0V */
+	buffer[0]= (0<<6) | /* Fast mode */
+			(powerdown<<4) | /* power down value */
+			((value>>8)&0xf);
+	buffer[1]= (value&0xff);
+
+	if ( (write(i2c_fd, buffer, 2)) !=2) {
+		fprintf(stderr,"Error setting dac!\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+
+
 /* should make the device settable */
 int init_display(int i2c_fd, int i2c_addr, int brightness) {
 

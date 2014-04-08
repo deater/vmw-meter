@@ -725,6 +725,7 @@ int main(int argc, char **argv) {
  	int result,blink=0,count=0;
 	int display_missing=0;
 	int red_missing=0,green_missing=0,yellow_missing=0,flux_missing=0;
+	int d2a_missing=0;
 	int flux_count=0;
 
  	unsigned short red_buffer[8];
@@ -736,6 +737,7 @@ int main(int argc, char **argv) {
 	long long keypad_result=0,keypad_change;
 	long long fluxkey_result=0,fluxkey_change;
 	int i2c_fd;
+	int old_dac=0;
 
 	time_t current_time=0,previous_time=0;
 
@@ -774,6 +776,13 @@ int main(int argc, char **argv) {
 			fprintf(stderr,"Error opening flux display\n");
 			flux_missing=1;
 		}
+
+		/* Init d2a Converter */
+		if (init_dac(i2c_fd,MCP4725_ADDRESS1,0)) {
+			fprintf(stderr,"Error opening DAC\n");
+			d2a_missing=1;
+		}
+
 	}
 
 /*
@@ -1017,6 +1026,15 @@ int main(int argc, char **argv) {
 		/* Meters */
 		flux_buffer[6]=1 << (current_power/8);
 		flux_buffer[7]= (1<<(current_power/8))-1;
+
+		/* DAC */
+		if (!d2a_missing) {
+			if ((current_power*33)!=old_dac) {
+				set_dac(i2c_fd,MCP4725_ADDRESS1,0,current_power*33);
+				printf("Setting dac: %d\n",current_power*33);
+				old_dac=current_power*33;
+			}
+		}
 
 		if ((current_power>0) && (current_power<121)) {
 			current_power+=1;

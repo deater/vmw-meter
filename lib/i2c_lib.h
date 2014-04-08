@@ -17,6 +17,7 @@
 #define SAA1064_ADDRESS3	0x3A
 #define SAA1064_ADDRESS4	0x3B
 
+#define MCP4725_ADDRESS1	0x62
 
 struct nunchuck_data {
         int joy_x;
@@ -28,8 +29,13 @@ struct nunchuck_data {
         int c_pressed;
 };
 
-
 int init_i2c(char *device);
+
+int init_dac(int i2c_fd, int i2c_addr, int powerdown);
+int set_dac(int i2c_fd, int i2c_addr, int powerdown, int value);
+
+
+
 int init_display(int i2c_fd, int i2c_addr, int brightness);
 int shutdown_display(int i2c_fd);
 void reset_display(unsigned short *display_state);
