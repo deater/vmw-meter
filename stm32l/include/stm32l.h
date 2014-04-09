@@ -1,8 +1,11 @@
 #define __IO volatile
 
+/* 2.3 memory map */
 #define PERIPH_BASE	((uint32_t)0x40000000)
 #define APB1PERIPH_BASE	PERIPH_BASE
+#define APB2PERIPH_BASE	(PERIPH_BASE + 0x10000)
 #define AHBPERIPH_BASE	(PERIPH_BASE + 0x20000)
+
 
 /* LCD */
 typedef struct {
@@ -131,6 +134,8 @@ __IO uint32_t CSR;		/* 0x34 */
 
 /* 0x0 Control Register */
 #define RCC_CR_MSIRDY		(0x1<<9)	/* MSI Clock Ready */
+#define RCC_CR_HSIRDY		(0x1<<1)	/* HSI Clock Ready */
+#define RCC_CR_HSION		(0x1<<0)	/* Enable HSI Clock */
 
 /* 0x1c */
 #define AHBENR_GPIOAEN	1
@@ -143,6 +148,7 @@ __IO uint32_t CSR;		/* 0x34 */
 #define AHBENR_GPIOGEN	128
 
 /* 0x20 APB2 Clock Enable Register */
+#define RCC_APB2ENR_ADC1EN	(1<<9)
 #define RCC_APB2ENR_SYSCFGEN	(1<<0)
 
 /* 0x24 APB1 Clock Enable Register */
@@ -282,6 +288,57 @@ __IO uint32_t OR;	/* 0c50 = option register */
 #define TIM2_BASE	(APB1PERIPH_BASE + 0x0000)
 
 
+
+/* Analog Digital Converter (11.15) */
+typedef struct {
+__IO uint32_t SR;	/* 0x00 = Status Register */
+__IO uint32_t CR1;	/* 0x04 = Control Register 1 */
+__IO uint32_t CR2;	/* 0x08 = Control Register 2 */
+__IO uint32_t SMPR1;	/* 0x0c = Sample Time Register */
+__IO uint32_t SMPR2;	/* 0x10 = Sample Time Register 2 */
+__IO uint32_t SMPR3;	/* 0x14 = Sample Time Register 3 */
+__IO uint32_t JOFR1;	/* 0x18 = JOFR1 */
+__IO uint32_t JOFR2;	/* 0x1c = JOFR2 */
+__IO uint32_t JOFR3;	/* 0x20 = JOFR3 */
+__IO uint32_t JOFR4;	/* 0x24 = JOFR4 */
+__IO uint32_t HTR;	/* 0x28 = Watchdog Higher Threshold Register */
+__IO uint32_t LTR;	/* 0x2c = Watchdog Lower Threshold Register */
+__IO uint32_t SQR1;	/* 0x30 = Regular Sequence Register 1 */
+__IO uint32_t SQR2;	/* 0x34 = Regular Sequence Register 2 */
+__IO uint32_t SQR3;	/* 0x38 = Regular Sequence Register 3 */
+__IO uint32_t SQR4;	/* 0x3c = Regular Sequence Register 4 */
+__IO uint32_t SQR5;	/* 0x40 = Regular Sequence Register 5 */
+__IO uint32_t JSQR;	/* 0x44 = Injected Sequence Register*/
+__IO uint32_t JDR1;	/* 0x48 = JDR1 */
+__IO uint32_t JDR2;	/* 0x4c = JDR2 */
+__IO uint32_t JDR3;	/* 0x50 = JDR3 */
+__IO uint32_t JDR4;	/* 0x54 = JDR4 */
+__IO uint32_t DR;	/* 0x58 = Regular Data Register */
+//__IO uint32_t SMPR0;	/* 0x5c = Sample Time Register -- high density only */
+//__IO uint32_t CSR;	/* 0x300 = Common Status Register */
+//__IO uint32_t CCR;	/* 0x304 = Common Control Register */
+} ADC_TypeDef;
+
+#define ADC_SR_EOC		(0x1<<1)
+
+#define ADC_CR1_RES_MASK	(0x3<<24)
+#define ADC_CR1_RES_12BIT	(0x0<<24)
+#define ADC_CR1_RES_10BIT	(0x1<<24)
+#define ADC_CR1_RES_8BIT	(0x2<<24)
+#define ADC_CR1_RES_6BIT	(0x3<<24)
+
+#define ADC_CR1_ECOCIE		(0x1<<5)
+
+#define ADC_CR2_SWSTART		(0x1<<30)
+#define ADC_CR2_DELS_MASK	(0x7<<4)
+#define ADC_CR2_DELS_READ	(0x1<<4)
+#define ADC_CR2_CONT		(0x1<<1)
+#define ADC_CR2_ADON		(0x1<<0)
+
+#define ADC_SMPR2_SMP10	0x7
+
+#define ADC_BASE	(APB2PERIPH_BASE + 0x2400)
+
 /* NVIC */
 
 typedef struct {
@@ -290,4 +347,7 @@ __IO uint32_t ISER[8];
 
 #define NVIC_ISER_BASE	0xe000e100
 
+#define ADC1_IRQn 18
 #define TIM4_IRQn 30
+
+
