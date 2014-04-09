@@ -301,27 +301,30 @@ static unsigned char lookup4[6]={29,27,25,21,19,16};
 
 void lcd_convert(char *string, unsigned int *buffer) {
 
-	int i;
+	int i,which,dp;
 
 	for(i=0;i<16;i++) buffer[i]=0;
 
 	for(i=0;i<6;i++) {
-		if (font[(int)string[i]]&SEGA) buffer[1*2]|=1<<lookup1[i];
-		if (font[(int)string[i]]&SEGB) buffer[0*2]|=1<<lookup1[i];
-		if (font[(int)string[i]]&SEGC) buffer[1*2]|=1<<lookup2[i];
-		if (font[(int)string[i]]&SEGD) buffer[1*2]|=1<<lookup3[i];
-		if (font[(int)string[i]]&SEGE) buffer[0*2]|=1<<lookup3[i];
-		if (font[(int)string[i]]&SEGF) buffer[1*2]|=1<<lookup4[i];
-		if (font[(int)string[i]]&SEGG) buffer[0*2]|=1<<lookup4[i];
-		if (font[(int)string[i]]&SEGH) buffer[3*2]|=1<<lookup4[i];
-		if (font[(int)string[i]]&SEGJ) buffer[3*2]|=1<<lookup1[i];
-		if (font[(int)string[i]]&SEGK) buffer[2*2]|=1<<lookup1[i];
-		if (font[(int)string[i]]&SEGM) buffer[0*2]|=1<<lookup2[i];
-		if (font[(int)string[i]]&SEGN) buffer[3*2]|=1<<lookup3[i];
-		if (font[(int)string[i]]&SEGP) buffer[2*2]|=1<<lookup3[i];
-		if (font[(int)string[i]]&SEGQ) buffer[2*2]|=1<<lookup4[i];
-		if (font[(int)string[i]]&SEGCOLON) buffer[1*2]|=1<<lookup3[i];
-		if (font[(int)string[i]]&SEGDP) buffer[3*2]|=1<<lookup2[i];
+		dp=string[i]&0x80;
+		which=((int)string[i])&0x7f;
+		if (font[which]&SEGA) buffer[1*2]|=1<<lookup1[i];
+		if (font[which]&SEGB) buffer[0*2]|=1<<lookup1[i];
+		if (font[which]&SEGC) buffer[1*2]|=1<<lookup2[i];
+		if (font[which]&SEGD) buffer[1*2]|=1<<lookup3[i];
+		if (font[which]&SEGE) buffer[0*2]|=1<<lookup3[i];
+		if (font[which]&SEGF) buffer[1*2]|=1<<lookup4[i];
+		if (font[which]&SEGG) buffer[0*2]|=1<<lookup4[i];
+		if (font[which]&SEGH) buffer[3*2]|=1<<lookup4[i];
+		if (font[which]&SEGJ) buffer[3*2]|=1<<lookup1[i];
+		if (font[which]&SEGK) buffer[2*2]|=1<<lookup1[i];
+		if (font[which]&SEGM) buffer[0*2]|=1<<lookup2[i];
+		if (font[which]&SEGN) buffer[3*2]|=1<<lookup3[i];
+		if (font[which]&SEGP) buffer[2*2]|=1<<lookup3[i];
+		if (font[which]&SEGQ) buffer[2*2]|=1<<lookup4[i];
+		if (font[which]&SEGCOLON) buffer[1*2]|=1<<lookup3[i];
+		if (font[which]&SEGDP) buffer[3*2]|=1<<lookup2[i];
+		if (dp) buffer[3*2]|=1<<lookup2[i];
 
 	}
 }
