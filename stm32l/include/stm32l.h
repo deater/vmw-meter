@@ -137,6 +137,14 @@ __IO uint32_t CSR;		/* 0x34 */
 #define RCC_CR_HSIRDY		(0x1<<1)	/* HSI Clock Ready */
 #define RCC_CR_HSION		(0x1<<0)	/* Enable HSI Clock */
 
+/* 0x8 CFGR */
+#define RCC_CFGR_SW_PLL		0x11
+#define RCC_CFGR_SW_HSE		0x02
+#define RCC_CFGR_SW_HSI		0x01
+#define RCC_CFGR_SW_MSI		0x00
+
+#define RCC_CFGR_SWS_HSI	(0x1<<2)
+
 /* 0x1c */
 #define AHBENR_GPIOAEN	1
 #define AHBENR_GPIOBEN	2
@@ -262,6 +270,9 @@ __IO uint32_t OR;	/* 0c50 = option register */
 #define TIM_CR1_OPM		(0x1<<3)	/* one pulse mode */
 #define TIM_CR1_CEN		0x1
 
+#define TIM_CR2_MMS_MASK	(0x7<<4)
+#define TIM_CR2_MMS_UPDATE	(0x2<<4)
+
 #define TIM_DIER_CC1IE		(0x1<<1)
 #define TIM_DIER_CC2IE		(0x1<<2)
 #define TIM_DIER_CC1DE		(0x1<<9)
@@ -270,6 +281,8 @@ __IO uint32_t OR;	/* 0c50 = option register */
 #define TIM_SR_UIF		0x1
 #define TIM_SR_CC1F		0x2
 #define TIM_SR_CC2F		0x4
+
+#define TIM_EGR_UG		0x1
 
 #define TIM_CCMR1_OC1M_TOGGLE	(0x3<<4)
 
@@ -338,6 +351,38 @@ __IO uint32_t DR;	/* 0x58 = Regular Data Register */
 #define ADC_SMPR2_SMP10	0x7
 
 #define ADC_BASE	(APB2PERIPH_BASE + 0x2400)
+
+
+/* DAC */
+typedef struct {
+__IO uint32_t CR;	/* 0x00 = Control Register */
+__IO uint32_t SWTRIGR;	/* 0x04 = Software Trigger */
+__IO uint32_t DHR12R1;	/* 0x08 = 12-bit right data */
+__IO uint32_t DHR12L1;	/* 0x0c = 12-bit left data */
+__IO uint32_t DHR8R1;	/* 0x10 = 8-bit right data */
+__IO uint32_t DHR12R2;	/* 0x14 = 12-bit right data (ch2) */
+__IO uint32_t DHR12L2;	/* 0x18 = 12-bit left data (ch2) */
+__IO uint32_t DHR8R2;	/* 0x1c = 8-bit right data (ch2) */
+__IO uint32_t DHR12RD;	/* 0x20 = 12-bit data hoding reg */
+__IO uint32_t DHR12LD;	/* 0x24 = 12-bit left */
+__IO uint32_t DHR8RD;	/* 0x28 = 8-bit */
+__IO uint32_t DOR1;	/* 0x2c = data output reg */
+__IO uint32_t DOR2;	/* 0x30 = data output reg */
+__IO uint32_t SR;	/* 0x34 = status register */
+} DAC_TypeDef;
+
+
+#define DAC_CR_TSEL2_MASK	(0x7<<19)
+#define DAC_CR_TSEL2_TIM4	(0x5<<19)
+#define DAC_CR_BOFF2		(0x1<<17)
+#define DAC_CR_EN2		(0x1<<16)
+
+#define DAC_CR_TSEL1_MASK	(0x7<<3)
+#define DAC_CR_TSEL1_TIM4	(0x5<<3)
+#define DAC_CR_BOFF1		(0x1<<1)
+#define DAC_CR_EN1		(0x1<<0)
+
+#define DAC_BASE	(APB1PERIPH_BASE + 0x7400)
 
 /* NVIC */
 
