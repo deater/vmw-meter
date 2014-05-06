@@ -9,7 +9,7 @@
 {\Large \bf Building the VMW Time Circuitry Meter}\\
 \url{http://www.deater.net/weave/vmwprod/hardware/time_circuit/}\\
 by Vincent M. Weaver\\
-8 April 2014
+6 May 2014
 \end{center}
 
 
@@ -318,14 +318,45 @@ Part No	&  Description			&  Quantity	& Source \\
 \hline
 	& Light up Switches 	& 5		& Adafruit \\
 \hline
-	& Case			&		& ??? \\
+	& Waterproof Case	& 1		& Jameco \\
+\hline
+	& \#4-40 x 1/2 in screws & 4		& Home Depot \\
+\hline
+TC-KEYPAD-MK1	& PCB		& 1		& VMW/OSH Park\\
+\hline
+	& 20-pin DIP socket	& 1		& Jameco\\
+\hline
+	& 34 pins SIP socket	& 1		& ??? \\
 \hline
 \end{tabular}
 
 \subsection{Building}
 
 \begin{enumerate}
-\item Waiting until I get a PCB put together
+\item Cut the SIP into a 14-pin piece and 10 2-pin pieces.
+	Solder them in place on the PCB.
+\item Solder the 20-pin DIP socket in place
+\item Solder the resistors in place.
+\item Solder the Diodes in place.  Note!  The Mark1 board has
+	pin holes that are too small.  I had to sort of surface-mount
+	solder the diodes in place, which isn't optimal.
+\item Prepare the case.  Drill the 5 holes for the lighted switches
+	and the rectangular opening/4 holdes for the keypad.
+	This is tricky!  Provided is a drilling template but
+	it moves around if you aren't careful.
+\item Cut a notch in the bottom of the case for the ribbon cable
+	to get out.
+\item Put the 5 lit LED buttons in place.
+\item Cut wire for the buttons/keypad.  The way I did it was
+	13 3-inch wires for the keypad, and then for the five buttons
+	3 inch x 1, 2.5 inch x2, 2 inch x 2.  Soldered the wires in place
+	(tricky to do).  Then plugged all the wires into the right socket.
+	There are probably better ways to do this.
+\item Once all wires are in place, test things.  Then squeeze it in the
+	case and close it up.  There are holes for screwing into the
+	base, but in the end things are wedged tight enough I didn't
+	need to (even if I could get a screwdriver in place).
+
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
