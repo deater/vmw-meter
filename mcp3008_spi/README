@@ -1,0 +1,6 @@
+http://hertaville.com/2013/07/24/interfacing-an-spi-adc-mcp3008-chip-to-the-raspberry-pi-using-c/
+
+
+sudo nano /etc/modprobe.d/raspi-blacklist.conf
+Comment out #blacklist spi-bcm2708
+
