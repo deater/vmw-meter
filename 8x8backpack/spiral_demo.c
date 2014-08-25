@@ -104,7 +104,7 @@ int spiral_demo(int i2c_fd) {
 			plotxy(display_buffer,spiral_coords[i].x,
 					spiral_coords[i].y);
 			update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS0,
-				display_buffer,0,BROKEN,GREEN_PLANE);
+				display_buffer,0,BROKEN);
 			i++;
 		}
 		usleep(500000);

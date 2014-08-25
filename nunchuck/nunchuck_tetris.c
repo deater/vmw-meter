@@ -384,9 +384,9 @@ static void update_our_display(unsigned char *display_buffer, int i2c_fd,int no_
 	/* Write Display */
 	if (!no_display) {
 		update_8x8_display_rotated(i2c_fd,
-			HT16K33_ADDRESS1,display_buffer,0,BROKEN,GREEN_PLANE);
+			HT16K33_ADDRESS1,display_buffer,0,BROKEN);
 		update_8x8_display_rotated(i2c_fd,
-			HT16K33_ADDRESS0,display_buffer+8,0,BROKEN,GREEN_PLANE);
+			HT16K33_ADDRESS0,display_buffer+8,0,BROKEN);
 	}
 	else {
 		emulate_8x16_display(display_buffer);

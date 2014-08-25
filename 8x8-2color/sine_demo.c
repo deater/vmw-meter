@@ -55,9 +55,12 @@ int sine_demo(int i2c_fd, int device_num) {
 		temp_dx=dx[device_num]+((double)x *(PI/8.0));
 		dy=sin(temp_dx);
 		y=(int)round((3.5+(dy*3.5)));
+//		if (y>7) printf("Error y too big!\n");
 		out_buffer_green[x][y]=1;
 
+
 		dy=cos(temp_dx);
+//		if (y>7) printf("Error y too big!\n");
 		y=(int)round((3.5+(dy*3.5)));
 		out_buffer_red[x][y]=1;
 
@@ -80,10 +83,9 @@ int sine_demo(int i2c_fd, int device_num) {
 		}
 	}
 
-	update_8x8_display_rotated(i2c_fd,device_num,display_buffer_green,
-		0,NOT_BROKEN,GREEN_PLANE);
-	update_8x8_display_rotated(i2c_fd,device_num,display_buffer_red,
-		0,NOT_BROKEN,RED_PLANE);
+	update_8x8_bicolor_display_rotated(i2c_fd,device_num,
+			display_buffer_green,
+			display_buffer_red,0);
 
 	dx[device_num]+=dxscroll;
 

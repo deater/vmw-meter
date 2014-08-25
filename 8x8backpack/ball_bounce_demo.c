@@ -44,7 +44,7 @@ int ball_bounce_demo(int i2c_fd) {
 
 		plotxy(display_buffer,(int)x,(int)y);
 		update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS0,
-			display_buffer,0,BROKEN,GREEN_PLANE);
+			display_buffer,0,BROKEN);
 		usleep(100000);
 	}
 

@@ -77,7 +77,7 @@ int flame_demo(int i2c_fd) {
 			}
 		}
 		update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS0,
-			display_buffer,0,BROKEN,GREEN_PLANE);
+			display_buffer,0,BROKEN);
 		usleep(SLEEP);
 	}
 

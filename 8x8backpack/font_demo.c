@@ -40,7 +40,7 @@ int put_letter(unsigned char letter, int i2c_fd) {
 		display_buffer[i]=font[letter][i];
 	}
 	update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS0,display_buffer,
-			0,BROKEN,GREEN_PLANE);
+			0,BROKEN);
 
 	return 0;
 }

@@ -22,9 +22,6 @@
 #define NOT_BROKEN		0
 #define BROKEN			1
 
-#define GREEN_PLANE		0
-#define RED_PLANE		1
-
 struct nunchuck_data {
         int joy_x;
         int joy_y;
@@ -50,7 +47,12 @@ long long read_keypad(int i2c_fd, int i2c_addr);
 
 int update_8x8_display_rotated(int i2c_fd, int i2c_addr,
 		unsigned char *display_state,int degrees,
-		int bug_workaround, int plane);
+		int bug_workaround);
+
+int update_8x8_bicolor_display_rotated(int i2c_fd, int i2c_addr,
+		unsigned char *display_state_green,
+		unsigned char *display_state_red,
+		int degrees);
 
 int update_display(int i2c_fd, int i2c_addr, unsigned short *display_state);
 

@@ -61,8 +61,7 @@ void reset_display(unsigned short *display_state) {
 
 int update_8x8_display_rotated(int i2c_fd, int i2c_addr,
 				unsigned char *display_state,
-				int degrees, int bug_workaround,
-				int plane) {
+				int degrees, int bug_workaround) {
 
 	unsigned char buffer[17];
 
@@ -140,9 +139,95 @@ int update_8x8_display_rotated(int i2c_fd, int i2c_addr,
 		}
 	} else {
 		for(i=0;i<8;i++) {
-			if (!plane) buffer[(i*2)+1]=rotated_display[i];
-			else buffer[(i*2)+2]=rotated_display[i];
+			buffer[(i*2)+1]=rotated_display[i];
 		}
+	}
+
+	if ( (write(i2c_fd, buffer, 17)) !=17) {
+		fprintf(stderr,"Erorr writing display!\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+
+int update_8x8_bicolor_display_rotated(int i2c_fd, int i2c_addr,
+				unsigned char *display_state_green,
+				unsigned char *display_state_red,
+				int degrees) {
+
+	unsigned char buffer[17];
+
+	unsigned char rotated_display_green[8];
+	unsigned char rotated_display_red[8];
+
+	int i,x,y;
+
+	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
+		fprintf(stderr,"Error setting i2c address %x\n",
+			i2c_addr);
+		return -1;
+ 	}
+
+	/* TODO: only update if there's been a change ?*/
+
+
+	/* write out to hardware */
+	buffer[0]=0x00;
+
+	/* clear rotated_display */
+	for(i=0;i<8;i++) rotated_display_green[i]=0;
+	for(i=0;i<8;i++) rotated_display_red[i]=0;
+
+	switch(degrees) {
+		case 0:	/* No Rotate */
+			for(i=0;i<8;i++) {
+				rotated_display_green[i]=display_state_green[i];
+				rotated_display_red[i]=display_state_red[i];
+			}
+			break;
+		case 90: /* Rotate 90 degrees clockwise */
+			for(y=0;y<8;y++) {
+				for(x=0;x<8;x++) {
+					rotated_display_green[y]|=
+					(!! (display_state_green[x]&(1<<(7-y))))<<x;
+					rotated_display_red[y]|=
+					(!! (display_state_red[x]&(1<<(7-y))))<<x;
+				}
+			}
+			break;
+		case 180: /* Rotate 180 degrees clockwise */
+			for(y=0;y<8;y++) {
+				for(x=0;x<8;x++) {
+					rotated_display_green[y]|=
+					(!! (display_state_green[7-y]&(1<<(x))))<<(7-x);
+
+					rotated_display_red[y]|=
+					(!! (display_state_red[7-y]&(1<<(x))))<<(7-x);
+				}
+			}
+			break;
+		case 270: /* Rotate 270 degrees clockwise */
+			for(y=0;y<8;y++) {
+				for(x=0;x<8;x++) {
+					rotated_display_green[y]|=
+					(!! (display_state_green[7-x]&(1<<(y))))<<x;
+
+					rotated_display_red[y]|=
+					(!! (display_state_red[7-x]&(1<<(y))))<<x;
+				}
+			}
+
+			break;
+
+		default:	fprintf(stderr,"Invalid rotation: %d\n",degrees);
+				return -1;
+	}
+
+	for(i=0;i<8;i++) {
+		buffer[(i*2)+1]=rotated_display_green[i];
+		buffer[(i*2)+2]=rotated_display_red[i];
 	}
 
 	if ( (write(i2c_fd, buffer, 17)) !=17) {
