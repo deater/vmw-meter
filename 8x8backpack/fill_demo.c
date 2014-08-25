@@ -23,7 +23,9 @@ int fill_demo(int i2c_fd) {
 				/* write out to hardware */
 				display_buffer[y]<<=1;
 				display_buffer[y]+=1;
-				update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS0,display_buffer,0);
+				update_8x8_display_rotated(i2c_fd,
+					HT16K33_ADDRESS0,display_buffer,
+					0,BROKEN,GREEN_PLANE);
 			}
 		}
 		usleep(500000);

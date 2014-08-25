@@ -324,7 +324,8 @@ int main(int argc, char **argv) {
 			}
 		}
 
-		update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS0,display_buffer,0);
+		update_8x8_display_rotated(i2c_fd,HT16K33_ADDRESS0,
+			display_buffer,0,BROKEN,GREEN_PLANE);
 
 		x_scroll+=scroll_dir;
 		if ((x_scroll>13) || (x_scroll<1)) {

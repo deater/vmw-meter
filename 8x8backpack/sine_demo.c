@@ -64,7 +64,8 @@ int sine_demo(int i2c_fd, int device_num) {
 		}
 	}
 
-	update_8x8_display_rotated(i2c_fd,device_num,display_buffer,0);
+	update_8x8_display_rotated(i2c_fd,device_num,display_buffer,
+		0,BROKEN,GREEN_PLANE);
 
 	dx[device_num]+=dxscroll;
 

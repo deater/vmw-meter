@@ -61,7 +61,8 @@ void reset_display(unsigned short *display_state) {
 
 int update_8x8_display_rotated(int i2c_fd, int i2c_addr,
 				unsigned char *display_state,
-				int degrees) {
+				int degrees, int bug_workaround,
+				int plane) {
 
 	unsigned char buffer[17];
 
@@ -122,21 +123,27 @@ int update_8x8_display_rotated(int i2c_fd, int i2c_addr,
 	/* Verify that somehow the python code is outputting like this */
 	/* Fix bits mirrored error */
 
-	for(i=0;i<8;i++) {
-		unsigned char temp;
+	if (bug_workaround==BROKEN) {
+		for(i=0;i<8;i++) {
+			unsigned char temp;
 
-		/* reverse bits */
-		temp = (rotated_display[i]&0x55)<<1 |
-			(rotated_display[i]&0xaa)>>1;
-		temp=(temp&0x33) << 2 |
-			(temp&0xcc) >> 2;
-		temp = (temp&0x0f) << 4 |
-			(temp&0xF0) >> 4;
+			/* reverse bits */
+			temp = (rotated_display[i]&0x55)<<1 |
+				(rotated_display[i]&0xaa)>>1;
+			temp=(temp&0x33) << 2 |
+				(temp&0xcc) >> 2;
+			temp = (temp&0x0f) << 4 |
+				(temp&0xF0) >> 4;
 
-		/* rotate right by 1 */
-		buffer[(i*2)+1]=(temp>>1) | ((temp&0x1)<<7);
+			/* rotate right by 1 */
+			buffer[(i*2)+1]=(temp>>1) | ((temp&0x1)<<7);
+		}
+	} else {
+		for(i=0;i<8;i++) {
+			if (!plane) buffer[(i*2)+1]=rotated_display[i];
+			else buffer[(i*2)+2]=rotated_display[i];
+		}
 	}
-
 
 	if ( (write(i2c_fd, buffer, 17)) !=17) {
 		fprintf(stderr,"Erorr writing display!\n");
@@ -322,14 +329,14 @@ int init_display(int i2c_fd, int i2c_addr, int brightness) {
 	/* Turn the oscillator on */
 	buffer[0]= HT16K33_REGISTER_SYSTEM_SETUP | 0x01;
 	if ( (write(i2c_fd, buffer, 1)) !=1) {
-		fprintf(stderr,"Error starting display!\n");
+		fprintf(stderr,"Error starting display (enable oscilator)!\n");
 		return -1;
 	}
 
 	/* Turn Display On, No Blink */
 	buffer[0]= HT16K33_REGISTER_DISPLAY_SETUP | HT16K33_BLINKRATE_OFF | 0x1;
 	if ( (write(i2c_fd, buffer, 1)) !=1) {
-		fprintf(stderr,"Error starting display!\n");
+		fprintf(stderr,"Error starting display (turning on)!\n");
 		return -1;
 	}
 
