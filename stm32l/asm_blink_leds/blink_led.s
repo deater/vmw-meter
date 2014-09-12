@@ -7,7 +7,7 @@
 .thumb
 
 
-.word	0x20008000	/* top of stack address */
+.word	0x20000800	/* top of stack address */
 .word	_start		/* reset vector*/
 .word	loop_forever	/* nmi vector */
 .word	loop_forever	/* hard fault vector */
