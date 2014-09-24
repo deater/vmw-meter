@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -O2
 LFLAGS =
 
-all:	gumstix_gpio rpi_gpio_blink rpi_gpio_input
+all:	gumstix_gpio rpi_gpio_blink rpi_gpio_input rpi_gpio_input_int
 
 gpio_lib.o:	gpio_lib.c gpio_lib.h
 	$(CC) $(CFLAGS) -c gpio_lib.c
@@ -30,7 +30,13 @@ rpi_gpio_input.o:	rpi_gpio_input.c
 	$(CC) $(CFLAGS) -c rpi_gpio_input.c
 
 
-clean:	
-	rm -f *~ *.o gumstix_gpio rpi_gpio_blink rpi_gpio_input
+rpi_gpio_input_int:	rpi_gpio_input_int.o gpio_lib.o
+	$(CC) $(LFLAGS) -o rpi_gpio_input_int rpi_gpio_input_int.o gpio_lib.o
 
+rpi_gpio_input_int.o:	rpi_gpio_input_int.c
+	$(CC) $(CFLAGS) -c rpi_gpio_input_int.c
+
+
+clean:	
+	rm -f *~ *.o gumstix_gpio rpi_gpio_blink rpi_gpio_input rpi_gpio_input_int
 

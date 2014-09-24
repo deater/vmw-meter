@@ -95,7 +95,7 @@ int gpio_write(int gpio, int value) {
 		fprintf(stderr,"\tError setting value!\n");
 		return -1;
 	}
-//	fprintf(fff,"%d\n",value);
+	fprintf(fff,"%d\n",value);
 	fclose(fff);
 
 	return 0;
