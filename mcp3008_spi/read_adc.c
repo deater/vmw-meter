@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
 			/* Ask for differential output */
 			/* High/Low */
 			data[1] = ((j & 0x7) << 5);
+			data[1]|=0x80;
 
 			/* Don't care, need 3 bytes before response */
 			data[2] = 0;
