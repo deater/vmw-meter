@@ -1,0 +1,28 @@
+CC = gcc
+CFLAGS = -Wall -O2 -g -I../lib
+LFLAGS =
+
+all:	tmp006
+
+../lib/i2c_lib.o:	../lib/i2c_lib.c ../lib/i2c_lib.h
+	cd ../lib && make
+
+../lib/graphics_lib.o:	../lib/i2c_lib.c ../lib/graphics_lib.h
+	cd ../lib && make
+
+####
+
+tmp006:	tmp006.o ../lib/i2c_lib.o ../lib/graphics_lib.o
+	$(CC) $(LFLASG) -o tmp006 tmp006.o \
+			../lib/i2c_lib.o ../lib/graphics_lib.o -lm
+
+tmp006.o:	tmp006.c ../lib/i2c_lib.h ../lib/graphics_lib.h
+	$(CC) $(CFLAGS) -c tmp006.c
+
+
+####
+
+clean:	
+	rm -f *~ *.o \
+		tmp006 
+
