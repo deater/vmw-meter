@@ -1,0 +1,8 @@
+Was trying to read 3 1-wire sensors at once.
+
+If you try to put them in "parasite" mode it won't work on a Pi,
+always returns 85 degrees.
+
+Had to put them in powered mode.
+
+
