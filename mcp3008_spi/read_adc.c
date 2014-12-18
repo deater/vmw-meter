@@ -4,7 +4,7 @@
 
 #include <linux/spi/spidev.h>
 
-#include "mcp3008_spi.h"
+#include "spi_lib.h"
 
 int main(int argc, char **argv) {
 

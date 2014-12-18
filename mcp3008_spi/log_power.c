@@ -6,7 +6,7 @@
 
 #include <linux/spi/spidev.h>
 
-#include "mcp3008_spi.h"
+#include "spi_lib.h"
 
 #define SPEED 1000000
 
