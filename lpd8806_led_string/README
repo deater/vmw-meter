@@ -1,0 +1,6 @@
+This is code for driving an LPD8806 32 LED (1m) LED strip.
+
+https://www.adafruit.com/product/306
+
+The code assumes you are driving it over SPI from a Raspberry Pi.
+
