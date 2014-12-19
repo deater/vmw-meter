@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -O2 -Wall -I../lib
 LFLASG =
 
-all:	led_test led_scanner
+all:	led_test led_scanner red_green
 
 ../lib/spi_lib.o:	../lib/spi_lib.c
 	cd ../lib && make
@@ -26,6 +26,15 @@ led_test.o:	led_test.c
 
 ####
 
+red_green:	red_green.o ../lib/spi_lib.o
+	$(CC) $(LFLAGS) -o red_green red_green.o ../lib/spi_lib.o
+
+red_green.o:	red_green.c
+	$(CC) $(CFLAGS) -c red_green.c
+
+
+####
+
 clean:	
-	rm -f *.o *~ led_test led_scanner
+	rm -f *.o *~ led_test led_scanner red_green
 
