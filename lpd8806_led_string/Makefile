@@ -2,10 +2,38 @@ CC = gcc
 CFLAGS = -O2 -Wall -I../lib
 LFLASG =
 
-all:	led_test led_scanner red_green rainbow
+all:	blue_yellow disable dual_scanner \
+	led_test led_scanner pulsar random red_green rainbow
 
 ../lib/spi_lib.o:	../lib/spi_lib.c
 	cd ../lib && make
+
+####
+
+blue_yellow:	blue_yellow.o ../lib/spi_lib.o
+	$(CC) $(LFLAGS) -o blue_yellow blue_yellow.o ../lib/spi_lib.o
+
+blue_yellow.o:	blue_yellow.c
+	$(CC) $(CFLAGS) -c blue_yellow.c
+
+
+####
+
+disable:	disable.o ../lib/spi_lib.o
+	$(CC) $(LFLAGS) -o disable disable.o ../lib/spi_lib.o
+
+disable.o:	disable.c
+	$(CC) $(CFLAGS) -c disable.c
+
+
+####
+
+dual_scanner:	dual_scanner.o ../lib/spi_lib.o
+	$(CC) $(LFLAGS) -o dual_scanner dual_scanner.o ../lib/spi_lib.o
+
+dual_scanner.o:	dual_scanner.c
+	$(CC) $(CFLAGS) -c dual_scanner.c
+
 
 ####
 
@@ -22,6 +50,24 @@ led_test:	led_test.o ../lib/spi_lib.o
 
 led_test.o:	led_test.c
 	$(CC) $(CFLAGS) -c led_test.c
+
+
+####
+
+pulsar:	pulsar.o ../lib/spi_lib.o
+	$(CC) $(LFLAGS) -o pulsar pulsar.o ../lib/spi_lib.o -lm
+
+pulsar.o:	pulsar.c
+	$(CC) $(CFLAGS) -c pulsar.c
+
+
+####
+
+random:	random.o ../lib/spi_lib.o
+	$(CC) $(LFLAGS) -o random random.o ../lib/spi_lib.o 
+
+random.o:	random.c
+	$(CC) $(CFLAGS) -c random.c
 
 
 ####
@@ -45,5 +91,6 @@ red_green.o:	red_green.c
 ####
 
 clean:	
-	rm -f *.o *~ led_test led_scanner rainbow red_green
+	rm -f *.o *~ blue_yellow disable dual_scanner \
+		led_test led_scanner pulsar rainbow random red_green
 
