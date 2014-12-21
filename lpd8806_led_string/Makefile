@@ -2,11 +2,21 @@ CC = gcc
 CFLAGS = -O2 -Wall -I../lib
 LFLASG =
 
-all:	blue_yellow disable dual_scanner \
+all:	bargraph blue_yellow disable dual_scanner fish \
 	led_test led_scanner pulsar random red_green rainbow
 
 ../lib/spi_lib.o:	../lib/spi_lib.c
 	cd ../lib && make
+
+
+####
+
+bargraph:	bargraph.o ../lib/spi_lib.o
+	$(CC) $(LFLAGS) -o bargraph bargraph.o ../lib/spi_lib.o -lm
+
+bargraph.o:	bargraph.c
+	$(CC) $(CFLAGS) -c bargraph.c
+
 
 ####
 
@@ -33,6 +43,15 @@ dual_scanner:	dual_scanner.o ../lib/spi_lib.o
 
 dual_scanner.o:	dual_scanner.c
 	$(CC) $(CFLAGS) -c dual_scanner.c
+
+
+####
+
+fish:	fish.o ../lib/spi_lib.o
+	$(CC) $(LFLAGS) -o fish fish.o ../lib/spi_lib.o
+
+fish.o:	fish.c
+	$(CC) $(CFLAGS) -c fish.c
 
 
 ####
@@ -91,6 +110,6 @@ red_green.o:	red_green.c
 ####
 
 clean:	
-	rm -f *.o *~ blue_yellow disable dual_scanner \
+	rm -f *.o *~ bargraph blue_yellow disable dual_scanner fish \
 		led_test led_scanner pulsar rainbow random red_green
 
