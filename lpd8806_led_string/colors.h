@@ -22,3 +22,6 @@ struct color_type {
 extern struct color_type colors[MAX_COLORS];
 
 int get_color(char *name,int *r,int *g,int *b);
+
+int get_random_color_noblack(void);
+

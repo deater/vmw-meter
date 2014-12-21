@@ -8,7 +8,6 @@
 
 #include "colors.h"
 
-
 int main(int argc, char **argv) {
 
 	int spi_fd,i;
@@ -39,7 +38,8 @@ int main(int argc, char **argv) {
 	int location=0,direction=1;
 	int c=0;
 
-	c=random()%MAX_COLORS;
+	/* avoid black */
+	c=get_random_color_noblack();
 
 	while(1) {
 
@@ -51,12 +51,12 @@ int main(int argc, char **argv) {
 		location+=direction;
 		if (location>31) {
 			direction=-1;
-			c=random()%MAX_COLORS;
+			c=get_random_color_noblack();
 		}
 
 		if (location<1) {
 			direction=1;
-			c=random()%MAX_COLORS;
+			c=get_random_color_noblack();
 		}
 
 		for(i=0;i<32;i++) {

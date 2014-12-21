@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "colors.h"
 
@@ -49,3 +50,8 @@ int get_color(char *name,int *r,int *g,int *b) {
 
 	return 0;
 }
+
+int get_random_color_noblack(void) {
+	return (random()%(MAX_COLORS-1))+1;
+}
+
