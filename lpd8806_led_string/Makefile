@@ -8,6 +8,8 @@ all:	bargraph blue_yellow disable dual_scanner fish \
 ../lib/spi_lib.o:	../lib/spi_lib.c
 	cd ../lib && make
 
+colors.o:	colors.c colors.h
+	$(CC) $(CFLAGS) -c colors.c
 
 ####
 
@@ -47,19 +49,19 @@ dual_scanner.o:	dual_scanner.c
 
 ####
 
-fish:	fish.o ../lib/spi_lib.o
-	$(CC) $(LFLAGS) -o fish fish.o ../lib/spi_lib.o
+fish:	fish.o ../lib/spi_lib.o colors.o
+	$(CC) $(LFLAGS) -o fish fish.o ../lib/spi_lib.o colors.o
 
-fish.o:	fish.c
+fish.o:	fish.c colors.h
 	$(CC) $(CFLAGS) -c fish.c
 
 
 ####
 
-led_scanner:	led_scanner.o ../lib/spi_lib.o
-	$(CC) $(LFLAGS) -o led_scanner led_scanner.o ../lib/spi_lib.o
+led_scanner:	led_scanner.o ../lib/spi_lib.o colors.o
+	$(CC) $(LFLAGS) -o led_scanner led_scanner.o ../lib/spi_lib.o colors.o
 
-led_scanner.o:	led_scanner.c
+led_scanner.o:	led_scanner.c colors.h
 	$(CC) $(CFLAGS) -c led_scanner.c
 
 ####

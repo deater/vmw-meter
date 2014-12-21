@@ -7,22 +7,18 @@
 #define COLOR_BLUE	6
 #define COLOR_INDIGO	7
 #define COLOR_VIOLET	8
+#define COLOR_CYAN	9
 
-#define MAX_COLORS 9
+#define MAX_COLORS 10
+
+extern char color_names[MAX_COLORS][15];
 
 struct color_type {
 	int r;
 	int g;
 	int b;
-} colors[MAX_COLORS] = {
-	{0,0,0},	/* black */
-	{63,63,63},	/* white */
-	{63,0,0},	/* red */
-	{63,25,0},	/* orange */
-	{63,63,0},	/* yellow */
-	{0,63,0},	/* green */
-	{0,0,63},	/* blue */
-	{19,0,32},	/* indigo */
-	{25,0,25},	/* violet */
-
 };
+
+extern struct color_type colors[MAX_COLORS];
+
+int get_color(char *name,int *r,int *g,int *b);

@@ -10,7 +10,7 @@
 
 int main(int argc, char **argv) {
 
-	int spi_fd,i,j;
+	int spi_fd,i;
 	unsigned char zeros[128],data[128];
 	int result;
 
