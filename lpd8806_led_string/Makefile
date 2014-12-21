@@ -14,10 +14,10 @@ colors.o:	colors.c colors.h
 
 ####
 
-bargraph:	bargraph.o ../lib/spi_lib.o
-	$(CC) $(LFLAGS) -o bargraph bargraph.o ../lib/spi_lib.o -lm
+bargraph:	bargraph.o ../lib/spi_lib.o colors.o
+	$(CC) $(LFLAGS) -o bargraph bargraph.o ../lib/spi_lib.o colors.o -lm 
 
-bargraph.o:	bargraph.c
+bargraph.o:	bargraph.c colors.h
 	$(CC) $(CFLAGS) -c bargraph.c
 
 

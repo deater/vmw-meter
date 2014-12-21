@@ -17,6 +17,30 @@ int main(int argc, char **argv) {
 	unsigned char zeros[128],data[128];
 	int result;
 
+	int lr,lg,lb,rr,rg,rb;
+
+	/* color left */
+	if (argc>1) {
+                get_color(argv[1],&lr,&lg,&lb);
+        }
+        else {
+                lr=63;
+                lg=0;
+                lb=0;
+        }
+
+
+	/* color right */
+	if (argc>2) {
+                get_color(argv[2],&rr,&rg,&rb);
+        }
+        else {
+                rr=0;
+                rg=0;
+                rb=0;
+        }
+
+
 	spi_fd=spi_open("/dev/spidev0.0", SPI_MODE_0, 100000, 8);
 	if (spi_fd<0) {
 		exit(-1);
@@ -51,12 +75,14 @@ int main(int argc, char **argv) {
 
 		for(i=0;i<32;i++) {
 			if (i<bar) {
-				data[(i*3)+1]=128+64;
+				data[(i*3)+0]=128+lg;
+				data[(i*3)+1]=128+lr;
+				data[(i*3)+2]=128+lb;
 			} else {
-				data[(i*3)+1]=128;
+				data[(i*3)+0]=128+rg;
+				data[(i*3)+1]=128+rr;
+				data[(i*3)+2]=128+rb;
 			}
-			data[(i*3)+0]=128;
-			data[(i*3)+2]=128;
 		}
 
 		for(i=0;i<128;i++) {
