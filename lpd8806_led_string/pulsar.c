@@ -4,6 +4,10 @@
 
 #include <math.h>
 
+#include "colors.h"
+
+
+
 #include <linux/spi/spidev.h>
 
 #include "spi_lib.h"
@@ -15,6 +19,19 @@ int main(int argc, char **argv) {
 	int spi_fd,i;
 	unsigned char zeros[128],data[128];
 	int result;
+
+	int r,g,b;
+
+        /* color left */
+        if (argc>1) {
+                get_color(argv[1],&r,&g,&b);
+        }
+        else {
+                r=63;
+                g=0;
+                b=63;
+        }
+
 
 	/* Open the SPI device */
 
@@ -51,13 +68,13 @@ int main(int argc, char **argv) {
 //		printf("***");
 		for(i=0;i<32;i++) {
 			x=sin((f+QUANTUM*(double)i))+1.0;
-			x*=32;
+//			x*=32;
 
 //			printf("%d ",(int)x);
 
-			data[(i*3)]=128;
-			data[(i*3)+1]=128+(int)x;//132+(int)x;
-			data[(i*3)+2]=128+(int)x;
+			data[(i*3)]=128+g*x;
+			data[(i*3)+1]=128+r*x;
+			data[(i*3)+2]=128+b*x;
 		}
 //		printf("\n");
 

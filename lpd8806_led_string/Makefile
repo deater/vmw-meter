@@ -4,7 +4,7 @@ LFLASG =
 
 all:	bargraph blinky_scanner blue_yellow disable dual_scanner fish \
 	led_test led_scanner pulsar random red_green rainbow \
-	random_scanner
+	random_scanner stars
 
 ../lib/spi_lib.o:	../lib/spi_lib.c
 	cd ../lib && make
@@ -86,10 +86,10 @@ led_test.o:	led_test.c
 
 ####
 
-pulsar:	pulsar.o ../lib/spi_lib.o
-	$(CC) $(LFLAGS) -o pulsar pulsar.o ../lib/spi_lib.o -lm
+pulsar:	pulsar.o ../lib/spi_lib.o ./colors.o
+	$(CC) $(LFLAGS) -o pulsar pulsar.o ../lib/spi_lib.o ./colors.o -lm
 
-pulsar.o:	pulsar.c
+pulsar.o:	pulsar.c colors.h
 	$(CC) $(CFLAGS) -c pulsar.c
 
 
@@ -130,8 +130,17 @@ red_green.o:	red_green.c
 
 ####
 
+stars:	stars.o ../lib/spi_lib.o
+	$(CC) $(LFLAGS) -o stars stars.o ../lib/spi_lib.o
+
+stars.o:	stars.c
+	$(CC) $(CFLAGS) -c stars.c
+
+
+####
+
 clean:	
 	rm -f *.o *~ bargraph blinky_scanner blue_yellow disable dual_scanner fish \
 		led_test led_scanner pulsar rainbow random red_green \
-		random_scanner
+		random_scanner stars
 
