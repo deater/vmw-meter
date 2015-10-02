@@ -302,6 +302,11 @@ static void handle_keypad(long long keypad_in) {
 	which_key=decode_key(keypad_in);
 	printf("Keypad: %d %d\n",keypresses,which_key);
 
+	if (which_key<0) {
+		printf("Invalid key!\n");
+		return;
+	}
+
 	/* reset time if * pressed */
 	if (which_key==KEY_STAR) {
 		current_time=time(NULL);
