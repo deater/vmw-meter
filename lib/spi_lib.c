@@ -84,22 +84,21 @@ int spi_close(int spi_fd) {
 int spi_writeread(int spi_fd, unsigned char *data, int length,
 		int freq, int bitsperword ) {
 
-	struct spi_ioc_transfer spi[length];
-	int i = 0;
+	struct spi_ioc_transfer spi;
 	int result = -1;
 
-	/* one spi transfer for each byte */
-	for(i=0; i<length; i++) {
-		spi[i].tx_buf	= (unsigned long)(data + i);
-		spi[i].rx_buf	= (unsigned long)(data + i);
-		spi[i].len		= 1;	/* 1 byte */
-		spi[i].delay_usecs	= 0 ;
-		spi[i].speed_hz		= freq ;
-		spi[i].bits_per_word	= bitsperword ;
-		spi[i].cs_change	= 0;
-	}
+	/* Be sure to clear out padding, kernel wants all zeros */
+	memset(&spi,0,sizeof(struct spi_ioc_transfer));
 
-	result = ioctl(spi_fd, SPI_IOC_MESSAGE(length), &spi) ;
+	spi.tx_buf	= (unsigned long)(data);
+	spi.rx_buf	= (unsigned long)(data);
+	spi.len		= length;	/* 1 byte */
+	spi.delay_usecs	= 0 ;
+	spi.speed_hz		= freq ;
+	spi.bits_per_word	= bitsperword ;
+	spi.cs_change	= 0;
+
+	result = ioctl(spi_fd, SPI_IOC_MESSAGE(1), &spi) ;
 
 	if (result < 0){
 		fprintf(stderr,"Error sending SPI data: %s\n",strerror(errno));
