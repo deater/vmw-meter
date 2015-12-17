@@ -1,0 +1,7 @@
+Code for testing a PS/2 keyboard to GPIO adapter.
+
+See the website:
+	http://www.deater.net/weave/vmwprod/hardware/pi-ps2/
+
+the hardware directory contains the files for making the board.
+
