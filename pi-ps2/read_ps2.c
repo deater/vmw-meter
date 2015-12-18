@@ -10,26 +10,34 @@
 #include <string.h>
 #include <errno.h>
 
-int main(int argc, char **argv) {
+	/* Exports a GPIO */
+int export_gpio(int which) {
 
 	int fd;
-	int old_state=0;
-	int state,new_state;
-	char value;
-	int state_history;
+	char buffer[BUFSIZ];
 
-	/* Export the GPIO */
 	fd=open("/sys/class/gpio/export",O_WRONLY);
 	if (fd<0) {
 		printf("Error opening %s\n",strerror(errno));
 	}
 	else {
-		write(fd,"23",2);
+		sprintf(buffer,"%d",which);
+		write(fd,buffer,strlen(buffer));
 		close(fd);
 	}
 
+	return 0;
+}
+
+int set_input(int which) {
+
+	int fd;
+	char filename[BUFSIZ];
+
+	sprintf(filename,"/sys/class/gpio/gpio%d/direction",which);
+
 	/* Set direction to input */
-	fd=open("/sys/class/gpio/gpio23/direction",O_WRONLY);
+	fd=open(filename,O_WRONLY);
 	if (fd<0) {
 		printf("Error direction %s\n",strerror(errno));
 	}
@@ -38,44 +46,57 @@ int main(int argc, char **argv) {
 		close(fd);
 	}
 
+	return 0;
+}
+
+int open_gpio(int which) {
+
+	int fd;
+	char filename[BUFSIZ];
+
+	sprintf(filename,"/sys/class/gpio/gpio%d/value",which);
+
         /* Read switch */
-        fd=open("/sys/class/gpio/gpio23/value",O_RDONLY);
+        fd=open(filename,O_RDONLY);
         if (fd<0) {
 		printf("Error reading %s\n",strerror(errno));
 	}
+	return fd;
 
-	state_history=0;
+}
+
+int main(int argc, char **argv) {
+
+	int clk_fd,data_fd;
+	char value;
+
+
+	export_gpio(23);
+	export_gpio(24);
+
+	set_input(23);
+	set_input(24);
+
+	clk_fd=open_gpio(23);
+	data_fd=open_gpio(24);
 
 	while(1) {
 
-		read(fd,&value,1);
-		lseek ( fd ,0 , SEEK_SET );
+		read(clk_fd,&value,1);
+		lseek ( clk_fd ,0 , SEEK_SET );
 
-		state=value-'0';
+		if (value=='1') continue;
 
-		state_history<<=1;
-		state_history|=state;
+		read(data_fd,&value,1);
+		lseek ( data_fd ,0 , SEEK_SET );
+		printf("%c\n",value);
 
-		if ((state_history&0xf)==0) {
-			new_state=0;
-
-			if (new_state!=old_state) {
-				printf("Switch up!\n");
-			}
-			old_state=new_state;
+		while(1) {
+			read(clk_fd,&value,1);
+			lseek ( clk_fd ,0 , SEEK_SET );
+			if (value=='1') break;
 		}
 
-
-		if ( (state_history&0xf)==0xf) {
-			new_state=1;
-
-			if (new_state!=old_state) {
-				printf("Switch down!\n");
-			}
-			old_state=new_state;
-		}
-
-		usleep(10000);
 	}
 
 
