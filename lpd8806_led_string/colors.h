@@ -8,8 +8,11 @@
 #define COLOR_INDIGO	7
 #define COLOR_VIOLET	8
 #define COLOR_CYAN	9
+#define COLOR_PURPLE	10
+#define COLOR_PINK	11
+#define COLOR_LIMEGREEN	12
 
-#define MAX_COLORS 10
+#define MAX_COLORS 13
 
 extern char color_names[MAX_COLORS][15];
 

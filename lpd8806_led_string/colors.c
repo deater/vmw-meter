@@ -14,6 +14,9 @@ char color_names[MAX_COLORS][15] = {
 	{"indigo"},
 	{"violet"},
 	{"cyan"},
+	{"purple"},
+	{"pink"},
+	{"limegreen"},
 };
 
 struct color_type colors[MAX_COLORS] = {
@@ -27,7 +30,9 @@ struct color_type colors[MAX_COLORS] = {
 	{19,0,32},	/* indigo */
 	{25,0,25},	/* violet */
 	{0,63,63},	/* cyan */
-
+	{38,0,38},	/* purple */
+	{63,10,40},	/* pink */
+	{25,30,12},	/* limegreen */
 };
 
 
@@ -47,6 +52,10 @@ int get_color(char *name,int *r,int *g,int *b) {
 			return 0;
 		}
 	}
+	*r=10;
+	*g=10;
+	*b=10;
+	printf("Unknown color %s\n",name);
 
 	return 0;
 }
