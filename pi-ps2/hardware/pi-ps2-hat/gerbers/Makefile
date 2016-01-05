@@ -1,48 +1,48 @@
-all:	powerconverter_routed.zip
+all:	pi-ps2.zip
 
-powerconverter_routed.zip:	\
-	powerconverter_routed.GTL \
-	powerconverter_routed.GBL \
-	powerconverter_routed.GTS \
-	powerconverter_routed.GBS \
-	powerconverter_routed.GTO \
-	powerconverter_routed.GBO \
-	powerconverter_routed.GKO \
-	powerconverter_routed.XLN
-	zip powerconverter_routed.zip \
-		powerconverter_routed.GTL \
-	        powerconverter_routed.GBL \
-		powerconverter_routed.GTS \
-		powerconverter_routed.GBS \
-		powerconverter_routed.GTO \
-		powerconverter_routed.GBO \
-		powerconverter_routed.GKO \
-		powerconverter_routed.XLN
+pi-ps2.zip:	\
+	pi-ps2.GTL \
+	pi-ps2.GBL \
+	pi-ps2.GTS \
+	pi-ps2.GBS \
+	pi-ps2.GTO \
+	pi-ps2.GBO \
+	pi-ps2.GKO \
+	pi-ps2.XLN
+	zip pi-ps2.zip \
+		pi-ps2.GTL \
+	        pi-ps2.GBL \
+		pi-ps2.GTS \
+		pi-ps2.GBS \
+		pi-ps2.GTO \
+		pi-ps2.GBO \
+		pi-ps2.GKO \
+		pi-ps2.XLN
 
 
-powerconverter_routed.GTL:	powerconverter_routed.top.gbr
-	cp powerconverter_routed.top.gbr powerconverter_routed.GTL
+pi-ps2.GTL:	pi-ps2.top.gbr
+	cp pi-ps2.top.gbr pi-ps2.GTL
 
-powerconverter_routed.GBL:	powerconverter_routed.bottom.gbr
-	cp powerconverter_routed.bottom.gbr powerconverter_routed.GBL
+pi-ps2.GBL:	pi-ps2.bottom.gbr
+	cp pi-ps2.bottom.gbr pi-ps2.GBL
 
-powerconverter_routed.GTS:	powerconverter_routed.topmask.gbr
-	cp powerconverter_routed.topmask.gbr powerconverter_routed.GTS
+pi-ps2.GTS:	pi-ps2.topmask.gbr
+	cp pi-ps2.topmask.gbr pi-ps2.GTS
 
-powerconverter_routed.GBS:	powerconverter_routed.bottommask.gbr
-	cp powerconverter_routed.bottommask.gbr powerconverter_routed.GBS
+pi-ps2.GBS:	pi-ps2.bottommask.gbr
+	cp pi-ps2.bottommask.gbr pi-ps2.GBS
 
-powerconverter_routed.GTO:	powerconverter_routed.topsilk.gbr
-	cp powerconverter_routed.topsilk.gbr powerconverter_routed.GTO
+pi-ps2.GTO:	pi-ps2.topsilk.gbr
+	cp pi-ps2.topsilk.gbr pi-ps2.GTO
 
-powerconverter_routed.GBO:	powerconverter_routed.bottomsilk.gbr
-	cp powerconverter_routed.bottomsilk.gbr powerconverter_routed.GBO
+pi-ps2.GBO:	pi-ps2.bottomsilk.gbr
+	cp pi-ps2.bottomsilk.gbr pi-ps2.GBO
 
-powerconverter_routed.GKO:	powerconverter_routed.outline.gbr
-	cp powerconverter_routed.outline.gbr powerconverter_routed.GKO
+pi-ps2.GKO:	pi-ps2.outline.gbr
+	cp pi-ps2.outline.gbr pi-ps2.GKO
 
-powerconverter_routed.XLN:	powerconverter_routed.combined.cnc
-	cp powerconverter_routed.combined.cnc powerconverter_routed.XLN
+pi-ps2.XLN:	pi-ps2.plated-drill.cnc
+	cp pi-ps2.plated-drill.cnc pi-ps2.XLN
 
 
 clean:	
