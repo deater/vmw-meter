@@ -1,0 +1,23 @@
+Note, for most items you have to buy in bulk to get the shown
+price.  Prices shown are the unit prices assuming you are making
+a run of 12 boards, it will cost slightly more otherwise.
+Prices are what they were approximately in January 2016.
+
+		part#		Vendor		Quant	unit	Total
+
+PCB		vmw-pi-ps2	OSHPark		1	$2.80	$2.80
+resistors	4.7k 1/4W	various		2	$0.10	$0.20
+Level Shifter	757		Adafruit	1	$3.56	$3.56
+DIN6 PS2 conn	5749265-1	Mouser		1	$1.87	$1.87
+USBA connector	UE27AC5410H	Mouser		1	$0.38	$0.38
+26-pin hat hdr	1112		Adafruit	1	$1.76	$1.76
+Jumper Block	119264		Jameco		2	$0.12	$0.24
+2-pin SIP hdr	2671		Adafruit	2	$0.03	$0.06
+								=====
+								$10.87
+
+
+
+
+
+
