@@ -1,11 +1,11 @@
 v 20130925 2
 B 0 600 2300 1300 3 0 0 0 -1 -1 0 -1 -1 -1 -1 -1
 T 5100 1100 9 10 0 0 0 0 1
-footprint=DIP-12-400
+footprint=DIP-28-700
 T 5100 1300 9 10 0 0 0 0 1
-description=bi-directional-level-shifter
+description=ht16k33 breakout
 T 5100 1500 9 10 0 0 0 0 1
-device=level-shifter
+device=ht16k33
 T 5100 1700 9 10 0 0 0 0 1
 dist-license=GPL
 T 5100 1900 9 10 0 0 0 0 1

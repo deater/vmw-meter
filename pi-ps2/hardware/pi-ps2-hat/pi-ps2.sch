@@ -1,0 +1,74 @@
+v 20130925 2
+C 40000 40000 0 0 0 title-B.sym
+C 41400 48000 1 0 0 levelshifter.sym
+{
+T 46500 49100 5 10 0 0 0 0 1
+footprint=DIP-12-400
+T 46500 49500 5 10 0 0 0 0 1
+device=levelshift
+T 42300 49000 5 10 1 1 0 0 1
+refdes=IC1
+}
+C 44200 49000 1 0 0 usba.sym
+{
+T 49500 49800 5 10 0 0 0 0 1
+footprint=USBA
+T 49500 50200 5 10 0 0 0 0 1
+device=usb-a connector
+T 47000 48700 5 10 1 1 0 3 1
+refdes=USB1
+}
+C 41800 47200 1 0 0 resistor-1.sym
+{
+T 42100 47600 5 10 0 0 0 0 1
+device=RESISTOR
+T 42000 47500 5 10 1 1 0 0 1
+refdes=R1
+T 53500 50300 5 10 1 1 0 0 1
+footprint=0.125W_Carbon_Resistor
+}
+C 41700 46200 1 0 0 resistor-1.sym
+{
+T 42000 46600 5 10 0 0 0 0 1
+device=RESISTOR
+T 41900 46500 5 10 1 1 0 0 1
+refdes=R2
+T 53500 50300 5 10 1 1 0 0 1
+footprint=0.125W_Carbon_Resistor
+}
+C 55100 41500 1 0 0 connector26-2.sym
+{
+T 55900 52500 5 10 1 1 0 6 1
+refdes=HDR1
+T 55500 52450 5 10 0 0 0 0 1
+device=CONNECTOR_26
+T 55500 52650 5 10 0 0 0 0 1
+footprint=HEADER26_2
+}
+C 50200 45000 1 0 0 connector2-1.sym
+{
+T 50400 46000 5 10 0 0 0 0 1
+device=CONNECTOR_2
+T 50200 45800 5 10 1 1 0 0 1
+refdes=JMPR1
+T 55500 52650 5 10 0 0 0 0 1
+footprint=JUMPER2
+}
+C 52000 48600 1 0 0 connector2-1.sym
+{
+T 52200 49600 5 10 0 0 0 0 1
+device=CONNECTOR_2
+T 52000 49400 5 10 1 1 0 0 1
+refdes=JMPR2
+T 55500 52650 5 10 0 0 0 0 1
+footprint=JUMPER2
+}
+C 44900 44600 1 0 0 connector6-1.sym
+{
+T 46700 46400 5 10 0 0 0 0 1
+device=CONNECTOR_6
+T 45000 46600 5 10 1 1 0 0 1
+refdes=PS2
+T 55500 52650 5 10 0 0 0 0 1
+footprint=DIN6
+}
