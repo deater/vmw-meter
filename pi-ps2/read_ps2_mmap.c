@@ -1,5 +1,5 @@
 /* Reads data from a PS/2 keyboard on a Raspberry Pi	*/
-/* connect GPIO23 (data) and GPIO24 (clk)		*/
+/* connect GPIO23 (clk) and GPIO24 (data)		*/
 
 /* By Vince Weaver <vincent.weaver _at_ maine.edu>	*/
 
