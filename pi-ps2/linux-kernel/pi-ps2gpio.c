@@ -91,51 +91,42 @@ irq_handler_t irq_handler(int irq, void *dev_id, struct pt_regs *regs) {
 
 	int clk_value;
 	int data_value;
-	int parity=0;
 
-	int clock_bits=0;
-	int message=0;
+	static int parity=0;
+	static int clock_bits=0;
+	static int message=0;
 
-	printk(KERN_INFO "Interrupt %d\n",irq);
+	/* Sanity check clock line is low? */
+//	clk_value=gpio_get_value(gpio_clk);
 
-	while(1) {
-		/* Normally high, so wait until low to read data */
-		clk_value=gpio_get_value(gpio_clk);
-		if (clk_value) continue;
+	/* read the data line */
+	clock_bits++;
+	data_value=gpio_get_value(gpio_data);
 
-		/* read the data line */
-		clock_bits++;
-		data_value=gpio_get_value(gpio_data);
+	/* Shift in backwards as protocol is LSB first */
+	parity+=data_value;
+	message|=(data_value<<11);
+	message>>=1;
 
-		/* Shift in backwards as protocol is LSB first */
-		parity+=data_value;
-		message|=(data_value<<11);
-		message>>=1;
-
-		if (clock_bits==11) {
-			break;
-		}
-
-		/* Busy wait for line to go high again */
-		/* FIXME: some sort of timeout to avoid hanging here forever */
-		while(1) {
-			clk_value=gpio_get_value(gpio_clk);
-			if (clk_value) break;
-		}
+	if (clock_bits!=11) {
+		return 0;
 	}
 
-	printk(KERN_INFO "key packet %x\n",message);
+	/* We received our 11 bits */
+	clock_bits=0;
 
-	if (message&0x1) printk(KERN_INFO "Invalid start bit\n");
-	if (message&0x400) printk(KERN_INFO "Invaid stop bit\n");
+	if (message&0x1) printk(KERN_INFO "Invalid start bit %x\n",message);
+	if (!(message&0x400)) printk(KERN_INFO "Invaid stop bit %x\n",message);
 
-	if ( ((message&0x200>>9)&0x1)!= (parity&0x1)) {
+	if ( ( ((message&0x200>>8)&0x1) + (parity&0x1) ) &0x1) {
 		printk(KERN_INFO "Parity error\n");
 	}
 
 	key = (message>>1) & 0xff;
 
-	printk(KERN_INFO "key: %x\n",key);
+//	printk(KERN_INFO "key: %x\n",key);
+
+	message=0;
 
 	if (key == 0xf0) {
 		keyup = 1;
