@@ -21,6 +21,7 @@
 #include <linux/interrupt.h>
 #include <linux/input.h>
 #include <linux/gpio.h>
+#include <linux/sched.h>
 
 static int irq_num;
 
@@ -92,22 +93,35 @@ irq_handler_t irq_handler(int irq, void *dev_id, struct pt_regs *regs) {
 	static int clock_bits=0;
 	static int message=0;
 
+	static unsigned long old_jiffies=0;
+
 	/* Sanity check clock line is low? */
 //	clk_value=gpio_get_value(gpio_clk);
 
-	/* read the data line */
+
+	if (old_jiffies==0) {
+		old_jiffies=jiffies;
+	}
+
+	/* If it's been too long since an interrupt, clear out the char */
+	/* This probably means we lost an interrupt somehow and got out */
+	/* of sync.							*/
+	/* We use HZ/100 (10ms) as the threedhold.			*/
+	if ((jiffies-old_jiffies) > HZ/100) {
+		clock_bits=0;
+		message=0;
+	}
+	old_jiffies=jiffies;
+
 	clock_bits++;
+
+	/* read the data line */
 	data_value=gpio_get_value(gpio_data);
 
 	/* Shift in backwards as protocol is LSB first */
 	parity+=data_value;
 	message|=(data_value<<11);
 	message>>=1;
-
-
-	/* FIXME: it's possible if an interrupt is missed we can get */
-	/* permanently out of sync.  Maybe record a timestamp and reset */
-	/* the bits count if it's been more than a few milliseconds? */
 
 	/* We haven't received 11 bits, so we're done for now */
 	if (clock_bits!=11) {
@@ -126,7 +140,7 @@ irq_handler_t irq_handler(int irq, void *dev_id, struct pt_regs *regs) {
 		printk(KERN_INFO "Invaid stop bit %x\n",message);
 	}
 	if ( ( ((message&0x200>>8)&0x1) + (parity&0x1) ) &0x1) {
-		printk(KERN_INFO "Parity error\n");
+		printk(KERN_INFO "Parity error %x %x\n",message,parity);
 	}
 
 	key = (message>>1) & 0xff;
