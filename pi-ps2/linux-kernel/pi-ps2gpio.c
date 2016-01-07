@@ -1,8 +1,9 @@
-/* pi-ps2gpio.c -- Linux kernel driver for ps2pi PS/2 keyboard/GPIO device
+/*
+ * pi-ps2gpio.c -- Linux kernel driver for ps2pi PS/2 keyboard/GPIO device
  *	by Vince Weaver <vincent.weaver _at_ maine.edu>
  *
  * This is mostly proof-of concept code, it needs a lot of work to
- * become a proper driver (and to reduce the latency).
+ * become a proper driver.
  *
  * Based on the ps2pi.c driver by the pi hacker
  *   https://sites.google.com/site/thepihacker
@@ -10,8 +11,6 @@
  * Other documentation that was a big help:
  *   GPIO in the kernel: an introduction by Jonathan Corbet
  *   https://lwn.net/Articles/532714/
- *
- *
  *
  *   This file is subject to the terms and conditions of the GNU General Public
  *   License. See the file COPYING in the Linux kernel source for more details.
@@ -21,9 +20,6 @@
 #include <linux/module.h>
 #include <linux/interrupt.h>
 #include <linux/input.h>
-#include <linux/io.h>
-#include <linux/delay.h>
-
 #include <linux/gpio.h>
 
 static int irq_num;
@@ -82,8 +78,8 @@ module_param(gpio_data,int,0);
 
 /* Handle GPIO interrupt, get keycode, send to event subsystem */
 
-/* Pretty horrible code, as our state machine is not re-entrant */
-/* and we busy-poll in the interrupt leading to potentially high latency */
+/* Pretty horrible code, not re-entrant although maybe that doesn't */
+/* matter as currently you can only have one device at a time       */
 
 irq_handler_t irq_handler(int irq, void *dev_id, struct pt_regs *regs) {
 
@@ -108,6 +104,12 @@ irq_handler_t irq_handler(int irq, void *dev_id, struct pt_regs *regs) {
 	message|=(data_value<<11);
 	message>>=1;
 
+
+	/* FIXME: it's possible if an interrupt is missed we can get */
+	/* permanently out of sync.  Maybe record a timestamp and reset */
+	/* the bits count if it's been more than a few milliseconds? */
+
+	/* We haven't received 11 bits, so we're done for now */
 	if (clock_bits!=11) {
 		return 0;
 	}
@@ -115,51 +117,57 @@ irq_handler_t irq_handler(int irq, void *dev_id, struct pt_regs *regs) {
 	/* We received our 11 bits */
 	clock_bits=0;
 
-	if (message&0x1) printk(KERN_INFO "Invalid start bit %x\n",message);
-	if (!(message&0x400)) printk(KERN_INFO "Invaid stop bit %x\n",message);
-
+	/* Validate our 11-bit packet */
+	/* FIXME: should do something useful (request resend?) if invalid */
+	if (message&0x1) {
+		printk(KERN_INFO "Invalid start bit %x\n",message);
+	}
+	if (!(message&0x400)) {
+		printk(KERN_INFO "Invaid stop bit %x\n",message);
+	}
 	if ( ( ((message&0x200>>8)&0x1) + (parity&0x1) ) &0x1) {
 		printk(KERN_INFO "Parity error\n");
 	}
 
 	key = (message>>1) & 0xff;
-
-//	printk(KERN_INFO "key: %x\n",key);
-
 	message=0;
 
+	/* Key-up events start with 0xf0 */
 	if (key == 0xf0) {
 		keyup = 1;
 		return 0;
 	}
 
+	/* Extended events start with 0xe0 */
 	if (key == 0xe0) {
 		escape = 1;
 		return 0;
 	}
 
+	/* Crazy pause key starts with 0xe1, has no keyup */
 	if (key == 0xe1) {
 		pause = 2;
 		return 0;
 	}
-
 	if (pause == 2) {
 		pause = 1;
 		return 0;
 	}
-
 	if (pause == 1) {
 		key = 0x88;
 		pause = 0;
 	}
 
+	/* Use high bit to indicate this is an extended escape keypress */
 	if (escape == 1) {
 		key |= 0x80;
 		escape = 0;
 	}
 
+	/* Translate using RAW set2 keymap */
 	key = translate[key];
 
+	/* Report the keypress to the input layer */
 	if (keyup == 1) {
 		input_report_key(ps2,key,0);
 		keyup = 0;
@@ -167,6 +175,7 @@ irq_handler_t irq_handler(int irq, void *dev_id, struct pt_regs *regs) {
 		input_report_key(ps2,key,1);
 	}
 
+	/* Sync things up */
 	input_sync(ps2);
 
 	return 0;
@@ -181,9 +190,7 @@ int init_module(void) {
 
 	int result;
 
-	/* Allocate GPIO23 and GPIO24 */
-	/* TODO: make this configurable */
-
+	/* Allocate data/clock, use GPIO23 and GPIO24 by default */
 	result=gpio_request(gpio_clk, "ps2_clock");
 	if (result<0) goto init_error;
 	result=gpio_request(gpio_data, "ps2_data");
@@ -205,6 +212,7 @@ int init_module(void) {
 	ps2->name = "pi-ps2gpio";
 	ps2->phys = "ps2/input0";
 	ps2->id.bustype = BUS_HOST;
+	/* Arbitrary values? */
 	ps2->id.vendor = 0x0001;
 	ps2->id.product = 0x0001;
 	ps2->id.version = 0x0100;
@@ -215,6 +223,7 @@ int init_module(void) {
 	for (i = 1; i < 0x256; i++) set_bit(i,ps2->keybit);
 	retval = input_register_device(ps2);
 
+	/* Request IRQ */
 	retval = request_irq(
 		irq_num,
 		(irq_handler_t)irq_handler,
@@ -234,6 +243,8 @@ int init_module(void) {
 init_error:
 
 	printk(KERN_INFO "pi-ps2gpio installation failed\n");
+
+	/* FIXME: lookup the proper error code for here */
 
 	return -ENODEV;
 
