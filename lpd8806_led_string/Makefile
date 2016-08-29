@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -O2 -Wall -I../lib
+CFLAGS = -O2 -Wall -I../include
 LFLASG =
 
 all:	bargraph blinky_scanner blue_yellow disable dual_scanner fish \

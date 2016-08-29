@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -O2 -Wall -I../lib
+CFLAGS = -O2 -Wall -I../include
 LFLASG =
 
 all:	compact_log dump_log read_adc calc_power log_power jgraph_log
