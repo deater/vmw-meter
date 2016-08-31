@@ -17,9 +17,10 @@ int main(int argc, char **argv) {
 	int fd;
 	unsigned char header[YM_HEADER_SIZE];
 	unsigned char frame[YM_FRAME_SIZE];
-	char filename[]="intro2.ym";
+	char filename[BUFSIZ]="intro2.ym";
 	int result;
-	char ym_magic[]="YM6!LeOnArD!";
+	char ym5_magic[]="YM5!LeOnArD!";
+	char ym6_magic[]="YM6!LeOnArD!";
 	int num_frames,song_attributes,num_digidrum,master_clock;
 	int frame_rate,loop_frame,extra_data;
 	int drum_size,i,j;
@@ -30,6 +31,10 @@ int main(int argc, char **argv) {
 	int pointer;
 	int interleaved=0;
 	off_t file_position;
+
+	if (argc>1) {
+		strcpy(filename,argv[1]);
+	}
 
 	fd=open(filename,O_RDONLY);
 	if (fd<1) {
@@ -44,7 +49,13 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
-	if (memcmp(header,ym_magic,12)) {
+	if (!memcmp(header,ym6_magic,12)) {
+		/* YM6 File */
+	}
+	else if (!memcmp(header,ym5_magic,12)) {
+		/* YM5 File */
+	}
+	else {
 		fprintf(stderr,"Error, not a ym6 file!\n");
 		if ((header[2]=='l') && (header[3]=='h')) {
 			fprintf(stderr,"Probably a LHC compressed ym, decompress before playing.\n");
@@ -164,18 +175,62 @@ int main(int argc, char **argv) {
 			}
 		}
 
-		int a_period,b_period,c_period;
+		int a_period,b_period,c_period,n_period,e_period;
+		double a_freq, b_freq, c_freq,n_freq,e_freq;
+		int new_a,new_b,new_c,new_n,new_e;
 
 		a_period=((frame[1]&0xf)<<8)|frame[0];
 		b_period=((frame[3]&0xf)<<8)|frame[2];
 		c_period=((frame[5]&0xf)<<8)|frame[4];
+		n_period=frame[6]&0x1f;
+		e_period=((frame[12]&0xf)<<8)|frame[11];
 
-		printf("%05d:\tAP:%04x BP:%04x CP:%04x %02x %02x ",
-			i,a_period,b_period,c_period,
-			frame[6],frame[7]);
-		printf("%02x %02x %02x %02x %02x %02x %02x %02x\n",
-			frame[8],frame[9],frame[10],frame[11],
-			frame[12],frame[13],frame[14],frame[15]);
+		a_freq=master_clock/(16.0*(double)a_period);
+		b_freq=master_clock/(16.0*(double)b_period);
+		c_freq=master_clock/(16.0*(double)c_period);
+		n_freq=master_clock/(16.0*(double)n_period);
+		e_freq=master_clock/(256.0*(double)e_period);
+
+		new_a=2000000.0/(16.0*a_freq);
+		new_b=2000000.0/(16.0*b_freq);
+		new_c=2000000.0/(16.0*c_freq);
+		new_n=2000000.0/(16.0*n_freq);
+		new_e=2000000.0/(256.0*e_freq);
+
+
+		printf("%05d:\tAP:%04x BP:%04x CP:%04x NP:%04x M:%04x ",
+			i,a_period,b_period,c_period,n_period,frame[7]);
+
+		printf("AA:%02x AB:%02x AC:%02x E:%04x,%02x %04x\n",
+			frame[8],frame[9],frame[10],
+			(frame[12]<<8)+frame[11],frame[13],
+			(frame[14]<<8)+frame[15]);
+
+		printf("\t%.1lf %.1lf %.1lf %.1lf %.1lf ",
+			a_freq,b_freq,c_freq,n_freq, e_freq);
+		printf("N:%c%c%c T:%c%c%c ",
+			(frame[7]&0x20)?' ':'C',
+			(frame[7]&0x10)?' ':'B',
+			(frame[7]&0x08)?' ':'A',
+			(frame[7]&0x04)?' ':'C',
+			(frame[7]&0x02)?' ':'B',
+			(frame[7]&0x01)?' ':'A');
+
+		if (frame[8]&0x10) printf("VA: E ");
+		else printf("VA: %d ",frame[8]&0xf);
+		if (frame[9]&0x10) printf("VB: E ");
+		else printf("VB: %d ",frame[9]&0xf);
+		if (frame[10]&0x10) printf("VC: E ");
+		else printf("VC: %d ",frame[10]&0xf);
+
+		if (frame[13]&0x1) printf("Hold");
+		if (frame[13]&0x2) printf("Alternate");
+		if (frame[13]&0x4) printf("Attack");
+		if (frame[13]&0x8) printf("Continue");
+
+		printf("\n");
+
+		printf("\t%04x %04x %04x %04x %04x\n",new_a,new_b,new_c,new_n,new_e);
 
 	}
 
