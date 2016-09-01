@@ -28,6 +28,8 @@
 #define DELAY_SHIFT	10
 #define DELAY_RESET	5000
 
+#define AY38190_CLOCK	2000000	/* 2MHz on our board */
+
 int initialize_ay_3_8910(void) {
 
 	printf("Initializing AY-3-8910\n");
@@ -326,11 +328,47 @@ int main(int argc, char **argv) {
 			}
 		}
 
+		/****************************************/
+		/* Write out the music			*/
+		/****************************************/
+
+		/* Scale if needed */
+		if (master_clock!=AY38190_CLOCK) {
+			int a_period,b_period,c_period,n_period,e_period;
+			double a_freq,b_freq,c_freq,n_freq,e_freq;
+			int new_a,new_b,new_c,new_n,new_e;
+
+			a_period=((frame[1]&0xf)<<8)|frame[0];
+			b_period=((frame[3]&0xf)<<8)|frame[2];
+			c_period=((frame[5]&0xf)<<8)|frame[4];
+			n_period=frame[6]&0x1f;
+			e_period=((frame[12]&0xff)<<8)|frame[11];
+
+			a_freq=master_clock/(16.0*(double)a_period);
+			b_freq=master_clock/(16.0*(double)b_period);
+			c_freq=master_clock/(16.0*(double)c_period);
+			n_freq=master_clock/(16.0*(double)n_period);
+			e_freq=master_clock/(256.0*(double)e_period);
+
+			new_a=(double)AY38190_CLOCK/(16.0*a_freq);
+			new_b=(double)AY38190_CLOCK/(16.0*b_freq);
+			new_c=(double)AY38190_CLOCK/(16.0*c_freq);
+			new_n=(double)AY38190_CLOCK/(16.0*n_freq);
+			new_e=(double)AY38190_CLOCK/(256.0*e_freq);
+
+			frame[0]=new_a&0xff;	frame[1]=new_a>>8;
+			frame[2]=new_b&0xff;	frame[3]=new_b>>8;
+			frame[4]=new_c&0xff;	frame[5]=new_c>>8;
+			frame[6]=new_n&0x1f;
+			frame[11]=new_e&0xff;	frame[12]=new_e>>8;
+
+		}
+
 		for(j=0;j<14;j++) {
 			ay_3_8910_write(j,frame[j]);
 		}
 
-		usleep(20000);	/* 50Hz roughly */
+		usleep(1000000/frame_rate);	/* often 50Hz */
 
 		if (i%100==0) printf("Done frame %d\n",i);
 	}

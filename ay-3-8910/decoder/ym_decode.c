@@ -157,14 +157,15 @@ int main(int argc, char **argv) {
 	printf("Comment: %s\n",comment);
 
 	file_position=lseek(fd,0,SEEK_CUR)-1;
+	printf("Frames start at %lx\n",file_position);
 
-	for(i=0;i<num_frames;i++) {
+	for(i=0;i<num_frames-16;i++) {
 		if (interleaved) {
 			file_position++;
 			lseek(fd,file_position,SEEK_SET);
 			for(j=0;j<16;j++) {
 				result=read(fd,&frame[j],1);
-				lseek(fd,num_frames,SEEK_CUR);
+				if (j!=15) lseek(fd,num_frames,SEEK_CUR);
 			}
 		}
 		else {
@@ -183,7 +184,7 @@ int main(int argc, char **argv) {
 		b_period=((frame[3]&0xf)<<8)|frame[2];
 		c_period=((frame[5]&0xf)<<8)|frame[4];
 		n_period=frame[6]&0x1f;
-		e_period=((frame[12]&0xf)<<8)|frame[11];
+		e_period=((frame[12]&0xff)<<8)|frame[11];
 
 		a_freq=master_clock/(16.0*(double)a_period);
 		b_freq=master_clock/(16.0*(double)b_period);
@@ -223,25 +224,33 @@ int main(int argc, char **argv) {
 		if (frame[10]&0x10) printf("VC: E ");
 		else printf("VC: %d ",frame[10]&0xf);
 
-		if (frame[13]&0x1) printf("Hold");
-		if (frame[13]&0x2) printf("Alternate");
-		if (frame[13]&0x4) printf("Attack");
-		if (frame[13]&0x8) printf("Continue");
-
+		if (frame[13]==0xff) {
+			printf("NOWRITE");
+		}
+		else {
+			if (frame[13]&0x1) printf("Hold");
+			if (frame[13]&0x2) printf("Alternate");
+			if (frame[13]&0x4) printf("Attack");
+			if (frame[13]&0x8) printf("Continue");
+		}
 		printf("\n");
 
 		printf("\t%04x %04x %04x %04x %04x\n",new_a,new_b,new_c,new_n,new_e);
 
 	}
 
+	file_position=lseek(fd,1,SEEK_CUR);
+	printf("End position=%lx\n",file_position);
+
 	result=read(fd,header,4);
+	header[4]=0;
 	if (result!=4) {
-		fprintf(stderr,"ERROR! Bad ending!\n");
+		fprintf(stderr,"ERROR! Bad ending %d!\n",result);
 		return -1;
 	}
 
-	if (memcpy(header,"End!",4)) {
-		fprintf(stderr,"ERROR! Bad ending!\n");
+	if (memcmp(header,"End!",4)) {
+		fprintf(stderr,"ERROR! Bad ending! %s\n",header);
 		return -1;
 	}
 
