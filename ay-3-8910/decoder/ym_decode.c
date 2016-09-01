@@ -12,6 +12,8 @@
 #define YM_FRAME_SIZE	16
 #define MAX_STRING	256
 
+#define AY38910_CLOCK   1000000 /* 2MHz on our board */
+
 int main(int argc, char **argv) {
 
 	int fd;
@@ -176,67 +178,69 @@ int main(int argc, char **argv) {
 			}
 		}
 
-		int a_period,b_period,c_period,n_period,e_period;
-		double a_freq, b_freq, c_freq,n_freq,e_freq;
-		int new_a,new_b,new_c,new_n,new_e;
+		/* Scale if needed */
+		if (master_clock!=AY38910_CLOCK) {
+			int a_period,b_period,c_period,n_period,e_period;
+			double a_freq, b_freq, c_freq,n_freq,e_freq;
+			int new_a,new_b,new_c,new_n,new_e;
 
-		a_period=((frame[1]&0xf)<<8)|frame[0];
-		b_period=((frame[3]&0xf)<<8)|frame[2];
-		c_period=((frame[5]&0xf)<<8)|frame[4];
-		n_period=frame[6]&0x1f;
-		e_period=((frame[12]&0xff)<<8)|frame[11];
+			a_period=((frame[1]&0xf)<<8)|frame[0];
+			b_period=((frame[3]&0xf)<<8)|frame[2];
+			c_period=((frame[5]&0xf)<<8)|frame[4];
+			n_period=frame[6]&0x1f;
+			e_period=((frame[12]&0xff)<<8)|frame[11];
 
-		a_freq=master_clock/(16.0*(double)a_period);
-		b_freq=master_clock/(16.0*(double)b_period);
-		c_freq=master_clock/(16.0*(double)c_period);
-		n_freq=master_clock/(16.0*(double)n_period);
-		e_freq=master_clock/(256.0*(double)e_period);
+			a_freq=master_clock/(16.0*(double)a_period);
+			b_freq=master_clock/(16.0*(double)b_period);
+			c_freq=master_clock/(16.0*(double)c_period);
+			n_freq=master_clock/(16.0*(double)n_period);
+			e_freq=master_clock/(256.0*(double)e_period);
 
-		new_a=2000000.0/(16.0*a_freq);
-		new_b=2000000.0/(16.0*b_freq);
-		new_c=2000000.0/(16.0*c_freq);
-		new_n=2000000.0/(16.0*n_freq);
-		new_e=2000000.0/(256.0*e_freq);
+			new_a=(double)AY38910_CLOCK/(16.0*a_freq);
+			new_b=(double)AY38910_CLOCK/(16.0*b_freq);
+			new_c=(double)AY38910_CLOCK/(16.0*c_freq);
+			new_n=(double)AY38910_CLOCK/(16.0*n_freq);
+			new_e=(double)AY38910_CLOCK/(256.0*e_freq);
 
 
-		printf("%05d:\tAP:%04x BP:%04x CP:%04x NP:%04x M:%04x ",
-			i,a_period,b_period,c_period,n_period,frame[7]);
+			printf("%05d:\tAP:%04x BP:%04x CP:%04x NP:%04x M:%04x ",
+				i,a_period,b_period,c_period,n_period,frame[7]);
 
-		printf("AA:%02x AB:%02x AC:%02x E:%04x,%02x %04x\n",
-			frame[8],frame[9],frame[10],
-			(frame[12]<<8)+frame[11],frame[13],
-			(frame[14]<<8)+frame[15]);
+			printf("AA:%02x AB:%02x AC:%02x E:%04x,%02x %04x\n",
+				frame[8],frame[9],frame[10],
+				(frame[12]<<8)+frame[11],frame[13],
+				(frame[14]<<8)+frame[15]);
 
-		printf("\t%.1lf %.1lf %.1lf %.1lf %.1lf ",
-			a_freq,b_freq,c_freq,n_freq, e_freq);
-		printf("N:%c%c%c T:%c%c%c ",
-			(frame[7]&0x20)?' ':'C',
-			(frame[7]&0x10)?' ':'B',
-			(frame[7]&0x08)?' ':'A',
-			(frame[7]&0x04)?' ':'C',
-			(frame[7]&0x02)?' ':'B',
-			(frame[7]&0x01)?' ':'A');
+			printf("\t%.1lf %.1lf %.1lf %.1lf %.1lf ",
+				a_freq,b_freq,c_freq,n_freq, e_freq);
+			printf("N:%c%c%c T:%c%c%c ",
+				(frame[7]&0x20)?' ':'C',
+				(frame[7]&0x10)?' ':'B',
+				(frame[7]&0x08)?' ':'A',
+				(frame[7]&0x04)?' ':'C',
+				(frame[7]&0x02)?' ':'B',
+				(frame[7]&0x01)?' ':'A');
 
-		if (frame[8]&0x10) printf("VA: E ");
-		else printf("VA: %d ",frame[8]&0xf);
-		if (frame[9]&0x10) printf("VB: E ");
-		else printf("VB: %d ",frame[9]&0xf);
-		if (frame[10]&0x10) printf("VC: E ");
-		else printf("VC: %d ",frame[10]&0xf);
+			if (frame[8]&0x10) printf("VA: E ");
+			else printf("VA: %d ",frame[8]&0xf);
+			if (frame[9]&0x10) printf("VB: E ");
+			else printf("VB: %d ",frame[9]&0xf);
+			if (frame[10]&0x10) printf("VC: E ");
+			else printf("VC: %d ",frame[10]&0xf);
 
-		if (frame[13]==0xff) {
-			printf("NOWRITE");
+			if (frame[13]==0xff) {
+				printf("NOWRITE");
+			}
+			else {
+				if (frame[13]&0x1) printf("Hold");
+				if (frame[13]&0x2) printf("Alternate");
+				if (frame[13]&0x4) printf("Attack");
+				if (frame[13]&0x8) printf("Continue");
+			}
+			printf("\n");
+
+			printf("\t%04x %04x %04x %04x %04x\n",new_a,new_b,new_c,new_n,new_e);
 		}
-		else {
-			if (frame[13]&0x1) printf("Hold");
-			if (frame[13]&0x2) printf("Alternate");
-			if (frame[13]&0x4) printf("Attack");
-			if (frame[13]&0x8) printf("Continue");
-		}
-		printf("\n");
-
-		printf("\t%04x %04x %04x %04x %04x\n",new_a,new_b,new_c,new_n,new_e);
-
 	}
 
 	file_position=lseek(fd,1,SEEK_CUR);
