@@ -23,12 +23,14 @@
 #define YM_FRAME_SIZE	16
 #define MAX_STRING	256
 
-#define DELAY_PAUSE	10
-#define DELAY_BETWEEN	10
-#define DELAY_SHIFT	10
+#define DELAY_PAUSE	5
+#define DELAY_BETWEEN	5
+#define DELAY_SHIFT	30
 #define DELAY_RESET	5000
 
-#define AY38190_CLOCK	2000000	/* 2MHz on our board */
+//#define AY38910_CLOCK	2000000	/* 2MHz on our board */
+
+#define AY38910_CLOCK	1000000	/* 2MHz on our board */
 
 int initialize_ay_3_8910(void) {
 
@@ -311,13 +313,13 @@ int main(int argc, char **argv) {
 
 	initialize_ay_3_8910();
 
-	for(i=0;i<num_frames;i++) {
+	for(i=0;i<num_frames-16;i++) {
 		if (interleaved) {
 			file_position++;
 			lseek(fd,file_position,SEEK_SET);
 			for(j=0;j<16;j++) {
 				result=read(fd,&frame[j],1);
-				lseek(fd,num_frames,SEEK_CUR);
+				if (j!=15) lseek(fd,num_frames,SEEK_CUR);
 			}
 		}
 		else {
@@ -333,7 +335,7 @@ int main(int argc, char **argv) {
 		/****************************************/
 
 		/* Scale if needed */
-		if (master_clock!=AY38190_CLOCK) {
+		if (master_clock!=AY38910_CLOCK) {
 			int a_period,b_period,c_period,n_period,e_period;
 			double a_freq,b_freq,c_freq,n_freq,e_freq;
 			int new_a,new_b,new_c,new_n,new_e;
@@ -350,11 +352,29 @@ int main(int argc, char **argv) {
 			n_freq=master_clock/(16.0*(double)n_period);
 			e_freq=master_clock/(256.0*(double)e_period);
 
-			new_a=(double)AY38190_CLOCK/(16.0*a_freq);
-			new_b=(double)AY38190_CLOCK/(16.0*b_freq);
-			new_c=(double)AY38190_CLOCK/(16.0*c_freq);
-			new_n=(double)AY38190_CLOCK/(16.0*n_freq);
-			new_e=(double)AY38190_CLOCK/(256.0*e_freq);
+			new_a=(double)AY38910_CLOCK/(16.0*a_freq);
+			new_b=(double)AY38910_CLOCK/(16.0*b_freq);
+			new_c=(double)AY38910_CLOCK/(16.0*c_freq);
+			new_n=(double)AY38910_CLOCK/(16.0*n_freq);
+			new_e=(double)AY38910_CLOCK/(256.0*e_freq);
+
+			if (new_a>0xfff) {
+				printf("A TOO BIG %x\n",new_a);
+				new_a=0xfff;
+			}
+			if (new_b>0xfff) {
+				printf("B TOO BIG %x\n",new_b);
+				new_b=0xfff;
+			}
+			if (new_c>0xfff) {
+				printf("C TOO BIG %x\n",new_c);
+				new_c=0xfff;
+			}
+			if (new_n>0x1f) {
+				printf("N TOO BIG %x\n",new_n);
+				new_n=0x1f;
+			}
+			if (new_e>0xffff) printf("E too BIG %x\n",new_e);
 
 			frame[0]=new_a&0xff;	frame[1]=new_a>>8;
 			frame[2]=new_b&0xff;	frame[3]=new_b>>8;
@@ -365,10 +385,19 @@ int main(int argc, char **argv) {
 		}
 
 		for(j=0;j<14;j++) {
-			ay_3_8910_write(j,frame[j]);
+			if ((j==13) && (frame[13]==0xff)) {
+			}
+			else {
+				ay_3_8910_write(j,frame[j]);
+			}
 		}
 
-		usleep(1000000/frame_rate);	/* often 50Hz */
+//		usleep(1000000/frame_rate);	/* often 50Hz */
+
+//		bcm2835_delayMicroseconds(1000000/frame_rate);	/* often 50Hz = 20000 */
+
+
+		bcm2835_delayMicroseconds(5000);	/* often 50Hz = 20000 */
 
 		if (i%100==0) printf("Done frame %d\n",i);
 	}
