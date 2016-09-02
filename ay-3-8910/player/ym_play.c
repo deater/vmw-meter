@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
+#include <sys/time.h>
 
 #include <bcm2835.h>
 
@@ -28,7 +29,8 @@
 #define AY38910_CLOCK	1000000	/* 1MHz on our board */
 
 static int play_music=0;
-static int dump_info=1;
+static int dump_info=0;
+static int visualize=1;
 
 static void quiet(int sig) {
 
@@ -62,6 +64,8 @@ int main(int argc, char **argv) {
 	int a_period,b_period,c_period,n_period,e_period;
 	double a_freq, b_freq, c_freq,n_freq,e_freq;
 	int new_a,new_b,new_c,new_n,new_e;
+
+	struct timeval start,next;
 
 	signal(SIGINT, quiet);
 
@@ -191,6 +195,7 @@ int main(int argc, char **argv) {
 
 	file_position=lseek(fd,0,SEEK_CUR)-1;
 	if (dump_info) printf("Frames start at %lx\n",file_position);
+	gettimeofday(&start,NULL);
 
 	/*******************/
 	/* Initialize Chip */
@@ -328,6 +333,7 @@ int main(int argc, char **argv) {
 			}
 		}
 
+//		usleep(1000000/frame_rate);	/* often 50Hz */
 
 		if (play_music) {
 //		usleep(1000000/frame_rate);	/* often 50Hz */
@@ -336,7 +342,19 @@ int main(int argc, char **argv) {
 			bcm2835_delayMicroseconds(5000);	/* often 50Hz = 20000 */
 		}
 
-		if (i%100==0) printf("Done frame %d\n",i);
+		if (i%100==0) {
+			double s,n,hz;
+
+			s=start.tv_sec+(start.tv_usec/1000000.0);
+			gettimeofday(&next,NULL);
+			n=next.tv_sec+(next.tv_usec/1000000.0);
+
+			hz=100/(n-s);
+
+			printf("Done frame %d, %.1lfHz\n",i,hz);
+			start.tv_sec=next.tv_sec;
+			start.tv_usec=next.tv_usec;
+		}
 	}
 
 	result=read(fd,header,4);
