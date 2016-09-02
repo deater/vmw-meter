@@ -1,8 +1,16 @@
-/* Makes a spinning pattern on the display */
+/* assumes two ht16k33 displays hooked up on the first i2c bus	*/
+/* first one is custom with 3 (eventually 6? 10 seg bargraphs	*/
+/* second one is an adafruit 8x16 led matrix backpack		*/
+
+/* The bargraphs are on i2c addr 0x70, the matrix on 0x72	*/
+
+/* Be sure to modprobe i2c-dev */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
+#include <string.h>
 
 #include "i2c_lib.h"
 
@@ -12,7 +20,7 @@ unsigned char display_buffer[DISPLAY_LINES];
 
 static int i2c_fd=-1;
 
-static int bargraph_i2c(int which, int value) {
+static int bargraph_i2c(int a, int b, int c) {
 
 	int i;
 
@@ -20,38 +28,66 @@ static int bargraph_i2c(int which, int value) {
 
 	buffer[0]=0;
 
-	for(i=0;i<16;i++) buffer[i+1]=0xff;
+	for(i=0;i<16;i++) buffer[i+1]=0x0;
+
+	/* a */
+	if (a>0) {
+		a--;
+		buffer[1]|=(2<<a)-1;
+		if (a>7) buffer[2]|=(2<<(a-8))-1;
+	}
+
+	/* b */
+	if (b>0) {
+		b--;
+		buffer[3]|=(2<<b)-1;
+		if (b>7) buffer[4]|=(2<<(b-8))-1;
+	}
+
+	/* c */
+	if (c>0) {
+		c--;
+		buffer[5]|=(2<<c)-1;
+		if (c>7) buffer[6]|=(2<<(c-8))-1;
+	}
 
 	if ( (write(i2c_fd, buffer, 17)) !=17) {
-		fprintf(stderr,"Erorr writing display!\n");
+		fprintf(stderr,"Error writing display %s!\n",
+			strerror(errno));
 		return -1;
         }
 
 	return 0;
 }
 
-static int bargraph_text(int value) {
+static int bargraph_text(int a, int b, int c) {
 
-	int i;
+	int i,j,value;
 
-	if (value>10) value=10;
+	for(j=0;j<3;j++) {
+		if (j==0) value=a;
+		if (j==1) value=b;
+		if (j==2) value=c;
 
-	printf("[");
-	for(i=0;i<value;i++) printf("*");
-	for(i=value;i<10;i++) printf(" ");
-	printf("]\n");
+		if (value>10) value=10;
+
+		printf("[");
+		for(i=0;i<value;i++) printf("*");
+		for(i=value;i<10;i++) printf(" ");
+		printf("]\n");
+	}
 	return 0;
 }
 
 
-int bargraph(int type, int which, int value) {
+int bargraph(int type, int a, int b, int c) {
 
 	if (type&DISPLAY_I2C) {
-		bargraph_i2c(which, value);
+		bargraph_i2c(a,b,c);
 	}
 
 	if (type&DISPLAY_TEXT) {
-		bargraph_text(value);
+		bargraph_text(a,b,c);
 	}
 
 	return 0;

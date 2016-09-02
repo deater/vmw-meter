@@ -10,7 +10,7 @@ ym_play:	ym_play.o ay-3-8910.o display.o ../../lib/i2c_lib.o
 	$(CC) -o ym_play ym_play.o ay-3-8910.o display.o \
 			../../lib/i2c_lib.o /usr/local/lib/libbcm2835.a
 
-ym_play.o:	ym_play.c
+ym_play.o:	ym_play.c display.h ay-3-8910.h
 	$(CC) $(CFLAGS) -c ym_play.c
 
 ay-3-8910.o:	ay-3-8910.c ay-3-8910.h

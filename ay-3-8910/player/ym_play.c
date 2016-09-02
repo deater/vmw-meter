@@ -32,7 +32,7 @@
 
 static int play_music=0;
 static int dump_info=0;
-static int visualize=0;
+static int visualize=1;
 static int display_type=DISPLAY_BOTH;
 
 static void quiet(int sig) {
@@ -208,6 +208,10 @@ int main(int argc, char **argv) {
 		initialize_ay_3_8910();
 	}
 
+	if (visualize) {
+		display_init(display_type);
+	}
+
 	for(i=0;i<num_frames;i++) {
 		if (interleaved) {
 			file_position++;
@@ -340,20 +344,23 @@ int main(int argc, char **argv) {
 			if (display_type&DISPLAY_TEXT) {
 				printf("\033[H\033[2J");
 			}
-			bargraph( display_type, 0, (frame[8]*10)/16);
-			bargraph( display_type, 1, (frame[9]*10)/16);
-			bargraph( display_type, 2, (frame[10]*10)/16);
+			bargraph( display_type, (frame[8]*11)/16,
+						(frame[9]*11)/16,
+						(frame[10]*11)/16);
 			freq_display(a_period,b_period,c_period);
 		}
 
 
-//		usleep(1000000/frame_rate);	/* often 50Hz */
+
 
 		if (play_music) {
 //		usleep(1000000/frame_rate);	/* often 50Hz */
 
 //		bcm2835_delayMicroseconds(1000000/frame_rate);	/* often 50Hz = 20000 */
 			bcm2835_delayMicroseconds(4000);	/* often 50Hz = 20000 */
+		}
+		else {
+			if (visualize) usleep(1000000/frame_rate);	/* often 50Hz */
 		}
 
 		if (i%100==0) {
