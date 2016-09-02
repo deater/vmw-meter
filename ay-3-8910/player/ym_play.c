@@ -347,7 +347,7 @@ int main(int argc, char **argv) {
 			bargraph( display_type, (frame[8]*11)/16,
 						(frame[9]*11)/16,
 						(frame[10]*11)/16);
-			freq_display(a_period,b_period,c_period);
+			freq_display(display_type,a_period,b_period,c_period);
 		}
 
 
