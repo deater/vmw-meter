@@ -30,10 +30,10 @@
 
 #define AY38910_CLOCK	1000000	/* 1MHz on our board */
 
-static int play_music=0;
+static int play_music=1;
 static int dump_info=0;
 static int visualize=1;
-static int display_type=DISPLAY_BOTH;
+static int display_type=DISPLAY_I2C;
 
 static void quiet(int sig) {
 
@@ -357,7 +357,7 @@ int main(int argc, char **argv) {
 //		usleep(1000000/frame_rate);	/* often 50Hz */
 
 //		bcm2835_delayMicroseconds(1000000/frame_rate);	/* often 50Hz = 20000 */
-			bcm2835_delayMicroseconds(4000);	/* often 50Hz = 20000 */
+			bcm2835_delayMicroseconds(10);	/* often 50Hz = 20000 */
 		}
 		else {
 			if (visualize) usleep(1000000/frame_rate);	/* often 50Hz */
