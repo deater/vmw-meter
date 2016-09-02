@@ -22,6 +22,7 @@
 #include <bcm2835.h>
 
 #include "ay-3-8910.h"
+#include "display.h"
 
 #define YM_HEADER_SIZE	34
 #define YM_FRAME_SIZE	16
@@ -31,7 +32,8 @@
 
 static int play_music=0;
 static int dump_info=0;
-static int visualize=1;
+static int visualize=0;
+static int display_type=DISPLAY_BOTH;
 
 static void quiet(int sig) {
 
@@ -40,74 +42,6 @@ static void quiet(int sig) {
 	printf("Quieting and exiting\n");
 	_exit(0);
 
-}
-
-int bargraph(int value) {
-
-	int i;
-
-	if (value>10) value=10;
-
-	printf("[");
-	for(i=0;i<value;i++) printf("*");
-	for(i=value;i<10;i++) printf(" ");
-	printf("]\n");
-	return 0;
-}
-
-static int freq_max[16];
-
-static int freq_matrix[16][8];
-
-int freq_display(int a, int b, int c) {
-
-	int x,y,a_x,b_x,c_x;
-
-	for(y=0;y<8;y++) {
-		for(x=0;x<16;x++) {
-			freq_matrix[x][y]=0;
-		}
-	}
-
-	a_x=(a*16)/0xfff;
-	b_x=(b*16)/0xfff;
-	c_x=(c*16)/0xfff;
-
-	if (a_x>15) {
-		printf("A too big %x %d\n",a,a_x);
-		exit(1);
-	}
-	if (b_x>15) {
-		printf("B too big %x %d\n",b,b_x);
-		exit(1);
-	}
-	if (c_x>15) {
-		printf("C too big %x %d\n",c,c_x);
-		exit(1);
-	}
-
-	for(x=0;x<16;x++) {
-		freq_matrix[x][freq_max[x]/10]=1;
-		if (freq_max[x]>0) freq_max[x]--;
-	}
-
-	freq_max[a_x]=79;
-	freq_max[b_x]=79;
-	freq_max[c_x]=79;
-
-
-	for(y=0;y<8;y++) freq_matrix[a_x][y]=1;
-	for(y=0;y<8;y++) freq_matrix[b_x][y]=1;
-	for(y=0;y<8;y++) freq_matrix[c_x][y]=1;
-
-	for(y=7;y>=0;y--) {
-		for(x=0;x<16;x++) {
-			if (freq_matrix[x][y]) printf("*");
-			else printf(" ");
-		}
-		printf("\n");
-	}
-	return 0;
 }
 
 int main(int argc, char **argv) {
@@ -403,21 +337,23 @@ int main(int argc, char **argv) {
 		}
 
 		if (visualize) {
-			printf("\033[H\033[2J");
-			bargraph( (frame[8]*10)/16);
-			bargraph( (frame[9]*10)/16);
-			bargraph( (frame[10]*10)/16);
+			if (display_type&DISPLAY_TEXT) {
+				printf("\033[H\033[2J");
+			}
+			bargraph( display_type, 0, (frame[8]*10)/16);
+			bargraph( display_type, 1, (frame[9]*10)/16);
+			bargraph( display_type, 2, (frame[10]*10)/16);
 			freq_display(a_period,b_period,c_period);
 		}
 
 
-		usleep(1000000/frame_rate);	/* often 50Hz */
+//		usleep(1000000/frame_rate);	/* often 50Hz */
 
 		if (play_music) {
 //		usleep(1000000/frame_rate);	/* often 50Hz */
 
 //		bcm2835_delayMicroseconds(1000000/frame_rate);	/* often 50Hz = 20000 */
-			bcm2835_delayMicroseconds(5000);	/* often 50Hz = 20000 */
+			bcm2835_delayMicroseconds(4000);	/* often 50Hz = 20000 */
 		}
 
 		if (i%100==0) {
