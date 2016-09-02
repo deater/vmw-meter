@@ -1,4 +1,4 @@
-/* Play a YM AY-3-8910 Music File */
+/* Parse/Play a YM AY-3-8910 Music File */
 /* Used file info found here: http://leonard.oxg.free.fr/ymformat.html */
 /* Also useful: ftp://ftp.modland.com/pub/documents/format_documentation/Atari%20ST%20Sound%20Chip%20Emulator%20YM1-6%20(.ay,%20.ym).txt */
 
@@ -19,140 +19,20 @@
 
 #include <bcm2835.h>
 
+#include "ay-3-8910.h"
+
 #define YM_HEADER_SIZE	34
 #define YM_FRAME_SIZE	16
 #define MAX_STRING	256
 
-#define DELAY_PAUSE	5
-#define DELAY_BETWEEN	5
-#define DELAY_SHIFT	30
-#define DELAY_RESET	5000
+#define AY38910_CLOCK	1000000	/* 1MHz on our board */
 
-//#define AY38910_CLOCK	2000000	/* 2MHz on our board */
+static int play_music=0;
+static int dump_info=1;
 
-#define AY38910_CLOCK	1000000	/* 2MHz on our board */
+static void quiet(int sig) {
 
-int initialize_ay_3_8910(void) {
-
-	printf("Initializing AY-3-8910\n");
-
-	if (!bcm2835_init()) {
-		fprintf(stderr,"Error init libBCM2835!\n");
-		return -1;
-	}
-
-	/* Enable GPIO17 */
-	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_11, BCM2835_GPIO_FSEL_OUTP);
-	/* Enable GPIO27 */
-	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_13, BCM2835_GPIO_FSEL_OUTP);
-	/* Enable GPIO22 */
-	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_15, BCM2835_GPIO_FSEL_OUTP);
-	/* Enable GPIO18 */
-	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_12, BCM2835_GPIO_FSEL_OUTP);
-	/* Enable GPIO23 */
-	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_16, BCM2835_GPIO_FSEL_OUTP);
-	/* Enable GPIO24 */
-	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_18, BCM2835_GPIO_FSEL_OUTP);
-
-	/* Pull reset low than high */
-	printf("Resetting...\n");
-	bcm2835_gpio_write(RPI_GPIO_P1_18, LOW);
-	bcm2835_delayMicroseconds(DELAY_RESET);
-	bcm2835_gpio_write(RPI_GPIO_P1_18, HIGH);
-
-	return 0;
-}
-
-int shift_74hc595(int value) {
-
-
-	int i,shifted_val;
-
-	shifted_val=value;
-
-	for(i=0;i<8;i++) {
-		/* Set clock low */
-		bcm2835_gpio_write(27, LOW);
-
-		bcm2835_delayMicroseconds(DELAY_SHIFT);
-
-		if (shifted_val&0x1) {
-//		if (shifted_val&0x80) {
-			bcm2835_gpio_write(RPI_V2_GPIO_P1_11, HIGH);
-		}
-		else {
-			bcm2835_gpio_write(RPI_V2_GPIO_P1_11, LOW);
-		}
-//		shifted_val<<=1;
-		shifted_val>>=1;
-
-		bcm2835_delayMicroseconds(DELAY_SHIFT);
-
-		/* Set clock high */
-		bcm2835_gpio_write(27, HIGH);
-
-		bcm2835_delayMicroseconds(DELAY_SHIFT);
-	}
-
-	bcm2835_gpio_write(22, HIGH);
-
-	bcm2835_delayMicroseconds(DELAY_SHIFT);
-
-	bcm2835_gpio_write(22, LOW);
-
-	bcm2835_delayMicroseconds(DELAY_SHIFT);
-
-	return 0;
-}
-
-int ay_3_8910_write(int addr, int value) {
-
-
-	/* Be sure BDIR and BC1 are low */
-	bcm2835_gpio_write(RPI_GPIO_P1_16, LOW);
-	bcm2835_gpio_write(RPI_GPIO_P1_12, LOW);
-
-	/* Set address on bus */
-	shift_74hc595(addr);
-
-	/* Set BDIR and BC1 high */
-	bcm2835_gpio_write(RPI_GPIO_P1_16, HIGH);
-	bcm2835_gpio_write(RPI_GPIO_P1_12, HIGH);
-
-	/* pause */
-	bcm2835_delayMicroseconds(DELAY_PAUSE);
-
-	/* Set BDIR and BC1 low */
-	bcm2835_gpio_write(RPI_GPIO_P1_16, LOW);
-	bcm2835_gpio_write(RPI_GPIO_P1_12, LOW);
-
-	bcm2835_delayMicroseconds(DELAY_BETWEEN);
-
-	/* Be sure BDIR and BC1 are low */
-	/* Put value on bus */
-	shift_74hc595(value);
-
-	/* Put BDIR high */
-	bcm2835_gpio_write(RPI_GPIO_P1_16, HIGH);
-
-	/* pause */
-	bcm2835_delayMicroseconds(DELAY_PAUSE);
-
-	/* Put BDIR low */
-	bcm2835_gpio_write(RPI_GPIO_P1_16, LOW);
-
-	bcm2835_delayMicroseconds(DELAY_BETWEEN);
-
-	return 0;
-}
-
-void quiet(int sig) {
-
-	int j;
-
-	for(j=0;j<14;j++) {
-		ay_3_8910_write(j,0);
-	}
+	if (play_music) quiet_ay_3_8910();
 
 	printf("Quieting and exiting\n");
 	_exit(0);
@@ -166,8 +46,8 @@ int main(int argc, char **argv) {
 	unsigned char frame[YM_FRAME_SIZE];
 	char filename[BUFSIZ]="intro2.ym";
 	int result;
-	char ym6_magic[]="YM6!LeOnArD!";
 	char ym5_magic[]="YM5!LeOnArD!";
+	char ym6_magic[]="YM6!LeOnArD!";
 	int num_frames,song_attributes,num_digidrum,master_clock;
 	int frame_rate,loop_frame,extra_data;
 	int drum_size,i,j;
@@ -177,7 +57,11 @@ int main(int argc, char **argv) {
 	char comment[MAX_STRING];
 	int pointer;
 	int interleaved=0;
-	off_t file_position;
+	off_t file_position,curr_position;
+
+	int a_period,b_period,c_period,n_period,e_period;
+	double a_freq, b_freq, c_freq,n_freq,e_freq;
+	int new_a,new_b,new_c,new_n,new_e;
 
 	signal(SIGINT, quiet);
 
@@ -306,20 +190,26 @@ int main(int argc, char **argv) {
 	printf("Comment: %s\n",comment);
 
 	file_position=lseek(fd,0,SEEK_CUR)-1;
+	if (dump_info) printf("Frames start at %lx\n",file_position);
 
 	/*******************/
 	/* Initialize Chip */
 	/*******************/
 
-	initialize_ay_3_8910();
+	if (play_music) {
+		initialize_ay_3_8910();
+	}
 
-	for(i=0;i<num_frames-16;i++) {
+	for(i=0;i<num_frames;i++) {
 		if (interleaved) {
 			file_position++;
 			lseek(fd,file_position,SEEK_SET);
-			for(j=0;j<16;j++) {
+			for(j=0;j<YM_FRAME_SIZE;j++) {
 				result=read(fd,&frame[j],1);
-				if (j!=15) lseek(fd,num_frames,SEEK_CUR);
+				if (j!=15) {
+					curr_position=lseek(fd,num_frames,SEEK_CUR);
+					printf("LOC=%lx\n",curr_position);
+				}
 			}
 		}
 		else {
@@ -334,23 +224,60 @@ int main(int argc, char **argv) {
 		/* Write out the music			*/
 		/****************************************/
 
+
+		a_period=((frame[1]&0xf)<<8)|frame[0];
+		b_period=((frame[3]&0xf)<<8)|frame[2];
+		c_period=((frame[5]&0xf)<<8)|frame[4];
+		n_period=frame[6]&0x1f;
+		e_period=((frame[12]&0xff)<<8)|frame[11];
+
+		a_freq=master_clock/(16.0*(double)a_period);
+		b_freq=master_clock/(16.0*(double)b_period);
+		c_freq=master_clock/(16.0*(double)c_period);
+		n_freq=master_clock/(16.0*(double)n_period);
+		e_freq=master_clock/(256.0*(double)e_period);
+
+		if (dump_info) {
+			printf("%05d:\tA:%04x B:%04x C:%04x N:%02x M:%02x ",
+				i,a_period,b_period,c_period,n_period,frame[7]);
+
+			printf("AA:%02x AB:%02x AC:%02x E:%04x,%02x %04x\n",
+				frame[8],frame[9],frame[10],
+				(frame[12]<<8)+frame[11],frame[13],
+				(frame[14]<<8)+frame[15]);
+
+			printf("\t%.1lf %.1lf %.1lf %.1lf %.1lf ",
+				a_freq,b_freq,c_freq,n_freq, e_freq);
+			printf("N:%c%c%c T:%c%c%c ",
+				(frame[7]&0x20)?' ':'C',
+				(frame[7]&0x10)?' ':'B',
+				(frame[7]&0x08)?' ':'A',
+				(frame[7]&0x04)?' ':'C',
+				(frame[7]&0x02)?' ':'B',
+				(frame[7]&0x01)?' ':'A');
+
+			if (frame[8]&0x10) printf("VA: E ");
+			else printf("VA: %d ",frame[8]&0xf);
+			if (frame[9]&0x10) printf("VB: E ");
+			else printf("VB: %d ",frame[9]&0xf);
+			if (frame[10]&0x10) printf("VC: E ");
+			else printf("VC: %d ",frame[10]&0xf);
+
+			if (frame[13]==0xff) {
+				printf("NOWRITE");
+			}
+			else {
+				if (frame[13]&0x1) printf("Hold");
+				if (frame[13]&0x2) printf("Alternate");
+				if (frame[13]&0x4) printf("Attack");
+				if (frame[13]&0x8) printf("Continue");
+			}
+			printf("\n");
+		}
+
+
 		/* Scale if needed */
 		if (master_clock!=AY38910_CLOCK) {
-			int a_period,b_period,c_period,n_period,e_period;
-			double a_freq,b_freq,c_freq,n_freq,e_freq;
-			int new_a,new_b,new_c,new_n,new_e;
-
-			a_period=((frame[1]&0xf)<<8)|frame[0];
-			b_period=((frame[3]&0xf)<<8)|frame[2];
-			c_period=((frame[5]&0xf)<<8)|frame[4];
-			n_period=frame[6]&0x1f;
-			e_period=((frame[12]&0xff)<<8)|frame[11];
-
-			a_freq=master_clock/(16.0*(double)a_period);
-			b_freq=master_clock/(16.0*(double)b_period);
-			c_freq=master_clock/(16.0*(double)c_period);
-			n_freq=master_clock/(16.0*(double)n_period);
-			e_freq=master_clock/(256.0*(double)e_period);
 
 			new_a=(double)AY38910_CLOCK/(16.0*a_freq);
 			new_b=(double)AY38910_CLOCK/(16.0*b_freq);
@@ -360,44 +287,53 @@ int main(int argc, char **argv) {
 
 			if (new_a>0xfff) {
 				printf("A TOO BIG %x\n",new_a);
-				new_a=0xfff;
 			}
 			if (new_b>0xfff) {
 				printf("B TOO BIG %x\n",new_b);
-				new_b=0xfff;
 			}
 			if (new_c>0xfff) {
 				printf("C TOO BIG %x\n",new_c);
-				new_c=0xfff;
 			}
 			if (new_n>0x1f) {
 				printf("N TOO BIG %x\n",new_n);
-				new_n=0x1f;
 			}
-			if (new_e>0xffff) printf("E too BIG %x\n",new_e);
+			if (new_e>0xffff) {
+				printf("E too BIG %x\n",new_e);
+			}
 
-			frame[0]=new_a&0xff;	frame[1]=new_a>>8;
-			frame[2]=new_b&0xff;	frame[3]=new_b>>8;
-			frame[4]=new_c&0xff;	frame[5]=new_c>>8;
+			frame[0]=new_a&0xff;	frame[1]=(new_a>>8)&0xf;
+			frame[2]=new_b&0xff;	frame[3]=(new_b>>8)&0xf;
+			frame[4]=new_c&0xff;	frame[5]=(new_c>>8)&0xf;
 			frame[6]=new_n&0x1f;
-			frame[11]=new_e&0xff;	frame[12]=new_e>>8;
+			frame[11]=new_e&0xff;	frame[12]=(new_e>>8)&0xff;
+
+			if (dump_info) {
+				printf("\t%04x %04x %04x %04x %04x\n",
+					new_a,new_b,new_c,new_n,new_e);
+
+			}
 
 		}
 
-		for(j=0;j<14;j++) {
-			if ((j==13) && (frame[13]==0xff)) {
+		if (play_music) {
+			for(j=0;j<13;j++) {
+				write_ay_3_8910(j,frame[j]);
 			}
-			else {
-				ay_3_8910_write(j,frame[j]);
+
+			/* Special case.  Writing r13 resets it,	*/
+			/* so special 0xff marker means do not write	*/
+			if (frame[13]!=0xff) {
+				write_ay_3_8910(13,frame[13]);
 			}
 		}
 
+
+		if (play_music) {
 //		usleep(1000000/frame_rate);	/* often 50Hz */
 
 //		bcm2835_delayMicroseconds(1000000/frame_rate);	/* often 50Hz = 20000 */
-
-
-		bcm2835_delayMicroseconds(5000);	/* often 50Hz = 20000 */
+			bcm2835_delayMicroseconds(5000);	/* often 50Hz = 20000 */
+		}
 
 		if (i%100==0) printf("Done frame %d\n",i);
 	}

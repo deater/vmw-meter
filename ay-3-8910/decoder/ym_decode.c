@@ -241,7 +241,8 @@ int main(int argc, char **argv) {
 		}
 		printf("\n");
 
-		printf("\t%04x %04x %04x %04x %04x\n",new_a,new_b,new_c,new_n,new_e);
+		printf("\t%04x %04x %04x %04x %04x\n",
+			new_a,new_b,new_c,new_n,new_e);
 
 	}
 
