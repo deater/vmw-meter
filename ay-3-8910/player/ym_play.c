@@ -207,8 +207,9 @@ int main(int argc, char **argv) {
 			for(j=0;j<YM_FRAME_SIZE;j++) {
 				result=read(fd,&frame[j],1);
 				if (j!=15) {
-					curr_position=lseek(fd,num_frames,SEEK_CUR);
-					printf("LOC=%lx\n",curr_position);
+					curr_position=lseek(fd,num_frames-1,SEEK_CUR);
+					//printf("LOC=%lx\n",curr_position);
+					(void)curr_position;
 				}
 			}
 		}
@@ -339,13 +340,15 @@ int main(int argc, char **argv) {
 	}
 
 	result=read(fd,header,4);
+	header[4]=0;
+
 	if (result!=4) {
-		fprintf(stderr,"ERROR! Bad ending!\n");
+		fprintf(stderr,"ERROR! Bad ending! %d\n",result);
 		return -1;
 	}
 
-	if (memcpy(header,"End!",4)) {
-		fprintf(stderr,"ERROR! Bad ending!\n");
+	if (memcmp(header,"End!",4)) {
+		fprintf(stderr,"ERROR! Bad ending! %s\n",header);
 		return -1;
 	}
 
