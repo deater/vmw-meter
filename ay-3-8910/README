@@ -1,4 +1,120 @@
-wget http://www.airspayce.com/mikem/bcm2835/bcm2835-1.50.tar.gz
-./configure
-make
-make install
+****** Raspberry Pi AY-3-8910 YM chiptune player ******
+
+	by Vince Weaver (vince@deater.net)
+
+Hardware:
+	Should update this with more complete info.
+
+	Parts are:
+		AY-3-8910 (bought off e-bay)
+		74HC595 shift register (to reduce GPIO count as 
+			well as act as 3.3V to 5V converter)
+		Adafruit level converter (for the I/O lines)
+		1MHz oscillator (anything from 1-2MHz probably works
+			but you get overflows on some sound files
+			if you use 2MHz)
+		LM386 and various discrete components.
+			Current design is based on Figure 16 in
+			the AY-3-8910 datasheet.
+			Plan to replace with adafruit class-D amp
+		ht16k33 i2c breakout board, adafruit (addr 0x70)
+			To run the three bargraphs.
+			Bargraphs were GYR models from Jameco/SEED
+		ht16k33 i2c 16x8 backpack, adafruit (addr 0x72)
+		8 Ohm speaker
+
+	Pi Connections:
+		Pi to 74HC595:
+			DS (serial in)		GPIO17
+			SHCP (serial clock)	GPIO27
+			STCP (output clock)	GPIO22
+		Pi to AY-3-8910 (through level converter)
+			BC1			GPIO18
+			BDIR			GPIO23
+			|RESET			GPIO24
+
+
+Installing:
+	You will need to install the bcm2835 library.
+	The raw Linux GPIO interface just isn't fast enough.
+
+	Something like this:
+	wget http://www.airspayce.com/mikem/bcm2835/bcm2835-1.50.tar.gz
+	uncompress/cd into directory
+	./configure
+	make
+	make install
+
+	Then just run "make" in this dir to create "ym_play"
+
+	You can fiddle with the settings at the top to switch
+	between playing, decoding (to text for debugging).
+	You can also pick LED or TEXT visualization (again for debugging)
+
+Playing music:
+	./ym_play YM_FILE
+
+	The YM_FILE currently has to be decompressed first
+	(most YM files have LHA compression)
+	Decompress with lhasa on Linux
+		lhasa -e INTRO2.ym
+
+	YM file format
+		http://leonard.oxg.free.fr/ymformat.html
+
+	To play ymfiles on Linux:
+		apt-get install stymulator
+		ymplayer YM_FILE
+
+	To convert PT2 or AY files to YM:
+		Install the Linux Ayemul player
+		Load the file
+		Click on "pl" then right click on the file to save as.
+
+	I have not included any YM files here because most of the ones you
+	find are ripped from old Atari/Spectrum games so the copyright
+	situation is a bit complex.
+
+TODO:
+	* Make it stereo (another shift reg and another AY-3-8910)
+	* Use a better amplifier than the LM386
+	* Make up some PCBs
+	* Put it in a case/enclosure
+	* Use SPI to drive the shift register instead of GPIO
+	* Optimize the software.
+		Even using libbcm2835 it's hard to hit 50Hz from inside Linux
+		(maybe use my custom low-level OS instead).
+		The overhead wouldn't be so bad if I was using a parallel
+		load of the registers, but that would have taken 11 GPIOs
+		(with 3.3V to 5V level conversion).
+		I do need to make a bare metal design, because it's sad to
+		have the Pi shown better by an old 6502 Apple II running at
+		1MHz (see the French Touch "Pure Noise" Demo)
+	* Find a tracker and start writing my own YM files. 
+
+Related work:
+	Examples of AY-3-8910/1/2 projects on Embedded Boards
+
+	Pi (Japenese?):
+		https://www.youtube.com/watch?v=eKZwqabdrj0
+		http://www.retropc.net/mm/archives/1254
+
+	Arduino shield:
+		https://www.youtube.com/watch?v=UVcwc-0i5QU
+
+	Arduino passthrough from PC via serial:
+		https://www.youtube.com/watch?v=pS_lj1RmK2E
+
+	Pi discussion:
+		https://www.raspberrypi.org/forums/viewtopic.php?t=11592&p=128255
+
+	6502 discussion:
+		http://forum.6502.org/viewtopic.php?t=958
+		http://bulba.untergrund.net/main_e.htm
+
+	Arduino project:
+		http://www.986-studio.com/category/electronic/ay-3-3910/
+		code:   https://github.com/986-Studio/AY-3-3910-Player
+
+
+
