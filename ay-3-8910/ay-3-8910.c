@@ -17,9 +17,9 @@
 
 #include "ay-3-8910.h"
 
-#define DELAY_PAUSE	5
-#define DELAY_BETWEEN	5
-#define DELAY_SHIFT	30
+#define DELAY_PAUSE	3
+#define DELAY_BETWEEN	3
+#define DELAY_SHIFT	15
 #define DELAY_RESET	5000
 
 #define AY38910_CLOCK	1000000	/* 1MHz on our board */

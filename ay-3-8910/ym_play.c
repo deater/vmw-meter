@@ -63,6 +63,7 @@ int main(int argc, char **argv) {
 	int pointer;
 	int interleaved=0;
 	off_t file_position,curr_position;
+	double s,n,hz,diff;
 
 	int a_period,b_period,c_period,n_period,e_period;
 	double a_freq, b_freq, c_freq,n_freq,e_freq;
@@ -327,7 +328,7 @@ int main(int argc, char **argv) {
 			}
 
 		}
-
+#if 1
 		if (play_music) {
 			for(j=0;j<13;j++) {
 				write_ay_3_8910(j,frame[j]);
@@ -339,7 +340,9 @@ int main(int argc, char **argv) {
 				write_ay_3_8910(13,frame[13]);
 			}
 		}
+#endif
 
+#if 1
 		if (visualize) {
 			if (display_type&DISPLAY_TEXT) {
 				printf("\033[H\033[2J");
@@ -350,32 +353,44 @@ int main(int argc, char **argv) {
 			freq_display(display_type,a_period,b_period,c_period);
 		}
 
-
+#endif
 
 
 		if (play_music) {
 //		usleep(1000000/frame_rate);	/* often 50Hz */
 
 //		bcm2835_delayMicroseconds(1000000/frame_rate);	/* often 50Hz = 20000 */
-			bcm2835_delayMicroseconds(10);	/* often 50Hz = 20000 */
+//			bcm2835_delayMicroseconds(10);	/* often 50Hz = 20000 */
 		}
 		else {
 			if (visualize) usleep(1000000/frame_rate);	/* often 50Hz */
 		}
 
+		gettimeofday(&next,NULL);
+		s=start.tv_sec+(start.tv_usec/1000000.0);
+		n=next.tv_sec+(next.tv_usec/1000000.0);
+		diff=(n-s)*1000000.0;
+
+		if (play_music) {
+			if (diff>0) bcm2835_delayMicroseconds(20000-diff);
+			/* often 50Hz = 20000 */
+		}
+
+		gettimeofday(&next,NULL);
+		s=start.tv_sec+(start.tv_usec/1000000.0);
+		n=next.tv_sec+(next.tv_usec/1000000.0);
+
 		if (i%100==0) {
-			double s,n,hz;
 
-			s=start.tv_sec+(start.tv_usec/1000000.0);
-			gettimeofday(&next,NULL);
-			n=next.tv_sec+(next.tv_usec/1000000.0);
 
-			hz=100/(n-s);
+			hz=1/(n-s);
 
 			printf("Done frame %d, %.1lfHz\n",i,hz);
-			start.tv_sec=next.tv_sec;
-			start.tv_usec=next.tv_usec;
 		}
+		start.tv_sec=next.tv_sec;
+		start.tv_usec=next.tv_usec;
+
+
 	}
 
 	result=read(fd,header,4);
