@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <math.h>
 
 #include <bcm2835.h>
 
@@ -30,10 +31,17 @@
 
 #define AY38910_CLOCK	1000000	/* 1MHz on our board */
 
+#if 0
+static int play_music=0;
+static int dump_info=1;
+static int visualize=0;
+static int display_type=DISPLAY_TEXT;
+#else
 static int play_music=1;
 static int dump_info=0;
 static int visualize=1;
 static int display_type=DISPLAY_I2C;
+#endif
 
 static void quiet(int sig) {
 
@@ -64,9 +72,10 @@ int main(int argc, char **argv) {
 	int interleaved=0;
 	off_t file_position,curr_position;
 	double s,n,hz,diff;
+	double max_a=0.0,max_b=0.0,max_c=0.0;
 
 	int a_period,b_period,c_period,n_period,e_period;
-	double a_freq, b_freq, c_freq,n_freq,e_freq;
+	double a_freq=0.0, b_freq=0.0, c_freq=0.0,n_freq=0.0,e_freq=0.0;
 	int new_a,new_b,new_c,new_n,new_e;
 
 	struct timeval start,next;
@@ -245,11 +254,11 @@ int main(int argc, char **argv) {
 		n_period=frame[6]&0x1f;
 		e_period=((frame[12]&0xff)<<8)|frame[11];
 
-		a_freq=master_clock/(16.0*(double)a_period);
-		b_freq=master_clock/(16.0*(double)b_period);
-		c_freq=master_clock/(16.0*(double)c_period);
-		n_freq=master_clock/(16.0*(double)n_period);
-		e_freq=master_clock/(256.0*(double)e_period);
+		if (a_period>0) a_freq=master_clock/(16.0*(double)a_period);
+		if (b_period>0) b_freq=master_clock/(16.0*(double)b_period);
+		if (c_period>0) c_freq=master_clock/(16.0*(double)c_period);
+		if (n_period>0) n_freq=master_clock/(16.0*(double)n_period);
+		if (e_period>0) e_freq=master_clock/(256.0*(double)e_period);
 
 		if (dump_info) {
 			printf("%05d:\tA:%04x B:%04x C:%04x N:%02x M:%02x ",
@@ -287,17 +296,26 @@ int main(int argc, char **argv) {
 				if (frame[13]&0x8) printf("Continue");
 			}
 			printf("\n");
+
+			if (a_freq>max_a) max_a=a_freq;
+			if (b_freq>max_b) max_b=b_freq;
+			if (c_freq>max_c) max_c=c_freq;
 		}
 
 
 		/* Scale if needed */
 		if (master_clock!=AY38910_CLOCK) {
 
-			new_a=(double)AY38910_CLOCK/(16.0*a_freq);
-			new_b=(double)AY38910_CLOCK/(16.0*b_freq);
-			new_c=(double)AY38910_CLOCK/(16.0*c_freq);
-			new_n=(double)AY38910_CLOCK/(16.0*n_freq);
-			new_e=(double)AY38910_CLOCK/(256.0*e_freq);
+			if (a_period==0) new_a=0;
+			else new_a=(double)AY38910_CLOCK/(16.0*a_freq);
+			if (b_period==0) new_b=0;
+			else new_b=(double)AY38910_CLOCK/(16.0*b_freq);
+			if (c_period==0) new_c=0;
+			else new_c=(double)AY38910_CLOCK/(16.0*c_freq);
+			if (n_period==0) new_n=0;
+			else new_n=(double)AY38910_CLOCK/(16.0*n_freq);
+			if (e_period==0) new_e=0;
+			else new_e=(double)AY38910_CLOCK/(256.0*e_freq);
 
 			if (new_a>0xfff) {
 				printf("A TOO BIG %x\n",new_a);
@@ -350,7 +368,15 @@ int main(int argc, char **argv) {
 			bargraph( display_type, (frame[8]*11)/16,
 						(frame[9]*11)/16,
 						(frame[10]*11)/16);
-			freq_display(display_type,a_period,b_period,c_period);
+//			freq_display(display_type,
+//					log2(a_freq),
+//					log2(b_freq),
+//					log2(c_freq));
+
+			freq_display(display_type,
+					(a_freq)/150,
+					(b_freq)/150,
+					(c_freq)/150);
 		}
 
 #endif
@@ -409,6 +435,14 @@ int main(int argc, char **argv) {
 	close(fd);
 
 	if (play_music) quiet_ay_3_8910();
+
+	/* Clear out display */
+	if (visualize) {
+		close_bargraph(display_type);
+		close_freq_display(display_type);
+	}
+
+	printf("Max a=%.2lf b=%.2lf c=%.2lf\n",max_a,max_b,max_c);
 
 	return 0;
 }

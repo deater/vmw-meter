@@ -104,6 +104,17 @@ int bargraph(int type, int a, int b, int c) {
 }
 
 
+int close_bargraph(int type) {
+
+	if (type&DISPLAY_I2C) {
+		bargraph_i2c(0,0,0);
+	}
+
+	return 0;
+}
+
+
+
 
 int display_init(int type) {
 
@@ -139,65 +150,63 @@ int display_init(int type) {
 static int freq_max[16];
 static int freq_matrix[16][8];
 
+#define UPDATE_DIVIDER	5
+
+static int divider=0;
 
 int freq_display(int display_type, int a, int b, int c) {
 
-	int x,y,a_x,b_x,c_x;
+	int x,y;
 	int i;
 
 	char buffer[17];
 
-	buffer[0]=0;
-
-	for(y=0;y<8;y++) {
-		for(x=0;x<16;x++) {
-			freq_matrix[x][y]=0;
+	/* Clear background */
+	if (divider==0) {
+		for(y=0;y<8;y++) {
+			for(x=0;x<16;x++) {
+				freq_matrix[x][y]=0;
+			}
 		}
 	}
 
 	if (a>0) {
-		a_x=(a*16)/0xfff;
-		if (a_x>15) {
-			printf("A too big %x %d\n",a,a_x);
-			exit(1);
+		if (a>15) {
+			printf("A too big %d\n",a);
+			a=15;
 		}
-		freq_max[a_x]=79;
-		for(y=0;y<8;y++) freq_matrix[a_x][y]=1;
+		freq_max[a]=7;
+		for(y=0;y<8;y++) freq_matrix[a][y]=1;
 	}
+
 	if (b>0) {
-		b_x=(b*16)/0xfff;
-		if (b_x>15) {
-			printf("B too big %x %d\n",b,b_x);
-			exit(1);
+		if (b>15) {
+			printf("B too big %d\n",b);
+			b=15;
 		}
-		freq_max[b_x]=79;
-		for(y=0;y<8;y++) freq_matrix[b_x][y]=1;
+		freq_max[b]=7;
+		for(y=0;y<8;y++) freq_matrix[b][y]=1;
 	}
+
 	if (c>0) {
-		c_x=(c*16)/0xfff;
-		if (c_x>15) {
-			printf("C too big %x %d\n",c,c_x);
-			exit(1);
+		if (c>15) {
+			printf("C too big %d\n",c);
+			c=15;
 		}
-		freq_max[c_x]=79;
-		for(y=0;y<8;y++) freq_matrix[c_x][y]=1;
+		freq_max[c]=7;
+		for(y=0;y<8;y++) freq_matrix[c][y]=1;
 	}
 
 
 	for(x=0;x<16;x++) {
-		freq_matrix[x][freq_max[x]/10]=1;
+		freq_matrix[x][freq_max[x]]=1;
+		if (divider==0)
 		if (freq_max[x]>0) freq_max[x]--;
 	}
 
-
-
-
-
-
-
-
+	if (divider==0) 
 	if (display_type&DISPLAY_I2C) {
-
+		buffer[0]=0;
 		for(i=0;i<16;i++) buffer[i+1]=0x0;
 
 		for(i=0;i<16;i++) {
@@ -220,6 +229,7 @@ int freq_display(int display_type, int a, int b, int c) {
         	}
 	}
 
+	if (divider==0)
 	if (display_type&DISPLAY_TEXT) {
 		for(y=7;y>=0;y--) {
 			for(x=0;x<16;x++) {
@@ -230,6 +240,52 @@ int freq_display(int display_type, int a, int b, int c) {
 		}
 	}
 
+	divider++;
+	if (divider>UPDATE_DIVIDER) divider=0;
+
+	return 0;
+}
+
+
+
+int close_freq_display(int display_type) {
+
+	int x,y;
+	int i;
+
+	char buffer[17];
+
+	/* Clear background */
+	for(y=0;y<8;y++) {
+		for(x=0;x<16;x++) {
+			freq_matrix[x][y]=0;
+		}
+	}
+
+	if (display_type&DISPLAY_I2C) {
+
+		buffer[0]=0;
+		for(i=0;i<16;i++) buffer[i+1]=0x0;
+
+		for(i=0;i<16;i++) {
+			for(x=0;x<8;x++) {
+				buffer[i+1]|=(freq_matrix[x+(8*(i%2))][i/2]<<x);
+			}
+		}
+
+		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
+			fprintf(stderr,"Error setting i2c address %x\n",
+				HT16K33_ADDRESS2);
+			return -1;
+		}
+
+
+		if ( (write(i2c_fd, buffer, 17)) !=17) {
+			fprintf(stderr,"Error writing display %s!\n",
+				strerror(errno));
+			return -1;
+        	}
+	}
 
 	return 0;
 }

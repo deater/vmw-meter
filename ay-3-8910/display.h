@@ -5,3 +5,6 @@
 int bargraph(int type, int a, int b, int c);
 int display_init(int type);
 int freq_display(int type, int a, int b, int c);
+
+int close_freq_display(int type);
+int close_bargraph(int type);
