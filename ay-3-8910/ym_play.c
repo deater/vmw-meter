@@ -372,7 +372,8 @@ int main(int argc, char **argv) {
 						(frame[10]*11)/16,
 						(a_freq)/150,
 						(b_freq)/150,
-						(c_freq)/150);
+						(c_freq)/150,
+						i,num_frames);
 
 //			freq_display(display_type,
 //					log2(a_freq),
