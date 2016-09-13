@@ -365,18 +365,24 @@ int main(int argc, char **argv) {
 			if (display_type&DISPLAY_TEXT) {
 				printf("\033[H\033[2J");
 			}
-			bargraph( display_type, (frame[8]*11)/16,
+
+			display_update(display_type,
+						(frame[8]*11)/16,
 						(frame[9]*11)/16,
-						(frame[10]*11)/16);
+						(frame[10]*11)/16,
+						(a_freq)/150,
+						(b_freq)/150,
+						(c_freq)/150);
+
 //			freq_display(display_type,
 //					log2(a_freq),
 //					log2(b_freq),
 //					log2(c_freq));
 
-			freq_display(display_type,
-					(a_freq)/150,
-					(b_freq)/150,
-					(c_freq)/150);
+//			freq_display(display_type,
+//					(a_freq)/150,
+//					(b_freq)/150,
+//					(c_freq)/150);
 		}
 
 #endif
@@ -438,8 +444,7 @@ int main(int argc, char **argv) {
 
 	/* Clear out display */
 	if (visualize) {
-		close_bargraph(display_type);
-		close_freq_display(display_type);
+		display_shutdown(display_type);
 	}
 
 	printf("Max a=%.2lf b=%.2lf c=%.2lf\n",max_a,max_b,max_c);

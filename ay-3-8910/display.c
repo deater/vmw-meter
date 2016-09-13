@@ -20,6 +20,8 @@
 
 #include "display.h"
 
+static int current_mode=MODE_VISUAL;
+
 unsigned char display_buffer[DISPLAY_LINES];
 
 static int i2c_fd=-1;
@@ -90,7 +92,7 @@ static int bargraph_text(int a, int b, int c) {
 }
 
 
-int bargraph(int type, int a, int b, int c) {
+static int bargraph(int type, int a, int b, int c) {
 
 	if (type&DISPLAY_I2C) {
 		bargraph_i2c(a,b,c);
@@ -104,7 +106,7 @@ int bargraph(int type, int a, int b, int c) {
 }
 
 
-int close_bargraph(int type) {
+static int close_bargraph(int type) {
 
 	if (type&DISPLAY_I2C) {
 		bargraph_i2c(0,0,0);
@@ -154,7 +156,7 @@ static int freq_matrix[16][8];
 
 static int divider=0;
 
-int freq_display(int display_type, int a, int b, int c) {
+static int freq_display(int display_type, int a, int b, int c) {
 
 	int x,y;
 	int i;
@@ -248,7 +250,7 @@ int freq_display(int display_type, int a, int b, int c) {
 
 
 
-int close_freq_display(int display_type) {
+static int close_freq_display(int display_type) {
 
 	int x,y;
 	int i;
@@ -285,6 +287,32 @@ int close_freq_display(int display_type) {
 				strerror(errno));
 			return -1;
         	}
+	}
+
+	return 0;
+}
+
+int display_shutdown(int display_type) {
+
+	close_freq_display(display_type);
+	close_bargraph(display_type);
+
+	return 0;
+}
+
+int display_update(int display_type,
+		int aa1, int ba1, int ca1,
+		int af1, int bf1, int cf1) {
+
+	bargraph(display_type, aa1, ba1, ca1);
+
+	switch(current_mode) {
+		case MODE_VISUAL:
+			freq_display(display_type, af1, bf1, cf1);
+			break;
+		default:
+			printf("Unknown visual mode!\n");
+			break;
 	}
 
 	return 0;
