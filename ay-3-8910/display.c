@@ -161,36 +161,27 @@ int freq_display(int display_type, int a, int b, int c) {
 
 	char buffer[17];
 
-	/* Clear background */
-	if (divider==0) {
-		for(y=0;y<8;y++) {
-			for(x=0;x<16;x++) {
-				freq_matrix[x][y]=0;
-			}
-		}
-	}
-
-	if (a>0) {
+	if (a>=0) {
 		if (a>15) {
-			printf("A too big %d\n",a);
+//			printf("A too big %d\n",a);
 			a=15;
 		}
 		freq_max[a]=7;
 		for(y=0;y<8;y++) freq_matrix[a][y]=1;
 	}
 
-	if (b>0) {
+	if (b>=0) {
 		if (b>15) {
-			printf("B too big %d\n",b);
+//			printf("B too big %d\n",b);
 			b=15;
 		}
 		freq_max[b]=7;
 		for(y=0;y<8;y++) freq_matrix[b][y]=1;
 	}
 
-	if (c>0) {
+	if (c>=0) {
 		if (c>15) {
-			printf("C too big %d\n",c);
+//			printf("C too big %d\n",c);
 			c=15;
 		}
 		freq_max[c]=7;
@@ -241,7 +232,16 @@ int freq_display(int display_type, int a, int b, int c) {
 	}
 
 	divider++;
-	if (divider>UPDATE_DIVIDER) divider=0;
+	if (divider>UPDATE_DIVIDER) {
+		divider=0;
+		/* Clear background */
+
+		for(y=0;y<8;y++) {
+			for(x=0;x<16;x++) {
+				freq_matrix[x][y]=0;
+			}
+		}
+	}
 
 	return 0;
 }

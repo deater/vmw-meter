@@ -19,7 +19,7 @@
 
 #define DELAY_PAUSE	3
 #define DELAY_BETWEEN	3
-#define DELAY_SHIFT	15
+#define DELAY_SHIFT	10
 #define DELAY_RESET	5000
 
 #define AY38910_CLOCK	1000000	/* 1MHz on our board */
@@ -55,10 +55,12 @@ int initialize_ay_3_8910(void) {
 	return 0;
 }
 
-static int shift_74hc595(int value) {
+static int shift_74hc595(int value, int size) {
 
 
 	int i,shifted_val;
+
+	/* Shift first 8 bits */
 
 	shifted_val=value;
 
@@ -69,13 +71,11 @@ static int shift_74hc595(int value) {
 		bcm2835_delayMicroseconds(DELAY_SHIFT);
 
 		if (shifted_val&0x1) {
-//		if (shifted_val&0x80) {
 			bcm2835_gpio_write(RPI_V2_GPIO_P1_11, HIGH);
 		}
 		else {
 			bcm2835_gpio_write(RPI_V2_GPIO_P1_11, LOW);
 		}
-//		shifted_val<<=1;
 		shifted_val>>=1;
 
 		bcm2835_delayMicroseconds(DELAY_SHIFT);
@@ -84,6 +84,34 @@ static int shift_74hc595(int value) {
 		bcm2835_gpio_write(27, HIGH);
 
 		bcm2835_delayMicroseconds(DELAY_SHIFT);
+	}
+
+
+	/* Shift next 8 bits */
+	if (size==16) {
+	shifted_val=value;
+
+	for(i=0;i<8;i++) {
+		/* Set clock low */
+		bcm2835_gpio_write(27, LOW);
+
+		bcm2835_delayMicroseconds(DELAY_SHIFT);
+
+		if (shifted_val&0x1) {
+			bcm2835_gpio_write(RPI_V2_GPIO_P1_11, HIGH);
+		}
+		else {
+			bcm2835_gpio_write(RPI_V2_GPIO_P1_11, LOW);
+		}
+		shifted_val>>=1;
+
+		bcm2835_delayMicroseconds(DELAY_SHIFT);
+
+		/* Set clock high */
+		bcm2835_gpio_write(27, HIGH);
+
+		bcm2835_delayMicroseconds(DELAY_SHIFT);
+	}
 	}
 
 	bcm2835_gpio_write(22, HIGH);
@@ -97,6 +125,11 @@ static int shift_74hc595(int value) {
 	return 0;
 }
 
+
+//#define SHIFT_SIZE	8
+#define SHIFT_SIZE	16
+
+
 int write_ay_3_8910(int addr, int value) {
 
 
@@ -105,7 +138,7 @@ int write_ay_3_8910(int addr, int value) {
 	bcm2835_gpio_write(RPI_GPIO_P1_12, LOW);
 
 	/* Set address on bus */
-	shift_74hc595(addr);
+	shift_74hc595(addr,SHIFT_SIZE);
 
 	/* Set BDIR and BC1 high */
 	bcm2835_gpio_write(RPI_GPIO_P1_16, HIGH);
@@ -122,7 +155,7 @@ int write_ay_3_8910(int addr, int value) {
 
 	/* Be sure BDIR and BC1 are low */
 	/* Put value on bus */
-	shift_74hc595(value);
+	shift_74hc595(value,SHIFT_SIZE);
 
 	/* Put BDIR high */
 	bcm2835_gpio_write(RPI_GPIO_P1_16, HIGH);
