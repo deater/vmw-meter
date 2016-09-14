@@ -20,6 +20,8 @@
 
 #include "display.h"
 
+#include "font.h"
+
 static int current_mode=MODE_TIME;
 
 unsigned char display_buffer[DISPLAY_LINES];

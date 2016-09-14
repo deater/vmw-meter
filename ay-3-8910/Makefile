@@ -17,7 +17,7 @@ ym_play.o:	ym_play.c display.h ay-3-8910.h
 ay-3-8910.o:	ay-3-8910.c ay-3-8910.h
 	$(CC) $(CFLAGS) -c ay-3-8910.c
 
-display.o:	display.c display.h
+display.o:	display.c display.h font.h
 	$(CC) $(CFLAGS) -c display.c
 
 clean:	
