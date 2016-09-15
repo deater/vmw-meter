@@ -129,12 +129,7 @@ static int shift_74hc595(int value, int size) {
 	return 0;
 }
 
-
-//#define SHIFT_SIZE	8
-#define SHIFT_SIZE	16
-
-
-int write_ay_3_8910(int addr, int value) {
+int write_ay_3_8910(int addr, int value, int shift_size) {
 
 
 	/* Be sure BDIR and BC1 are low */
@@ -142,7 +137,7 @@ int write_ay_3_8910(int addr, int value) {
 	bcm2835_gpio_write(RPI_GPIO_P1_12, LOW);
 
 	/* Set address on bus */
-	shift_74hc595(addr,SHIFT_SIZE);
+	shift_74hc595(addr,shift_size);
 
 	/* Set BDIR and BC1 high */
 	bcm2835_gpio_write(RPI_GPIO_P1_16, HIGH);
@@ -159,7 +154,7 @@ int write_ay_3_8910(int addr, int value) {
 
 	/* Be sure BDIR and BC1 are low */
 	/* Put value on bus */
-	shift_74hc595(value,SHIFT_SIZE);
+	shift_74hc595(value,shift_size);
 
 	/* Put BDIR high */
 	bcm2835_gpio_write(RPI_GPIO_P1_16, HIGH);
@@ -175,12 +170,12 @@ int write_ay_3_8910(int addr, int value) {
 	return 0;
 }
 
-void quiet_ay_3_8910(void) {
+void quiet_ay_3_8910(int shift_size) {
 
 	int j;
 
 	for(j=0;j<14;j++) {
-		write_ay_3_8910(j,0);
+		write_ay_3_8910(j,0,shift_size);
 	}
 }
 

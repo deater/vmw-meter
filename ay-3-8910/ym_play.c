@@ -35,11 +35,11 @@ static int play_music=1;
 static int dump_info=0;
 static int visualize=1;
 static int display_type=DISPLAY_I2C;
-
+static int shift_size=16;
 
 static void quiet(int sig) {
 
-	if (play_music) quiet_ay_3_8910();
+	if (play_music) quiet_ay_3_8910(shift_size);
 
 	printf("Quieting and exiting\n");
 	_exit(0);
@@ -124,9 +124,11 @@ int main(int argc, char **argv) {
 				break;
 			case 'm':
 				/* mono sound */
+				shift_size=8;
 				break;
 			case 's':
 				/* stereo sound */
+				shift_size=16;
 				break;
 			case 'n':
 				/* no sound */
@@ -423,13 +425,13 @@ int main(int argc, char **argv) {
 
 		if (play_music) {
 			for(j=0;j<13;j++) {
-				write_ay_3_8910(j,frame[j]);
+				write_ay_3_8910(j,frame[j],shift_size);
 			}
 
 			/* Special case.  Writing r13 resets it,	*/
 			/* so special 0xff marker means do not write	*/
 			if (frame[13]!=0xff) {
-				write_ay_3_8910(13,frame[13]);
+				write_ay_3_8910(13,frame[13],shift_size);
 			}
 		}
 
@@ -497,7 +499,7 @@ int main(int argc, char **argv) {
 
 	/* Quiet down the chips */
 	if (play_music) {
-		quiet_ay_3_8910();
+		quiet_ay_3_8910(shift_size);
 	}
 
 	/* Clear out display */
