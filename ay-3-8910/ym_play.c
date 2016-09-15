@@ -72,12 +72,11 @@ void print_help(int just_version, char *exec_name) {
 	exit(0);
 }
 
-int main(int argc, char **argv) {
+static int play_song(char *filename) {
 
 	int fd;
 	unsigned char header[YM_HEADER_SIZE];
 	unsigned char frame[YM_FRAME_SIZE];
-	char filename[BUFSIZ]="intro2.ym";
 	int result;
 	char ym5_magic[]="YM5!LeOnArD!";
 	char ym6_magic[]="YM6!LeOnArD!";
@@ -99,58 +98,6 @@ int main(int argc, char **argv) {
 	int new_a,new_b,new_c,new_n,new_e;
 
 	struct timeval start,next;
-
-	int c;
-
-	/* Setup control-C handler to quiet the music	*/
-	/* otherwise if you force quit it keeps playing	*/
-	/* the last tones */
-	signal(SIGINT, quiet);
-
-	while ((c = getopt(argc, argv, "dmhvmsnit"))!=-1) {
-		switch (c) {
-			case 'd':
-				/* Debug messages */
-				printf("Debug enabled\n");
-				dump_info=1;
-				break;
-			case 'h':
-				/* help */
-				print_help(0,argv[0]);
-				break;
-			case 'v':
-				/* version */
-				print_help(1,argv[0]);
-				break;
-			case 'm':
-				/* mono sound */
-				shift_size=8;
-				break;
-			case 's':
-				/* stereo sound */
-				shift_size=16;
-				break;
-			case 'n':
-				/* no sound */
-				play_music=0;
-				break;
-			case 'i':
-				/* i2c visualization */
-				display_type=DISPLAY_I2C;
-				break;
-			case 't':
-				/* text visualization */
-				display_type=DISPLAY_TEXT;
-				break;
-			default:
-				print_help(0,argv[0]);
-				break;
-		}
-	}
-
-	if (argv[optind]!=NULL) {
-		strcpy(filename,argv[optind]);
-	}
 
 	fd=open(filename,O_RDONLY);
 	if (fd<1) {
@@ -275,28 +222,6 @@ int main(int argc, char **argv) {
 	file_position=lseek(fd,0,SEEK_CUR)-1;
 	if (dump_info) printf("Frames start at %lx\n",file_position);
 	gettimeofday(&start,NULL);
-
-	/*******************/
-	/* Initialize Chip */
-	/*******************/
-
-	if (play_music) {
-		result=initialize_ay_3_8910();
-		if (result<0) {
-			printf("Error initializing bcm2835!\n");
-			printf("Maybe try running as root?\n\n");
-			exit(0);
-		}
-	}
-
-	if (visualize) {
-		result=display_init(display_type);
-		if (result<0) {
-			printf("Error initializing display!\n");
-			printf("Turning off display for now!\n");
-			display_type=0;
-		}
-	}
 
 	for(i=0;i<num_frames;i++) {
 		if (interleaved) {
@@ -497,6 +422,96 @@ int main(int argc, char **argv) {
 	/* Close the ym file */
 	close(fd);
 
+	if (dump_info) {
+		printf("Max a=%.2lf b=%.2lf c=%.2lf\n",max_a,max_b,max_c);
+	}
+
+	return 0;
+}
+
+
+int main(int argc, char **argv) {
+
+	char filename[BUFSIZ]="intro2.ym";
+	int result;
+	int c;
+
+	/* Setup control-C handler to quiet the music	*/
+	/* otherwise if you force quit it keeps playing	*/
+	/* the last tones */
+	signal(SIGINT, quiet);
+
+	/* Parse command line arguments */
+	while ((c = getopt(argc, argv, "dmhvmsnit"))!=-1) {
+		switch (c) {
+			case 'd':
+				/* Debug messages */
+				printf("Debug enabled\n");
+				dump_info=1;
+				break;
+			case 'h':
+				/* help */
+				print_help(0,argv[0]);
+				break;
+			case 'v':
+				/* version */
+				print_help(1,argv[0]);
+				break;
+			case 'm':
+				/* mono sound */
+				shift_size=8;
+				break;
+			case 's':
+				/* stereo sound */
+				shift_size=16;
+				break;
+			case 'n':
+				/* no sound */
+				play_music=0;
+				break;
+			case 'i':
+				/* i2c visualization */
+				display_type=DISPLAY_I2C;
+				break;
+			case 't':
+				/* text visualization */
+				display_type=DISPLAY_TEXT;
+				break;
+			default:
+				print_help(0,argv[0]);
+				break;
+		}
+	}
+
+	if (argv[optind]!=NULL) {
+		strcpy(filename,argv[optind]);
+	}
+
+
+
+	/* Initialize the Chip interface */
+	if (play_music) {
+		result=initialize_ay_3_8910();
+		if (result<0) {
+			printf("Error initializing bcm2835!\n");
+			printf("Maybe try running as root?\n\n");
+			exit(0);
+		}
+	}
+
+	/* Initialize the displays */
+	if (visualize) {
+		result=display_init(display_type);
+		if (result<0) {
+			printf("Error initializing display!\n");
+			printf("Turning off display for now!\n");
+			display_type=0;
+		}
+	}
+
+	/* Play the song */
+	play_song(filename);
+
 	/* Quiet down the chips */
 	if (play_music) {
 		quiet_ay_3_8910(shift_size);
@@ -505,10 +520,6 @@ int main(int argc, char **argv) {
 	/* Clear out display */
 	if (visualize) {
 		display_shutdown(display_type);
-	}
-
-	if (dump_info) {
-		printf("Max a=%.2lf b=%.2lf c=%.2lf\n",max_a,max_b,max_c);
 	}
 
 	return 0;
