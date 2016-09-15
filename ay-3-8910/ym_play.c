@@ -107,18 +107,12 @@ int main(int argc, char **argv) {
 	/* the last tones */
 	signal(SIGINT, quiet);
 
-	while ((c = getopt(argc, argv, "dmhisv"))!=-1) {
+	while ((c = getopt(argc, argv, "dmhvmsnit"))!=-1) {
 		switch (c) {
 			case 'd':
 				/* Debug messages */
 				printf("Debug enabled\n");
 				dump_info=1;
-				break;
-			case 'm':
-				/* mono sound */
-				break;
-			case 's':
-				/* stereo sound */
 				break;
 			case 'h':
 				/* help */
@@ -127,6 +121,16 @@ int main(int argc, char **argv) {
 			case 'v':
 				/* version */
 				print_help(1,argv[0]);
+				break;
+			case 'm':
+				/* mono sound */
+				break;
+			case 's':
+				/* stereo sound */
+				break;
+			case 'n':
+				/* no sound */
+				play_music=0;
 				break;
 			case 'i':
 				/* i2c visualization */
@@ -275,7 +279,12 @@ int main(int argc, char **argv) {
 	/*******************/
 
 	if (play_music) {
-		initialize_ay_3_8910();
+		result=initialize_ay_3_8910();
+		if (result==0) {
+			printf("Error initializing bcm2835!\n");
+			printf("Maybe try running as root?\n\n");
+			exit(0);
+		}
 	}
 
 	if (visualize) {
