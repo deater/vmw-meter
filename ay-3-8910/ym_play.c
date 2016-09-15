@@ -420,7 +420,7 @@ int main(int argc, char **argv) {
 			}
 
 		}
-#if 1
+
 		if (play_music) {
 			for(j=0;j<13;j++) {
 				write_ay_3_8910(j,frame[j]);
@@ -432,9 +432,7 @@ int main(int argc, char **argv) {
 				write_ay_3_8910(13,frame[13]);
 			}
 		}
-#endif
 
-#if 1
 		if (visualize) {
 			if (display_type&DISPLAY_TEXT) {
 				printf("\033[H\033[2J");
@@ -448,58 +446,39 @@ int main(int argc, char **argv) {
 						(b_freq)/150,
 						(c_freq)/150,
 						i,num_frames);
-
-//			freq_display(display_type,
-//					log2(a_freq),
-//					log2(b_freq),
-//					log2(c_freq));
-
-//			freq_display(display_type,
-//					(a_freq)/150,
-//					(b_freq)/150,
-//					(c_freq)/150);
 		}
 
-#endif
-
-
-		if (play_music) {
-//		usleep(1000000/frame_rate);	/* often 50Hz */
-
-//		bcm2835_delayMicroseconds(1000000/frame_rate);	/* often 50Hz = 20000 */
-//			bcm2835_delayMicroseconds(10);	/* often 50Hz = 20000 */
-		}
-		else {
-			if (visualize) usleep(1000000/frame_rate);	/* often 50Hz */
-		}
-
+		/* Calculate time it took to play/visualize */
 		gettimeofday(&next,NULL);
 		s=start.tv_sec+(start.tv_usec/1000000.0);
 		n=next.tv_sec+(next.tv_usec/1000000.0);
 		diff=(n-s)*1000000.0;
 
+		/* Delay until time for next update (often 50Hz) */
 		if (play_music) {
 			if (diff>0) bcm2835_delayMicroseconds(20000-diff);
 			/* often 50Hz = 20000 */
+			/* TODO: calculate correctly */
+		}
+		else {
+			if (visualize) usleep(1000000/frame_rate);
 		}
 
+		/* Calculate time it actually took, and print		*/
+		/* so we can see if things are going horribly wrong	*/
 		gettimeofday(&next,NULL);
 		s=start.tv_sec+(start.tv_usec/1000000.0);
 		n=next.tv_sec+(next.tv_usec/1000000.0);
 
 		if (i%100==0) {
-
-
 			hz=1/(n-s);
-
 			printf("Done frame %d, %.1lfHz\n",i,hz);
 		}
 		start.tv_sec=next.tv_sec;
 		start.tv_usec=next.tv_usec;
-
-
 	}
 
+	/* Read the tail of the file and ensure it has the proper trailer */
 	result=read(fd,header,4);
 	header[4]=0;
 
@@ -513,16 +492,22 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
+	/* Close the ym file */
 	close(fd);
 
-	if (play_music) quiet_ay_3_8910();
+	/* Quiet down the chips */
+	if (play_music) {
+		quiet_ay_3_8910();
+	}
 
 	/* Clear out display */
 	if (visualize) {
 		display_shutdown(display_type);
 	}
 
-	printf("Max a=%.2lf b=%.2lf c=%.2lf\n",max_a,max_b,max_c);
+	if (dump_info) {
+		printf("Max a=%.2lf b=%.2lf c=%.2lf\n",max_a,max_b,max_c);
+	}
 
 	return 0;
 }
