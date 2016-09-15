@@ -39,6 +39,7 @@ static int dump_info=0;
 static int visualize=1;
 static int display_type=DISPLAY_I2C;
 static int shift_size=16;
+static int music_repeat=0;
 
 static void quiet(int sig) {
 
@@ -99,6 +100,8 @@ static int play_song(char *filename) {
 	int a_period,b_period,c_period,n_period,e_period;
 	double a_freq=0.0, b_freq=0.0, c_freq=0.0,n_freq=0.0,e_freq=0.0;
 	int new_a,new_b,new_c,new_n,new_e;
+
+	int display_command=0;
 
 	struct timeval start,next;
 
@@ -375,7 +378,7 @@ static int play_song(char *filename) {
 				printf("\033[H\033[2J");
 			}
 
-			display_update(display_type,
+			display_command=display_update(display_type,
 						(frame[8]*11)/16,
 						(frame[9]*11)/16,
 						(frame[10]*11)/16,
@@ -413,6 +416,11 @@ static int play_song(char *filename) {
 		}
 		start.tv_sec=next.tv_sec;
 		start.tv_usec=next.tv_usec;
+
+		if (display_command==CMD_EXIT_PROGRAM) {
+			close(fd);
+			return CMD_EXIT_PROGRAM;
+		}
 	}
 
 	/* Read the tail of the file and ensure it has the proper trailer */
@@ -452,7 +460,7 @@ int main(int argc, char **argv) {
 	signal(SIGINT, quiet);
 
 	/* Parse command line arguments */
-	while ((c = getopt(argc, argv, "dmhvmsnit"))!=-1) {
+	while ((c = getopt(argc, argv, "dmhvmsnitr"))!=-1) {
 		switch (c) {
 			case 'd':
 				/* Debug messages */
@@ -487,6 +495,10 @@ int main(int argc, char **argv) {
 				/* text visualization */
 				display_type=DISPLAY_TEXT;
 				break;
+			case 'r':
+				/* repeat */
+				music_repeat=1;
+				break;
 			default:
 				print_help(0,argv[0]);
 				break;
@@ -520,7 +532,10 @@ int main(int argc, char **argv) {
 	}
 
 	/* Play the song */
-	play_song(filename);
+	result=play_song(filename);
+	if (result==CMD_EXIT_PROGRAM) {
+		// break
+	}
 
 	/* Quiet down the chips */
 	if (play_music) {
