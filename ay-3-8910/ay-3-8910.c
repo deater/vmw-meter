@@ -31,10 +31,10 @@ int initialize_ay_3_8910(void) {
 	printf("Initializing AY-3-8910\n");
 
 	result=bcm2835_init();
-	/* 0 means failure.  Who does that? */
+	/* 1 means success, 0 means failure.  Who does that? */
 	if (result==0) {
 		fprintf(stderr,"Error init libBCM2835!\n");
-		return result;
+		return -1;
 	}
 
 	/* Enable GPIO17 */

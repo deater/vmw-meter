@@ -280,7 +280,7 @@ int main(int argc, char **argv) {
 
 	if (play_music) {
 		result=initialize_ay_3_8910();
-		if (result==0) {
+		if (result<0) {
 			printf("Error initializing bcm2835!\n");
 			printf("Maybe try running as root?\n\n");
 			exit(0);
