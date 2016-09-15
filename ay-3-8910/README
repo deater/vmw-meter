@@ -14,13 +14,14 @@ Hardware:
 			but you get overflows on some sound files
 			if you use 2MHz)
 		LM386 and various discrete components.
-			Current design is based on Figure 16 in
-			the AY-3-8910 datasheet.
-			Plan to replace with adafruit class-D amp
-		ht16k33 i2c breakout board, adafruit (addr 0x70)
+			Reference design is based on Figure 16 in
+			the AY-3-8910 manual.
+			Have replaced with adafruit MAX98306 class-D
+			streo amplifier in my setup.
+		ht16k33 i2c breakout board, adafruit (i2c addr 0x70)
 			To run the three bargraphs.
 			Bargraphs were GYR models from Jameco/SEED
-		ht16k33 i2c 16x8 backpack, adafruit (addr 0x72)
+		ht16k33 i2c 16x8 backpack, adafruit (i2c addr 0x72)
 		8 Ohm speaker
 
 	Pi Connections:
