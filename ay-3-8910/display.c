@@ -11,6 +11,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <termios.h>
+#include <fcntl.h>
 
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
@@ -25,7 +27,7 @@
 //static int current_mode=MODE_TIME;
 static int current_mode=MODE_VISUAL;
 
-unsigned char display_buffer[DISPLAY_LINES];
+static unsigned char display_buffer[DISPLAY_LINES];
 
 static int i2c_fd=-1;
 
@@ -116,40 +118,6 @@ static int close_bargraph(int type) {
 	}
 
 	return 0;
-}
-
-
-
-
-int display_init(int type) {
-
-	int result=0;
-	int i;
-
-	if (type&DISPLAY_I2C) {
-
-		i2c_fd=init_i2c("/dev/i2c-1");
-		if (i2c_fd < 0) {
-			fprintf(stderr,"Error opening device!\n");
-			return -1;
- 		}
-
-		/* Init display */
-		if (init_display(i2c_fd,HT16K33_ADDRESS0,10)) {
-			fprintf(stderr,"Error opening display\n");
-			return -1;
-		}
-
-		/* Init display */
-		if (init_display(i2c_fd,HT16K33_ADDRESS2,10)) {
-			fprintf(stderr,"Error opening display\n");
-			return -1;
-		}
-
-		for(i=0;i<DISPLAY_LINES;i++) display_buffer[i]=0;
-	}
-
-	return result;
 }
 
 static int freq_max[16];
@@ -470,18 +438,12 @@ static int time_display(int display_type, int current_frame, int total_frames) {
 	return 0;
 }
 
-int display_shutdown(int display_type) {
-
-	close_freq_display(display_type);
-	close_bargraph(display_type);
-
-	return 0;
-}
-
 int display_update(int display_type,
 		int aa1, int ba1, int ca1,
 		int af1, int bf1, int cf1,
 		int current_frame, int num_frames) {
+
+	int ch;
 
 	bargraph(display_type, aa1, ba1, ca1);
 
@@ -493,9 +455,99 @@ int display_update(int display_type,
 			time_display(display_type, current_frame, num_frames);
 			break;
 		default:
-			printf("Unknown visual mode!\n");
+			//printf("Unknown visual mode!\n");
 			break;
 	}
 
+	read(0,&ch,1);
+	if (ch!=0) {
+		switch(ch) {
+			case ' ': /* pause/play */
+				return CMD_PAUSE;
+				break;
+			case ',': /* back */
+				return CMD_BACK;
+				break;
+			case '.': /* forward */
+				return CMD_FWD;
+				break;
+			case 'm': /* mode */
+				current_mode++;
+				if (current_mode==MODE_MAX) {
+					current_mode=0;
+				}
+				break;
+			case 'q':
+			case 'Q':
+			case 27:
+				/* quit */
+				return CMD_EXIT_PROGRAM;
+				break;
+
+		}
+	}
+
+
+
 	return 0;
+}
+
+static struct termios saved_tty;
+
+int display_shutdown(int display_type) {
+
+	close_freq_display(display_type);
+	close_bargraph(display_type);
+
+	tcsetattr (0, TCSANOW, &saved_tty);
+
+	return 0;
+}
+
+
+
+int display_init(int type) {
+
+	int result=0;
+	int i;
+
+	struct termios new_tty;
+
+	/* Save currenty term settings */
+	tcgetattr (0, &saved_tty);
+	tcgetattr (0, &new_tty);
+
+	/* Put term in raw keryboard mode */
+	new_tty.c_lflag &= ~ICANON;
+	new_tty.c_cc[VMIN] = 1;
+	new_tty.c_lflag &= ~ECHO;
+	tcsetattr (0, TCSANOW, &new_tty);
+	/* Make it nonblocking too */
+	fcntl (0, F_SETFL, fcntl (0, F_GETFL) | O_NONBLOCK);
+
+
+	if (type&DISPLAY_I2C) {
+
+		i2c_fd=init_i2c("/dev/i2c-1");
+		if (i2c_fd < 0) {
+			fprintf(stderr,"Error opening device!\n");
+			return -1;
+ 		}
+
+		/* Init display */
+		if (init_display(i2c_fd,HT16K33_ADDRESS0,10)) {
+			fprintf(stderr,"Error opening display\n");
+			return -1;
+		}
+
+		/* Init display */
+		if (init_display(i2c_fd,HT16K33_ADDRESS2,10)) {
+			fprintf(stderr,"Error opening display\n");
+			return -1;
+		}
+
+		for(i=0;i<DISPLAY_LINES;i++) display_buffer[i]=0;
+	}
+
+	return result;
 }

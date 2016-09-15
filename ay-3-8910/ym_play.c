@@ -10,6 +10,9 @@
 /* BDIR GPIO23   */
 /* |RESET GPIO24 */
 
+
+#define VERSION "0.1"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -41,12 +44,12 @@ static void quiet(int sig) {
 
 	if (play_music) quiet_ay_3_8910(shift_size);
 
+	display_shutdown(display_type);
+
 	printf("Quieting and exiting\n");
 	_exit(0);
 
 }
-
-#define VERSION "0.1"
 
 void print_help(int just_version, char *exec_name) {
 
