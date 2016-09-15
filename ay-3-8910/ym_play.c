@@ -99,6 +99,8 @@ static int play_song(char *filename) {
 
 	struct timeval start,next;
 
+	printf("\nPlaying song %s\n",filename);
+
 	fd=open(filename,O_RDONLY);
 	if (fd<1) {
 		fprintf(stderr,"Error opening %s, %s!\n",
@@ -127,33 +129,38 @@ static int play_song(char *filename) {
 	}
 
 	num_frames=(header[12]<<24)|(header[13]<<16)|(header[14]<<8)|(header[15]);
-	printf("Number of frames: %d\n",num_frames);
+//	printf("Number of frames: %d\n",num_frames);
 
 	song_attributes=(header[16]<<24)|(header[17]<<16)|(header[18]<<8)|(header[19]);
-	printf("Song attributes: %d\n",song_attributes);
+	printf("\tSong attributes (%d) : ",song_attributes);
 	interleaved=song_attributes&0x1;
-	printf("\tInterleaved=%s\n",interleaved?"yes":"no");
+	printf("Interleaved=%s\n",interleaved?"yes":"no");
 
 	/* interleaved makes things compress better */
 	/* but much more of a pain to play */
 
 	num_digidrum=(header[20]<<8)|(header[21]);
-	printf("Num digidrum samples: %d\n",num_digidrum);
+	if (num_digidrum>0) {
+		printf("Num digidrum samples: %d\n",num_digidrum);
+	}
 
+	printf("\tFrames: %d, ",num_frames);
 	master_clock=(header[22]<<24)|(header[23]<<16)|(header[24]<<8)|(header[25]);
-	printf("Master clock: %d Hz\n",master_clock);
+	printf("Chip clock: %d Hz, ",master_clock);
 
 	frame_rate=(header[26]<<8)|(header[27]);
-	printf("Frame rate: %d\n",frame_rate);
+	printf("Frame rate: %d Hz, ",frame_rate);
+
+	length_seconds=num_frames/frame_rate;
+	printf("Length=%d:%02d\n",length_seconds/60,length_seconds%60);
 
 	loop_frame=(header[28]<<24)|(header[29]<<16)|(header[30]<<8)|(header[31]);
-	printf("Loop frame: %d\n",loop_frame);
+	printf("\tLoop frame: %d, ",loop_frame);
 
 	extra_data=(header[32]<<8)|(header[33]);
 	printf("Extra data size: %d\n",extra_data);
 
-	length_seconds=num_frames/frame_rate;
-	printf("Length=%d:%02d\n",length_seconds/60,length_seconds%60);
+
 
 	if (num_digidrum>0) {
 		fprintf(stderr,"Warning!  We don't handle digidrum\n");
@@ -181,7 +188,7 @@ static int play_song(char *filename) {
 			pointer++;
 		}
 	}
-	printf("Song name: %s\n",song_name);
+	printf("\tSong name: %s\n",song_name);
 
 	pointer=0;
 	while(1) {
@@ -199,7 +206,7 @@ static int play_song(char *filename) {
 			pointer++;
 		}
 	}
-	printf("Author name: %s\n",author);
+	printf("\tAuthor name: %s\n",author);
 
 	pointer=0;
 	while(1) {
@@ -217,7 +224,7 @@ static int play_song(char *filename) {
 			pointer++;
 		}
 	}
-	printf("Comment: %s\n",comment);
+	printf("\tComment: %s\n",comment);
 
 	file_position=lseek(fd,0,SEEK_CUR)-1;
 	if (dump_info) printf("Frames start at %lx\n",file_position);
