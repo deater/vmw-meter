@@ -40,6 +40,7 @@ static int visualize=1;
 static int display_type=DISPLAY_I2C;
 static int shift_size=16;
 static int music_repeat=0;
+static int music_paused=0;
 
 static void quiet(int sig) {
 
@@ -236,7 +237,10 @@ static int play_song(char *filename) {
 	if (dump_info) printf("Frames start at %lx\n",file_position);
 	gettimeofday(&start,NULL);
 
-	for(i=0;i<num_frames;i++) {
+	i=0;
+	while(i<num_frames) {
+
+	if (!music_paused) {
 		if (interleaved) {
 			file_position++;
 			lseek(fd,file_position,SEEK_SET);
@@ -372,7 +376,7 @@ static int play_song(char *filename) {
 				write_ay_3_8910(13,frame[13],shift_size);
 			}
 		}
-
+	}
 		if (visualize) {
 			if (display_type&DISPLAY_TEXT) {
 				printf("\033[H\033[2J");
@@ -421,6 +425,20 @@ static int play_song(char *filename) {
 			close(fd);
 			return CMD_EXIT_PROGRAM;
 		}
+
+		if (display_command==CMD_PAUSE) {
+			if (music_paused) {
+				music_paused=0;
+			}
+			else {
+				music_paused=1;
+				quiet_ay_3_8910(shift_size);
+			}
+		}
+
+		/* increment frame */
+		if (!music_paused) i++;
+
 	}
 
 	/* Read the tail of the file and ensure it has the proper trailer */

@@ -24,7 +24,6 @@
 
 #include "font.h"
 
-//static int current_mode=MODE_TIME;
 static int current_mode=MODE_VISUAL;
 
 static unsigned char display_buffer[DISPLAY_LINES];
@@ -443,7 +442,8 @@ int display_update(int display_type,
 		int af1, int bf1, int cf1,
 		int current_frame, int num_frames) {
 
-	int ch;
+	unsigned char ch;
+	int result;
 
 	bargraph(display_type, aa1, ba1, ca1);
 
@@ -459,8 +459,10 @@ int display_update(int display_type,
 			break;
 	}
 
-	read(0,&ch,1);
-	if (ch!=0) {
+	result=read(0,&ch,1);
+	if (result<0) { //printf("Error %s\n",strerror(errno));
+	}
+	else {
 		switch(ch) {
 			case ' ': /* pause/play */
 				return CMD_PAUSE;
