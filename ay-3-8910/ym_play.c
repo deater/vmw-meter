@@ -288,7 +288,12 @@ int main(int argc, char **argv) {
 	}
 
 	if (visualize) {
-		display_init(display_type);
+		result=display_init(display_type);
+		if (result<0) {
+			printf("Error initializing display!\n");
+			printf("Turning off display for now!\n");
+			display_type=0;
+		}
 	}
 
 	for(i=0;i<num_frames;i++) {

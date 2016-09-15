@@ -1,5 +1,5 @@
 /* assumes two ht16k33 displays hooked up on the first i2c bus	*/
-/* first one is custom with 3 (eventually 6? 10 seg bargraphs	*/
+/* first one is custom with 3 (eventually 6?) 10 seg bargraphs	*/
 /* second one is an adafruit 8x16 led matrix backpack		*/
 
 /* The bargraphs are on i2c addr 0x70, the matrix on 0x72	*/
@@ -225,7 +225,7 @@ static int freq_display(int display_type, int a, int b, int c) {
         	}
 	}
 
-	if (divider==0)
+//	if (divider==0)
 	if (display_type&DISPLAY_TEXT) {
 		for(y=7;y>=0;y--) {
 			for(x=0;x<16;x++) {
