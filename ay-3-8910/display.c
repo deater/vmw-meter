@@ -22,7 +22,8 @@
 
 #include "font.h"
 
-static int current_mode=MODE_TIME;
+//static int current_mode=MODE_TIME;
+static int current_mode=MODE_VISUAL;
 
 unsigned char display_buffer[DISPLAY_LINES];
 

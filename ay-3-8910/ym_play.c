@@ -52,6 +52,29 @@ static void quiet(int sig) {
 
 }
 
+#define VERSION "0.1"
+
+void print_help(int just_version, char *exec_name) {
+
+	printf("\nym_play version %s by Vince Weaver <vince@deater.net>\n\n",VERSION);
+	if (just_version) exit(0);
+
+	printf("This plays YM5 music files out of the VMW AY-3-8910 device\n");
+	printf("on a suitably configured Raspberry Pi machine.\n\n");
+
+	printf("Usage:\n");
+	printf("\t%s [-h] [-v] [-i] [-t] [-m] [-s] filename\n\n",exec_name);
+	printf("\t-h: this help message\n");
+	printf("\t-v: version info\n");
+	printf("\t-i: use i2c LEDs for visualization\n");
+	printf("\t-t: use ASCII text visualization\n");
+	printf("\t-m: use mono (only one AY-3-8910 hooked up)\n");
+	printf("\t-s: use stereo (two AY-3-8910s hooked up)\n");
+	printf("\tfilename: must be uncompressed YM5 file for now\n\n");
+
+	exit(0);
+}
+
 int main(int argc, char **argv) {
 
 	int fd;
@@ -80,7 +103,44 @@ int main(int argc, char **argv) {
 
 	struct timeval start,next;
 
+	int c;
+
+	/* Setup control-C handler to quiet the music	*/
+	/* otherwise if you force quit it keeps playing	*/
+	/* the last tones */
 	signal(SIGINT, quiet);
+
+	while ((c = getopt(argc, argv, "cmhisv"))!=-1) {
+		switch (c) {
+			case 'c':
+				break;
+			case 'm':
+				/* mono sound */
+				break;
+			case 's':
+				/* stereo sound */
+				break;
+			case 'h':
+				/* help */
+				print_help(0,argv[0]);
+				break;
+			case 'v':
+				/* version */
+				print_help(1,argv[0]);
+				break;
+			case 'i':
+				/* i2c visualization */
+				break;
+			case 't':
+				/* text visualization */
+				break;
+			default:
+				print_help(0,argv[0]);
+				break;
+		}
+	}
+
+	printf("%s\n",optarg);
 
 	if (argc>1) {
 		strcpy(filename,argv[1]);
