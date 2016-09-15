@@ -31,17 +31,11 @@
 
 #define AY38910_CLOCK	1000000	/* 1MHz on our board */
 
-#if 0
-static int play_music=0;
-static int dump_info=1;
-static int visualize=0;
-static int display_type=DISPLAY_TEXT;
-#else
 static int play_music=1;
 static int dump_info=0;
 static int visualize=1;
 static int display_type=DISPLAY_I2C;
-#endif
+
 
 static void quiet(int sig) {
 
@@ -63,13 +57,16 @@ void print_help(int just_version, char *exec_name) {
 	printf("on a suitably configured Raspberry Pi machine.\n\n");
 
 	printf("Usage:\n");
-	printf("\t%s [-h] [-v] [-i] [-t] [-m] [-s] filename\n\n",exec_name);
+	printf("\t%s [-h] [-v] [-d] [-i] [-t] [-m] [-s] [-n] filename\n\n",
+		exec_name);
 	printf("\t-h: this help message\n");
 	printf("\t-v: version info\n");
+	printf("\t-d: print debug messages\n");
 	printf("\t-i: use i2c LEDs for visualization\n");
 	printf("\t-t: use ASCII text visualization\n");
 	printf("\t-m: use mono (only one AY-3-8910 hooked up)\n");
 	printf("\t-s: use stereo (two AY-3-8910s hooked up)\n");
+	printf("\t-n: no sound (useful when debugging)\n");
 	printf("\tfilename: must be uncompressed YM5 file for now\n\n");
 
 	exit(0);
@@ -110,9 +107,12 @@ int main(int argc, char **argv) {
 	/* the last tones */
 	signal(SIGINT, quiet);
 
-	while ((c = getopt(argc, argv, "cmhisv"))!=-1) {
+	while ((c = getopt(argc, argv, "dmhisv"))!=-1) {
 		switch (c) {
-			case 'c':
+			case 'd':
+				/* Debug messages */
+				printf("Debug enabled\n");
+				dump_info=1;
 				break;
 			case 'm':
 				/* mono sound */
@@ -130,9 +130,11 @@ int main(int argc, char **argv) {
 				break;
 			case 'i':
 				/* i2c visualization */
+				display_type=DISPLAY_I2C;
 				break;
 			case 't':
 				/* text visualization */
+				display_type=DISPLAY_TEXT;
 				break;
 			default:
 				print_help(0,argv[0]);
@@ -140,10 +142,8 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	printf("%s\n",optarg);
-
-	if (argc>1) {
-		strcpy(filename,argv[1]);
+	if (argv[optind]!=NULL) {
+		strcpy(filename,argv[optind]);
 	}
 
 	fd=open(filename,O_RDONLY);
