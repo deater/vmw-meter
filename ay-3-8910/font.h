@@ -2,9 +2,13 @@
 //1 1 1 1 1 1 1 1
 // 1  1   1 11 11
 
+int vmw[3]={0xada20000,0xaaaa0000,0x48b60000};
+
 //111 1 1 111 111 111 1 1 11  111
 //1   111  1  111  1  1 1 1 1 11
 //111 1 1 111 1    1  111 1 1 111
+
+int chiptune[3]={0xeaeeeace,0x8e4e4aac,0xeae84eae};
 
 unsigned char fbs_font[128][8]={
 { /* 0x00 */

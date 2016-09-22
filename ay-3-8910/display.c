@@ -24,7 +24,7 @@
 
 #include "font.h"
 
-static int current_mode=MODE_VISUAL;
+static int current_mode=MODE_TITLE;
 
 static unsigned char display_buffer[DISPLAY_LINES];
 
@@ -122,6 +122,53 @@ static int close_bargraph(int type) {
 static int freq_max[16];
 static int freq_matrix[16][8];
 
+static int put_8x16display(int display_type, int refresh_i2c) {
+
+	char buffer[17];
+	int i,x,y;
+
+	if ((display_type&DISPLAY_I2C) && (refresh_i2c)) {
+
+		buffer[0]=0;
+
+		for(i=0;i<16;i++) buffer[i+1]=0x0;
+
+		for(i=0;i<16;i++) {
+			for(x=0;x<8;x++) {
+				buffer[i+1]|=(freq_matrix[x+(8*(i%2))][i/2]<<x);
+			}
+		}
+
+		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
+			fprintf(stderr,"Error setting i2c address %x\n",
+				HT16K33_ADDRESS2);
+			return -1;
+		}
+
+
+		if ( (write(i2c_fd, buffer, 17)) !=17) {
+			fprintf(stderr,"Error writing display %s!\n",
+				strerror(errno));
+			return -1;
+        	}
+	}
+
+	if (display_type&DISPLAY_TEXT) {
+		for(y=7;y>=0;y--) {
+			for(x=0;x<16;x++) {
+				if (freq_matrix[x][y]) printf("*");
+				else printf(" ");
+			}
+			printf("\n");
+		}
+	}
+	return 0;
+}
+
+
+
+
+
 #define UPDATE_DIVIDER	5
 
 static int divider=0;
@@ -129,9 +176,6 @@ static int divider=0;
 static int freq_display(int display_type, int a, int b, int c) {
 
 	int x,y;
-	int i;
-
-	char buffer[17];
 
 	if (a>=0) {
 		if (a>15) {
@@ -167,40 +211,10 @@ static int freq_display(int display_type, int a, int b, int c) {
 		if (freq_max[x]>0) freq_max[x]--;
 	}
 
-	if (divider==0) 
-	if (display_type&DISPLAY_I2C) {
-		buffer[0]=0;
-		for(i=0;i<16;i++) buffer[i+1]=0x0;
-
-		for(i=0;i<16;i++) {
-			for(x=0;x<8;x++) {
-				buffer[i+1]|=(freq_matrix[x+(8*(i%2))][i/2]<<x);
-			}
-		}
-
-		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
-			fprintf(stderr,"Error setting i2c address %x\n",
-				HT16K33_ADDRESS2);
-			return -1;
-		}
-
-
-		if ( (write(i2c_fd, buffer, 17)) !=17) {
-			fprintf(stderr,"Error writing display %s!\n",
-				strerror(errno));
-			return -1;
-        	}
-	}
-
-//	if (divider==0)
-	if (display_type&DISPLAY_TEXT) {
-		for(y=7;y>=0;y--) {
-			for(x=0;x<16;x++) {
-				if (freq_matrix[x][y]) printf("*");
-				else printf(" ");
-			}
-			printf("\n");
-		}
+	if (divider==0) {
+		put_8x16display(display_type,1);
+	} else {
+		put_8x16display(display_type,0);
 	}
 
 	divider++;
@@ -352,10 +366,7 @@ static int put_number(int which, int x, int y) {
 static int time_display(int display_type, int current_frame, int total_frames) {
 
 	int x,y;
-	int i;
 	int total_s,current_s,display_m,display_s,bar_length;
-
-	char buffer[17];
 
 	/* Only update a few times a second? */
 	/* Should do more for responsiveness? */
@@ -398,44 +409,27 @@ static int time_display(int display_type, int current_frame, int total_frames) {
 	put_number(display_s/10,9,0);
 	put_number(display_s%10,13,0);
 
-	if (display_type&DISPLAY_I2C) {
-
-		buffer[0]=0;
-
-		for(i=0;i<16;i++) buffer[i+1]=0x0;
-
-		for(i=0;i<16;i++) {
-			for(x=0;x<8;x++) {
-				buffer[i+1]|=(freq_matrix[x+(8*(i%2))][i/2]<<x);
-			}
-		}
-
-		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
-			fprintf(stderr,"Error setting i2c address %x\n",
-				HT16K33_ADDRESS2);
-			return -1;
-		}
-
-
-		if ( (write(i2c_fd, buffer, 17)) !=17) {
-			fprintf(stderr,"Error writing display %s!\n",
-				strerror(errno));
-			return -1;
-        	}
-	}
-
-	if (display_type&DISPLAY_TEXT) {
-		for(y=7;y>=0;y--) {
-			for(x=0;x<16;x++) {
-				if (freq_matrix[x][y]) printf("*");
-				else printf(" ");
-			}
-			printf("\n");
-		}
-	}
+	put_8x16display(display_type,1);
 
 	return 0;
 }
+
+static int title_display(int display_type) {
+
+	int x,y;
+
+	/* clear display */
+	for(x=0;x<16;x++) {
+		for(y=0;y<8;y++) {
+			freq_matrix[x][y]=0;
+		}
+	}
+
+	put_8x16display(display_type,1);
+
+	return 0;
+}
+
 
 int display_update(int display_type,
 		int aa1, int ba1, int ca1,
@@ -451,6 +445,9 @@ int display_update(int display_type,
 	bargraph(display_type, aa1, ba1, ca1);
 
 	switch(current_mode) {
+		case MODE_TITLE:
+			title_display(display_type);
+			break;
 		case MODE_VISUAL:
 			freq_display(display_type, af1, bf1, cf1);
 			break;
@@ -467,7 +464,7 @@ int display_update(int display_type,
 	result=read(0,&ch,1);
 
 	/* Read from keypad */
-	if (keypad_skip==2) {
+	if ((display_type&DISPLAY_I2C) && (keypad_skip==2)) {
 		keypad=read_keypad(i2c_fd,HT16K33_ADDRESS0);
 		if (keypad!=old_keypad) {
 			printf("KEY: %lld\n",keypad);
