@@ -444,6 +444,9 @@ int display_update(int display_type,
 
 	unsigned char ch;
 	int result;
+	long long keypad;
+	static int old_keypad=0;
+	static int keypad_skip;
 
 	bargraph(display_type, aa1, ba1, ca1);
 
@@ -459,7 +462,29 @@ int display_update(int display_type,
 			break;
 	}
 
+
+	/* Read from Keyboard */
 	result=read(0,&ch,1);
+
+	/* Read from keypad */
+	if (keypad_skip==2) {
+		keypad=read_keypad(i2c_fd,HT16K33_ADDRESS0);
+		if (keypad!=old_keypad) {
+			printf("KEY: %lld\n",keypad);
+			old_keypad=keypad;
+			if (keypad!=0) {
+				result=0;
+				if (keypad&256) ch=',';
+				if (keypad&512) ch=' ';
+				if (keypad&1024) ch='.';
+				if (keypad&2048) ch='m';
+				if (keypad&4096) ch='q';
+			}
+		}
+		keypad_skip=0;
+	}
+	keypad_skip++;
+
 	if (result<0) { //printf("Error %s\n",strerror(errno));
 	}
 	else {
@@ -498,9 +523,13 @@ static struct termios saved_tty;
 
 int display_shutdown(int display_type) {
 
+	/* read any lingering keypad presses */
+	read_keypad(i2c_fd,HT16K33_ADDRESS0);
+
 	close_freq_display(display_type);
 	close_bargraph(display_type);
 
+	/* restore keyboard */
 	tcsetattr (0, TCSANOW, &saved_tty);
 
 	return 0;
