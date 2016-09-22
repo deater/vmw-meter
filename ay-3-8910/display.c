@@ -154,7 +154,7 @@ static int put_8x16display(int display_type, int refresh_i2c) {
 	}
 
 	if (display_type&DISPLAY_TEXT) {
-		for(y=7;y>=0;y--) {
+		for(y=0;y<8;y++) {
 			for(x=0;x<16;x++) {
 				if (freq_matrix[x][y]) printf("*");
 				else printf(" ");
@@ -276,87 +276,13 @@ static int close_freq_display(int display_type) {
 	return 0;
 }
 
-static int number[10][5][3]={
-	{	/* 0 */
-		{ 1,1,1,},
-		{ 1,0,1,},
-		{ 1,0,1,},
-		{ 1,0,1,},
-		{ 1,1,1,},
-	},
-	{	/* 1 */
-		{ 0,0,1,},
-		{ 0,0,1,},
-		{ 0,0,1,},
-		{ 0,0,1,},
-		{ 0,0,1,},
-	},
-	{	/* 2 */
-		{ 1,1,1,},
-		{ 0,0,1,},
-		{ 1,1,1,},
-		{ 1,0,0,},
-		{ 1,1,1,},
-	},
-	{	/* 3 */
-		{ 1,1,1,},
-		{ 0,0,1,},
-		{ 0,1,1,},
-		{ 0,0,1,},
-		{ 1,1,1,},
-	},
-	{	/* 4 */
-		{ 1,0,1,},
-		{ 1,0,1,},
-		{ 1,1,1,},
-		{ 0,0,1,},
-		{ 0,0,1,},
-	},
-	{	/* 5 */
-		{ 1,1,1,},
-		{ 1,0,0,},
-		{ 1,1,0,},
-		{ 0,0,1,},
-		{ 1,1,1,},
-	},
-	{	/* 6 */
-		{ 1,1,1,},
-		{ 1,0,0,},
-		{ 1,1,1,},
-		{ 1,0,1,},
-		{ 1,1,1,},
-	},
-	{	/* 7 */
-		{ 1,1,1,},
-		{ 0,0,1,},
-		{ 0,0,1,},
-		{ 0,0,1,},
-		{ 0,0,1,},
-	},
-	{	/* 8 */
-		{ 1,1,1,},
-		{ 1,0,1,},
-		{ 1,1,1,},
-		{ 1,0,1,},
-		{ 1,1,1,},
-	},
-	{	/* 9 */
-		{ 1,1,1,},
-		{ 1,0,1,},
-		{ 1,1,1,},
-		{ 0,0,1,},
-		{ 0,0,1,},
-	},
-
-};
-
 static int put_number(int which, int x, int y) {
 
 	int a,b;
 
 	for(a=0;a<3;a++) {
 		for(b=0;b<5;b++) {
-			freq_matrix[a+x][b+y]=number[which][b][a];
+			freq_matrix[a+x][b+y]=number_font[which][b][a];
 		}
 	}
 
@@ -370,7 +296,10 @@ static int time_display(int display_type, int current_frame, int total_frames) {
 
 	/* Only update a few times a second? */
 	/* Should do more for responsiveness? */
-	if (current_frame%16!=0) return 0;
+	if (current_frame%16!=0) {
+		put_8x16display(display_type,0);
+		return 0;
+	}
 
 	/* clear display */
 	for(x=0;x<16;x++) {
@@ -422,6 +351,12 @@ static int title_display(int display_type) {
 	for(x=0;x<16;x++) {
 		for(y=0;y<8;y++) {
 			freq_matrix[x][y]=0;
+		}
+	}
+
+	for(y=0;y<3;y++) {
+		for(x=0;x<16;x++) {
+			freq_matrix[x][y]=!!(vmw[y]&(1<<(31-x)));
 		}
 	}
 
