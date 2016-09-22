@@ -346,6 +346,7 @@ static int time_display(int display_type, int current_frame, int total_frames) {
 static int title_display(int display_type) {
 
 	int x,y;
+	static int count=0,offset=0,direction=+1;
 
 	/* clear display */
 	for(x=0;x<16;x++) {
@@ -360,7 +361,27 @@ static int title_display(int display_type) {
 		}
 	}
 
+	for(y=0;y<3;y++) {
+		for(x=0;x<16;x++) {
+			freq_matrix[x][y+4]=!!(chiptune[y]&(1<<(31-x-offset)));
+		}
+	}
+
 	put_8x16display(display_type,1);
+
+	count++;
+	if (count>6) {
+		count=0;
+		offset+=direction;
+	}
+	if (offset>15) {
+		offset=15;
+		direction=-direction;
+	}
+	if (offset<0) {
+		offset=0;
+		direction=-direction;
+	}
 
 	return 0;
 }
