@@ -36,29 +36,42 @@ Hardware:
 
 
 Installing:
-	You will need to install the bcm2835 library.
-	The raw Linux GPIO interface just isn't fast enough.
 
-	Something like this:
-	wget http://www.airspayce.com/mikem/bcm2835/bcm2835-1.50.tar.gz
-	uncompress/cd into directory
-	./configure
-	make
-	make install
+	+ Install the bcm2835 library
 
-	Then just run "make" in this dir to create "ym_play"
+		The raw Linux GPIO interface just isn't fast enough.
 
-	You can fiddle with the settings at the top to switch
-	between playing, decoding (to text for debugging).
-	You can also pick LED or TEXT visualization (again for debugging)
+		wget http://www.airspayce.com/mikem/bcm2835/bcm2835-1.50.tar.gz
+		uncompress/cd into directory
+		./configure
+		make
+		make install
+
+	+ Install the liblhasa-dev library
+
+		This lets you play LHA compressed ym5 files
+		which is pretty much any you find.
+
+		apt-get install liblhasa-dev
+
+		If you compile liblhasa from scratch (or are not on Debian)
+		you might need to change the settings at the top of the
+		Makefile.
+
+		Alternately you could not use liblhasa at all and manually
+		use the "lhasa" utility to decompress files before playing them.
+		lhasa -e INTRO2.ym
+
+	+ Then just run "make" in this dir to create "ym_play"
+
+	+ There are various command line arguments.
+		See "ym_play -h"
 
 Playing music:
 	./ym_play YM_FILE
 
-	The YM_FILE currently has to be decompressed first
-	(most YM files have LHA compression)
-	Decompress with lhasa on Linux
-		lhasa -e INTRO2.ym
+
+More info on the YM file format:
 
 	YM file format
 		http://leonard.oxg.free.fr/ymformat.html
@@ -77,8 +90,6 @@ Playing music:
 	situation is a bit complex.
 
 TODO:
-	* Make it stereo (another shift reg and another AY-3-8910)
-	* Use a better amplifier than the LM386
 	* Make up some PCBs
 	* Put it in a case/enclosure
 	* Use SPI to drive the shift register instead of GPIO
