@@ -1,5 +1,5 @@
 # Comment these out if you don't want LHA decompression
-USE_LIBLHASA=-DUSE_LIBLHASA=1
+USE_LIBLHASA=-DUSE_LIBLHASA
 LIBLHASA_INCLUDEDIR = -I/usr/include/liblhasa-1.0
 LIBLHASA_LIB = -llhasa
 

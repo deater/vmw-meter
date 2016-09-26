@@ -11,7 +11,7 @@
 /* |RESET GPIO24 */
 
 
-#define VERSION "0.1"
+#define VERSION "0.2"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <math.h>
 
@@ -28,7 +29,7 @@
 #include "ay-3-8910.h"
 #include "display.h"
 
-#ifdef USE_LIBHASA
+#ifdef USE_LIBLHASA
 #include "lhasa.h"
 #endif
 
@@ -76,19 +77,105 @@ void print_help(int just_version, char *exec_name) {
 	printf("\t-m: use mono (only one AY-3-8910 hooked up)\n");
 	printf("\t-s: use stereo (two AY-3-8910s hooked up)\n");
 	printf("\t-n: no sound (useful when debugging)\n");
+	// printf("\t-k: kiosk mode (standalone without keyboard/monitor)\n");
 	printf("\tfilename: must be uncompressed YM5 file for now\n\n");
 
 	exit(0);
 }
 
-static int play_song(char *filename) {
+static unsigned char *load_uncompressed_song(char *filename) {
 
-	int fd;
-	unsigned char header[YM_HEADER_SIZE];
-	unsigned char frame[YM_FRAME_SIZE];
+	unsigned char *data=NULL;
+	struct stat file_stats;
+	int file_size=0,fd;
 	int result;
+
+	stat(filename,&file_stats);
+
+	file_size=file_stats.st_size;
+	data=calloc(file_size,sizeof(unsigned char));
+	if (data==NULL) {
+		fprintf(stderr,"Error allocating %d bytes\n",file_size);
+		return NULL;
+	}
+
+	fd=open(filename,O_RDONLY);
+	if (fd<0) {
+		fprintf(stderr,"Error opening %s\n",filename);
+		return NULL;
+	}
+
+	result=read(fd,data,file_size);
+	close(fd);
+
+	if (result<file_size) {
+		fprintf(stderr,"Error reading %d bytes\n",file_size);
+		return NULL;
+	}
+
+	return data;
+}
+
+
+static unsigned char *load_lha_compressed_song(char *filename) {
+
+	unsigned char *data=NULL;
+
+#ifndef USE_LIBLHASA
+	fprintf(stderr,"Probably a LHC compressed ym, "
+			"decompress with lhasa before playing.\n");
+	return data;
+#endif
+
+	return data;
+}
+
+static unsigned char *load_ym_song(char *filename) {
+
+	int fd,result;
+	unsigned char *data=NULL;
+	unsigned char header[YM_HEADER_SIZE];
+
 	char ym5_magic[]="YM5!LeOnArD!";
 	char ym6_magic[]="YM6!LeOnArD!";
+
+	fd=open(filename,O_RDONLY);
+	if (fd<1) {
+		fprintf(stderr,"Error opening %s, %s!\n",
+			filename,strerror(errno));
+		return NULL;
+	}
+
+	result=read(fd,header,YM_HEADER_SIZE);
+	if (result<YM_HEADER_SIZE) {
+		fprintf(stderr,"Error reading header!\n");
+		return NULL;
+	}
+
+	close(fd);
+
+	if (!memcmp(header,ym5_magic,12)) {
+		/* YM5 file */
+		data=load_uncompressed_song(filename);
+	}
+	else if (!memcmp(header,ym6_magic,12)) {
+		/* YM6 file */
+		data=load_uncompressed_song(filename);
+	}
+	else if ((header[3]=='l') && (header[4]=='h')) {
+		/* LHA compressed */
+		data=load_lha_compressed_song(filename);
+	} else {
+		fprintf(stderr,"Error, not a ym6 file!\n");
+	}
+
+	return data;
+}
+
+static int play_song(char *filename) {
+
+	unsigned char *ym_file;
+	unsigned char frame[YM_FRAME_SIZE];
 	int num_frames,song_attributes,num_digidrum,master_clock;
 	int frame_rate,loop_frame,extra_data;
 	int drum_size,i,j;
@@ -97,8 +184,8 @@ static int play_song(char *filename) {
 	char author[MAX_STRING];
 	char comment[MAX_STRING];
 	int pointer;
+	long int file_offset=0;
 	int interleaved=0;
-	off_t file_position,curr_position;
 	double s,n,hz,diff;
 	double max_a=0.0,max_b=0.0,max_c=0.0;
 
@@ -112,37 +199,14 @@ static int play_song(char *filename) {
 
 	printf("\nPlaying song %s\n",filename);
 
-	fd=open(filename,O_RDONLY);
-	if (fd<1) {
-		fprintf(stderr,"Error opening %s, %s!\n",
-			filename,strerror(errno));
+	ym_file=load_ym_song(filename);
+	if (ym_file==NULL) {
 		return -1;
 	}
 
-	result=read(fd,header,YM_HEADER_SIZE);
-	if (result<YM_HEADER_SIZE) {
-		fprintf(stderr,"Error reading header!\n");
-		return -1;
-	}
+	num_frames=(ym_file[12]<<24)|(ym_file[13]<<16)|(ym_file[14]<<8)|(ym_file[15]);
 
-	if (!memcmp(header,ym5_magic,12)) {
-		/* YM5 file */
-	}
-	else if (!memcmp(header,ym6_magic,12)) {
-		/* YM6 file */
-	}
-	else {
-		fprintf(stderr,"Error, not a ym6 file!\n");
-		if ((header[3]=='l') && (header[4]=='h')) {
-			fprintf(stderr,"Probably a LHC compressed ym, decompress before playing.\n");
-		}
-		return -1;
-	}
-
-	num_frames=(header[12]<<24)|(header[13]<<16)|(header[14]<<8)|(header[15]);
-//	printf("Number of frames: %d\n",num_frames);
-
-	song_attributes=(header[16]<<24)|(header[17]<<16)|(header[18]<<8)|(header[19]);
+	song_attributes=(ym_file[16]<<24)|(ym_file[17]<<16)|(ym_file[18]<<8)|(ym_file[19]);
 	printf("\tSong attributes (%d) : ",song_attributes);
 	interleaved=song_attributes&0x1;
 	printf("Interleaved=%s\n",interleaved?"yes":"no");
@@ -150,119 +214,115 @@ static int play_song(char *filename) {
 	/* interleaved makes things compress better */
 	/* but much more of a pain to play */
 
-	num_digidrum=(header[20]<<8)|(header[21]);
+	num_digidrum=(ym_file[20]<<8)|(ym_file[21]);
 	if (num_digidrum>0) {
 		printf("Num digidrum samples: %d\n",num_digidrum);
 	}
 
 	printf("\tFrames: %d, ",num_frames);
-	master_clock=(header[22]<<24)|(header[23]<<16)|(header[24]<<8)|(header[25]);
+	master_clock=(ym_file[22]<<24)|(ym_file[23]<<16)|(ym_file[24]<<8)|(ym_file[25]);
 	printf("Chip clock: %d Hz, ",master_clock);
 
-	frame_rate=(header[26]<<8)|(header[27]);
+	frame_rate=(ym_file[26]<<8)|(ym_file[27]);
 	printf("Frame rate: %d Hz, ",frame_rate);
 
 	length_seconds=num_frames/frame_rate;
 	printf("Length=%d:%02d\n",length_seconds/60,length_seconds%60);
 
-	loop_frame=(header[28]<<24)|(header[29]<<16)|(header[30]<<8)|(header[31]);
+	loop_frame=(ym_file[28]<<24)|(ym_file[29]<<16)|(ym_file[30]<<8)|(ym_file[31]);
 	printf("\tLoop frame: %d, ",loop_frame);
 
-	extra_data=(header[32]<<8)|(header[33]);
+	extra_data=(ym_file[32]<<8)|(ym_file[33]);
 	printf("Extra data size: %d\n",extra_data);
 
+	file_offset=YM_HEADER_SIZE;
 
+	/* Skip digidrums (we can't play those) */
 
 	if (num_digidrum>0) {
 		fprintf(stderr,"Warning!  We don't handle digidrum\n");
 		for(i=0;i<num_digidrum;i++) {
-			result=read(fd,header,2);
-			drum_size=(header[0]<<8)|(header[1]);
+			drum_size=(ym_file[file_offset]<<8)|
+				(ym_file[file_offset+1]);
+			file_offset+=2;
 			printf("Drum%d: %d bytes\n",i,drum_size);
-			lseek(fd,drum_size,SEEK_CUR);
+			file_offset+=drum_size;
 		}
 	}
 
+	/* Get the song name */
+
 	pointer=0;
 	while(1) {
-		result=read(fd,header,1);
-		if (result!=1) {
-			fprintf(stderr,"Error parsing string!\n");
-			return -1;
-		}
-		if (!header[0]) {
+		if (!ym_file[file_offset]) {
 			song_name[pointer]=0;
 			break;
 		}
 		if (pointer<MAX_STRING) {
-			song_name[pointer]=header[0];
+			song_name[pointer]=ym_file[file_offset];
 			pointer++;
 		}
+		file_offset++;
 	}
 	printf("\tSong name: %s\n",song_name);
 
+	/* Get the author name */
+
 	pointer=0;
+	file_offset++;
 	while(1) {
-		result=read(fd,header,1);
-		if (result!=1) {
-			fprintf(stderr,"Error parsing string!\n");
-			return -1;
-		}
-		if (!header[0]) {
+		if (!ym_file[file_offset]) {
 			author[pointer]=0;
 			break;
 		}
 		if (pointer<MAX_STRING) {
-			author[pointer]=header[0];
+			author[pointer]=ym_file[file_offset];
 			pointer++;
 		}
+		file_offset++;
 	}
 	printf("\tAuthor name: %s\n",author);
 
+	/* Get the comment */
+
 	pointer=0;
+	file_offset++;
 	while(1) {
-		result=read(fd,header,1);
-		if (result!=1) {
-			fprintf(stderr,"Error parsing string!\n");
-			return -1;
-		}
-		if (!header[0]) {
+		if (!ym_file[file_offset]) {
 			comment[pointer]=0;
 			break;
 		}
 		if (pointer<MAX_STRING) {
-			comment[pointer]=header[0];
+			comment[pointer]=ym_file[file_offset];
 			pointer++;
 		}
+		file_offset++;
 	}
 	printf("\tComment: %s\n",comment);
 
-	file_position=lseek(fd,0,SEEK_CUR)-1;
-	if (dump_info) printf("Frames start at %lx\n",file_position);
+	file_offset++;
+
+	if (dump_info) printf("Frames start at %lx\n",file_offset);
 	gettimeofday(&start,NULL);
+
+
+	/******************/
+	/* Play the song! */
+	/******************/
 
 	i=0;
 	while(i<num_frames) {
 
 	if (!music_paused) {
 		if (interleaved) {
-			file_position++;
-			lseek(fd,file_position,SEEK_SET);
 			for(j=0;j<YM_FRAME_SIZE;j++) {
-				result=read(fd,&frame[j],1);
-				if (j!=15) {
-					curr_position=lseek(fd,num_frames-1,SEEK_CUR);
-					//printf("LOC=%lx\n",curr_position);
-					(void)curr_position;
-				}
+				frame[j]=ym_file[file_offset+j*num_frames];
 			}
+			file_offset++;
 		}
 		else {
-			result=read(fd,frame,YM_FRAME_SIZE);
-			if (result!=YM_FRAME_SIZE) {
-				fprintf(stderr,"ERROR: out of data\n");
-				return -1;
-			}
+			memcpy(frame,&ym_file[file_offset],YM_FRAME_SIZE);
+			file_offset+=YM_FRAME_SIZE;
 		}
 
 		/****************************************/
@@ -426,7 +486,7 @@ static int play_song(char *filename) {
 		start.tv_usec=next.tv_usec;
 
 		if (display_command==CMD_EXIT_PROGRAM) {
-			close(fd);
+			free(ym_file);
 			return CMD_EXIT_PROGRAM;
 		}
 
@@ -446,21 +506,13 @@ static int play_song(char *filename) {
 	}
 
 	/* Read the tail of the file and ensure it has the proper trailer */
-	result=read(fd,header,4);
-	header[4]=0;
-
-	if (result!=4) {
-		fprintf(stderr,"ERROR! Bad ending! %d\n",result);
+	if (memcmp(&ym_file[file_offset],"End!",4)) {
+		fprintf(stderr,"ERROR! Bad ending! %c\n",ym_file[file_offset]);
 		return -1;
 	}
 
-	if (memcmp(header,"End!",4)) {
-		fprintf(stderr,"ERROR! Bad ending! %s\n",header);
-		return -1;
-	}
-
-	/* Close the ym file */
-	close(fd);
+	/* Free the ym file */
+	free(ym_file);
 
 	if (dump_info) {
 		printf("Max a=%.2lf b=%.2lf c=%.2lf\n",max_a,max_b,max_c);
