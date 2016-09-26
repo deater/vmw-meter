@@ -25,6 +25,7 @@
 #include "font.h"
 
 static int current_mode=MODE_TITLE;
+static int kiosk_mode=0;
 
 static unsigned char display_buffer[DISPLAY_LINES];
 
@@ -347,6 +348,7 @@ static int title_display(int display_type) {
 
 	int x,y;
 	static int count=0,offset=0,direction=+1;
+	static int toggles=0;
 
 	/* clear display */
 	for(x=0;x<16;x++) {
@@ -369,18 +371,30 @@ static int title_display(int display_type) {
 
 	put_8x16display(display_type,1);
 
+	/* Only scroll at 1/6 of update time */
 	count++;
 	if (count>6) {
 		count=0;
 		offset+=direction;
+
+		/* If scroll off end, change direction */
+		if (offset>15) {
+			offset=15;
+			direction=-direction;
+		}
+
+		/* if scoll back to beginning, change direction */
+		if (offset<0) {
+			offset=0;
+			direction=-direction;
+			toggles++;
+			printf("Toggle %d\n",toggles);
+		}
 	}
-	if (offset>15) {
-		offset=15;
-		direction=-direction;
-	}
-	if (offset<0) {
-		offset=0;
-		direction=-direction;
+
+	/* If not in kiosk mode only display title briefly */
+	if ((!kiosk_mode) && (toggles>1)) {
+		current_mode=MODE_VISUAL;
 	}
 
 	return 0;
