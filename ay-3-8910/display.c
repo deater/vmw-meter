@@ -62,7 +62,7 @@ static int bargraph_i2c(int a, int b, int c) {
 	}
 
 	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS0) < 0) {
-		fprintf(stderr,"Error setting i2c address %x\n",
+		fprintf(stderr,"Bargraph error setting i2c address %x\n",
 			HT16K33_ADDRESS0);
 		return -1;
 	}
@@ -140,7 +140,7 @@ static int put_8x16display(int display_type, int refresh_i2c) {
 		}
 
 		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
-			fprintf(stderr,"Error setting i2c address %x\n",
+			fprintf(stderr,"8x16 Error setting i2c address %x\n",
 				HT16K33_ADDRESS2);
 			return -1;
 		}
@@ -260,7 +260,7 @@ static int close_freq_display(int display_type) {
 		}
 
 		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
-			fprintf(stderr,"Error setting i2c address %x\n",
+			fprintf(stderr,"Close Error setting i2c address %x\n",
 				HT16K33_ADDRESS2);
 			return -1;
 		}
@@ -477,7 +477,9 @@ static struct termios saved_tty;
 int display_shutdown(int display_type) {
 
 	/* read any lingering keypad presses */
-	read_keypad(i2c_fd,HT16K33_ADDRESS0);
+	if (display_type&DISPLAY_I2C) {
+		read_keypad(i2c_fd,HT16K33_ADDRESS0);
+	}
 
 	close_freq_display(display_type);
 	close_bargraph(display_type);

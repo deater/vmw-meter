@@ -70,7 +70,7 @@ int update_8x8_display_rotated(int i2c_fd, int i2c_addr,
 	int i,x,y;
 
 	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
-		fprintf(stderr,"Error setting i2c address %x\n",
+		fprintf(stderr,"update8x8: error setting i2c address %x\n",
 			i2c_addr);
 		return -1;
  	}
@@ -165,7 +165,7 @@ int update_8x8_bicolor_display_rotated(int i2c_fd, int i2c_addr,
 	int i,x,y;
 
 	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
-		fprintf(stderr,"Error setting i2c address %x\n",
+		fprintf(stderr,"update8x8: error setting i2c address %x\n",
 			i2c_addr);
 		return -1;
  	}
@@ -246,7 +246,7 @@ int update_display(int i2c_fd, int i2c_addr, unsigned short *display_state) {
 	int i;
 
 	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
-		fprintf(stderr,"Error setting i2c address %x\n",
+		fprintf(stderr,"update_display: error setting i2c address %x\n",
 			i2c_addr);
 		return -1;
 	}
@@ -279,7 +279,7 @@ int set_brightness(int i2c_fd, int i2c_addr, int value) {
 	}
 
 	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
-		fprintf(stderr,"Error setting i2c address %x\n",
+		fprintf(stderr,"set_brightness: error setting i2c address %x\n",
 			i2c_addr);
 		return -1;
 	}
@@ -304,7 +304,7 @@ long long read_keypad(int i2c_fd, int i2c_addr) {
 	/* Point to i2c address of interest */
 
 	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
-		fprintf(stderr,"Error setting i2c address %x\n",
+		fprintf(stderr,"read_keypad: error setting i2c address %x\n",
 			i2c_addr);
 		return -1;
 	}
@@ -353,7 +353,7 @@ int init_dac(int i2c_fd, int i2c_addr, int powerdown) {
 	unsigned char buffer[2];
 
 	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
-		fprintf(stderr,"Error setting i2c address %x\n",
+		fprintf(stderr,"init_dac: error setting i2c address %x\n",
 			i2c_addr);
 		return -1;
 	}
@@ -379,7 +379,7 @@ int set_dac(int i2c_fd, int i2c_addr, int powerdown, int value) {
 	unsigned char buffer[2];
 
 	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
-		fprintf(stderr,"Error setting i2c address %x\n",
+		fprintf(stderr,"set_dac: error setting i2c address %x\n",
 			i2c_addr);
 		return -1;
 	}
@@ -406,7 +406,7 @@ int init_display(int i2c_fd, int i2c_addr, int brightness) {
 	unsigned char buffer[17];
 
 	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
-		fprintf(stderr,"Error setting i2c address %x\n",
+		fprintf(stderr,"init_display: error setting i2c address %x\n",
 			i2c_addr);
 		return -1;
 	}
@@ -436,7 +436,7 @@ int init_nunchuck(int i2c_fd) {
 	unsigned char buffer[17];
 
 	if (ioctl(i2c_fd, I2C_SLAVE, WII_NUNCHUCK_ADDRESS) < 0) {
-		fprintf(stderr,"Error setting i2c address %x\n",
+		fprintf(stderr,"init_nunchuck: error setting i2c address %x\n",
 			WII_NUNCHUCK_ADDRESS);
 		return -1;
         }
@@ -475,7 +475,7 @@ int read_nunchuck(int i2c_fd, struct nunchuck_data *results) {
 	int result;
 
 	if (ioctl(i2c_fd, I2C_SLAVE, WII_NUNCHUCK_ADDRESS) < 0) {
-		fprintf(stderr,"Error setting i2c address %x\n",
+		fprintf(stderr,"read_nunchuck: error setting i2c address %x\n",
 			WII_NUNCHUCK_ADDRESS);
 		return -1;
         }
@@ -770,7 +770,7 @@ int init_saa1064_display(int i2c_fd, int i2c_addr) {
 	/* notest, 12mA current, blank all segments */
 
 	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
-		fprintf(stderr,"Error setting i2c address %x\n",i2c_addr);
+		fprintf(stderr,"init_saa1064: error setting i2c address %x\n",i2c_addr);
 		return -1;
 	}
 
@@ -844,7 +844,7 @@ int update_saa1064_display(int i2c_fd, int i2c_addr, unsigned short *in_state) {
 
 			/* write out to hardware */
 			if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr+i) < 0) {
-				fprintf(stderr,"Error setting i2c address %x\n",i2c_addr);
+				fprintf(stderr,"update_saa1604: error setting i2c address %x\n",i2c_addr);
 				return -1;
 			}
 
