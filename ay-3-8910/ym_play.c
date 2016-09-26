@@ -480,7 +480,7 @@ static int play_song(char *filename) {
 
 		if (i%100==0) {
 			hz=1/(n-s);
-			printf("Done frame %d, %.1lfHz\n",i,hz);
+			printf("Done frame %d/%d, %.1lfHz\n",i,num_frames,hz);
 		}
 		start.tv_sec=next.tv_sec;
 		start.tv_usec=next.tv_usec;
@@ -503,6 +503,10 @@ static int play_song(char *filename) {
 		/* increment frame */
 		if (!music_paused) i++;
 
+	}
+
+	if (interleaved) {
+		file_offset+=15*num_frames;
 	}
 
 	/* Read the tail of the file and ensure it has the proper trailer */
