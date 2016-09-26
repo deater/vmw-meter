@@ -121,11 +121,43 @@ static unsigned char *load_lha_compressed_song(char *filename) {
 
 	unsigned char *data=NULL;
 
+	size_t bytes;
+	FILE *fff;
+	LHAInputStream *stream;
+	LHAReader *reader;
+	LHAFileHeader *header;
+
 #ifndef USE_LIBLHASA
 	fprintf(stderr,"Probably a LHC compressed ym, "
 			"decompress with lhasa before playing.\n");
 	return data;
 #endif
+
+	fff=fopen(filename,"rb");
+	if (fff==NULL) {
+		fprintf(stderr,"Error opening %s!\n",filename);
+		return NULL;
+	}
+
+	stream = lha_input_stream_from_FILE(fff);
+	reader = lha_reader_new(stream);
+
+	header = lha_reader_next_file(reader);
+
+	printf("Decompressing %s, size %d\n",header->filename,header->length);
+
+	data=calloc(header->length,sizeof(unsigned char));
+	if (data==NULL) {
+		fprintf(stderr,"Error allocating %d bytes\n",header->length);
+		return NULL;
+	}
+
+	bytes = lha_reader_read(reader, data, header->length);
+	if (bytes != header->length) {
+		fprintf(stderr,"Error reading data!\n");
+		free(data);
+		return NULL;
+	}
 
 	return data;
 }
