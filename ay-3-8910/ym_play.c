@@ -28,6 +28,10 @@
 #include "ay-3-8910.h"
 #include "display.h"
 
+#ifdef USE_LIBHASA
+#include "lhasa.h"
+#endif
+
 #define YM_HEADER_SIZE	34
 #define YM_FRAME_SIZE	16
 #define MAX_STRING	256
@@ -129,7 +133,7 @@ static int play_song(char *filename) {
 	}
 	else {
 		fprintf(stderr,"Error, not a ym6 file!\n");
-		if ((header[2]=='l') && (header[3]=='h')) {
+		if ((header[3]=='l') && (header[4]=='h')) {
 			fprintf(stderr,"Probably a LHC compressed ym, decompress before playing.\n");
 		}
 		return -1;
