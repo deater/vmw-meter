@@ -414,6 +414,7 @@ static int play_song(char *filename) {
 	/* Print song summary */
 	/**********************/
 
+	printf("\tYM%d",ym_type);
 	printf("\tSong attributes (%d) : ",song_attributes);
 	printf("Interleaved=%s\n",interleaved?"yes":"no");
 	if (num_digidrum>0) {
