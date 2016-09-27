@@ -388,12 +388,12 @@ static int title_display(int display_type) {
 			offset=0;
 			direction=-direction;
 			toggles++;
-			printf("Toggle %d\n",toggles);
+//			printf("Toggle %d\n",toggles);
 		}
 	}
 
 	/* If not in kiosk mode only display title briefly */
-	if ((!kiosk_mode) && (toggles>1)) {
+	if ((!kiosk_mode) && (toggles>0)) {
 		current_mode=MODE_VISUAL;
 	}
 
