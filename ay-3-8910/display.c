@@ -404,12 +404,20 @@ static int scroll_text(int display_type, char *string, int new_string) {
 
 	/* 5x7 font, really 6x7 if you include space */
 	/* 6*16 = 96 */
+	char ascii[]=	" !\"#$%&\'()*+,-./"
+			"0123456789:;<=>?"
+			"@ABCDEFGHIJKLMNO"
+			"PQRSTUVWXYZ[\\]^_"
+			"`abcdefghijklmno"
+			"pqrstuvwxyz{|}~ ";
 	char buf[16]="ABCDEFGHIJKLMNOP";
 	char matrix[96][8];
 
-	int scroll=0,x,y;
+	int scroll=0,x,y,length;
 	static int i;
 	static int frames=0;
+
+	length=strlen(ascii);
 
 	frames++;
 	if (frames<50) {
@@ -418,14 +426,14 @@ static int scroll_text(int display_type, char *string, int new_string) {
 	else {
 		frames=0;
 		i++;
-		if (i>15) i=0;
+		if (i>length) i=0;
 	}
 
-	printf("Trying to print %c\n",buf[i]);
+	printf("Trying to print %c\n",ascii[i]);
 
 	for(y=0;y<8;y++) {
 		for(x=0;x<5;x++) {
-			matrix[x][y]=!!(fbs_font[(int)buf[i]][y]&1<<(4-x));
+			matrix[x][y]=!!(fbs_font[(int)ascii[i]][y]&1<<(4-x));
 		}
 		matrix[x][y]=0;
 	}
