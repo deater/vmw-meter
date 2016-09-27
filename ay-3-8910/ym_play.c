@@ -176,6 +176,7 @@ static unsigned char *load_ym_song(char *filename, int *ym_type, int *file_size)
 
 	char ym2_magic[]="YM2!";
 	char ym3_magic[]="YM3!";
+	char ym3b_magic[]="YM3b";
 	char ym4_magic[]="YM4!LeOnArD!";
 	char ym5_magic[]="YM5!LeOnArD!";
 	char ym6_magic[]="YM6!LeOnArD!";
@@ -210,6 +211,11 @@ static unsigned char *load_ym_song(char *filename, int *ym_type, int *file_size)
 	} else
 	if (!memcmp(header,ym3_magic,4)) {
 		/* YM3 file */
+		if (!compressed) data=load_uncompressed_song(filename,file_size);
+		*ym_type=3;
+	} else
+	if (!memcmp(header,ym3b_magic,4)) {
+		/* YM3b file */
 		if (!compressed) data=load_uncompressed_song(filename,file_size);
 		*ym_type=3;
 	} else
