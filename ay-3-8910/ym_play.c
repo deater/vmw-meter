@@ -580,7 +580,8 @@ static int play_song(char *filename) {
 						(a_freq)/150,
 						(b_freq)/150,
 						(c_freq)/150,
-						i,num_frames);
+						i,num_frames,
+						filename,0);
 		}
 
 		/* Calculate time it took to play/visualize */

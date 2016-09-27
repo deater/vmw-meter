@@ -400,11 +400,52 @@ static int title_display(int display_type) {
 	return 0;
 }
 
+static int scroll_text(int display_type, char *string, int new_string) {
+
+	/* 5x7 font, really 6x7 if you include space */
+	/* 6*16 = 96 */
+	char buf[16]="ABCDEFGHIJKLMNOP";
+	char matrix[96][8];
+
+	int scroll=0,x,y;
+	static int i;
+	static int frames=0;
+
+	frames++;
+	if (frames<50) {
+		return 0;
+	}
+	else {
+		frames=0;
+		i++;
+		if (i>15) i=0;
+	}
+
+	printf("Trying to print %c\n",buf[i]);
+
+	for(y=0;y<8;y++) {
+		for(x=0;x<5;x++) {
+			matrix[x][y]=!!(fbs_font[(int)buf[i]][y]&1<<(4-x));
+		}
+		matrix[x][y]=0;
+	}
+
+	for(y=0;y<8;y++) {
+		for(x=0;x<16;x++) {
+			freq_matrix[x][y]=matrix[x+scroll][y];
+		}
+	}
+
+	put_8x16display(display_type,1);
+
+	return 0;
+}
 
 int display_update(int display_type,
 		int aa1, int ba1, int ca1,
 		int af1, int bf1, int cf1,
-		int current_frame, int num_frames) {
+		int current_frame, int num_frames,
+		char *filename, int new_filename) {
 
 	unsigned char ch;
 	int result;
@@ -421,9 +462,13 @@ int display_update(int display_type,
 		case MODE_VISUAL:
 			freq_display(display_type, af1, bf1, cf1);
 			break;
+		case MODE_NAME:
+			scroll_text(display_type, filename, new_filename);
+			break;
 		case MODE_TIME:
 			time_display(display_type, current_frame, num_frames);
 			break;
+		case MODE_VOLUME:
 		default:
 			//printf("Unknown visual mode!\n");
 			break;

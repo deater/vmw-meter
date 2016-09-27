@@ -21,6 +21,7 @@
 int display_init(int type);
 int display_update(int type, int a1, int b1, int c1,
 				int a2, int b2, int c2,
-				int current_frame, int num_frames);
+				int current_frame, int num_frames,
+				char *filename, int new_filename);
 int display_shutdown(int type);
 
