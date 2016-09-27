@@ -13,6 +13,10 @@
 #define CMD_BACK		0x2
 #define CMD_FWD			0x3
 #define CMD_EXIT_PROGRAM	0x4
+#define CMD_FF			0x5
+#define CMD_RW			0x6
+#define CMD_LOOP		0x7
+
 
 int display_init(int type);
 int display_update(int type, int a1, int b1, int c1,

@@ -459,11 +459,20 @@ int display_update(int display_type,
 			case ' ': /* pause/play */
 				return CMD_PAUSE;
 				break;
-			case ',': /* back */
+			case '<': /* back */
 				return CMD_BACK;
 				break;
-			case '.': /* forward */
+			case '>': /* forward */
 				return CMD_FWD;
+				break;
+			case ',': /* rewind */
+				return CMD_RW;
+				break;
+			case '.': /* fast-forward */
+				return CMD_FF;
+				break;
+			case 'l': /* toggle loop */
+				return CMD_LOOP;
 				break;
 			case 'm': /* mode */
 				current_mode++;

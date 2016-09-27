@@ -70,6 +70,16 @@ Installing:
 Playing music:
 	./ym_play YM_FILE
 
+Keybindings:
+	' ' (space)	pause/play
+	,		rewind song to beginning
+	.		fastforward 5s
+	<		skip to previous song
+	>		skip to next song
+	l		toggle looping of current song
+	r		toggle repeating playlist when done
+	m		switch 8x16 display mode
+
 
 More info on the YM file format:
 

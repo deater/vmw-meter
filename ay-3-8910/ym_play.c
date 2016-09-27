@@ -254,7 +254,7 @@ static int play_song(char *filename) {
 	char author[MAX_STRING];
 	char comment[MAX_STRING];
 	int pointer;
-	long int file_offset=0;
+	long int file_offset=0,data_begin;
 	int interleaved=0;
 	double s,n,hz,diff;
 	double max_a=0.0,max_b=0.0,max_c=0.0;
@@ -408,6 +408,8 @@ static int play_song(char *filename) {
 	}
 
 	if (dump_info) printf("Frames start at %lx\n",file_offset);
+	data_begin=file_offset;
+
 	gettimeofday(&start,NULL);
 
 	/**********************/
@@ -615,6 +617,35 @@ static int play_song(char *filename) {
 			return CMD_EXIT_PROGRAM;
 		}
 
+		/* prev song */
+		if (display_command==CMD_BACK) {
+			free(ym_file);
+			return CMD_BACK;
+		}
+		/* next song */
+		if (display_command==CMD_FWD) {
+			free(ym_file);
+			return CMD_FWD;
+		}
+
+		/* rewind = Beginning of track */
+		if (display_command==CMD_RW) {
+			i=0;
+			file_offset=data_begin;
+		}
+
+		/* fastfwd = skip ahead 5s */
+		if (display_command==CMD_FF) {
+			i+=5*frame_rate;
+			if (interleaved) {
+				file_offset+=5*frame_rate;
+			}
+			else {
+				file_offset+=(5*frame_rate)*ym_frame_size;
+			}
+		}
+
+
 		if (display_command==CMD_PAUSE) {
 			if (music_paused) {
 				music_paused=0;
@@ -630,17 +661,23 @@ static int play_song(char *filename) {
 
 	}
 
-	if (interleaved) {
-		file_offset+=15*num_frames;
+	if (i>num_frames) {
+		printf("Fast-forwarded, skipping end check\n");
 	}
+	else {
 
-	if (ym_type>3) {
-		/* Read the tail of the file and ensure */
-		/* it has the proper trailer */
-		if (memcmp(&ym_file[file_offset],"End!",4)) {
-			fprintf(stderr,"ERROR! Bad ending! %x\n",
-				ym_file[file_offset]);
-			return -1;
+		if (interleaved) {
+			file_offset+=15*num_frames;
+		}
+
+		if (ym_type>3) {
+			/* Read the tail of the file and ensure */
+			/* it has the proper trailer */
+			if (memcmp(&ym_file[file_offset],"End!",4)) {
+				fprintf(stderr,"ERROR! Bad ending! %x\n",
+					ym_file[file_offset]);
+				return -1;
+			}
 		}
 	}
 
@@ -660,7 +697,7 @@ int main(int argc, char **argv) {
 	char filename[BUFSIZ]="intro2.ym";
 	int result;
 	int c;
-	int next_song;
+	int next_song,first_song;
 
 	/* Setup control-C handler to quiet the music	*/
 	/* otherwise if you force quit it keeps playing	*/
@@ -713,7 +750,8 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	next_song=optind;
+	first_song=optind;
+	next_song=0;
 
 	/* Initialize the Chip interface */
 	if (play_music) {
@@ -737,8 +775,8 @@ int main(int argc, char **argv) {
 
 	while(1) {
 
-		if (argv[next_song]!=NULL) {
-			strcpy(filename,argv[next_song]);
+		if (argv[first_song+next_song]!=NULL) {
+			strcpy(filename,argv[first_song+next_song]);
 			next_song++;
 		}
 		else {
@@ -750,6 +788,15 @@ int main(int argc, char **argv) {
 		if (result==CMD_EXIT_PROGRAM) {
 			break;
 		}
+
+		if (result==CMD_BACK) {
+			next_song-=2;
+			if (next_song<0) next_song=0;
+		}
+		if (result==CMD_FWD) {
+			/* already point to next song */
+		}
+
 
 		/* Quiet down the chips */
 		if (play_music) {
