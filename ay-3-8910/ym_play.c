@@ -660,6 +660,7 @@ int main(int argc, char **argv) {
 	char filename[BUFSIZ]="intro2.ym";
 	int result;
 	int c;
+	int next_song;
 
 	/* Setup control-C handler to quiet the music	*/
 	/* otherwise if you force quit it keeps playing	*/
@@ -712,11 +713,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	if (argv[optind]!=NULL) {
-		strcpy(filename,argv[optind]);
-	}
-
-
+	next_song=optind;
 
 	/* Initialize the Chip interface */
 	if (play_music) {
@@ -738,11 +735,32 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	/* Play the song */
-	result=play_song(filename);
-	if (result==CMD_EXIT_PROGRAM) {
-		// break
+	while(1) {
+
+		if (argv[next_song]!=NULL) {
+			strcpy(filename,argv[next_song]);
+			next_song++;
+		}
+		else {
+			break;
+		}
+
+		/* Play the song */
+		result=play_song(filename);
+		if (result==CMD_EXIT_PROGRAM) {
+			break;
+		}
+
+		/* Quiet down the chips */
+		if (play_music) {
+			quiet_ay_3_8910(shift_size);
+		}
+
+		usleep(500000);
+
 	}
+
+	/* Get ready to shut down */
 
 	/* Quiet down the chips */
 	if (play_music) {
