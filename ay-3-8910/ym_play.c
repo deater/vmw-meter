@@ -425,6 +425,10 @@ static int play_song(char *filename) {
 	printf("\tFrames: %d, ",num_frames);
 	printf("Chip clock: %d Hz, ",master_clock);
 	printf("Frame rate: %d Hz, ",frame_rate);
+		if (frame_rate!=50) {
+			fprintf(stderr,"FIX ME framerate %d\n",frame_rate);
+			exit(1);
+		}
 	length_seconds=num_frames/frame_rate;
 	printf("Length=%d:%02d\n",length_seconds/60,length_seconds%60);
 	printf("\tLoop frame: %d, ",loop_frame);
