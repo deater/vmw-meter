@@ -48,6 +48,7 @@ static int display_type=DISPLAY_I2C;
 static int shift_size=16;
 static int music_repeat=0;
 static int music_paused=0;
+static int music_loop=0;
 
 static void quiet(int sig) {
 
@@ -442,7 +443,7 @@ static int play_song(char *filename) {
 	/******************/
 
 	i=0;
-	while(i<num_frames) {
+	while(1) {
 
 	if (!music_paused) {
 		if (interleaved) {
@@ -661,8 +662,31 @@ static int play_song(char *filename) {
 			}
 		}
 
+		if (display_command==CMD_LOOP) {
+			music_loop=!music_loop;
+			if (music_loop) printf("MUSIC LOOP ON\n");
+			else printf("MUSIC LOOP OFF\n");
+		}
+
+
 		/* increment frame */
 		if (!music_paused) i++;
+
+		/* Check to see if done with file */
+		if (i>=num_frames) {
+			if (music_loop) {
+				i=loop_frame;
+				if (interleaved) {
+					file_offset=data_begin+i;
+				}
+				else {
+					file_offset=data_begin+i*ym_frame_size;
+				}
+			}
+			else {
+				break;
+			}
+		}
 
 	}
 
