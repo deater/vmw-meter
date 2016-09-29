@@ -1,10 +1,22 @@
 /* Hooked up to Raspberry Pi via 74HC595 */
-/* DS GPIO17     */
-/* SHCP GPIO27   */
-/* STCP GPIO22   */
+
+/* For GPIO	*/
+/* DS	GPIO17 (pin11)	*/
+/* SHCP GPIO27 (pin13)	*/
+/* STCP GPIO22 (pin15)	*/
+
+/* For SPI	*/
+/* DS 	MOSI/GPIO10 (pin19)	*/
+/* SHCP CLK/GPIO11 (pin23)	*/
+/* STCP	CE0/GPIO8 (pin24)	*/
+
+/* For either */
 /* BC1  GPIO18   */
 /* BDIR GPIO23   */
 /* |RESET GPIO24 */
+
+static int use_gpio=1;
+
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -14,7 +26,6 @@
 #include <signal.h>
 
 #include <bcm2835.h>
-
 #include "ay-3-8910.h"
 
 #define DELAY_PAUSE	3
@@ -23,41 +34,6 @@
 #define DELAY_RESET	5000
 
 #define AY38910_CLOCK	1000000	/* 1MHz on our board */
-
-int initialize_ay_3_8910(void) {
-
-	int result;
-
-	printf("Initializing AY-3-8910\n");
-
-	result=bcm2835_init();
-	/* 1 means success, 0 means failure.  Who does that? */
-	if (result==0) {
-		fprintf(stderr,"Error init libBCM2835!\n");
-		return -1;
-	}
-
-	/* Enable GPIO17 */
-	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_11, BCM2835_GPIO_FSEL_OUTP);
-	/* Enable GPIO27 */
-	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_13, BCM2835_GPIO_FSEL_OUTP);
-	/* Enable GPIO22 */
-	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_15, BCM2835_GPIO_FSEL_OUTP);
-	/* Enable GPIO18 */
-	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_12, BCM2835_GPIO_FSEL_OUTP);
-	/* Enable GPIO23 */
-	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_16, BCM2835_GPIO_FSEL_OUTP);
-	/* Enable GPIO24 */
-	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_18, BCM2835_GPIO_FSEL_OUTP);
-
-	/* Pull reset low than high */
-	printf("Resetting...\n");
-	bcm2835_gpio_write(RPI_GPIO_P1_18, LOW);
-	bcm2835_delayMicroseconds(DELAY_RESET);
-	bcm2835_gpio_write(RPI_GPIO_P1_18, HIGH);
-
-	return 0;
-}
 
 static int shift_74hc595(int value, int size) {
 
@@ -129,7 +105,7 @@ static int shift_74hc595(int value, int size) {
 	return 0;
 }
 
-int write_ay_3_8910(int addr, int value, int shift_size) {
+static int gpio_write_ay_3_8910(int addr, int value, int shift_size) {
 
 
 	/* Be sure BDIR and BC1 are low */
@@ -170,6 +146,16 @@ int write_ay_3_8910(int addr, int value, int shift_size) {
 	return 0;
 }
 
+int write_ay_3_8910(int addr, int value, int shift_size) {
+
+	int result;
+
+	result=gpio_write_ay_3_8910(addr, value, shift_size);
+
+	return result;
+}
+
+
 void quiet_ay_3_8910(int shift_size) {
 
 	int j;
@@ -179,3 +165,45 @@ void quiet_ay_3_8910(int shift_size) {
 	}
 }
 
+int initialize_ay_3_8910(int output_use_gpio) {
+
+	int result;
+
+	use_gpio=output_use_gpio;
+
+	printf("Initializing AY-3-8910, using %s\n",use_gpio?"GPIO":"SPI");
+
+	result=bcm2835_init();
+	/* 1 means success, 0 means failure.  Who does that? */
+	if (result==0) {
+		fprintf(stderr,"Error init libBCM2835!\n");
+		return -1;
+	}
+
+	if (use_gpio) {
+		/* Enable GPIO17 */
+		bcm2835_gpio_fsel(RPI_V2_GPIO_P1_11, BCM2835_GPIO_FSEL_OUTP);
+		/* Enable GPIO27 */
+		bcm2835_gpio_fsel(RPI_V2_GPIO_P1_13, BCM2835_GPIO_FSEL_OUTP);
+		/* Enable GPIO22 */
+		bcm2835_gpio_fsel(RPI_V2_GPIO_P1_15, BCM2835_GPIO_FSEL_OUTP);
+	}
+	else {
+
+	}
+
+	/* Enable GPIO18 */
+	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_12, BCM2835_GPIO_FSEL_OUTP);
+	/* Enable GPIO23 */
+	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_16, BCM2835_GPIO_FSEL_OUTP);
+	/* Enable GPIO24 */
+	bcm2835_gpio_fsel(RPI_V2_GPIO_P1_18, BCM2835_GPIO_FSEL_OUTP);
+
+	/* Pull reset low than high */
+	printf("Resetting...\n");
+	bcm2835_gpio_write(RPI_GPIO_P1_18, LOW);
+	bcm2835_delayMicroseconds(DELAY_RESET);
+	bcm2835_gpio_write(RPI_GPIO_P1_18, HIGH);
+
+	return 0;
+}

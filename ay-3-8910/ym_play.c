@@ -2,16 +2,7 @@
 /* Used file info found here: http://leonard.oxg.free.fr/ymformat.html */
 /* Also useful: ftp://ftp.modland.com/pub/documents/format_documentation/Atari%20ST%20Sound%20Chip%20Emulator%20YM1-6%20(.ay,%20.ym).txt */
 
-/* Hooked up to Raspberry Pi via 74HC595 */
-/* DS GPIO17     */
-/* SHCP GPIO27   */
-/* STCP GPIO22   */
-/* BC1  GPIO18   */
-/* BDIR GPIO23   */
-/* |RESET GPIO24 */
-
-
-#define VERSION "0.2"
+#define VERSION "0.3"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -784,7 +775,7 @@ int main(int argc, char **argv) {
 
 	/* Initialize the Chip interface */
 	if (play_music) {
-		result=initialize_ay_3_8910();
+		result=initialize_ay_3_8910(1);
 		if (result<0) {
 			printf("Error initializing bcm2835!\n");
 			printf("Maybe try running as root?\n\n");
