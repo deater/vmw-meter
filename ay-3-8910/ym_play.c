@@ -41,9 +41,12 @@ static int music_repeat=0;
 static int music_paused=0;
 static int music_loop=0;
 
-static void quiet(int sig) {
+static void quiet_and_exit(int sig) {
 
-	if (play_music) quiet_ay_3_8910(shift_size);
+	if (play_music) {
+		quiet_ay_3_8910(shift_size);
+		close_ay_3_8910();
+	}
 
 	display_shutdown(display_type);
 
@@ -722,7 +725,7 @@ int main(int argc, char **argv) {
 	/* Setup control-C handler to quiet the music	*/
 	/* otherwise if you force quit it keeps playing	*/
 	/* the last tones */
-	signal(SIGINT, quiet);
+	signal(SIGINT, quiet_and_exit);
 
 	/* Parse command line arguments */
 	while ((c = getopt(argc, argv, "dmhvmsnitr"))!=-1) {
@@ -832,6 +835,7 @@ int main(int argc, char **argv) {
 	/* Quiet down the chips */
 	if (play_music) {
 		quiet_ay_3_8910(shift_size);
+		close_ay_3_8910();
 	}
 
 	/* Clear out display */

@@ -5,10 +5,21 @@
 /* SHCP GPIO27 (pin13)	*/
 /* STCP GPIO22 (pin15)	*/
 
+#if 1
+#define DS	17
+#define	SH	27
+#define ST	22
+#else
+#define DS	10
+#define	SH	11
+#define ST	7
+#endif
+
+
 /* For SPI	*/
 /* DS 	MOSI/GPIO10 (pin19)	*/
 /* SHCP CLK/GPIO11 (pin23)	*/
-/* STCP	CE0/GPIO8 (pin24)	*/
+/* STCP	CE1/GPIO7 (pin26)	*/
 
 /* For either */
 /* BC1  GPIO18   */
@@ -17,15 +28,16 @@
 
 static int use_gpio=1;
 
-
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
+#include <sys/ioctl.h>
 
 #include <bcm2835.h>
+
 #include "ay-3-8910.h"
 
 #define DELAY_PAUSE	3
@@ -35,7 +47,7 @@ static int use_gpio=1;
 
 #define AY38910_CLOCK	1000000	/* 1MHz on our board */
 
-static int shift_74hc595(int value, int size) {
+static int gpio_shift_74hc595(int value, int size) {
 
 
 	int i,shifted_val;
@@ -46,22 +58,22 @@ static int shift_74hc595(int value, int size) {
 
 	for(i=0;i<8;i++) {
 		/* Set clock low */
-		bcm2835_gpio_write(27, LOW);
+		bcm2835_gpio_write(SH, LOW);
 
 		bcm2835_delayMicroseconds(DELAY_SHIFT);
 
 		if (shifted_val&0x1) {
-			bcm2835_gpio_write(RPI_V2_GPIO_P1_11, HIGH);
+			bcm2835_gpio_write(DS, HIGH);
 		}
 		else {
-			bcm2835_gpio_write(RPI_V2_GPIO_P1_11, LOW);
+			bcm2835_gpio_write(DS, LOW);
 		}
 		shifted_val>>=1;
 
 		bcm2835_delayMicroseconds(DELAY_SHIFT);
 
 		/* Set clock high */
-		bcm2835_gpio_write(27, HIGH);
+		bcm2835_gpio_write(SH, HIGH);
 
 		bcm2835_delayMicroseconds(DELAY_SHIFT);
 	}
@@ -73,47 +85,66 @@ static int shift_74hc595(int value, int size) {
 
 	for(i=0;i<8;i++) {
 		/* Set clock low */
-		bcm2835_gpio_write(27, LOW);
+		bcm2835_gpio_write(SH, LOW);
 
 		bcm2835_delayMicroseconds(DELAY_SHIFT);
 
 		if (shifted_val&0x1) {
-			bcm2835_gpio_write(RPI_V2_GPIO_P1_11, HIGH);
+			bcm2835_gpio_write(DS, HIGH);
 		}
 		else {
-			bcm2835_gpio_write(RPI_V2_GPIO_P1_11, LOW);
+			bcm2835_gpio_write(DS, LOW);
 		}
 		shifted_val>>=1;
 
 		bcm2835_delayMicroseconds(DELAY_SHIFT);
 
 		/* Set clock high */
-		bcm2835_gpio_write(27, HIGH);
+		bcm2835_gpio_write(SH, HIGH);
 
 		bcm2835_delayMicroseconds(DELAY_SHIFT);
 	}
 	}
 
-	bcm2835_gpio_write(22, HIGH);
+	bcm2835_gpio_write(ST, HIGH);
 
 	bcm2835_delayMicroseconds(DELAY_SHIFT);
 
-	bcm2835_gpio_write(22, LOW);
+	bcm2835_gpio_write(ST, LOW);
 
 	bcm2835_delayMicroseconds(DELAY_SHIFT);
 
 	return 0;
 }
 
-static int gpio_write_ay_3_8910(int addr, int value, int shift_size) {
+static int spi_shift_74hc595(int value, int size) {
 
+	int result=0;
+	unsigned char data_out[2];
+
+	/* Reverse bits */
+	/* On pi SPI it is MSB first only */
+	unsigned char b = value;
+	b = ((b * 0x0802LU & 0x22110LU) | (b * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16; 
+
+	/* For now just duplicate */
+	data_out[0]=b;
+	data_out[1]=0;
+
+	bcm2835_spi_writenb((char *)data_out,2);
+
+	return result;
+}
+
+int write_ay_3_8910(int addr, int value, int shift_size) {
 
 	/* Be sure BDIR and BC1 are low */
 	bcm2835_gpio_write(RPI_GPIO_P1_16, LOW);
 	bcm2835_gpio_write(RPI_GPIO_P1_12, LOW);
 
 	/* Set address on bus */
-	shift_74hc595(addr,shift_size);
+	if (use_gpio) gpio_shift_74hc595(addr,shift_size);
+	else spi_shift_74hc595(addr,shift_size);
 
 	/* Set BDIR and BC1 high */
 	bcm2835_gpio_write(RPI_GPIO_P1_16, HIGH);
@@ -130,7 +161,8 @@ static int gpio_write_ay_3_8910(int addr, int value, int shift_size) {
 
 	/* Be sure BDIR and BC1 are low */
 	/* Put value on bus */
-	shift_74hc595(value,shift_size);
+	if (use_gpio) gpio_shift_74hc595(value,shift_size);
+	else spi_shift_74hc595(value,shift_size);
 
 	/* Put BDIR high */
 	bcm2835_gpio_write(RPI_GPIO_P1_16, HIGH);
@@ -145,16 +177,6 @@ static int gpio_write_ay_3_8910(int addr, int value, int shift_size) {
 
 	return 0;
 }
-
-int write_ay_3_8910(int addr, int value, int shift_size) {
-
-	int result;
-
-	result=gpio_write_ay_3_8910(addr, value, shift_size);
-
-	return result;
-}
-
 
 void quiet_ay_3_8910(int shift_size) {
 
@@ -182,14 +204,23 @@ int initialize_ay_3_8910(int output_use_gpio) {
 
 	if (use_gpio) {
 		/* Enable GPIO17 */
-		bcm2835_gpio_fsel(RPI_V2_GPIO_P1_11, BCM2835_GPIO_FSEL_OUTP);
+		bcm2835_gpio_fsel(DS, BCM2835_GPIO_FSEL_OUTP);
 		/* Enable GPIO27 */
-		bcm2835_gpio_fsel(RPI_V2_GPIO_P1_13, BCM2835_GPIO_FSEL_OUTP);
+		bcm2835_gpio_fsel(SH, BCM2835_GPIO_FSEL_OUTP);
 		/* Enable GPIO22 */
-		bcm2835_gpio_fsel(RPI_V2_GPIO_P1_15, BCM2835_GPIO_FSEL_OUTP);
+		bcm2835_gpio_fsel(ST, BCM2835_GPIO_FSEL_OUTP);
 	}
 	else {
+		bcm2835_spi_begin();
+		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_4096 );
+//		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_16384 );
+//		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32768 );
+		bcm2835_spi_chipSelect(BCM2835_SPI_CS1);
+		bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS1,0);
+		bcm2835_spi_setDataMode (BCM2835_SPI_MODE0);
 
+		/* Doesn't work, always is MSB first */
+		//bcm2835_spi_setBitOrder (BCM2835_SPI_BIT_ORDER_LSBFIRST);
 	}
 
 	/* Enable GPIO18 */
@@ -206,4 +237,13 @@ int initialize_ay_3_8910(int output_use_gpio) {
 	bcm2835_gpio_write(RPI_GPIO_P1_18, HIGH);
 
 	return 0;
+}
+
+void close_ay_3_8910(void) {
+
+	if (use_gpio) {
+	}
+	else {
+		bcm2835_spi_end();
+	}
 }
