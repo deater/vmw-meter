@@ -320,10 +320,13 @@ static int play_song(char *filename) {
 			fprintf(stderr,"Warning!  We don't handle digidrum\n");
 			fprintf(stderr,"\tskipping %d digidrums\n",num_digidrum);
 			for(i=0;i<num_digidrum;i++) {
-				drum_size=(ym_file[file_offset]<<8)|
-					(ym_file[file_offset+1]);
-				file_offset+=2;
-//				printf("Drum%d: %d bytes\n",i,drum_size);
+				drum_size=
+					(ym_file[file_offset]<<24)|
+					(ym_file[file_offset+1]<<16)|
+					(ym_file[file_offset+2]<<8)|
+					(ym_file[file_offset+3]);
+				file_offset+=4;
+				printf("\tDrum%d: %d bytes\n",i,drum_size);
 				file_offset+=drum_size;
 			}
 		}
