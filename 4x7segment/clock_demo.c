@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 	struct tm *breakdown;
 
 	/* Init i2c */
-	i2c_fd=init_i2c("/dev/i2c-3");
+	i2c_fd=init_i2c("/dev/i2c-1");
 	if (i2c_fd < 0) {
 		fprintf(stderr,"Error opening device!\n");
 		return -1;
