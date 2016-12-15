@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <math.h>
+#include <sys/resource.h>
 
 #include <bcm2835.h>
 
@@ -729,6 +730,9 @@ int main(int argc, char **argv) {
 	/* otherwise if you force quit it keeps playing	*/
 	/* the last tones */
 	signal(SIGINT, quiet_and_exit);
+
+	/* Set to have highest possible priority */
+	setpriority(PRIO_PROCESS, 0, -20);
 
 	/* Parse command line arguments */
 	while ((c = getopt(argc, argv, "dmhvmsnitr"))!=-1) {
