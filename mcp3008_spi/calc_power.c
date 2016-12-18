@@ -24,15 +24,17 @@ int main(int argc, char **argv) {
 	while(1) {
 		printf("Result:");
 
-		for(j=0;j<2;j++) {
+		for(j=0;j<4;j++) {
 
 			/* Send a byte acting as a start bit */
 			data[0] = 1;
 
 			/* Ask for differential output */
 			/* High/Low */
-			data[1] = ((j & 0x7) << 4);
+			data[1] = (((j*2) & 0x7) << 4);
 			data[1] |=0x80;
+
+//			data[1]=0x10;
 
 			/* Don't care, need 3 bytes before response */
 			data[2] = 0;
@@ -48,10 +50,10 @@ int main(int argc, char **argv) {
 			/* XXXXX098 */
 			/* 76543210 */
 			value[j] = ((data[1]&0x3) << 8) | (data[2] & 0xff);
-			printf("\t%d",value[j]);
-		}
+			printf("\t%d %d",j,value[j]);
+
 		ref=4.90;
-		voltage=((double)value[0])/1024.0;
+		voltage=((double)value[j])/1024.0;
 		voltage*=ref;
 		deltav=voltage/20.0;
 		current=deltav/0.1;
@@ -60,6 +62,8 @@ int main(int argc, char **argv) {
 		printf(" Voltage=%.3lfV DeltaV=%.3lfV Current=%.3lfA Power=%.2lfW\n",voltage,deltav,current,power);
 		printf("\n");
 		sleep(1);
+
+		}
 
 	}
 

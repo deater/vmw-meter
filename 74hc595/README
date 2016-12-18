@@ -1,0 +1,15 @@
+Some tests of using the Raspberry Pi GPIOs to drive a 74HC595.
+
+This allows using a few pins to get 8 (or 16 bit) parallel output.
+Also it does 3.3V to 5V level shifting.
+
+For my code, I am using 3 GPIOS
+
+	+ DS (serial data) connects to GPIO17
+	+ SHCP or SRCLK (serial clock) connects to GPIO27
+	+ STCP or RCLK (latch clock) connects to GPIO22
+	+ |OE is tied to ground, so always is outputting
+	+ |MR or |SRCLR (reset) is tied to +5V
+
+
+

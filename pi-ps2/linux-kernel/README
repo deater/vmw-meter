@@ -1,0 +1,27 @@
++ First you need to get the kernel headers installed so you can compile
+	the module.  This is a pain on Raspbian as in general there isn't
+	a nice package you can install.
+
+   *	One way is to use rpi-source
+	https://github.com/notro/rpi-source/wiki
+	https://raw.githubusercontent.com/notro/rpi-source/master/rpi-source
+
+	Follow the directions to install and then
+
+	rpi-source --skip-gcc
+
+   * The above worked for me with the 4.1.7 kernel but not 4.1.13
+
+	In that case instead I got headers from
+	https://www.niksula.hut.fi/~mhiienka/Rpi/linux-headers-rpi/
+
+	copy .config from /proc/config.gz, make oldconfig
+	make scripts
+	make prepare
+
+
++ Next run "make"
+
++ Then "insmod ./pi-ps2gpio.ko"
+
+

@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -O2 -Wall -I../lib
+CFLAGS = -O2 -Wall -I../include
 LFLAGS =
 
 all:	nunchuck_test nunchuck_display nunchuck_tetris make_bitmap
