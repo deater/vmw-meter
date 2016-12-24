@@ -12,6 +12,9 @@ static int help(char *executable) {
 
 	printf("%s effect options\n",executable);
 	printf("\tbargraph color1 color2\n");
+	printf("\tdisable\n");
+	printf("\trainbow\n");
+	printf("\tstars speed brightness\n");
 	printf("\n");
 
 	return 0;
@@ -20,6 +23,7 @@ static int help(char *executable) {
 #define EFFECT_RANDOM	0
 #define EFFECT_BARGRAPH	1
 #define EFFECT_RAINBOW	2
+#define EFFECT_STARS	3
 
 int main(int argc, char **argv) {
 
@@ -40,6 +44,10 @@ int main(int argc, char **argv) {
 			effect=EFFECT_RAINBOW;
 		}
 
+		if (!strncmp(argv[1],"stars",5)) {
+			effect=EFFECT_STARS;
+		}
+
 	}
 
 	spi_fd=lpd8806_init();
@@ -55,6 +63,11 @@ int main(int argc, char **argv) {
 		case EFFECT_RAINBOW:
 			rainbow(spi_fd);
 			break;
+		case EFFECT_STARS:
+			stars(spi_fd,argc>2?argv[2]:NULL,
+					argc>3?argv[3]:NULL);
+			break;
+
 	}
 
 	lpd8806_close(spi_fd);

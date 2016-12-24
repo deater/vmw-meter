@@ -5,7 +5,7 @@ LFLASG =
 all:	run_leds \
 	blinky_scanner blue_yellow disable dual_scanner fish \
 	led_test led_scanner pulsar random red_green \
-	random_scanner stars \
+	random_scanner \
 	manual_bargraph falling
 
 ../lib/spi_lib.o:	../lib/spi_lib.c
@@ -18,10 +18,10 @@ colors.o:	colors.c colors.h
 ####
 
 run_leds:	run_leds.o ../lib/spi_lib.o colors.o lpd8806.o \
-		bargraph.o rainbow.o
+		bargraph.o rainbow.o stars.o
 	$(CC) $(LFLAGS) -o run_leds run_leds.o \
 		../lib/spi_lib.o colors.o lpd8806.o \
-		bargraph.o rainbow.o \
+		bargraph.o rainbow.o stars.o \
 		-lm 
 
 ##########################
@@ -163,9 +163,6 @@ red_green.o:	red_green.c
 
 
 ####
-
-stars:	stars.o ../lib/spi_lib.o
-	$(CC) $(LFLAGS) -o stars stars.o ../lib/spi_lib.o
 
 stars.o:	stars.c
 	$(CC) $(CFLAGS) -c stars.c

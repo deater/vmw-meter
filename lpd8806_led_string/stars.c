@@ -2,58 +2,34 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <linux/spi/spidev.h>
-
 #include <math.h>
 
-#include "spi_lib.h"
+#include "effects.h"
+#include "lpd8806.h"
 
-#include "colors.h"
+#define MAX_BRIGHTNESS 64
 
+int stars(int spi_fd, char *speed_s, char *dimming_s) {
 
-int main(int argc, char **argv) {
-
-	int spi_fd,i;
-	unsigned char zeros[128],data[128];
-	int result;
+	int i;
+	unsigned char data[128];
 	int speed,dimming;
+	int star_num;
 
-	if (argc>1) {
-		speed=atoi(argv[1]);
+	if (speed_s) {
+		speed=atoi(speed_s);
 	} else {
 		speed=20;
 	}
 
 
-	if (argc>1) {
-		dimming=atoi(argv[2]);
+	if (dimming_s) {
+		dimming=atoi(dimming_s);
 	} else {
 		dimming=3;
 	}
 
-
-
-	spi_fd=spi_open("/dev/spidev0.0", SPI_MODE_0, 100000, 8);
-	if (spi_fd<0) {
-		exit(-1);
-	}
-
-	/* Send a byte acting as a start bit */
-
-	for(i=0;i<128;i++) zeros[i]=0;
 	for(i=0;i<128;i++) data[i]=128;
-
-	for(i=0;i<128;i++) {
-		result=write(spi_fd,&zeros[i],1);
-		if (result<1) {
-			printf("error!\n");
-			exit(-1);
-		}
-	}
-
-#define MAX_BRIGHTNESS 64
-
-	int star_num;
 
 	while(1) {
 		if (random()%speed==0) {
@@ -70,26 +46,11 @@ int main(int argc, char **argv) {
 			else data[i]=128;
 		}
 
-		for(i=0;i<128;i++) {
-			result=write(spi_fd,&data[i],1);
-			if (result<1) {
-				printf("error!\n");
-				exit(-1);
-			}
-		}
+		lpd8806_write(spi_fd, data);
 
-		for(i=0;i<128;i++) {
-			result=write(spi_fd,&zeros[i],1);
-			if (result<1) {
-				printf("error!\n");
-				exit(-1);
-			}
-		}
 		usleep(1000);
 
 	}
-
-	spi_close(spi_fd);
 
 	return 0;
 }
