@@ -2,8 +2,9 @@ CC = gcc
 CFLAGS = -O2 -Wall -I../include
 LFLASG =
 
-all:	bargraph blinky_scanner blue_yellow disable dual_scanner fish \
-	led_test led_scanner pulsar random red_green rainbow \
+all:	run_leds \
+	blinky_scanner blue_yellow disable dual_scanner fish \
+	led_test led_scanner pulsar random red_green \
 	random_scanner stars \
 	manual_bargraph falling
 
@@ -13,13 +14,34 @@ all:	bargraph blinky_scanner blue_yellow disable dual_scanner fish \
 colors.o:	colors.c colors.h
 	$(CC) $(CFLAGS) -c colors.c
 
+
 ####
 
-bargraph:	bargraph.o ../lib/spi_lib.o colors.o
-	$(CC) $(LFLAGS) -o bargraph bargraph.o ../lib/spi_lib.o colors.o -lm 
+run_leds:	run_leds.o ../lib/spi_lib.o colors.o lpd8806.o \
+		bargraph.o rainbow.o
+	$(CC) $(LFLAGS) -o run_leds run_leds.o \
+		../lib/spi_lib.o colors.o lpd8806.o \
+		bargraph.o rainbow.o \
+		-lm 
+
+##########################
+
+run_leds.o:	run_leds.c colors.h
+	$(CC) $(CFLAGS) -c run_leds.c
+
+lpd8806.o:	lpd8806.c
+	$(CC) $(CFLAGS) -c lpd8806.c
+
+####
 
 bargraph.o:	bargraph.c colors.h
 	$(CC) $(CFLAGS) -c bargraph.c
+
+
+####
+
+rainbow.o:	rainbow.c colors.h
+	$(CC) $(CFLAGS) -c rainbow.c
 
 
 ####
@@ -133,15 +155,6 @@ random_scanner.o:	random_scanner.c colors.h
 
 ####
 
-rainbow:	rainbow.o ../lib/spi_lib.o
-	$(CC) $(LFLAGS) -o rainbow rainbow.o ../lib/spi_lib.o
-
-rainbow.o:	rainbow.c
-	$(CC) $(CFLAGS) -c rainbow.c
-
-
-####
-
 red_green:	red_green.o ../lib/spi_lib.o
 	$(CC) $(LFLAGS) -o red_green red_green.o ../lib/spi_lib.o
 
@@ -161,7 +174,8 @@ stars.o:	stars.c
 ####
 
 clean:	
-	rm -f *.o *~ bargraph blinky_scanner blue_yellow disable dual_scanner fish \
-		led_test led_scanner pulsar rainbow random red_green \
+	rm -f *.o *~ run_leds \
+		bargraph blinky_scanner blue_yellow disable dual_scanner fish \
+		led_test led_scanner pulsar rainbow_standalone random red_green \
 		random_scanner stars manual_bargraph falling
 

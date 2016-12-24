@@ -2,26 +2,35 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <linux/spi/spidev.h>
-
 #include <math.h>
 
-#include "spi_lib.h"
+
+//#include <linux/spi/spidev.h>
+//#include "spi_lib.h"
+
+#include "lpd8806.h"
 
 #include "colors.h"
 
+#define PI 3.1415926535897932384
 
-int main(int argc, char **argv) {
 
-	int spi_fd,i;
-	unsigned char zeros[128],data[128];
-	int result;
+int bargraph(int spi_fd,
+		char *left_color,
+		char *right_color) {
 
+	int i;
+	unsigned char data[128];
 	int lr,lg,lb,rr,rg,rb;
+	int bar=0;
+	double x=0;
+	double f=(PI/16);
+
+	printf("Running bargraph %s %s\n",left_color,right_color);
 
 	/* color left */
-	if (argc>1) {
-                get_color(argv[1],&lr,&lg,&lb);
+	if (left_color) {
+                get_color(left_color,&lr,&lg,&lb);
         }
         else {
                 lr=63;
@@ -31,8 +40,8 @@ int main(int argc, char **argv) {
 
 
 	/* color right */
-	if (argc>2) {
-                get_color(argv[2],&rr,&rg,&rb);
+	if (right_color) {
+                get_color(right_color,&rr,&rg,&rb);
         }
         else {
                 rr=0;
@@ -40,33 +49,7 @@ int main(int argc, char **argv) {
                 rb=0;
         }
 
-
-	spi_fd=spi_open("/dev/spidev0.0", SPI_MODE_0, 100000, 8);
-	if (spi_fd<0) {
-		exit(-1);
-	}
-
-	/* Send a byte acting as a start bit */
-
-	for(i=0;i<128;i++) zeros[i]=0;
-	for(i=0;i<128;i++) data[i]=128;
-
-	for(i=0;i<128;i++) {
-		result=write(spi_fd,&zeros[i],1);
-		if (result<1) {
-			printf("error!\n");
-			exit(-1);
-		}
-	}
-
-#define MAX_BRIGHTNESS 64
-
-	int bar=0;
-
-#define PI 3.1415926535897932384
-
-	double x=0;
-	double f=(PI/16);
+	for(i=0;i<128;i++) data[i]=0;
 
 	while(1) {
 
@@ -85,26 +68,11 @@ int main(int argc, char **argv) {
 			}
 		}
 
-		for(i=0;i<128;i++) {
-			result=write(spi_fd,&data[i],1);
-			if (result<1) {
-				printf("error!\n");
-				exit(-1);
-			}
-		}
+		lpd8806_write(spi_fd,data);
 
-		for(i=0;i<128;i++) {
-			result=write(spi_fd,&zeros[i],1);
-			if (result<1) {
-				printf("error!\n");
-				exit(-1);
-			}
-		}
 		usleep(10000);
 
 	}
-
-	spi_close(spi_fd);
 
 	return 0;
 }
