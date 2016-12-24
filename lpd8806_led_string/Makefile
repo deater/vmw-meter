@@ -3,8 +3,8 @@ CFLAGS = -O2 -Wall -I../include
 LFLASG =
 
 all:	run_leds \
-	blinky_scanner blue_yellow disable dual_scanner fish \
-	led_test led_scanner pulsar random red_green \
+	blinky_scanner disable dual_scanner fish \
+	led_test led_scanner pulsar random \
 	random_scanner \
 	manual_bargraph falling
 
@@ -18,10 +18,10 @@ colors.o:	colors.c colors.h
 ####
 
 run_leds:	run_leds.o ../lib/spi_lib.o colors.o lpd8806.o \
-		bargraph.o rainbow.o stars.o
+		bargraph.o rainbow.o stars.o two_color_scroll.o
 	$(CC) $(LFLAGS) -o run_leds run_leds.o \
 		../lib/spi_lib.o colors.o lpd8806.o \
-		bargraph.o rainbow.o stars.o \
+		bargraph.o rainbow.o stars.o two_color_scroll.o \
 		-lm 
 
 ##########################
@@ -52,15 +52,6 @@ blinky_scanner:	blinky_scanner.o ../lib/spi_lib.o colors.o
 blinky_scanner.o:	blinky_scanner.c colors.h
 	$(CC) $(CFLAGS) -c blinky_scanner.c
 
-
-
-####
-
-blue_yellow:	blue_yellow.o ../lib/spi_lib.o
-	$(CC) $(LFLAGS) -o blue_yellow blue_yellow.o ../lib/spi_lib.o
-
-blue_yellow.o:	blue_yellow.c
-	$(CC) $(CFLAGS) -c blue_yellow.c
 
 
 ####
@@ -155,11 +146,8 @@ random_scanner.o:	random_scanner.c colors.h
 
 ####
 
-red_green:	red_green.o ../lib/spi_lib.o
-	$(CC) $(LFLAGS) -o red_green red_green.o ../lib/spi_lib.o
-
-red_green.o:	red_green.c
-	$(CC) $(CFLAGS) -c red_green.c
+two_color_scroll.o:	two_color_scroll.c
+	$(CC) $(CFLAGS) -c two_color_scroll.c
 
 
 ####
@@ -172,7 +160,7 @@ stars.o:	stars.c
 
 clean:	
 	rm -f *.o *~ run_leds \
-		bargraph blinky_scanner blue_yellow disable dual_scanner fish \
-		led_test led_scanner pulsar rainbow_standalone random red_green \
+		bargraph blinky_scanner disable dual_scanner fish \
+		led_test led_scanner pulsar rainbow_standalone random \
 		random_scanner stars manual_bargraph falling
 

@@ -20,10 +20,13 @@ static int help(char *executable) {
 	return 0;
 }
 
-#define EFFECT_RANDOM	0
-#define EFFECT_BARGRAPH	1
-#define EFFECT_RAINBOW	2
-#define EFFECT_STARS	3
+#define EFFECT_RANDOM		0
+#define EFFECT_BARGRAPH		1
+#define EFFECT_RAINBOW		2
+#define EFFECT_STARS		3
+#define EFFECT_TWO_COLOR_SCROLL	4
+#define EFFECT_RED_GREEN	5
+#define EFFECT_BLUE_YELLOW	6
 
 int main(int argc, char **argv) {
 
@@ -48,6 +51,18 @@ int main(int argc, char **argv) {
 			effect=EFFECT_STARS;
 		}
 
+		if (!strncmp(argv[1],"red_green",9)) {
+			effect=EFFECT_RED_GREEN;
+		}
+
+		if (!strncmp(argv[1],"blue_yellow",11)) {
+			effect=EFFECT_BLUE_YELLOW;
+		}
+
+		if (!strncmp(argv[1],"two_color_scroll",15)) {
+			effect=EFFECT_TWO_COLOR_SCROLL;
+		}
+
 	}
 
 	spi_fd=lpd8806_init();
@@ -67,6 +82,27 @@ int main(int argc, char **argv) {
 			stars(spi_fd,argc>2?argv[2]:NULL,
 					argc>3?argv[3]:NULL);
 			break;
+		case EFFECT_TWO_COLOR_SCROLL:
+			two_color_scroll(spi_fd,
+					argc>2?argv[2]:NULL,
+					argc>3?argv[3]:NULL,
+					argc>4?argv[4]:NULL);
+			break;
+
+		case EFFECT_RED_GREEN:
+			two_color_scroll(spi_fd,
+					"red",
+					"green",
+					"1");
+			break;
+		case EFFECT_BLUE_YELLOW:
+			two_color_scroll(spi_fd,
+					"blue",
+					"yellow",
+					"0");
+			break;
+
+
 
 	}
 
