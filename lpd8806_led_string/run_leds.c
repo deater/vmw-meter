@@ -7,13 +7,16 @@
 #include "colors.h"
 #include "effects.h"
 
-
 static int help(char *executable) {
 
 	printf("%s effect options\n",executable);
 	printf("\tbargraph color1 color2 -- alternate two colors\n");
+	printf("\t\tbargraph_manual color1 color2 -- keyboard controlled\n");
 	printf("\tdisable -- set display to black\n");
+	printf("\tfalling color1 -- falling dots\n");
 	printf("\tfish num -- moving fish-like dots\n");
+	printf("\tgradient color -- moving gradient\n");
+	printf("\tnoise -- random_static\n");
 	printf("\tpulsar color -- supernova\n");
 	printf("\trainbow -- rainbow pattern \n");
 	printf("\tscanner color -- colored bar that bounces back and forth\n");
@@ -40,6 +43,10 @@ int main(int argc, char **argv) {
 			return 0;
 		}
 
+		if (!strncmp(argv[1],"bargraph_mannual",15)) {
+			effect=EFFECT_BARGRAPH_MANUAL;
+		}
+
 		if (!strncmp(argv[1],"bargraph",8)) {
 			effect=EFFECT_BARGRAPH;
 		}
@@ -48,14 +55,26 @@ int main(int argc, char **argv) {
 			effect=EFFECT_DISABLE;
 		}
 
+		if (!strncmp(argv[1],"falling",7)) {
+			effect=EFFECT_FALLING;
+		}
+
+
 		if (!strncmp(argv[1],"fish",4)) {
 			effect=EFFECT_FISH;
+		}
+
+		if (!strncmp(argv[1],"gradient",8)) {
+			effect=EFFECT_GRADIENT;
+		}
+
+		if (!strncmp(argv[1],"noise",5)) {
+			effect=EFFECT_NOISE;
 		}
 
 		if (!strncmp(argv[1],"pulsar",6)) {
 			effect=EFFECT_PULSAR;
 		}
-
 
 		if (!strncmp(argv[1],"rainbow",7)) {
 			effect=EFFECT_RAINBOW;
@@ -99,12 +118,31 @@ int main(int argc, char **argv) {
 					argc>3?argv[3]:NULL);
 			break;
 
+		case EFFECT_BARGRAPH_MANUAL:
+			bargraph_manual(spi_fd,argc>2?argv[2]:NULL,
+					argc>3?argv[3]:NULL);
+			break;
+
 		case EFFECT_DISABLE:
 			disable(spi_fd);
 			break;
 
+		case EFFECT_FALLING:
+			falling(spi_fd,
+				argc>2?argv[2]:NULL,
+				argc>2?argv[3]:NULL);
+			break;
+
 		case EFFECT_FISH:
 			fish(spi_fd,argc>2?argv[2]:NULL);
+			break;
+
+		case EFFECT_GRADIENT:
+			gradient(spi_fd,argc>2?argv[2]:NULL);
+			break;
+
+		case EFFECT_NOISE:
+			noise(spi_fd);
 			break;
 
 		case EFFECT_PULSAR:

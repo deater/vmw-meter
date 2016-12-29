@@ -2,8 +2,7 @@ CC = gcc
 CFLAGS = -O2 -Wall -I../include
 LFLASG =
 
-all:	run_leds \
-	led_test random manual_bargraph falling
+all:	run_leds
 
 ####
 
@@ -16,12 +15,16 @@ colors.o:	colors.c colors.h
 ####
 
 run_leds:	run_leds.o ../lib/spi_lib.o colors.o lpd8806.o \
-		bargraph.o disable.o fish.o pulsar.o rainbow.o \
+		bargraph.o bargraph_manual.o disable.o falling.o \
+		fish.o gradient.o \
+		noise.o pulsar.o rainbow.o \
 		scanner.o scanner_blinky.o scanner_dual.o scanner_random.o \
 		stars.o two_color_scroll.o
 	$(CC) $(LFLAGS) -o run_leds run_leds.o \
 		../lib/spi_lib.o colors.o lpd8806.o \
-		bargraph.o disable.o fish.o pulsar.o rainbow.o \
+		bargraph.o bargraph_manual.o disable.o falling.o \
+		fish.o gradient.o\
+		noise.o pulsar.o rainbow.o \
 		scanner.o scanner_blinky.o scanner_dual.o scanner_random.o \
 		stars.o two_color_scroll.o \
 		-lm 
@@ -39,11 +42,23 @@ lpd8806.o:	lpd8806.c
 bargraph.o:	bargraph.c colors.h
 	$(CC) $(CFLAGS) -c bargraph.c
 
+bargraph_manual.o:	bargraph_manual.c colors.h
+	$(CC) $(CFLAGS) -c bargraph_manual.c
+
 disable.o:	disable.c
 	$(CC) $(CFLAGS) -c disable.c
 
+falling.o:	falling.c colors.h
+	$(CC) $(CFLAGS) -c falling.c
+
 fish.o:	fish.c colors.h
 	$(CC) $(CFLAGS) -c fish.c
+
+gradient.o:	gradient.c
+	$(CC) $(CFLAGS) -c gradient.c
+
+noise.o:	noise.c
+	$(CC) $(CFLAGS) -c noise.c
 
 pulsar.o:	pulsar.c colors.h
 	$(CC) $(CFLAGS) -c pulsar.c
@@ -71,48 +86,10 @@ two_color_scroll.o:	two_color_scroll.c
 
 
 
-####
 
-falling:	falling.o ../lib/spi_lib.o colors.o
-	$(CC) $(LFLAGS) -o falling falling.o ../lib/spi_lib.o colors.o -lm 
-
-falling.o:	falling.c colors.h
-	$(CC) $(CFLAGS) -c falling.c
-
-####
-
-
-
-####
-
-led_test:	led_test.o ../lib/spi_lib.o
-	$(CC) $(LFLAGS) -o led_test led_test.o ../lib/spi_lib.o
-
-led_test.o:	led_test.c
-	$(CC) $(CFLAGS) -c led_test.c
-
-####
-
-manual_bargraph:	manual_bargraph.o ../lib/spi_lib.o colors.o
-	$(CC) $(LFLAGS) -o manual_bargraph manual_bargraph.o ../lib/spi_lib.o colors.o -lm 
-
-manual_bargraph.o:	manual_bargraph.c colors.h
-	$(CC) $(CFLAGS) -c manual_bargraph.c
-
-
-
-####
-
-random:	random.o ../lib/spi_lib.o
-	$(CC) $(LFLAGS) -o random random.o ../lib/spi_lib.o 
-
-random.o:	random.c
-	$(CC) $(CFLAGS) -c random.c
 
 
 ####
 
 clean:	
-	rm -f *.o *~ run_leds \
-		bargraph fish led_test pulsar random manual_bargraph falling
-
+	rm -f *.o *~ run_leds 

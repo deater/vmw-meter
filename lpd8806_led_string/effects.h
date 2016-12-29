@@ -12,10 +12,18 @@
 #define EFFECT_DISABLE		11
 #define EFFECT_FISH		12
 #define EFFECT_PULSAR		13
+#define EFFECT_NOISE		14
+#define EFFECT_GRADIENT		15
+#define EFFECT_FALLING		16
+#define EFFECT_BARGRAPH_MANUAL	17
 
 int bargraph(int spi_fd, char *left_color, char *right_color);
+int bargraph_manual(int spi_fd, char *left_color, char *right_color);
 int disable(int spi_fd);
+int falling(int spi_fd, char *color1, char *color2);
 int fish(int spi_fd, char *nfish);
+int gradient(int spi_fd, char *color);
+int noise(int spi_fd);
 int pulsar(int spi_fd, char *color);
 int rainbow(int spi_fd);
 int stars(int spi_fd, char *speed_s, char *dimming_s);

@@ -1,28 +1,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
 #include <math.h>
 
-#include "lpd8806.h"
 #include "effects.h"
+#include "lpd8806.h"
 #include "colors.h"
 
 
-int falling(int spi_fd, char *c1, char *c2) {
+int bargraph_manual(int spi_fd, char *color1, char *color2) {
 
 	int i;
 	unsigned char data[128];
 
-	int lr,lg,lb,rr,rg,rb;
-
 	int bar=0;
-//	int height=0;
 	unsigned char ch;
 
+	int lr,lg,lb,rr,rg,rb;
 
 	/* color left */
-	if (c1) {
-                get_color(c1,&lr,&lg,&lb);
+	if (color1) {
+                get_color(color1,&lr,&lg,&lb);
         }
         else {
                 lr=63;
@@ -32,8 +31,8 @@ int falling(int spi_fd, char *c1, char *c2) {
 
 
 	/* color right */
-	if (c2) {
-                get_color(c2,&rr,&rg,&rb);
+	if (color2) {
+                get_color(color2,&rr,&rg,&rb);
         }
         else {
                 rr=0;
@@ -41,7 +40,7 @@ int falling(int spi_fd, char *c1, char *c2) {
                 rb=0;
         }
 
-	/* Clear display */
+	/* Clear to black */
 	for(i=0;i<128;i++) data[i]=128;
 
 	while(1) {
