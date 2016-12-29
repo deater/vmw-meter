@@ -2,5 +2,7 @@ spiral?
 fade in/out of whole string
 fade bargraph
 like scanner but comet with tail
-cycle: alternate between two colors
+cycle/chase: alternate between two colors
 balls: colored balls fall to end and recycle
+
+randomly pick among all

@@ -14,6 +14,7 @@ static int help(char *executable) {
 	printf("\tbargraph color1 color2 -- alternate two colors\n");
 	printf("\tdisable -- set display to black\n");
 	printf("\tfish num -- moving fish-like dots\n");
+	printf("\tpulsar color -- supernova\n");
 	printf("\trainbow -- rainbow pattern \n");
 	printf("\tscanner color -- colored bar that bounces back and forth\n");
 	printf("\t\tscanner_blinky -- blinky scanner\n");
@@ -50,6 +51,11 @@ int main(int argc, char **argv) {
 		if (!strncmp(argv[1],"fish",4)) {
 			effect=EFFECT_FISH;
 		}
+
+		if (!strncmp(argv[1],"pulsar",6)) {
+			effect=EFFECT_PULSAR;
+		}
+
 
 		if (!strncmp(argv[1],"rainbow",7)) {
 			effect=EFFECT_RAINBOW;
@@ -99,6 +105,10 @@ int main(int argc, char **argv) {
 
 		case EFFECT_FISH:
 			fish(spi_fd,argc>2?argv[2]:NULL);
+			break;
+
+		case EFFECT_PULSAR:
+			pulsar(spi_fd,argc>2?argv[2]:NULL);
 			break;
 
 		case EFFECT_RAINBOW:

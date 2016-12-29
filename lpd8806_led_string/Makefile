@@ -3,7 +3,7 @@ CFLAGS = -O2 -Wall -I../include
 LFLASG =
 
 all:	run_leds \
-	led_test pulsar random manual_bargraph falling
+	led_test random manual_bargraph falling
 
 ####
 
@@ -16,12 +16,12 @@ colors.o:	colors.c colors.h
 ####
 
 run_leds:	run_leds.o ../lib/spi_lib.o colors.o lpd8806.o \
-		bargraph.o disable.o fish.o rainbow.o \
+		bargraph.o disable.o fish.o pulsar.o rainbow.o \
 		scanner.o scanner_blinky.o scanner_dual.o scanner_random.o \
 		stars.o two_color_scroll.o
 	$(CC) $(LFLAGS) -o run_leds run_leds.o \
 		../lib/spi_lib.o colors.o lpd8806.o \
-		bargraph.o disable.o fish.o rainbow.o \
+		bargraph.o disable.o fish.o pulsar.o rainbow.o \
 		scanner.o scanner_blinky.o scanner_dual.o scanner_random.o \
 		stars.o two_color_scroll.o \
 		-lm 
@@ -44,6 +44,9 @@ disable.o:	disable.c
 
 fish.o:	fish.c colors.h
 	$(CC) $(CFLAGS) -c fish.c
+
+pulsar.o:	pulsar.c colors.h
+	$(CC) $(CFLAGS) -c pulsar.c
 
 rainbow.o:	rainbow.c colors.h
 	$(CC) $(CFLAGS) -c rainbow.c
@@ -96,13 +99,7 @@ manual_bargraph:	manual_bargraph.o ../lib/spi_lib.o colors.o
 manual_bargraph.o:	manual_bargraph.c colors.h
 	$(CC) $(CFLAGS) -c manual_bargraph.c
 
-####
 
-pulsar:	pulsar.o ../lib/spi_lib.o ./colors.o
-	$(CC) $(LFLAGS) -o pulsar pulsar.o ../lib/spi_lib.o ./colors.o -lm
-
-pulsar.o:	pulsar.c colors.h
-	$(CC) $(CFLAGS) -c pulsar.c
 
 ####
 
