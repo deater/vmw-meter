@@ -15,6 +15,10 @@ static int help(char *executable) {
 	printf("\tdisable\n");
 	printf("\trainbow\n");
 	printf("\tstars speed brightness\n");
+	printf("\ttwo_color_scroll color1 color2 direction\n");
+	printf("\tred_green -- two_color_scroll with red/green default\n");
+	printf("\tblue_yellow -- two_color_scroll with blue/yellow default\n");
+	printf("\tscanner_random -- scanner with random color changes\n");
 	printf("\n");
 
 	return 0;
@@ -27,6 +31,8 @@ static int help(char *executable) {
 #define EFFECT_TWO_COLOR_SCROLL	4
 #define EFFECT_RED_GREEN	5
 #define EFFECT_BLUE_YELLOW	6
+#define EFFECT_SCANNER		7
+#define EFFECT_SCANNER_RANDOM	8
 
 int main(int argc, char **argv) {
 
@@ -62,6 +68,15 @@ int main(int argc, char **argv) {
 		if (!strncmp(argv[1],"two_color_scroll",15)) {
 			effect=EFFECT_TWO_COLOR_SCROLL;
 		}
+
+		if (!strncmp(argv[1],"scanner_random",14)) {
+			effect=EFFECT_SCANNER_RANDOM;
+		}
+
+		if (!strncmp(argv[1],"scanner",7)) {
+			effect=EFFECT_SCANNER;
+		}
+
 
 	}
 
@@ -101,7 +116,9 @@ int main(int argc, char **argv) {
 					"yellow",
 					"0");
 			break;
-
+		case EFFECT_SCANNER_RANDOM:
+			scanner_random(spi_fd);
+			break;
 
 
 	}
