@@ -18,6 +18,7 @@ static int help(char *executable) {
 	printf("\ttwo_color_scroll color1 color2 direction\n");
 	printf("\tred_green -- two_color_scroll with red/green default\n");
 	printf("\tblue_yellow -- two_color_scroll with blue/yellow default\n");
+	printf("\tscanner color -- colored bar that bounces back and forth\n");
 	printf("\tscanner_random -- scanner with random color changes\n");
 	printf("\n");
 
@@ -116,6 +117,11 @@ int main(int argc, char **argv) {
 					"yellow",
 					"0");
 			break;
+
+		case EFFECT_SCANNER:
+			scanner(spi_fd,argc>2?argv[2]:NULL);
+			break;
+
 		case EFFECT_SCANNER_RANDOM:
 			scanner_random(spi_fd);
 			break;

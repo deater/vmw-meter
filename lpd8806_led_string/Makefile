@@ -4,7 +4,7 @@ LFLASG =
 
 all:	run_leds \
 	blinky_scanner disable dual_scanner fish \
-	led_test led_scanner pulsar random \
+	led_test pulsar random \
 	manual_bargraph falling
 
 ../lib/spi_lib.o:	../lib/spi_lib.c
@@ -17,12 +17,12 @@ colors.o:	colors.c colors.h
 ####
 
 run_leds:	run_leds.o ../lib/spi_lib.o colors.o lpd8806.o \
-		bargraph.o rainbow.o random_scanner.o \
-		stars.o two_color_scroll.o
+		bargraph.o rainbow.o scanner_random.o \
+		scanner.o stars.o two_color_scroll.o
 	$(CC) $(LFLAGS) -o run_leds run_leds.o \
 		../lib/spi_lib.o colors.o lpd8806.o \
-		bargraph.o rainbow.o random_scanner.o \
-		stars.o two_color_scroll.o \
+		bargraph.o rainbow.o scanner_random.o \
+		scanner.o stars.o two_color_scroll.o \
 		-lm 
 
 ##########################
@@ -94,11 +94,8 @@ fish.o:	fish.c colors.h
 
 ####
 
-led_scanner:	led_scanner.o ../lib/spi_lib.o colors.o
-	$(CC) $(LFLAGS) -o led_scanner led_scanner.o ../lib/spi_lib.o colors.o
-
-led_scanner.o:	led_scanner.c colors.h
-	$(CC) $(CFLAGS) -c led_scanner.c
+scanner.o:	scanner.c colors.h
+	$(CC) $(CFLAGS) -c scanner.c
 
 ####
 
@@ -138,8 +135,8 @@ random.o:	random.c
 
 ####
 
-random_scanner.o:	random_scanner.c colors.h
-	$(CC) $(CFLAGS) -c random_scanner.c
+scanner_random.o:	scanner_random.c colors.h
+	$(CC) $(CFLAGS) -c scanner_random.c
 
 ####
 
@@ -159,5 +156,5 @@ clean:
 	rm -f *.o *~ run_leds \
 		bargraph blinky_scanner disable dual_scanner fish \
 		led_test led_scanner pulsar rainbow_standalone random \
-		random_scanner stars manual_bargraph falling
+		scanner_random stars manual_bargraph falling
 
