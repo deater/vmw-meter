@@ -3,9 +3,9 @@ CFLAGS = -O2 -Wall -I../include
 LFLASG =
 
 all:	run_leds \
-	disable fish \
-	led_test pulsar random \
-	manual_bargraph falling
+	fish led_test pulsar random manual_bargraph falling
+
+####
 
 ../lib/spi_lib.o:	../lib/spi_lib.c
 	cd ../lib && make
@@ -13,23 +13,22 @@ all:	run_leds \
 colors.o:	colors.c colors.h
 	$(CC) $(CFLAGS) -c colors.c
 
-
 ####
 
 run_leds:	run_leds.o ../lib/spi_lib.o colors.o lpd8806.o \
-		bargraph.o rainbow.o \
+		bargraph.o disable.o rainbow.o \
 		scanner.o scanner_blinky.o scanner_dual.o scanner_random.o \
 		stars.o two_color_scroll.o
 	$(CC) $(LFLAGS) -o run_leds run_leds.o \
 		../lib/spi_lib.o colors.o lpd8806.o \
-		bargraph.o rainbow.o \
+		bargraph.o disable.o rainbow.o \
 		scanner.o scanner_blinky.o scanner_dual.o scanner_random.o \
 		stars.o two_color_scroll.o \
 		-lm 
 
 ##########################
 
-run_leds.o:	run_leds.c colors.h
+run_leds.o:	run_leds.c colors.h effects.h lpd8806.h
 	$(CC) $(CFLAGS) -c run_leds.c
 
 lpd8806.o:	lpd8806.c
@@ -39,6 +38,9 @@ lpd8806.o:	lpd8806.c
 
 bargraph.o:	bargraph.c colors.h
 	$(CC) $(CFLAGS) -c bargraph.c
+
+disable.o:	disable.c
+	$(CC) $(CFLAGS) -c disable.c
 
 rainbow.o:	rainbow.c colors.h
 	$(CC) $(CFLAGS) -c rainbow.c
@@ -62,13 +64,6 @@ two_color_scroll.o:	two_color_scroll.c
 	$(CC) $(CFLAGS) -c two_color_scroll.c
 
 
-####
-
-disable:	disable.o ../lib/spi_lib.o
-	$(CC) $(LFLAGS) -o disable disable.o ../lib/spi_lib.o
-
-disable.o:	disable.c
-	$(CC) $(CFLAGS) -c disable.c
 
 ####
 
@@ -123,7 +118,5 @@ random.o:	random.c
 
 clean:	
 	rm -f *.o *~ run_leds \
-		bargraph disable fish \
-		led_test pulsar rainbow_standalone random \
-		stars manual_bargraph falling
+		bargraph fish led_test pulsar random manual_bargraph falling
 

@@ -11,15 +11,17 @@
 static int help(char *executable) {
 
 	printf("%s effect options\n",executable);
-	printf("\tbargraph color1 color2\n");
-	printf("\tdisable\n");
-	printf("\trainbow\n");
-	printf("\tstars speed brightness\n");
-	printf("\ttwo_color_scroll color1 color2 direction\n");
-	printf("\tred_green -- two_color_scroll with red/green default\n");
-	printf("\tblue_yellow -- two_color_scroll with blue/yellow default\n");
+	printf("\tbargraph color1 color2 -- alternate two colors\n");
+	printf("\tdisable -- set display to black\n");
+	printf("\trainbow -- rainbow pattern \n");
 	printf("\tscanner color -- colored bar that bounces back and forth\n");
-	printf("\tscanner_random -- scanner with random color changes\n");
+	printf("\t\tscanner_blinky -- blinky scanner\n");
+	printf("\t\tscanner_dual color1 color2 -- two color scanner\n");
+	printf("\t\tscanner_random -- scanner with random color changes\n");
+	printf("\tstars speed brightness -- star pattern\n");
+	printf("\ttwo_color_scroll color1 color2 direction\n");
+	printf("\t\tred_green -- two_color_scroll with red/green default\n");
+	printf("\t\tblue_yellow -- two_color_scroll with blue/yellow default\n");
 	printf("\n");
 
 	return 0;
@@ -38,6 +40,10 @@ int main(int argc, char **argv) {
 
 		if (!strncmp(argv[1],"bargraph",8)) {
 			effect=EFFECT_BARGRAPH;
+		}
+
+		if (!strncmp(argv[1],"disable",7)) {
+			effect=EFFECT_DISABLE;
 		}
 
 		if (!strncmp(argv[1],"rainbow",7)) {
@@ -81,6 +87,11 @@ int main(int argc, char **argv) {
 			bargraph(spi_fd,argc>2?argv[2]:NULL,
 					argc>3?argv[3]:NULL);
 			break;
+
+		case EFFECT_DISABLE:
+			disable(spi_fd);
+			break;
+
 		case EFFECT_RAINBOW:
 			rainbow(spi_fd);
 			break;
