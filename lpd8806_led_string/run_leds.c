@@ -25,16 +25,6 @@ static int help(char *executable) {
 	return 0;
 }
 
-#define EFFECT_RANDOM		0
-#define EFFECT_BARGRAPH		1
-#define EFFECT_RAINBOW		2
-#define EFFECT_STARS		3
-#define EFFECT_TWO_COLOR_SCROLL	4
-#define EFFECT_RED_GREEN	5
-#define EFFECT_BLUE_YELLOW	6
-#define EFFECT_SCANNER		7
-#define EFFECT_SCANNER_RANDOM	8
-
 int main(int argc, char **argv) {
 
 	int spi_fd;
@@ -120,6 +110,16 @@ int main(int argc, char **argv) {
 
 		case EFFECT_SCANNER:
 			scanner(spi_fd,argc>2?argv[2]:NULL);
+			break;
+
+		case EFFECT_SCANNER_BLINKY:
+			scanner_blinky(spi_fd);
+			break;
+
+		case EFFECT_SCANNER_DUAL:
+			scanner_dual(spi_fd,
+				argc>2?argv[2]:NULL,
+				argc>3?argv[3]:NULL);
 			break;
 
 		case EFFECT_SCANNER_RANDOM:

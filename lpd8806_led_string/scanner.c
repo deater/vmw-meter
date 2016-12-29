@@ -1,3 +1,5 @@
+/* In theory this could be scanner_dual with the second color black */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
