@@ -13,6 +13,7 @@ static int help(char *executable) {
 	printf("%s effect options\n",executable);
 	printf("\tbargraph color1 color2 -- alternate two colors\n");
 	printf("\tdisable -- set display to black\n");
+	printf("\tfish num -- moving fish-like dots\n");
 	printf("\trainbow -- rainbow pattern \n");
 	printf("\tscanner color -- colored bar that bounces back and forth\n");
 	printf("\t\tscanner_blinky -- blinky scanner\n");
@@ -44,6 +45,10 @@ int main(int argc, char **argv) {
 
 		if (!strncmp(argv[1],"disable",7)) {
 			effect=EFFECT_DISABLE;
+		}
+
+		if (!strncmp(argv[1],"fish",4)) {
+			effect=EFFECT_FISH;
 		}
 
 		if (!strncmp(argv[1],"rainbow",7)) {
@@ -92,9 +97,14 @@ int main(int argc, char **argv) {
 			disable(spi_fd);
 			break;
 
+		case EFFECT_FISH:
+			fish(spi_fd,argc>2?argv[2]:NULL);
+			break;
+
 		case EFFECT_RAINBOW:
 			rainbow(spi_fd);
 			break;
+
 		case EFFECT_STARS:
 			stars(spi_fd,argc>2?argv[2]:NULL,
 					argc>3?argv[3]:NULL);
