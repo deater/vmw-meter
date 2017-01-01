@@ -21,11 +21,6 @@ int scanner_random(int spi_fd) {
 
 	while(1) {
 
-		r=colors[c].r;
-		g=colors[c].g;
-		b=colors[c].b;
-
-
 		location+=direction;
 		if (location>31) {
 			direction=-1;
@@ -35,7 +30,12 @@ int scanner_random(int spi_fd) {
 		if (location<1) {
 			direction=1;
 			c=get_random_color_noblack();
+//			printf("New color %d\n",c);
 		}
+
+		r=colors[c].r;
+		g=colors[c].g;
+		b=colors[c].b;
 
 		for(i=0;i<32;i++) {
 			if (i==location) {
