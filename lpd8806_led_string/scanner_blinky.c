@@ -15,6 +15,8 @@ int scanner_blinky(int spi_fd) {
 	int location=0,direction=1;
 	int c=0;
 
+	printf("Running scanner_blinky\n");
+
 	/* clear data */
 	for(i=0;i<128;i++) data[i]=128;
 

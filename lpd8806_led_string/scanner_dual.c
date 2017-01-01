@@ -17,6 +17,8 @@ int scanner_dual(int spi_fd, char *color1, char *color2) {
 	int s2_location=0,s2_direction=1;
 	int s2_r,s2_g,s2_b;
 
+	printf("Running scanner_dual %s %s\n",color1,color2);
+
 	if (color1) {
 		get_color(color1,&s1_r,&s1_g,&s1_b);
 	} else {
@@ -28,8 +30,8 @@ int scanner_dual(int spi_fd, char *color1, char *color2) {
 	if (color2) {
 		get_color(color2,&s2_r,&s2_g,&s2_b);
 	} else {
-		s2_r=0;
-		s2_g=64;
+		s2_r=64;
+		s2_g=0;
 		s2_b=0;
 	}
 
@@ -60,23 +62,20 @@ int scanner_dual(int spi_fd, char *color1, char *color2) {
 				data[(i*3)+1]=128+s2_r;
 				data[(i*3)+2]=128+s2_b;
 			}
-			else
-
-			if ((i==s2_location-1) || (i==s2_location+1)) {
+			else if ((i==s2_location-1) || (i==s2_location+1)) {
 				data[(i*3)]=128+(s2_g/8);
 				data[(i*3)+1]=128+(s2_r/8);
 				data[(i*3)+2]=128+(s2_b/8);
 			}
-
 			else if( (i==s2_location-2) || (i==s2_location+2)) {
 				data[(i*3)]=128+(s2_g/32);
 				data[(i*3)+1]=128+(s2_r/32);
 				data[(i*3)+2]=128+(s2_b/32);
 			}
 			else {
-				data[(i*3)]=128;
-				data[(i*3)+1]=128;
-				data[(i*3)+2]=128;
+//				data[(i*3)]=128;
+//				data[(i*3)+1]=128;
+//				data[(i*3)+2]=128;
 			}
 
 			/* s1 */
@@ -100,9 +99,9 @@ int scanner_dual(int spi_fd, char *color1, char *color2) {
 				data[(i*3)+2]=128+(s1_b/32);
 			}
 			else {
-				data[(i*3)+0]=128;
-				data[(i*3)+1]=128;
-				data[(i*3)+2]=128;
+//				data[(i*3)+0]=128;
+//				data[(i*3)+1]=128;
+//				data[(i*3)+2]=128;
 			}
 
 		}

@@ -96,9 +96,17 @@ int main(int argc, char **argv) {
 			effect=EFFECT_TWO_COLOR_SCROLL;
 		}
 
+		if (!strncmp(argv[1],"scanner_blinky",14)) {
+			effect=EFFECT_SCANNER_BLINKY;
+		} else
+
+		if (!strncmp(argv[1],"scanner_dual",12)) {
+			effect=EFFECT_SCANNER_DUAL;
+		} else
+
 		if (!strncmp(argv[1],"scanner_random",14)) {
 			effect=EFFECT_SCANNER_RANDOM;
-		}
+		} else
 
 		if (!strncmp(argv[1],"scanner",7)) {
 			effect=EFFECT_SCANNER;
