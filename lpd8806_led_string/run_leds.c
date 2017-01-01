@@ -17,7 +17,7 @@ static int help(char *executable) {
 	printf("\tfish num -- moving fish-like dots\n");
 	printf("\tgradient color -- moving gradient\n");
 	printf("\tnoise -- random_static\n");
-	printf("\tpulsar color -- supernova\n");
+	printf("\tpulsar color -- wide band of color scroll\n");
 	printf("\trainbow -- rainbow pattern \n");
 	printf("\tscanner color -- colored bar that bounces back and forth\n");
 	printf("\t\tscanner_blinky -- blinky scanner\n");
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 	int effect=EFFECT_RANDOM;
 
 	if (argc>1) {
-		if (!strncmp(argv[1],"-h",2)) {
+		if ((!strncmp(argv[1],"-h",2)) || (!strncmp(argv[1],"help",4))) {
 			help(argv[0]);
 			return 0;
 		}
