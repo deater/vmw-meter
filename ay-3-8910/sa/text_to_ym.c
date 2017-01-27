@@ -56,14 +56,12 @@ int note_to_length(int length) {
 		case 3: len=(baselen*3)/8; break;
 		case 4: len=baselen/4; break;
 		case 8: len=baselen/8; break;
-		case 9: len=(baselen/8)+1; break;
 		case 6: len=baselen/16; break;
 		default:
 			fprintf(stderr,"Unknown length %d\n",length);
 	}
 
-	return len-1;
-
+	return len-2;
 }
 
 #define FRAMES_PER_LINE	12
@@ -78,14 +76,16 @@ int main(int argc, char **argv) {
 	int frequency=50,attributes=0;
 	int loop=0;
 	int header_length=0;
-	int i,j,a_freq=0;
+	int i,j;
+	int a_freq=0,b_freq=0;
 	fpos_t save;
 	double freq;
 	int line=0;
-	unsigned char note;
-	int sharp,flat,length,octave;
-	int a_enabled=0;//b_enabled=0,c_enabled=0;
-	int a_length=0;
+	unsigned char a_note,b_note;
+	int a_sharp,a_flat,a_len,a_octave;
+	int b_sharp,b_flat,b_len,b_octave;
+	int a_enabled=0,b_enabled=0;//,c_enabled=0;
+	int a_length=0,b_length=0;
 
 	char song_name[]="Still Alive";
 	char author_name[]="Vince Weaver <vince@deater.net>";
@@ -119,8 +119,8 @@ int main(int argc, char **argv) {
 		if (string[0]=='-') continue;
 
 		i=0;
-		sharp=0;
-		flat=0;
+		a_sharp=0;	b_sharp=0;
+		a_flat=0;	b_flat=0;
 
 		/* Skip line number */
 		while((string[i]!=' ' && string[i]!='\t')) i++;
@@ -128,34 +128,72 @@ int main(int argc, char **argv) {
 		/* Skip white space */
 		while((string[i]==' ' || string[i]=='\t')) i++;
 
-		note=string[i];
+		/* get A note info */
+		a_note=string[i];
 		i++;
-		if (string[i]=='#') sharp=1;
-		if (string[i]=='-') flat=1;
+		if (string[i]=='#') a_sharp=1;
+		if (string[i]=='-') a_flat=1;
 		i++;
-		octave=string[i]-'0';
+		a_octave=string[i]-'0';
 		i++;
 		i++;
-		length=string[i]-'0';
+		a_len=string[i]-'0';
+		i++;
 
-		if (note!='-') {
+		/* Skip white space */
+		while((string[i]==' ' || string[i]=='\t')) i++;
 
-			freq=note_to_freq(note,sharp,flat,octave);
+		/* get B note info */
+		b_note=string[i];
+		i++;
+		if (string[i]=='#') b_sharp=1;
+		if (string[i]=='-') b_flat=1;
+		i++;
+		b_octave=string[i]-'0';
+		i++;
+		i++;
+		b_len=string[i]-'0';
 
-			printf("%d: %c%c L=%d O=%d f=%lf\n",
+
+
+		if (a_note!='-') {
+
+			freq=note_to_freq(a_note,a_sharp,a_flat,a_octave);
+
+			printf("%d: (A) %c%c L=%d O=%d f=%lf\n",
 				line,
-				note,
-				sharp?'#':' ',
-				length,
-				octave,
+				a_note,
+				a_sharp?'#':' ',
+				a_len,
+				a_octave,
 				freq);
 
 			a_freq=external_frequency/(16.0*freq);
 			a_enabled=1;
-			a_length=note_to_length(length);
+			a_length=note_to_length(a_len);
 		}
 		else {
 			a_freq=0;
+		}
+
+		if (b_note!='-') {
+
+			freq=note_to_freq(b_note,b_sharp,b_flat,b_octave);
+
+			printf("%d: (B) %c%c L=%d O=%d f=%lf\n",
+				line,
+				b_note,
+				b_sharp?'#':' ',
+				b_len,
+				b_octave,
+				freq);
+
+			b_freq=external_frequency/(16.0*freq);
+			b_enabled=1;
+			b_length=note_to_length(b_len);
+		}
+		else {
+			b_freq=0;
 		}
 
 		for(j=0;j<FRAMES_PER_LINE;j++) {
@@ -163,11 +201,21 @@ int main(int argc, char **argv) {
 			if (a_enabled) {
 				frame[0]=a_freq&0xff;
 				frame[1]=(a_freq>>8)&0xf;
-				frame[7]=0x3e;
+				frame[7]=0x38;
 				frame[8]=0x0f;	// amp A
 			}
 			else {
 				frame[8]=0x0;
+			}
+
+			if (b_enabled) {
+				frame[2]=b_freq&0xff;
+				frame[3]=(b_freq>>8)&0xf;
+				frame[7]=0x38;
+				frame[9]=0x0a;	// amp B
+			}
+			else {
+				frame[9]=0x0;
 			}
 
 			for(i=0;i<16;i++) {
@@ -176,6 +224,9 @@ int main(int argc, char **argv) {
 			frames++;
 			if (a_length) a_length--;
 			if (a_length==0) a_enabled=0;
+			if (b_length) b_length--;
+			if (b_length==0) b_enabled=0;
+
 		}
 	}
 
