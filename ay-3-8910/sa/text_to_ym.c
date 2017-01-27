@@ -48,7 +48,7 @@ static double note_to_freq(char note, int flat, int sharp, int octave) {
 int note_to_length(int length) {
 
 	int len=0;
-	int baselen=200;  /* 120/minute, 50Hz, should really be 100 */
+	int baselen=96;  /* 120/minute, 50Hz, should really be 100 */
 
 	switch(length) {
 		case 1:	len=baselen; break;
@@ -57,6 +57,7 @@ int note_to_length(int length) {
 		case 4: len=baselen/4; break;
 		case 5: len=(baselen*5)/8; break;
 		case 8: len=baselen/8; break;
+		case 9: len=(baselen*3)/16; break;
 		case 6: len=baselen/16; break;
 		default:
 			fprintf(stderr,"Unknown length %d\n",length);
