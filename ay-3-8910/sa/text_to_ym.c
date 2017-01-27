@@ -55,6 +55,7 @@ int note_to_length(int length) {
 		case 2: len=baselen/2; break;
 		case 3: len=(baselen*3)/8; break;
 		case 4: len=baselen/4; break;
+		case 5: len=(baselen*5)/8; break;
 		case 8: len=baselen/8; break;
 		case 6: len=baselen/16; break;
 		default:
