@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -O2 -Wall
-LFLAGS =
+LFLAGS = -lm
 
 all:	text_to_ym
 
