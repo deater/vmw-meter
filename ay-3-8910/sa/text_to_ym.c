@@ -45,6 +45,27 @@ static double note_to_freq(char note, int flat, int sharp, int octave) {
 	return freq;
 }
 
+int note_to_length(int length) {
+
+	int len=0;
+	int baselen=96;	/* 120/minute, 50Hz, should really be 100 */
+
+	switch(length) {
+		case 1:	len=baselen; break;
+		case 2: len=baselen/2; break;
+		case 3: len=(baselen*3)/8; break;
+		case 4: len=baselen/4; break;
+		case 8: len=baselen/8; break;
+		case 9: len=(baselen/8)+1; break;
+		case 6: len=baselen/16; break;
+		default:
+			fprintf(stderr,"Unknown length %d\n",length);
+	}
+
+	return len-1;
+
+}
+
 #define FRAMES_PER_LINE	12
 
 int main(int argc, char **argv) {
@@ -63,6 +84,8 @@ int main(int argc, char **argv) {
 	int line=0;
 	unsigned char note;
 	int sharp,flat,length,octave;
+	int a_enabled=0;//b_enabled=0,c_enabled=0;
+	int a_length=0;
 
 	char song_name[]="Still Alive";
 	char author_name[]="Vince Weaver <vince@deater.net>";
@@ -98,6 +121,7 @@ int main(int argc, char **argv) {
 		i=0;
 		sharp=0;
 		flat=0;
+
 		/* Skip line number */
 		while((string[i]!=' ' && string[i]!='\t')) i++;
 
@@ -127,21 +151,31 @@ int main(int argc, char **argv) {
 				freq);
 
 			a_freq=external_frequency/(16.0*freq);
+			a_enabled=1;
+			a_length=note_to_length(length);
 		}
 		else {
 			a_freq=0;
 		}
 
-		frame[0]=a_freq&0xff;
-		frame[1]=(a_freq>>8)&0xf;
-		frame[7]=0x3e;
-		frame[8]=0x0f;	// amp A
-
 		for(j=0;j<FRAMES_PER_LINE;j++) {
+
+			if (a_enabled) {
+				frame[0]=a_freq&0xff;
+				frame[1]=(a_freq>>8)&0xf;
+				frame[7]=0x3e;
+				frame[8]=0x0f;	// amp A
+			}
+			else {
+				frame[8]=0x0;
+			}
+
 			for(i=0;i<16;i++) {
 				fprintf(fff,"%c",frame[i]);
 			}
 			frames++;
+			if (a_length) a_length--;
+			if (a_length==0) a_enabled=0;
 		}
 	}
 
@@ -173,3 +207,4 @@ int main(int argc, char **argv) {
 
 	return 0;
 }
+
