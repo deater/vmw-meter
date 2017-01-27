@@ -4,15 +4,15 @@
 #include <arpa/inet.h>
 
 struct ym_header {
-	char id[4];
-	char check[8];
-	uint32_t vbl;
-	uint32_t song_attr;
-	uint32_t digidrum;
-	uint32_t external_frequency;
-	uint16_t player_frequency;
-	uint32_t loop;
-	uint16_t additional_data;
+	char id[4];				// 0  -> 4
+	char check[8];				// 4  -> 12
+	uint32_t vbl;				// 12 -> 16
+	uint32_t song_attr;			// 16 -> 20
+	uint16_t digidrum;			// 20 -> 22
+	uint32_t external_frequency;		// 22 -> 26
+	uint16_t player_frequency;		// 26 -> 28
+	uint32_t loop;				// 28 -> 32
+	uint16_t additional_data;		// 32 -> 34
 }  __attribute__((packed)) our_header;
 
 int main(int argc, char **argv) {
@@ -24,6 +24,10 @@ int main(int argc, char **argv) {
 	int frames=0,digidrums=0,external_frequency=1000000;
 	int frequency=50;
 	int loop=0;
+
+	char song_name[]="Still Alive";
+	char author_name[]="Vince Weaver <vince@deater.net>";
+	char comments[]="from Portal, Words and Music by Jonathan Coulton";
 
 	outfile=strdup("out.ym");
 
@@ -55,8 +59,13 @@ int main(int argc, char **argv) {
 	our_header.loop=htonl(loop);
 	our_header.additional_data=htonl(0);
 
-
 	fwrite(&our_header,sizeof(struct ym_header),1,fff);
+
+	fprintf(fff,"%s%c",song_name,0);
+	fprintf(fff,"%s%c",author_name,0);
+	fprintf(fff,"%s%c",comments,0);
+
+	fprintf(fff,"End!");
 
 	fclose(fff);
 
