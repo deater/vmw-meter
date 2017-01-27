@@ -48,7 +48,7 @@ static double note_to_freq(char note, int flat, int sharp, int octave) {
 int note_to_length(int length) {
 
 	int len=0;
-	int baselen=96;	/* 120/minute, 50Hz, should really be 100 */
+	int baselen=200;  /* 120/minute, 50Hz, should really be 100 */
 
 	switch(length) {
 		case 1:	len=baselen; break;
@@ -65,7 +65,7 @@ int note_to_length(int length) {
 	return len-2;
 }
 
-#define FRAMES_PER_LINE	12
+#define FRAMES_PER_LINE	6
 
 int main(int argc, char **argv) {
 
