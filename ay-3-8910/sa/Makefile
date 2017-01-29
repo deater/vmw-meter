@@ -2,7 +2,10 @@ CC = gcc
 CFLAGS = -O2 -Wall
 LFLAGS = -lm
 
-all:	text_to_ym
+all:	text_to_ym sa.ym
+
+sa.ym:	text_to_ym sa.txt
+	./text_to_ym < sa.txt
 
 text_to_ym:	text_to_ym.o
 	$(CC) $(LFLAGS) -o text_to_ym text_to_ym.o

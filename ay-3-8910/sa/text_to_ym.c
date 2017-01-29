@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 
 	unsigned char frame[16];
 
-	outfile=strdup("out.ym");
+	outfile=strdup("sa.ym");
 
 	fff=fopen(outfile,"w");
 	if (fff==NULL) {
