@@ -12,11 +12,14 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <math.h>
+#include <termios.h>
 #include <sys/resource.h>
 
 #include <bcm2835.h>
 
 #include "ay-3-8910.h"
+
+#include "notes.h"
 
 #define AY38910_CLOCK	1000000	/* 1MHz on our board */
 
@@ -50,24 +53,37 @@ void print_help(int just_version, char *exec_name) {
 static int play_organ(void) {
 
 	unsigned char frame[16];
-	int frame_rate=50;
 	int i,j;
 	double s,n,hz,diff;
-	double max_a=0.0,max_b=0.0,max_c=0.0;
 
-
-	int a_period,b_period,c_period,n_period,e_period;
-	double a_freq=0.0, b_freq=0.0, c_freq=0.0,n_freq=0.0,e_freq=0.0;
-	int new_a,new_b,new_c,new_n,new_e;
+	double freq;
 
 	struct timeval start,next;
 
 	int master_clock=1000000;	/* 1MHz */
-	int num_frames=0;
 
-	/**********************/
-	/* Print song summary */
-	/**********************/
+	int frames=0;
+
+	int result,ch;
+	int quit=0;
+
+	int octave=4;
+	int a_freq=0,a_length=0,a_enabled=0;
+
+	struct termios new_tty,saved_tty;
+
+	/* Save currenty term settings */
+	tcgetattr (0, &saved_tty);
+	tcgetattr (0, &new_tty);
+
+	/* Put term in raw keryboard mode */
+	new_tty.c_lflag &= ~ICANON;
+	new_tty.c_cc[VMIN] = 1;
+	new_tty.c_lflag &= ~ECHO;
+	tcsetattr (0, TCSANOW, &new_tty);
+	/* Make it nonblocking too */
+	fcntl (0, F_SETFL, fcntl (0, F_GETFL) | O_NONBLOCK);
+
 
 	i=0;
 	while(1) {
@@ -76,75 +92,38 @@ static int play_organ(void) {
 		gettimeofday(&start,NULL);
 
 
+		/* Read from Keyboard */
+		result=read(0,&ch,1);
+		if (result<0) {
+		}
+		else {
+			switch (ch) {
+
+			case 'q': quit=1; break;
+
+			case 'a':
+				freq=note_to_freq('A',0,0,octave);
+				a_freq=master_clock/(16.0*freq);
+				a_enabled=1;
+				a_length=96;
+				break;
+
+			}
+		}
+		if (quit) break;
+
 		/****************************************/
 		/* Write out the music			*/
 		/****************************************/
 
-		a_period=((frame[1]&0xf)<<8)|frame[0];
-		b_period=((frame[3]&0xf)<<8)|frame[2];
-		c_period=((frame[5]&0xf)<<8)|frame[4];
-		n_period=frame[6]&0x1f;
-		e_period=((frame[12]&0xff)<<8)|frame[11];
-
-		if (a_period>0) a_freq=master_clock/(16.0*(double)a_period);
-		if (b_period>0) b_freq=master_clock/(16.0*(double)b_period);
-		if (c_period>0) c_freq=master_clock/(16.0*(double)c_period);
-		if (n_period>0) n_freq=master_clock/(16.0*(double)n_period);
-		if (e_period>0) e_freq=master_clock/(256.0*(double)e_period);
-
-		if (dump_info) {
-			printf("%05d:\tA:%04x B:%04x C:%04x N:%02x M:%02x ",
-				i,a_period,b_period,c_period,n_period,frame[7]);
-
-			printf("AA:%02x AB:%02x AC:%02x E:%04x,%02x %04x\n",
-				frame[8],frame[9],frame[10],
-				(frame[12]<<8)+frame[11],frame[13],
-				(frame[14]<<8)+frame[15]);
-
-			printf("\t%.1lf %.1lf %.1lf %.1lf %.1lf ",
-				a_freq,b_freq,c_freq,n_freq, e_freq);
-			printf("N:%c%c%c T:%c%c%c ",
-				(frame[7]&0x20)?' ':'C',
-				(frame[7]&0x10)?' ':'B',
-				(frame[7]&0x08)?' ':'A',
-				(frame[7]&0x04)?' ':'C',
-				(frame[7]&0x02)?' ':'B',
-				(frame[7]&0x01)?' ':'A');
-
-			if (frame[8]&0x10) printf("VA: E ");
-			else printf("VA: %d ",frame[8]&0xf);
-			if (frame[9]&0x10) printf("VB: E ");
-			else printf("VB: %d ",frame[9]&0xf);
-			if (frame[10]&0x10) printf("VC: E ");
-			else printf("VC: %d ",frame[10]&0xf);
-
-			if (frame[13]==0xff) {
-				printf("NOWRITE");
-			}
-			else {
-				if (frame[13]&0x1) printf("Hold");
-				if (frame[13]&0x2) printf("Alternate");
-				if (frame[13]&0x4) printf("Attack");
-				if (frame[13]&0x8) printf("Continue");
-			}
-			printf("\n");
-
-			if (a_freq>max_a) max_a=a_freq;
-			if (b_freq>max_b) max_b=b_freq;
-			if (c_freq>max_c) max_c=c_freq;
+		if (a_enabled) {
+			frame[0]=a_freq&0xff;
+			frame[1]=(a_freq>>8)&0xf;
+			frame[7]=0x38;
+			frame[8]=0x0f;  // amp A
 		}
-
-
-		frame[0]=new_a&0xff;	frame[1]=(new_a>>8)&0xf;
-		frame[2]=new_b&0xff;	frame[3]=(new_b>>8)&0xf;
-		frame[4]=new_c&0xff;	frame[5]=(new_c>>8)&0xf;
-		frame[6]=new_n&0x1f;
-		frame[11]=new_e&0xff;	frame[12]=(new_e>>8)&0xff;
-
-		if (dump_info) {
-			printf("\t%04x %04x %04x %04x %04x\n",
-				new_a,new_b,new_c,new_n,new_e);
-
+		else {
+			frame[8]=0x0;
 		}
 
 		if (play_music) {
@@ -183,12 +162,17 @@ static int play_organ(void) {
 
 		if (i%100==0) {
 			hz=1/(n-s);
-			printf("Done frame %d/%d, %.1lfHz\n",i,num_frames,hz);
+			printf("Done frame %d/%d, %.1lfHz\n",i,frames,hz);
 		}
 		start.tv_sec=next.tv_sec;
 		start.tv_usec=next.tv_usec;
 
+		frames++;
+		if (a_length) a_length--;
+		if (a_length==0) a_enabled=0;
 	}
+
+	tcsetattr (0, TCSANOW, &saved_tty);
 
 	return 0;
 }
