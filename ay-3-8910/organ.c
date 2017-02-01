@@ -84,6 +84,7 @@ static int play_organ(void) {
 	/* Make it nonblocking too */
 	fcntl (0, F_SETFL, fcntl (0, F_GETFL) | O_NONBLOCK);
 
+	for(i=0;i<15;i++) frame[i]=0;
 
 	i=0;
 	while(1) {
@@ -105,7 +106,43 @@ static int play_organ(void) {
 				freq=note_to_freq('A',0,0,octave);
 				a_freq=master_clock/(16.0*freq);
 				a_enabled=1;
-				a_length=96;
+				a_length=24;
+				break;
+			case 's':
+				freq=note_to_freq('B',0,0,octave);
+				a_freq=master_clock/(16.0*freq);
+				a_enabled=1;
+				a_length=24;
+				break;
+			case 'd':
+				freq=note_to_freq('C',0,0,octave);
+				a_freq=master_clock/(16.0*freq);
+				a_enabled=1;
+				a_length=24;
+				break;
+			case 'f':
+				freq=note_to_freq('D',0,0,octave);
+				a_freq=master_clock/(16.0*freq);
+				a_enabled=1;
+				a_length=24;
+				break;
+			case 'g':
+				freq=note_to_freq('E',0,0,octave);
+				a_freq=master_clock/(16.0*freq);
+				a_enabled=1;
+				a_length=24;
+				break;
+			case 'h':
+				freq=note_to_freq('F',0,0,octave);
+				a_freq=master_clock/(16.0*freq);
+				a_enabled=1;
+				a_length=24;
+				break;
+			case 'j':
+				freq=note_to_freq('G',0,0,octave);
+				a_freq=master_clock/(16.0*freq);
+				a_enabled=1;
+				a_length=24;
 				break;
 
 			}
