@@ -4,21 +4,24 @@ LIBLHASA_INCLUDEDIR = -I/usr/include/liblhasa-1.0
 LIBLHASA_LIB = -llhasa
 
 CC = gcc
-CFLAGS = -O2 -Wall -I../include $(LIBLHASA_INCLUDEDIR) -g
-LFLAGS = -lm $(LIBLHASA_LIB)
+CFLAGS = -O2 -Wall -I../include -g 
+LFLAGS = -lm
 
-all:	ym_play organ
+all:	ym_play organ ym_to_ym5 text_to_ym
 
 ../lib/i2c_lib.o:	../lib/i2c_lib.c
 	cd ../lib && make
 
+###
+
 ym_play:	ym_play.o ay-3-8910.o display.o ../lib/i2c_lib.o
-	$(CC) $(LFLAGS) -o ym_play ym_play.o ay-3-8910.o display.o \
+	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym_play ym_play.o ay-3-8910.o display.o \
 			../lib/i2c_lib.o /usr/local/lib/libbcm2835.a
 
 ym_play.o:	ym_play.c display.h ay-3-8910.h
-	$(CC) $(CFLAGS) $(USE_LIBLHASA) -c ym_play.c
+	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c ym_play.c
 
+###
 
 organ:	organ.o ay-3-8910.o
 	$(CC) $(LFLAGS) -o organ organ.o ay-3-8910.o /usr/local/lib/libbcm2835.a
@@ -26,6 +29,23 @@ organ:	organ.o ay-3-8910.o
 organ.o:	organ.c ay-3-8910.h
 	$(CC) $(CFLAGS) -c organ.c
 
+###
+
+text_to_ym:	text_to_ym.o
+	$(CC) $(LFLAGS) -o text_to_ym text_to_ym.o
+
+text_to_ym.o:	text_to_ym.c
+	$(CC) $(CFLAGS) -c text_to_ym.c
+
+###
+
+ym_to_ym5:	ym_to_ym5.o
+	$(CC) $(LFLAGS) -o ym_to_ym5 ym_to_ym5.o
+
+ym_to_ym5.o:	ym_to_ym5.c
+	$(CC) $(CFLAGS) -c ym_to_ym5.c
+
+###
 
 ay-3-8910.o:	ay-3-8910.c ay-3-8910.h
 	$(CC) $(CFLAGS) -c ay-3-8910.c
@@ -34,4 +54,13 @@ display.o:	display.c display.h font.h
 	$(CC) $(CFLAGS) -c display.c
 
 clean:	
-	rm -f *~ *.o ym_play organ
+	rm -f *~ *.o ym_play organ text_to_ym ym_to_ym5
+
+
+
+
+
+
+
+
+

@@ -410,7 +410,7 @@ static int scroll_text(int display_type, char *string, int new_string) {
 			"PQRSTUVWXYZ[\\]^_"
 			"`abcdefghijklmno"
 			"pqrstuvwxyz{|}~ ";
-	char buf[16]="ABCDEFGHIJKLMNOP";
+//	char buf[16]="ABCDEFGHIJKLMNOP";
 	char matrix[96][8];
 
 	int scroll=0,x,y,length;
