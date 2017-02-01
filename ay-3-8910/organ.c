@@ -103,43 +103,43 @@ static int play_organ(void) {
 			case 'q': quit=1; break;
 
 			case 'a':
-				freq=note_to_freq('A',0,0,octave);
-				a_freq=master_clock/(16.0*freq);
-				a_enabled=1;
-				a_length=24;
-				break;
-			case 's':
-				freq=note_to_freq('B',0,0,octave);
-				a_freq=master_clock/(16.0*freq);
-				a_enabled=1;
-				a_length=24;
-				break;
-			case 'd':
 				freq=note_to_freq('C',0,0,octave);
 				a_freq=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=24;
 				break;
-			case 'f':
+			case 's':
 				freq=note_to_freq('D',0,0,octave);
 				a_freq=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=24;
 				break;
-			case 'g':
+			case 'd':
 				freq=note_to_freq('E',0,0,octave);
 				a_freq=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=24;
 				break;
-			case 'h':
+			case 'f':
 				freq=note_to_freq('F',0,0,octave);
 				a_freq=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=24;
 				break;
-			case 'j':
+			case 'g':
 				freq=note_to_freq('G',0,0,octave);
+				a_freq=master_clock/(16.0*freq);
+				a_enabled=1;
+				a_length=24;
+				break;
+			case 'h':
+				freq=note_to_freq('A',0,0,octave);
+				a_freq=master_clock/(16.0*freq);
+				a_enabled=1;
+				a_length=24;
+				break;
+			case 'j':
+				freq=note_to_freq('B',0,0,octave);
 				a_freq=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=24;
@@ -197,9 +197,9 @@ static int play_organ(void) {
 		s=start.tv_sec+(start.tv_usec/1000000.0);
 		n=next.tv_sec+(next.tv_usec/1000000.0);
 
-		if (i%100==0) {
+		if (frames%250==0) {
 			hz=1/(n-s);
-			printf("Done frame %d/%d, %.1lfHz\n",i,frames,hz);
+			printf("Done frame %d, %.1lfHz\n",frames,hz);
 		}
 		start.tv_sec=next.tv_sec;
 		start.tv_usec=next.tv_usec;
