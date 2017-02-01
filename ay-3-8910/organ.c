@@ -47,229 +47,38 @@ void print_help(int just_version, char *exec_name) {
 	exit(0);
 }
 
-static int play_song(char *filename) {
+static int play_organ(void) {
 
-#if 0
-	unsigned char *ym_file;
-	int ym_type,ym_size,ym_frame_size;
-	unsigned char frame[YM5_FRAME_SIZE];
-	int num_frames,song_attributes,num_digidrum,master_clock;
-	int frame_rate,loop_frame,extra_data;
-	int drum_size,i,j;
-	int length_seconds;
-	char song_name[MAX_STRING];
-	char author[MAX_STRING];
-	char comment[MAX_STRING];
-	int pointer;
-	long int file_offset=0,data_begin;
-	int interleaved=0;
+	unsigned char frame[16];
+	int frame_rate=50;
+	int i,j;
 	double s,n,hz,diff;
 	double max_a=0.0,max_b=0.0,max_c=0.0;
+
 
 	int a_period,b_period,c_period,n_period,e_period;
 	double a_freq=0.0, b_freq=0.0, c_freq=0.0,n_freq=0.0,e_freq=0.0;
 	int new_a,new_b,new_c,new_n,new_e;
 
-	int display_command=0;
-
 	struct timeval start,next;
 
-	printf("\nPlaying song %s\n",filename);
-
-	ym_file=load_ym_song(filename,&ym_type,&ym_size);
-	if (ym_file==NULL) {
-		return -1;
-	}
-
-	/* Decode header */
-
-
-	if (ym_type>3) {
-		/* version 4, 5, 6 */
-
-		num_frames=(ym_file[12]<<24)|(ym_file[13]<<16)|
-			(ym_file[14]<<8)|(ym_file[15]);
-
-		song_attributes=(ym_file[16]<<24)|(ym_file[17]<<16)|
-			(ym_file[18]<<8)|(ym_file[19]);
-		interleaved=song_attributes&0x1;
-
-		/* interleaved makes things compress better */
-		/* but much more of a pain to play */
-
-		num_digidrum=(ym_file[20]<<8)|(ym_file[21]);
-
-		if (ym_type==4) {
-
-			/* assume atari */
-			master_clock=2000000;
-			frame_rate=50;
-			extra_data=0;
-
-			loop_frame=(ym_file[22]<<24)|(ym_file[23]<<16)|
-				(ym_file[24]<<8)|(ym_file[25]);
-
-			file_offset=YM4_HEADER_SIZE;
-		}
-		else {
-
-			master_clock=(ym_file[22]<<24)|(ym_file[23]<<16)|
-				(ym_file[24]<<8)|(ym_file[25]);
-
-			frame_rate=(ym_file[26]<<8)|(ym_file[27]);
-
-			loop_frame=(ym_file[28]<<24)|(ym_file[29]<<16)|
-				(ym_file[30]<<8)|(ym_file[31]);
-
-			extra_data=(ym_file[32]<<8)|(ym_file[33]);
-
-			file_offset=YM5_HEADER_SIZE;
-		}
-
-		/* Skip digidrums (we can't play those) */
-
-		if (num_digidrum>0) {
-			fprintf(stderr,"Warning!  We don't handle digidrum\n");
-			fprintf(stderr,"\tskipping %d digidrums\n",num_digidrum);
-			for(i=0;i<num_digidrum;i++) {
-				drum_size=
-					(ym_file[file_offset]<<24)|
-					(ym_file[file_offset+1]<<16)|
-					(ym_file[file_offset+2]<<8)|
-					(ym_file[file_offset+3]);
-				file_offset+=4;
-				printf("\tDrum%d: %d bytes\n",i,drum_size);
-				file_offset+=drum_size;
-			}
-		}
-
-		/* Get the song name */
-
-		pointer=0;
-		while(1) {
-			if (!ym_file[file_offset]) {
-				song_name[pointer]=0;
-				break;
-			}
-			if (pointer<MAX_STRING) {
-				song_name[pointer]=ym_file[file_offset];
-				pointer++;
-			}
-			file_offset++;
-		}
-
-		/* Get the author name */
-
-		pointer=0;
-		file_offset++;
-		while(1) {
-			if (!ym_file[file_offset]) {
-				author[pointer]=0;
-				break;
-			}
-			if (pointer<MAX_STRING) {
-				author[pointer]=ym_file[file_offset];
-				pointer++;
-			}
-			file_offset++;
-		}
-
-		/* Get the comment */
-		pointer=0;
-		file_offset++;
-		while(1) {
-			if (!ym_file[file_offset]) {
-				comment[pointer]=0;
-				break;
-			}
-			if (pointer<MAX_STRING) {
-				comment[pointer]=ym_file[file_offset];
-				pointer++;
-			}
-			file_offset++;
-		}
-
-		file_offset++;
-		ym_frame_size=YM5_FRAME_SIZE;
-
-	}
-	else {
-		/* version 2, 3, 3b */
-		file_offset=4;
-		frame_rate=50;
-		/* Assuming Atari */
-		master_clock=2000000;
-		interleaved=1;
-		song_attributes=0x1;
-		num_frames=(ym_size-4)/14;
-		ym_frame_size=YM3_FRAME_SIZE;
-		extra_data=0;
-		num_digidrum=0;
-		strcpy(song_name,"UNKNOWN");
-		strcpy(author,"UNKNOWN");
-		strcpy(comment,"UNKNOWN");
-
-		//if (ym_type=3)
-		// check if filesize is 4 too many
-		// in that case, type 3b and loop_frame is last 4 bytes
-		// really we probably don't care
-		loop_frame=0;
-
-	}
-
-	if (dump_info) printf("Frames start at %lx\n",file_offset);
-	data_begin=file_offset;
-
-	gettimeofday(&start,NULL);
+	int master_clock=1000000;	/* 1MHz */
+	int num_frames=0;
 
 	/**********************/
 	/* Print song summary */
 	/**********************/
 
-	printf("\tYM%d",ym_type);
-	printf("\tSong attributes (%d) : ",song_attributes);
-	printf("Interleaved=%s\n",interleaved?"yes":"no");
-	if (num_digidrum>0) {
-		printf("Num digidrum samples: %d\n",num_digidrum);
-	}
-	printf("\tFrames: %d, ",num_frames);
-	printf("Chip clock: %d Hz, ",master_clock);
-	printf("Frame rate: %d Hz, ",frame_rate);
-		if (frame_rate!=50) {
-			fprintf(stderr,"FIX ME framerate %d\n",frame_rate);
-			exit(1);
-		}
-	length_seconds=num_frames/frame_rate;
-	printf("Length=%d:%02d\n",length_seconds/60,length_seconds%60);
-	printf("\tLoop frame: %d, ",loop_frame);
-	printf("Extra data size: %d\n",extra_data);
-	printf("\tSong name: %s\n",song_name);
-	printf("\tAuthor name: %s\n",author);
-	printf("\tComment: %s\n",comment);
-
-	/******************/
-	/* Play the song! */
-	/******************/
-
 	i=0;
 	while(1) {
 
-	if (!music_paused) {
-		if (interleaved) {
-			for(j=0;j<ym_frame_size;j++) {
-				frame[j]=ym_file[file_offset+j*num_frames];
-			}
-			file_offset++;
-		}
-		else {
-			memcpy(frame,&ym_file[file_offset],ym_frame_size);
-			file_offset+=ym_frame_size;
-		}
+		/* get time */
+		gettimeofday(&start,NULL);
+
 
 		/****************************************/
 		/* Write out the music			*/
 		/****************************************/
-
 
 		a_period=((frame[1]&0xf)<<8)|frame[0];
 		b_period=((frame[3]&0xf)<<8)|frame[2];
@@ -326,47 +135,15 @@ static int play_song(char *filename) {
 		}
 
 
-		/* Scale if needed */
-		if (master_clock!=AY38910_CLOCK) {
+		frame[0]=new_a&0xff;	frame[1]=(new_a>>8)&0xf;
+		frame[2]=new_b&0xff;	frame[3]=(new_b>>8)&0xf;
+		frame[4]=new_c&0xff;	frame[5]=(new_c>>8)&0xf;
+		frame[6]=new_n&0x1f;
+		frame[11]=new_e&0xff;	frame[12]=(new_e>>8)&0xff;
 
-			if (a_period==0) new_a=0;
-			else new_a=(double)AY38910_CLOCK/(16.0*a_freq);
-			if (b_period==0) new_b=0;
-			else new_b=(double)AY38910_CLOCK/(16.0*b_freq);
-			if (c_period==0) new_c=0;
-			else new_c=(double)AY38910_CLOCK/(16.0*c_freq);
-			if (n_period==0) new_n=0;
-			else new_n=(double)AY38910_CLOCK/(16.0*n_freq);
-			if (e_period==0) new_e=0;
-			else new_e=(double)AY38910_CLOCK/(256.0*e_freq);
-
-			if (new_a>0xfff) {
-				printf("A TOO BIG %x\n",new_a);
-			}
-			if (new_b>0xfff) {
-				printf("B TOO BIG %x\n",new_b);
-			}
-			if (new_c>0xfff) {
-				printf("C TOO BIG %x\n",new_c);
-			}
-			if (new_n>0x1f) {
-				printf("N TOO BIG %x\n",new_n);
-			}
-			if (new_e>0xffff) {
-				printf("E too BIG %x\n",new_e);
-			}
-
-			frame[0]=new_a&0xff;	frame[1]=(new_a>>8)&0xf;
-			frame[2]=new_b&0xff;	frame[3]=(new_b>>8)&0xf;
-			frame[4]=new_c&0xff;	frame[5]=(new_c>>8)&0xf;
-			frame[6]=new_n&0x1f;
-			frame[11]=new_e&0xff;	frame[12]=(new_e>>8)&0xff;
-
-			if (dump_info) {
-				printf("\t%04x %04x %04x %04x %04x\n",
-					new_a,new_b,new_c,new_n,new_e);
-
-			}
+		if (dump_info) {
+			printf("\t%04x %04x %04x %04x %04x\n",
+				new_a,new_b,new_c,new_n,new_e);
 
 		}
 
@@ -380,22 +157,6 @@ static int play_song(char *filename) {
 			if (frame[13]!=0xff) {
 				write_ay_3_8910(13,frame[13],shift_size);
 			}
-		}
-	}
-		if (visualize) {
-			if (display_type&DISPLAY_TEXT) {
-				printf("\033[H\033[2J");
-			}
-
-			display_command=display_update(display_type,
-						(frame[8]*11)/16,
-						(frame[9]*11)/16,
-						(frame[10]*11)/16,
-						(a_freq)/150,
-						(b_freq)/150,
-						(c_freq)/150,
-						i,num_frames,
-						filename,0);
 		}
 
 		/* Calculate time it took to play/visualize */
@@ -411,7 +172,7 @@ static int play_song(char *filename) {
 			/* TODO: calculate correctly */
 		}
 		else {
-			if (visualize) usleep(1000000/frame_rate);
+			usleep(20000);
 		}
 
 		/* Calculate time it actually took, and print		*/
@@ -427,105 +188,8 @@ static int play_song(char *filename) {
 		start.tv_sec=next.tv_sec;
 		start.tv_usec=next.tv_usec;
 
-		if (display_command==CMD_EXIT_PROGRAM) {
-			free(ym_file);
-			return CMD_EXIT_PROGRAM;
-		}
-
-		/* prev song */
-		if (display_command==CMD_BACK) {
-			free(ym_file);
-			return CMD_BACK;
-		}
-		/* next song */
-		if (display_command==CMD_FWD) {
-			free(ym_file);
-			return CMD_FWD;
-		}
-
-		/* rewind = Beginning of track */
-		if (display_command==CMD_RW) {
-			i=0;
-			file_offset=data_begin;
-		}
-
-		/* fastfwd = skip ahead 5s */
-		if (display_command==CMD_FF) {
-			i+=5*frame_rate;
-			if (interleaved) {
-				file_offset+=5*frame_rate;
-			}
-			else {
-				file_offset+=(5*frame_rate)*ym_frame_size;
-			}
-		}
-
-
-		if (display_command==CMD_PAUSE) {
-			if (music_paused) {
-				music_paused=0;
-			}
-			else {
-				music_paused=1;
-				quiet_ay_3_8910(shift_size);
-			}
-		}
-
-		if (display_command==CMD_LOOP) {
-			music_loop=!music_loop;
-			if (music_loop) printf("MUSIC LOOP ON\n");
-			else printf("MUSIC LOOP OFF\n");
-		}
-
-
-		/* increment frame */
-		if (!music_paused) i++;
-
-		/* Check to see if done with file */
-		if (i>=num_frames) {
-			if (music_loop) {
-				i=loop_frame;
-				if (interleaved) {
-					file_offset=data_begin+i;
-				}
-				else {
-					file_offset=data_begin+i*ym_frame_size;
-				}
-			}
-			else {
-				break;
-			}
-		}
-
 	}
 
-	if (i>num_frames) {
-		printf("Fast-forwarded, skipping end check\n");
-	}
-	else {
-
-		if (interleaved) {
-			file_offset+=15*num_frames;
-		}
-
-		if (ym_type>3) {
-			/* Read the tail of the file and ensure */
-			/* it has the proper trailer */
-			if (memcmp(&ym_file[file_offset],"End!",4)) {
-				fprintf(stderr,"ERROR! Bad ending! %x\n",
-					ym_file[file_offset]);
-				return -1;
-			}
-		}
-	}
-
-	/* Free the ym file */
-	free(ym_file);
-
-	if (dump_info) {
-		printf("Max a=%.2lf b=%.2lf c=%.2lf\n",max_a,max_b,max_c);
-	}
-#endif
 	return 0;
 }
 
@@ -590,7 +254,7 @@ int main(int argc, char **argv) {
 
 
 	/* Play the song */
-	result=play_song(NULL);
+	result=play_organ();
 
 	/* Quiet down the chips */
 	if (play_music) {

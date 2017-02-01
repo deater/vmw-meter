@@ -4,6 +4,8 @@
 #include <arpa/inet.h>
 #include <math.h>
 
+#include "notes.h"
+
 struct ym_header {
 	char id[4];				// 0  -> 4
 	char check[8];				// 4  -> 12
@@ -16,36 +18,7 @@ struct ym_header {
 	uint16_t additional_data;		// 32 -> 34
 }  __attribute__((packed)) our_header;
 
-#define TWELTH_TWO 1.059463094359
-
-// http://www.phy.mtu.edu/~suits/NoteFreqCalcs.html
-static double note_to_freq(char note, int flat, int sharp, int octave) {
-
-	double freq=0.0;
-	int step=0;
-
-	switch(note) {
-		case 'B': step=2; break;
-		case 'A': step=0; break;
-		case 'G': step=-2; break;
-		case 'F': step=-4; break;
-		case 'E': step=-5; break;
-		case 'D': step=-7; break;
-		case 'C': step=-9; break;
-		default:
-			fprintf(stderr,"Unknown note %c\n",note);
-	}
-	if (flat) step++;
-	if (sharp) step--;
-
-	step-=(4-octave)*12;
-
-	freq=440.0*pow(TWELTH_TWO,step);
-
-	return freq;
-}
-
-int note_to_length(int length) {
+static int note_to_length(int length) {
 
 	int len=0;
 	int baselen=96;  /* 120/minute, 50Hz, should really be 100 */

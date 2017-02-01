@@ -12,5 +12,5 @@ sa.ym5:	../ym_to_ym5 sa.ym
 
 
 clean:	
-	rm -f *~ 
+	rm -f *~  rm sa.ym5 sa.ym
 
