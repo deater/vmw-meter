@@ -144,11 +144,11 @@ static unsigned char *load_lha_compressed_song(char *filename, int *file_size) {
 
 	header = lha_reader_next_file(reader);
 
-	printf("Decompressing %s, size %d\n",header->filename,header->length);
+	printf("Decompressing %s, size %zu\n",header->filename,header->length);
 
 	data=calloc(header->length,sizeof(unsigned char));
 	if (data==NULL) {
-		fprintf(stderr,"Error allocating %d bytes\n",header->length);
+		fprintf(stderr,"Error allocating %zu bytes\n",header->length);
 		return NULL;
 	}
 
