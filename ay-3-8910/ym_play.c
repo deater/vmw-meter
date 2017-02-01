@@ -41,6 +41,7 @@ static int shift_size=16;
 static int music_repeat=0;
 static int music_paused=0;
 static int music_loop=0;
+static int diff_mode=0;
 
 static void quiet_and_exit(int sig) {
 
@@ -70,6 +71,7 @@ void print_help(int just_version, char *exec_name) {
 	printf("\t-h: this help message\n");
 	printf("\t-v: version info\n");
 	printf("\t-d: print debug messages\n");
+	printf("\t-D: debug diff mode\n");
 	printf("\t-i: use i2c LEDs for visualization\n");
 	printf("\t-t: use ASCII text visualization\n");
 	printf("\t-m: use mono (only one AY-3-8910 hooked up)\n");
@@ -242,6 +244,7 @@ static int play_song(char *filename) {
 	unsigned char *ym_file;
 	int ym_type,ym_size,ym_frame_size;
 	unsigned char frame[YM5_FRAME_SIZE];
+	unsigned char last_frame[YM5_FRAME_SIZE];
 	int num_frames,song_attributes,num_digidrum,master_clock;
 	int frame_rate,loop_frame,extra_data;
 	int drum_size,i,j;
@@ -514,6 +517,15 @@ static int play_song(char *filename) {
 			if (c_freq>max_c) max_c=c_freq;
 		}
 
+		if (diff_mode) {
+			for(j=0;j<YM5_FRAME_SIZE;j++) {
+				if (frame[j]!=last_frame[j]) {
+					printf("%d: %d\n",i,j);
+				}
+			}
+
+			memcpy(last_frame,frame,sizeof(frame));
+		}
 
 		/* Scale if needed */
 		if (master_clock!=AY38910_CLOCK) {
@@ -735,12 +747,17 @@ int main(int argc, char **argv) {
 	setpriority(PRIO_PROCESS, 0, -20);
 
 	/* Parse command line arguments */
-	while ((c = getopt(argc, argv, "dmhvmsnitr"))!=-1) {
+	while ((c = getopt(argc, argv, "dDmhvmsnitr"))!=-1) {
 		switch (c) {
 			case 'd':
 				/* Debug messages */
 				printf("Debug enabled\n");
 				dump_info=1;
+				break;
+			case 'D':
+				/* diff mode */
+				printf("Diff mode\n");
+				diff_mode=1;
 				break;
 			case 'h':
 				/* help */
