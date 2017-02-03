@@ -27,12 +27,59 @@ static int play_music=1;
 static int dump_info=0;
 static int shift_size=16;
 
+static int current_instrument=0;
+
+#define MAX_INSTRUMENTS 6
+
+struct instrument_type {
+	int envelope[10];
+	int length;
+	char *name;
+} instruments[MAX_INSTRUMENTS] = {
+	{
+	.name="raw",
+	.envelope={15,15,15,15,15,15,15,15,15,15},
+	.length=10,
+	},
+	{
+	.name="piano",
+	.envelope={14,15,15,15,15,15,13,11,9,7},
+	.length=10,
+	},
+	{
+	.name="triangle",
+	.envelope={7,9,11,13,15,15,13,11,9,7},
+	.length=10,
+	},
+	{
+	.name="trill",
+	.envelope={9,15,9,15,9,15,9,15,9,15},
+	.length=10,
+	},
+	{
+	.name="sine",
+	.envelope={8,10,15,15,10,8,6,1,1,6},
+	.length=10,
+	},
+	{
+	.name="long trill",
+	.envelope={9,15,15,15,9,9,15,15,9,9},
+	.length=10,
+	},
+
+};
+
+
+static struct termios saved_tty;
+
 static void quiet_and_exit(int sig) {
 
 	if (play_music) {
 		quiet_ay_3_8910(shift_size);
 		close_ay_3_8910();
 	}
+
+	tcsetattr (0, TCSANOW, &saved_tty);
 
 	printf("Quieting and exiting\n");
 	_exit(0);
@@ -70,7 +117,7 @@ static int play_organ(void) {
 	int octave=4;
 	int a_freq=0,a_length=0,a_enabled=0;
 
-	struct termios new_tty,saved_tty;
+	struct termios new_tty;
 
 	/* Save currenty term settings */
 	tcgetattr (0, &saved_tty);
@@ -100,49 +147,63 @@ static int play_organ(void) {
 		else {
 			switch (ch) {
 
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+				current_instrument=ch-'0';
+				printf("New instrument: %s\n",
+					instruments[current_instrument].name);
+				break;
+
 			case 'q': quit=1; break;
 
 			case 'a':
+				printf("a");
 				freq=note_to_freq('C',0,0,octave);
 				a_freq=master_clock/(16.0*freq);
 				a_enabled=1;
-				a_length=24;
+				a_length=instruments[current_instrument].length;
 				break;
 			case 's':
 				freq=note_to_freq('D',0,0,octave);
 				a_freq=master_clock/(16.0*freq);
 				a_enabled=1;
-				a_length=24;
+				a_length=instruments[current_instrument].length;
 				break;
 			case 'd':
 				freq=note_to_freq('E',0,0,octave);
 				a_freq=master_clock/(16.0*freq);
 				a_enabled=1;
-				a_length=24;
+				a_length=instruments[current_instrument].length;
 				break;
 			case 'f':
 				freq=note_to_freq('F',0,0,octave);
 				a_freq=master_clock/(16.0*freq);
 				a_enabled=1;
-				a_length=24;
+				a_length=instruments[current_instrument].length;
 				break;
 			case 'g':
 				freq=note_to_freq('G',0,0,octave);
 				a_freq=master_clock/(16.0*freq);
 				a_enabled=1;
-				a_length=24;
+				a_length=instruments[current_instrument].length;
 				break;
 			case 'h':
 				freq=note_to_freq('A',0,0,octave);
 				a_freq=master_clock/(16.0*freq);
 				a_enabled=1;
-				a_length=24;
+				a_length=instruments[current_instrument].length;
 				break;
 			case 'j':
 				freq=note_to_freq('B',0,0,octave);
 				a_freq=master_clock/(16.0*freq);
 				a_enabled=1;
-				a_length=24;
+				a_length=instruments[current_instrument].length;
 				break;
 
 			}
@@ -157,7 +218,9 @@ static int play_organ(void) {
 			frame[0]=a_freq&0xff;
 			frame[1]=(a_freq>>8)&0xf;
 			frame[7]=0x38;
-			frame[8]=0x0f;  // amp A
+			//printf("Before: %x %d %d\n",
+			//	frame[8],10-a_length,envelope[10-a_length]);
+			frame[8]=instruments[current_instrument].envelope[10-a_length]; //envelope[a_length-10];  // amp A
 		}
 		else {
 			frame[8]=0x0;
