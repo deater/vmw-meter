@@ -41,26 +41,84 @@ static int note_to_length(int length) {
 
 #define FRAMES_PER_LINE	6
 
+
+struct note_type {
+	unsigned char which;
+	unsigned char note;
+	int sharp,flat;
+	int octave;
+	int len;
+	int enabled;
+	int freq;
+	int length;
+};
+
+static int external_frequency=1000000;
+
+
+int get_note(char *string, int sp, struct note_type *n) {
+
+	double freq;
+
+	n->sharp=0;
+	n->flat=0;
+
+	/* Skip white space */
+	while((string[sp]==' ' || string[sp]=='\t')) sp++;
+
+	if (string[sp]=='\n') return -1;
+
+	/* get note info */
+	n->note=string[sp];
+	sp++;
+	if (string[sp]=='#') n->sharp=1;
+	if (string[sp]=='-') n->flat=1;
+	sp++;
+	n->octave=string[sp]-'0';
+	sp++;
+	sp++;
+	n->len=string[sp]-'0';
+	sp++;
+
+
+	if (n->note!='-') {
+
+		freq=note_to_freq(n->note,n->sharp,n->flat,n->octave);
+
+		printf("(%c) %c%c L=%d O=%d f=%lf\n",
+				n->which,
+				n->note,
+				n->sharp?'#':' ',
+				n->len,
+				n->octave,
+				freq);
+
+		n->freq=external_frequency/(16.0*freq);
+		n->enabled=1;
+		n->length=note_to_length(n->len);
+	}
+	else {
+		n->freq=0;
+	}
+
+
+	return sp;
+}
+
 int main(int argc, char **argv) {
 
 	char string[BUFSIZ];
 	char *result;
 	char *outfile;
 	FILE *fff;
-	int frames=0,digidrums=0,external_frequency=1000000;
+	int frames=0,digidrums=0;
 	int frequency=50,attributes=0;
 	int loop=0;
 	int header_length=0;
-	int i,j;
-	int a_freq=0,b_freq=0;
+	int sp,i,j;
 	fpos_t save;
-	double freq;
 	int line=0;
-	unsigned char a_note,b_note;
-	int a_sharp,a_flat,a_len,a_octave;
-	int b_sharp,b_flat,b_len,b_octave;
-	int a_enabled=0,b_enabled=0;//,c_enabled=0;
-	int a_length=0,b_length=0;
+	struct note_type a,b,c;
 
 	char song_name[]="Still Alive";
 	char author_name[]="Vince Weaver <vince@deater.net>";
@@ -84,6 +142,8 @@ int main(int argc, char **argv) {
 
 	fseek(fff, header_length, SEEK_SET);
 
+	a.which='A';	b.which='B';	c.which='C';
+
 	while(1) {
 		result=fgets(string,BUFSIZ,stdin);
 		if (result==NULL) break;
@@ -93,89 +153,20 @@ int main(int argc, char **argv) {
 		if (string[0]=='\'') continue;
 		if (string[0]=='-') continue;
 
-		i=0;
-		a_sharp=0;	b_sharp=0;
-		a_flat=0;	b_flat=0;
+		sp=0;
 
 		/* Skip line number */
-		while((string[i]!=' ' && string[i]!='\t')) i++;
+		while((string[sp]!=' ' && string[sp]!='\t')) sp++;
 
-		/* Skip white space */
-		while((string[i]==' ' || string[i]=='\t')) i++;
-
-		/* get A note info */
-		a_note=string[i];
-		i++;
-		if (string[i]=='#') a_sharp=1;
-		if (string[i]=='-') a_flat=1;
-		i++;
-		a_octave=string[i]-'0';
-		i++;
-		i++;
-		a_len=string[i]-'0';
-		i++;
-
-		/* Skip white space */
-		while((string[i]==' ' || string[i]=='\t')) i++;
-
-		/* get B note info */
-		b_note=string[i];
-		i++;
-		if (string[i]=='#') b_sharp=1;
-		if (string[i]=='-') b_flat=1;
-		i++;
-		b_octave=string[i]-'0';
-		i++;
-		i++;
-		b_len=string[i]-'0';
-
-
-
-		if (a_note!='-') {
-
-			freq=note_to_freq(a_note,a_sharp,a_flat,a_octave);
-
-			printf("%d: (A) %c%c L=%d O=%d f=%lf\n",
-				line,
-				a_note,
-				a_sharp?'#':' ',
-				a_len,
-				a_octave,
-				freq);
-
-			a_freq=external_frequency/(16.0*freq);
-			a_enabled=1;
-			a_length=note_to_length(a_len);
-		}
-		else {
-			a_freq=0;
-		}
-
-		if (b_note!='-') {
-
-			freq=note_to_freq(b_note,b_sharp,b_flat,b_octave);
-
-			printf("%d: (B) %c%c L=%d O=%d f=%lf\n",
-				line,
-				b_note,
-				b_sharp?'#':' ',
-				b_len,
-				b_octave,
-				freq);
-
-			b_freq=external_frequency/(16.0*freq);
-			b_enabled=1;
-			b_length=note_to_length(b_len);
-		}
-		else {
-			b_freq=0;
-		}
+		sp=get_note(string,sp,&a);
+		if (sp!=-1) sp=get_note(string,sp,&b);
+		if (sp!=-1) sp=get_note(string,sp,&c);
 
 		for(j=0;j<FRAMES_PER_LINE;j++) {
 
-			if (a_enabled) {
-				frame[0]=a_freq&0xff;
-				frame[1]=(a_freq>>8)&0xf;
+			if (a.enabled) {
+				frame[0]=a.freq&0xff;
+				frame[1]=(a.freq>>8)&0xf;
 				frame[7]=0x38;
 				frame[8]=0x0f;	// amp A
 			}
@@ -183,9 +174,9 @@ int main(int argc, char **argv) {
 				frame[8]=0x0;
 			}
 
-			if (b_enabled) {
-				frame[2]=b_freq&0xff;
-				frame[3]=(b_freq>>8)&0xf;
+			if (b.enabled) {
+				frame[2]=b.freq&0xff;
+				frame[3]=(b.freq>>8)&0xf;
 				frame[7]=0x38;
 				frame[9]=0x0a;	// amp B
 			}
@@ -193,14 +184,29 @@ int main(int argc, char **argv) {
 				frame[9]=0x0;
 			}
 
+			if (c.enabled) {
+				frame[4]=c.freq&0xff;
+				frame[5]=(c.freq>>8)&0xf;
+				frame[7]=0x38;
+				frame[10]=0x0a;	// amp C
+			}
+			else {
+				frame[10]=0x0;
+			}
+
 			for(i=0;i<16;i++) {
 				fprintf(fff,"%c",frame[i]);
 			}
 			frames++;
-			if (a_length) a_length--;
-			if (a_length==0) a_enabled=0;
-			if (b_length) b_length--;
-			if (b_length==0) b_enabled=0;
+
+			if (a.length) a.length--;
+			if (a.length==0) a.enabled=0;
+
+			if (b.length) b.length--;
+			if (b.length==0) b.enabled=0;
+
+			if (c.length) c.length--;
+			if (c.length==0) c.enabled=0;
 
 		}
 	}
