@@ -6,6 +6,8 @@
 
 #include "notes.h"
 
+static int debug=0;
+
 struct ym_header {
 	char id[4];				// 0  -> 4
 	char check[8];				// 4  -> 12
@@ -85,7 +87,7 @@ int get_note(char *string, int sp, struct note_type *n) {
 
 		freq=note_to_freq(n->note,n->sharp,n->flat,n->octave);
 
-		printf("(%c) %c%c L=%d O=%d f=%lf\n",
+		if (debug) printf("(%c) %c%c L=%d O=%d f=%lf\n",
 				n->which,
 				n->note,
 				n->sharp?'#':' ',
@@ -109,8 +111,9 @@ int main(int argc, char **argv) {
 
 	char string[BUFSIZ];
 	char *result;
-	char *outfile;
-	FILE *fff;
+	char *ym_file;
+	char *lyrics_file;
+	FILE *fff,*ggg;
 	int frames=0,digidrums=0;
 	int frequency=50,attributes=0;
 	int loop=0;
@@ -126,13 +129,21 @@ int main(int argc, char **argv) {
 
 	unsigned char frame[16];
 
-	outfile=strdup("sa.ym");
+	ym_file=strdup("sa.ym");
+	lyrics_file=strdup("sa.lyrics");
 
-	fff=fopen(outfile,"w");
+	fff=fopen(ym_file,"w");
 	if (fff==NULL) {
-		fprintf(stderr,"Couldn't open %s\n",outfile);
+		fprintf(stderr,"Couldn't open %s\n",ym_file);
 		return -1;
 	}
+
+	ggg=fopen(lyrics_file,"w");
+	if (ggg==NULL) {
+		fprintf(stderr,"Couldn't open %s\n",lyrics_file);
+		return -1;
+	}
+
 
 	/* Skip header, we'll fill in later */
 	header_length=sizeof(struct ym_header)+
@@ -161,6 +172,14 @@ int main(int argc, char **argv) {
 		sp=get_note(string,sp,&a);
 		if (sp!=-1) sp=get_note(string,sp,&b);
 		if (sp!=-1) sp=get_note(string,sp,&c);
+
+		/* handle lyrics */
+		if (sp!=-1) {
+			while((string[sp]==' ' || string[sp]=='\t')) sp++;
+			if (string[sp]!='\n') {
+				fprintf(ggg,"%d %s",frames,&string[sp]);
+			}
+		}
 
 		for(j=0;j<FRAMES_PER_LINE;j++) {
 
@@ -236,6 +255,7 @@ int main(int argc, char **argv) {
 	fprintf(fff,"End!");
 
 	fclose(fff);
+	fclose(ggg);
 
 	return 0;
 }

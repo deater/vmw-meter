@@ -7,7 +7,7 @@ CC = gcc
 CFLAGS = -O2 -Wall -I../include -g
 LFLAGS = -lm
 
-all:	ym_play organ ym_to_ym5 text_to_ym
+all:	ym_play organ ym_to_ym5 text_to_ym lyrics_play
 
 ../lib/i2c_lib.o:	../lib/i2c_lib.c
 	cd ../lib && make
@@ -20,6 +20,14 @@ ym_play:	ym_play.o ay-3-8910.o display.o ../lib/i2c_lib.o
 
 ym_play.o:	ym_play.c display.h ay-3-8910.h
 	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c ym_play.c
+
+###
+
+lyrics_play:	lyrics_play.o
+	$(CC) $(LFLAGS) -o lyrics_play lyrics_play.o
+
+lyrics_play.o:	lyrics_play.c
+	$(CC) $(CFLAGS) -c lyrics_play.c
 
 ###
 
@@ -58,7 +66,7 @@ notes.o:	notes.c notes.h
 
 
 clean:	
-	rm -f *~ *.o ym_play organ text_to_ym ym_to_ym5
+	rm -f *~ *.o ym_play organ text_to_ym ym_to_ym5 lyrics_play
 
 
 
