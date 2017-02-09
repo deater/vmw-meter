@@ -12,14 +12,31 @@ struct lyric_type {
 
 int lyrics_play(struct lyric_type *l, int num) {
 
-	int frame=0,lnum=0;
+	int frame=0,lnum=0,sub=0;
 
 	while(1) {
 		frame++;
 
 		if (frame==l[lnum].frame) {
-			printf("%s",l[lnum].text);
-			fflush(stdout);
+
+			sub=0;
+			while(1) {
+				if (l[lnum].text[sub]==0) break;
+				if (l[lnum].text[sub]=='\\') {
+					sub++;
+					if (l[lnum].text[sub]=='n') {
+						write(1,"\n",1);
+					}
+				}
+				else {
+					write(1,&l[lnum].text[sub],1);
+				}
+				sub++;
+
+				usleep(20000);
+				usleep(20000);
+				frame+=2;
+			}
 			lnum++;
 		}
 		usleep(20000);
