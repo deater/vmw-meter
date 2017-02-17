@@ -23,8 +23,11 @@ ym_play.o:	ym_play.c display.h ay-3-8910.h
 
 ###
 
-lyrics_play:	lyrics_play.o
-	$(CC) $(LFLAGS) -o lyrics_play lyrics_play.o
+14seg_font.o:	14seg_font.c 14seg_font.h
+	$(CC) $(CFLAGS) -c 14seg_font.c
+
+lyrics_play:	lyrics_play.o 14seg_font.o ../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o lyrics_play lyrics_play.o 14seg_font.o ../lib/i2c_lib.o
 
 lyrics_play.o:	lyrics_play.c
 	$(CC) $(CFLAGS) -c lyrics_play.c
