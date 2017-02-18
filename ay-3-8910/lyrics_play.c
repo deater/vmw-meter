@@ -27,24 +27,49 @@ struct lyric_type {
 
 static int i2c_fd;
 
+static void print_ascii_art(int which);
+
+static int y_line=0;
+
+static int clear_things(int side_too) {
+
+	int i;
+	char string[BUFSIZ];
+
+	if (side_too) {
+		write(1,"\033[2J",4);
+	}
+
+	write(1,"\033[1;1H--------------------------------------",44);
+	for(i=2;i<24;i++) {
+		sprintf(string,"\033[%d;1H|                                    |",i);
+		write(1,string,strlen(string));
+	}
+	write(1,"\033[24;1H--------------------------------------",45);
+	write(1,"\033[2;2H",6);
+	y_line=2;
+	return 0;
+}
 
 
 int display_string(char *led_string) {
 
 	char buffer1[17],buffer2[17];
-	int i;
+	int i,ch;
 
 	buffer1[0]=0;
 	buffer2[0]=0;
 
 	for(i=0;i<4;i++) {
-		buffer1[(i*2)+1]=adafruit_lookup[led_string[i+4]]>>8;
-		buffer1[(i*2)+2]=adafruit_lookup[led_string[i+4]]&0xff;
+		ch=led_string[i+4];
+		buffer1[(i*2)+1]=adafruit_lookup[ch]>>8;
+		buffer1[(i*2)+2]=adafruit_lookup[ch]&0xff;
 	}
 
 	for(i=0;i<4;i++) {
-		buffer2[(i*2)+1]=adafruit_lookup[led_string[i]]>>8;
-		buffer2[(i*2)+2]=adafruit_lookup[led_string[i]]&0xff;
+		ch=led_string[i];
+		buffer2[(i*2)+1]=adafruit_lookup[ch]>>8;
+		buffer2[(i*2)+2]=adafruit_lookup[ch]&0xff;
 	}
 
 	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS3) < 0) {
@@ -75,26 +100,41 @@ int display_string(char *led_string) {
 }
 
 
-static int lyrics_play(struct lyric_type *l) {
+static int lyrics_play(struct lyric_type *l, int i2c_display) {
 
 	int frame=0,lnum=0,sub=0;
 	char led_string[8],ch;
 	int i;
+	char string[BUFSIZ];
+
+	clear_things(1);
 
 	while(1) {
 		frame++;
 
-		if (frame==l->l[lnum].frame) {
+		if (frame>=l->l[lnum].frame) {
 
 			sub=0;
 			while(1) {
 				if (l->l[lnum].text[sub]==0) break;
+
 				if (l->l[lnum].text[sub]=='\\') {
 					sub++;
-					if (l->l[lnum].text[sub]=='n') {
-						write(1,"\n",1);
+					ch=l->l[lnum].text[sub];
+					if (ch=='n') {
+						y_line++;
+						sprintf(string,"\n\033[%d;2H",y_line);
+						write(1,string,strlen(string));
+					}
+					if ((ch>='1')&&(ch<=':')) {
+						print_ascii_art(ch-'1');
+					}
+					if (ch=='f') {
+						clear_things(0);
+						y_line=2;
 					}
 				}
+
 				else {
 					ch=l->l[lnum].text[sub];
 					write(1,&ch,1);
@@ -110,9 +150,7 @@ static int lyrics_play(struct lyric_type *l) {
 					}
 				}
 
-//				strncpy(led_string,"THIS WAS",8);
-
-				display_string(led_string);
+				if (i2c_display) display_string(led_string);
 
 				sub++;
 
@@ -125,7 +163,7 @@ static int lyrics_play(struct lyric_type *l) {
 			lnum++;
 		}
 		usleep(20000);
-		if (lnum==l->num) break;
+		if (lnum>=l->num) break;
 	}
 
 	return 0;
@@ -150,7 +188,9 @@ static int load_lyrics(char *filename, struct lyric_type *l) {
 
 	while(1) {
 		result=fgets(string,BUFSIZ,stdin);
-		if (result==NULL) break;
+		if (result==NULL) {
+			break;
+		}
 		line++;
 
 //		printf("%s",string);
@@ -195,6 +235,8 @@ static int load_lyrics(char *filename, struct lyric_type *l) {
 		l->l[num].text=strdup(start);
 
 
+//		printf("%d %s\n",num,start);
+//		fflush(stdout);
 //		printf("%d %s\n",l[num].frame,l[num].text);
 
 		num++;
@@ -219,30 +261,17 @@ static int destroy_lyrics(struct lyric_type *l) {
 int main(int argc, char **argv) {
 
 	int visualize=1;
-	int display_type=DISPLAY_I2C;
-	int result;
-
 
 	struct lyric_type l;
 
 	/* Initialize the display */
-#if 0
-	if (visualize) {
-		result=display_init(display_type);
-		if (result<0) {
-			printf("Error initializing display!\n");
-			printf("Turning off display for now!\n");
-			display_type=0;
-		}
-	}
-#endif
-
 	i2c_fd=init_i2c("/dev/i2c-1");
 	if (i2c_fd < 0) {
 		fprintf(stderr,"Error opening device!\n");
-		return -1;
+		visualize=0;
 	}
 
+	if (visualize) {
 
 		/* Init display */
 		if (init_display(i2c_fd,HT16K33_ADDRESS3,10)) {
@@ -253,17 +282,271 @@ int main(int argc, char **argv) {
 			fprintf(stderr,"Error opening display\n");
 			return -1;
 		}
-
+	}
 
 	translate_to_adafruit();
 
 	load_lyrics(NULL,&l);
 
-	lyrics_play(&l);
+	lyrics_play(&l,visualize);
 
 	destroy_lyrics(&l);
 
 	close(i2c_fd);
 
 	return 0;
+}
+
+static char ascii_art[10][21][41]={
+{
+/* 1 = aperture */
+	{"              .,-:;//;:=,"},
+	{"          . :H@@@MM@M#H/.,+%;,"},
+	{"       ,/X+ +M@@M@MM%=,-%HMMM@X/,"},
+	{"     -+@MM; $M@@MH+-,;XMMMM@MMMM@+-"},
+	{"    ;@M@@M- XM@X;. -+XXXXXHHH@M@M#@/."},
+	{"  ,%MM@@MH ,@%=            .---=-=:=,."},
+	{"  =@#@@@MX .,              -%HX$$%%%+;"},
+	{" =-./@M@M$                  .;@MMMM@MM:"},
+	{" X@/ -$MM/                    .+MM@@@M$"},
+	{",@M@H: :@:                    . =X#@@@@-"},
+	{",@@@MMX, .                    /H- ;@M@M="},
+	{".H@@@@M@+,                    %MM+..%#$."},
+	{" /MMMM@MMH/.                  XM@MH; =;"},
+	{"  /%+%$XHH@$=              , .H@@@@MX,"},
+	{"   .=--------.           -%H.,@@@@@MX,"},
+	{"   .%MM@@@HHHXX$$$%+- .:$MMX =M@@MM%."},
+	{"     =XMMM@MM@MM#H;,-+HMM@M+ /MMMX="},
+	{"       =%@M@M#@$-.=$@MM@@@M; %M%="},
+	{"         ,:+$+-,/H#MMMMMMM@= =,"},
+	{"               =++%%%%+/:-."},
+},
+{
+/* 2 = radiation */
+	{"             =+$HM####@H%;,"},
+	{"          /H###############M$,"},
+	{"          ,@################+"},
+	{"           .H##############+"},
+	{"             X############/"},
+	{"              $##########/"},
+	{"               %########/"},
+	{"                /X/;;+X/"},
+	{" "},
+	{"                 -XHHX-"},
+	{"                ,######,"},
+	{"#############X  .M####M.  X#############"},
+	{"##############-   -//-   -##############"},
+	{"X##############%,      ,+##############X"},
+	{"-##############X        X##############-"},
+	{" %############%          %############%"},
+	{"  %##########;            ;##########%"},
+	{"   ;#######M=              =M#######;"},
+	{"    .+M###@,                ,@###M+."},
+	{"       :XH.                  .HX:"},
+},
+{
+/* 3 = atom */
+	{"                 =/;;/-"},
+	{"                +:    //"},
+	{"               /;      /;"},
+	{"              -X        H."},
+	{".//;;;:;;-,   X=        :+   .-;:=;:;%;."},
+	{"M-       ,=;;;#:,      ,:#;;:=,       ,@"},
+	{":%           :%.=/++++/=.$=           %="},
+	{" ,%;         %/:+/;,,/++:+/         ;+."},
+	{"   ,+/.    ,;@+,        ,%H;,    ,/+,"},
+	{"      ;+;;/= @.  .H##X   -X :///+;"},
+	{"      ;+=;;;.@,  .XM@$.  =X.//;=%/."},
+	{"   ,;:      :@%=        =$H:     .+%-"},
+	{" ,%=         %;-///==///-//         =%,"},
+	{";+           :%-;;;:;;;;-X-           +:"},
+	{"@-      .-;;;;M-        =M/;;;-.      -X"},
+	{" :;;::;;-.    %-        :+    ,-;;-;:=="},
+	{"              ,X        H."},
+	{"               ;/      %="},
+	{"                //    +;"},
+	{"                 ,////,"},
+},
+{
+/* 4 = heart */
+	{"                          .,---."},
+	{"                        ,/XM#MMMX;,"},
+	{"                      -%##########M%,"},
+	{"                     -@######%  $###@="},
+	{"      .,--,         -H#######$   $###M:"},
+	{"   ,;$M###MMX;     .;##########$;HM###X="},
+	{" ,/@##########H=      ;################+"},
+	{"-+#############M/,      %##############+"},
+	{"%M###############=      /##############:"},
+	{"H################      .M#############;."},
+	{"@###############M      ,@###########M:."},
+	{"X################,      -$=X#######@:"},
+	{"/@##################%-     +######$-"},
+	{".;##################X     .X#####+,"},
+	{" .;H################/     -X####+."},
+	{"   ,;X##############,       .MM/"},
+	{"      ,:+$H@M#######M#$-    .$$="},
+	{"           .,-=;+$@###X:    ;/=."},
+	{"                  .,/X$;   .::,"},
+	{"                      .,    .."},
+},
+{
+/* 5 = explosion */
+	{"            .+"},
+	{"             /M;"},
+	{"              H#@:              ;,"},
+	{"              -###H-          -@/"},
+	{"               %####$.  -;  .%#X"},
+	{"                M#####+;#H :M#M."},
+	{"..          .+/;%#########X###-"},
+	{" -/%H%+;-,    +##############/"},
+	{"    .:$M###MH$%+############X  ,--=;-"},
+	{"        -/H#####################H+=."},
+	{"           .+#################X."},
+	{"         =%M####################H;."},
+	{"            /@###############+;;/%%;,"},
+	{"         -%###################$."},
+	{"       ;H######################M="},
+	{"    ,%#####MH$%;+#####M###-/@####%"},
+	{"  :$H%+;=-      -####X.,H#   -+M##@-"},
+	{" .              ,###;    ;      =$##+"},
+	{"                .#H,               :XH,"},
+	{"                 +                   .;-"},
+},
+{
+/* 6 = fire */
+	{"                     -$-"},
+	{"                    .H##H,"},
+	{"                   +######+"},
+	{"                .+#########H."},
+	{"              -$############@."},
+	{"            =H###############@  -X:"},
+	{"          .$##################:  @#@-"},
+	{"     ,;  .M###################;  H###;"},
+	{"   ;@#:  @###################@  ,#####:"},
+	{" -M###.  M#################@.  ;######H"},
+	{" M####-  +###############$   =@#######X"},
+	{" H####$   -M###########+   :#########M,"},
+	{"  /####X-   =########%   :M########@/."},
+	{"    ,;%H@X;   .$###X   :##MM@%+;:-"},
+	{"                 .."},
+	{"  -/;:-,.              ,,-==+M########H"},
+	{" -##################@HX%%+%%$%%%+:,,"},
+	{"    .-/H%%%+%%$H@###############M@+=:/+:"},
+	{"/XHX%:#####MH%=    ,---:;;;;/%%XHM,:###$"},
+	{"$@#MX %+;-                           ."},
+},
+{
+/* 7 = check */
+	{"                                     :X-"},
+	{"                                  :X###"},
+	{"                                ;@####@"},
+	{"                              ;M######X"},
+	{"                            -@########$"},
+	{"                          .$##########@"},
+	{"                         =M############-"},
+	{"                        +##############$"},
+	{"                      .H############$=."},
+	{"         ,/:         ,M##########M;."},
+	{"      -+@###;       =##########M;"},
+	{"   =%M#######;     :#########M/"},
+	{"-$M###########;   :#########/"},
+	{" ,;X###########; =########$."},
+	{"     ;H#########+#######M="},
+	{"       ,+##############+"},
+	{"          /M#########@-"},
+	{"            ;M######%"},
+	{"              +####:"},
+	{"               ,$M-"},
+},
+{
+/* 8 = black mesa */
+	{"           .-;+$XHHHHHHX$+;-."},
+	{"        ,;X@@X%/;=----=:/%X@@X/,"},
+	{"      =$@@%=.              .=+H@X:"},
+	{"    -XMX:                      =XMX="},
+	{"   /@@:                          =H@+"},
+	{"  %@X,                            .$@$"},
+	{" +@X.                               $@%"},
+	{"-@@,                                .@@="},
+	{"%@%                                  +@$"},
+	{"H@:                                  :@H"},
+	{"H@:         :HHHHHHHHHHHHHHHHHHX,    =@H"},
+	{"%@%         ;@M@@@@@@@@@@@@@@@@@H-   +@$"},
+	{"=@@,        :@@@@@@@@@@@@@@@@@@@@@= .@@:"},
+	{" +@X        :@@@@@@@@@@@@@@@M@@@@@@:%@%"},
+	{"  $@$,      ;@@@@@@@@@@@@@@@@@M@@@@@@$."},
+	{"   +@@HHHHHHH@@@@@@@@@@@@@@@@@@@@@@@+"},
+	{"    =X@@@@@@@@@@@@@@@@@@@@@@@@@@@@X="},
+	{"      :$@@@@@@@@@@@@@@@@@@@M@@@@$:"},
+	{"        ,;$@@@@@@@@@@@@@@@@@@X/-"},
+	{"           .-;+$XXHHHHHX$+;-."},
+},
+{
+/* 9 = cake, delicious and moist */
+	{"            ,:/+/-"},
+	{"            /M/              .,-=;//;-"},
+	{"       .:/= ;MH/,    ,=/+%$XH@MM#@:"},
+	{"      -$##@+$###@H@MMM#######H:.    -/H#"},
+	{" .,H@H@ X######@ -H#####@+-     -+H###@X"},
+	{"  .,@##H;      +XM##M/,     =%@###@X;-"},
+	{"X%-  :M##########$.    .:%M###@%:"},
+	{"M##H,   +H@@@$/-.  ,;$M###@%,          -"},
+	{"M####M=,,---,.-%%H####M$:          ,+@##"},
+	{"@##################@/.         :%H##@$-"},
+	{"M###############H,         ;HM##M$="},
+	{"#################.    .=$M##M$="},
+	{"################H..;XM##M$=          .:+"},
+	{"M###################@%=           =+@MH%"},
+	{"@################M/.          =+H#X%="},
+	{"=+M##############M,       -/X#X+;."},
+	{"  .;XM##########H=    ,/X#H+:,"},
+	{"     .=+HM######M+/+HM@+=."},
+	{"         ,:/%XM####H/."},
+	{"              ,.:=-."},
+},
+{
+/* : = GLaDOS */
+	{"       #+ @      # #              M#@"},
+	{" .    .X  X.%##@;# #   +@#######X. @#%"},
+	{"   ,==.   ,######M+  -#####%M####M-    #"},
+	{"  :H##M%:=##+ .M##M,;#####/+#######% ,M#"},
+	{" .M########=  =@#@.=#####M=M#######=  X#"},
+	{" :@@MMM##M.  -##M.,#######M#######. =  M"},
+	{"             @##..###:.    .H####. @@ X,"},
+	{"   ############: ###,/####;  /##= @#. M"},
+	{"           ,M## ;##,@#M;/M#M  @# X#% X#"},
+	{".%=   ######M## ##.M#:   ./#M ,M #M ,#$"},
+	{"##/         $## #+;#: #### ;#/ M M- @# :"},
+	{"#+ #M@MM###M-;M #:$#-##$H# .#X @ + $#. #"},
+	{"      ######/.: #%=# M#:MM./#.-#  @#: H#"},
+	{"+,.=   @###: /@ %#,@  ##@X #,-#@.##% .@#"},
+	{"#####+;/##/ @##  @#,+       /#M    . X,"},
+	{"   ;###M#@ M###H .#M-     ,##M  ;@@; ###"},
+	{"   .M#M##H ;####X ,@#######M/ -M###$  -H"},
+	{"    .M###%  X####H  .@@MM@;  ;@#M@"},
+	{"      H#M    /@####/      ,++.  / ==-,"},
+	{"               ,=/:, .+X@MMH@#H  #####$="},
+}
+};
+
+static void print_ascii_art(int which) {
+	int i;
+	char string[BUFSIZ];
+
+	/* save cursor position */
+	write(1,"\033[s",3);
+
+
+	for(i=0;i<21;i++) {
+		sprintf(string,"\033[%d;40H",i+2);
+		write(1,string,strlen(string));
+		write(1,ascii_art[which][i],strlen(&ascii_art[which][i][0]));
+		write(1," \033[K",4);
+	}
+
+	/* restore cursor position */
+	write(1,"\033[u",3);
+
+	return;
 }
