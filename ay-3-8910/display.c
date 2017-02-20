@@ -450,8 +450,7 @@ static int scroll_text(int display_type, char *string, int new_string) {
 }
 
 int display_update(int display_type,
-		int aa1, int ba1, int ca1,
-		int af1, int bf1, int cf1,
+		struct display_stats *ds,
 		int current_frame, int num_frames,
 		char *filename, int new_filename) {
 
@@ -461,14 +460,14 @@ int display_update(int display_type,
 	static int old_keypad=0;
 	static int keypad_skip;
 
-	bargraph(display_type, aa1, ba1, ca1);
+	bargraph(display_type, ds->a_bar, ds->b_bar, ds->c_bar);
 
 	switch(current_mode) {
 		case MODE_TITLE:
 			title_display(display_type);
 			break;
 		case MODE_VISUAL:
-			freq_display(display_type, af1, bf1, cf1);
+			freq_display(display_type, ds->a_freq, ds->b_freq, ds->c_freq);
 			break;
 		case MODE_NAME:
 			scroll_text(display_type, filename, new_filename);

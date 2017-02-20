@@ -74,27 +74,181 @@ static void print_help(int just_version, char *exec_name) {
 	exit(0);
 }
 
-static int play_song(char *filename) {
+static int play_frame(struct ym_song_t *ym_song, int frame_num,
+			struct display_stats *ds) {
 
-	unsigned char *ym_file;
+	int j;
+
 	unsigned char frame[YM5_FRAME_SIZE];
 	unsigned char last_frame[YM5_FRAME_SIZE];
-	long int file_offset=0;
-
-	int i,j;
-	int length_seconds;
-	double s,n,hz,diff;
-	double max_a=0.0,max_b=0.0,max_c=0.0;
 
 	int a_period,b_period,c_period,n_period,e_period;
 	double a_freq=0.0, b_freq=0.0, c_freq=0.0,n_freq=0.0,e_freq=0.0;
 	int new_a,new_b,new_c,new_n,new_e;
 
+	double max_a=0.0,max_b=0.0,max_c=0.0;
+
+	if (ym_song->interleaved) {
+		for(j=0;j<ym_song->frame_size;j++) {
+			frame[j]=ym_song->file_data[frame_num+
+							j*ym_song->num_frames];
+		}
+	}
+	else {
+		memcpy(frame,
+			&ym_song->file_data[frame_num*ym_song->frame_size],
+			ym_song->frame_size);
+	}
+
+	/****************************************/
+	/* Write out the music			*/
+	/****************************************/
+
+
+	a_period=((frame[1]&0xf)<<8)|frame[0];
+	b_period=((frame[3]&0xf)<<8)|frame[2];
+	c_period=((frame[5]&0xf)<<8)|frame[4];
+	n_period=frame[6]&0x1f;
+	e_period=((frame[12]&0xff)<<8)|frame[11];
+
+	if (a_period>0) a_freq=ym_song->master_clock/(16.0*(double)a_period);
+	if (b_period>0) b_freq=ym_song->master_clock/(16.0*(double)b_period);
+	if (c_period>0) c_freq=ym_song->master_clock/(16.0*(double)c_period);
+	if (n_period>0) n_freq=ym_song->master_clock/(16.0*(double)n_period);
+	if (e_period>0) e_freq=ym_song->master_clock/(256.0*(double)e_period);
+
+	if (dump_info) {
+		printf("%05d:\tA:%04x B:%04x C:%04x N:%02x M:%02x ",
+			frame_num,
+			a_period,b_period,c_period,n_period,frame[7]);
+
+		printf("AA:%02x AB:%02x AC:%02x E:%04x,%02x %04x\n",
+			frame[8],frame[9],frame[10],
+			(frame[12]<<8)+frame[11],frame[13],
+			(frame[14]<<8)+frame[15]);
+
+		printf("\t%.1lf %.1lf %.1lf %.1lf %.1lf ",
+			a_freq,b_freq,c_freq,n_freq, e_freq);
+		printf("N:%c%c%c T:%c%c%c ",
+			(frame[7]&0x20)?' ':'C',
+			(frame[7]&0x10)?' ':'B',
+			(frame[7]&0x08)?' ':'A',
+			(frame[7]&0x04)?' ':'C',
+			(frame[7]&0x02)?' ':'B',
+			(frame[7]&0x01)?' ':'A');
+
+		if (frame[8]&0x10) printf("VA: E ");
+		else printf("VA: %d ",frame[8]&0xf);
+		if (frame[9]&0x10) printf("VB: E ");
+		else printf("VB: %d ",frame[9]&0xf);
+		if (frame[10]&0x10) printf("VC: E ");
+		else printf("VC: %d ",frame[10]&0xf);
+
+		if (frame[13]==0xff) {
+			printf("NOWRITE");
+		}
+		else {
+			if (frame[13]&0x1) printf("Hold");
+			if (frame[13]&0x2) printf("Alternate");
+			if (frame[13]&0x4) printf("Attack");
+			if (frame[13]&0x8) printf("Continue");
+		}
+		printf("\n");
+
+		if (a_freq>max_a) max_a=a_freq;
+		if (b_freq>max_b) max_b=b_freq;
+		if (c_freq>max_c) max_c=c_freq;
+	}
+
+	if (diff_mode) {
+		for(j=0;j<YM5_FRAME_SIZE;j++) {
+			if (frame[j]!=last_frame[j]) {
+				printf("%d: %d\n",frame_num,j);
+			}
+		}
+
+		memcpy(last_frame,frame,sizeof(frame));
+	}
+
+	/* Scale if needed */
+	if (ym_song->master_clock!=AY38910_CLOCK) {
+
+		if (a_period==0) new_a=0;
+		else new_a=(double)AY38910_CLOCK/(16.0*a_freq);
+		if (b_period==0) new_b=0;
+		else new_b=(double)AY38910_CLOCK/(16.0*b_freq);
+		if (c_period==0) new_c=0;
+		else new_c=(double)AY38910_CLOCK/(16.0*c_freq);
+		if (n_period==0) new_n=0;
+		else new_n=(double)AY38910_CLOCK/(16.0*n_freq);
+		if (e_period==0) new_e=0;
+		else new_e=(double)AY38910_CLOCK/(256.0*e_freq);
+
+		if (new_a>0xfff) {
+			printf("A TOO BIG %x\n",new_a);
+		}
+		if (new_b>0xfff) {
+			printf("B TOO BIG %x\n",new_b);
+		}
+		if (new_c>0xfff) {
+			printf("C TOO BIG %x\n",new_c);
+		}
+		if (new_n>0x1f) {
+			printf("N TOO BIG %x\n",new_n);
+		}
+		if (new_e>0xffff) {
+			printf("E too BIG %x\n",new_e);
+		}
+
+		frame[0]=new_a&0xff;	frame[1]=(new_a>>8)&0xf;
+		frame[2]=new_b&0xff;	frame[3]=(new_b>>8)&0xf;
+		frame[4]=new_c&0xff;	frame[5]=(new_c>>8)&0xf;
+		frame[6]=new_n&0x1f;
+		frame[11]=new_e&0xff;	frame[12]=(new_e>>8)&0xff;
+
+		if (dump_info) {
+			printf("\t%04x %04x %04x %04x %04x\n",
+				new_a,new_b,new_c,new_n,new_e);
+		}
+
+	}
+
+	if (play_music) {
+		for(j=0;j<13;j++) {
+			write_ay_3_8910(j,frame[j],shift_size);
+		}
+
+		/* Special case.  Writing r13 resets it,	*/
+		/* so special 0xff marker means do not write	*/
+		if (frame[13]!=0xff) {
+			write_ay_3_8910(13,frame[13],shift_size);
+		}
+	}
+
+	ds->a_bar=(frame[8]*11)/16;
+	ds->b_bar=(frame[9]*11)/16;
+	ds->c_bar=(frame[10]*11)/16;
+	ds->a_freq=(a_freq)/150;
+	ds->b_freq=(b_freq)/150;
+	ds->c_freq=(c_freq)/150;
+
+	return 0;
+
+}
+
+static int play_song(char *filename) {
+
+	int length_seconds;
+	double s,n,hz,diff;
+	double max_a=0.0,max_b=0.0,max_c=0.0;
+
 	int display_command=0,result;
+	int frame_num=0;
 
 	struct timeval start,next;
 
 	struct ym_song_t ym_song;
+	struct display_stats ds;
 
 	printf("\nPlaying song %s\n",filename);
 
@@ -102,8 +256,6 @@ static int play_song(char *filename) {
 	if (result<0) {
 		return -1;
 	}
-
-	ym_file=ym_song.file_data;
 
 	gettimeofday(&start,NULL);
 
@@ -136,162 +288,24 @@ static int play_song(char *filename) {
 	/* Play the song! */
 	/******************/
 
-	file_offset=ym_song.data_begin;
-
-	i=0;
+	frame_num=0;
 	while(1) {
 
-	if (!music_paused) {
-		if (ym_song.interleaved) {
-			for(j=0;j<ym_song.frame_size;j++) {
-				frame[j]=ym_file[file_offset+j*ym_song.num_frames];
-			}
-			file_offset++;
-		}
-		else {
-			memcpy(frame,&ym_file[file_offset],ym_song.frame_size);
-			file_offset+=ym_song.frame_size;
-		}
+		if (!music_paused) {
 
-		/****************************************/
-		/* Write out the music			*/
-		/****************************************/
+			play_frame(&ym_song,frame_num,&ds);
 
-
-		a_period=((frame[1]&0xf)<<8)|frame[0];
-		b_period=((frame[3]&0xf)<<8)|frame[2];
-		c_period=((frame[5]&0xf)<<8)|frame[4];
-		n_period=frame[6]&0x1f;
-		e_period=((frame[12]&0xff)<<8)|frame[11];
-
-		if (a_period>0) a_freq=ym_song.master_clock/(16.0*(double)a_period);
-		if (b_period>0) b_freq=ym_song.master_clock/(16.0*(double)b_period);
-		if (c_period>0) c_freq=ym_song.master_clock/(16.0*(double)c_period);
-		if (n_period>0) n_freq=ym_song.master_clock/(16.0*(double)n_period);
-		if (e_period>0) e_freq=ym_song.master_clock/(256.0*(double)e_period);
-
-		if (dump_info) {
-			printf("%05d:\tA:%04x B:%04x C:%04x N:%02x M:%02x ",
-				i,a_period,b_period,c_period,n_period,frame[7]);
-
-			printf("AA:%02x AB:%02x AC:%02x E:%04x,%02x %04x\n",
-				frame[8],frame[9],frame[10],
-				(frame[12]<<8)+frame[11],frame[13],
-				(frame[14]<<8)+frame[15]);
-
-			printf("\t%.1lf %.1lf %.1lf %.1lf %.1lf ",
-				a_freq,b_freq,c_freq,n_freq, e_freq);
-			printf("N:%c%c%c T:%c%c%c ",
-				(frame[7]&0x20)?' ':'C',
-				(frame[7]&0x10)?' ':'B',
-				(frame[7]&0x08)?' ':'A',
-				(frame[7]&0x04)?' ':'C',
-				(frame[7]&0x02)?' ':'B',
-				(frame[7]&0x01)?' ':'A');
-
-			if (frame[8]&0x10) printf("VA: E ");
-			else printf("VA: %d ",frame[8]&0xf);
-			if (frame[9]&0x10) printf("VB: E ");
-			else printf("VB: %d ",frame[9]&0xf);
-			if (frame[10]&0x10) printf("VC: E ");
-			else printf("VC: %d ",frame[10]&0xf);
-
-			if (frame[13]==0xff) {
-				printf("NOWRITE");
-			}
-			else {
-				if (frame[13]&0x1) printf("Hold");
-				if (frame[13]&0x2) printf("Alternate");
-				if (frame[13]&0x4) printf("Attack");
-				if (frame[13]&0x8) printf("Continue");
-			}
-			printf("\n");
-
-			if (a_freq>max_a) max_a=a_freq;
-			if (b_freq>max_b) max_b=b_freq;
-			if (c_freq>max_c) max_c=c_freq;
-		}
-
-		if (diff_mode) {
-			for(j=0;j<YM5_FRAME_SIZE;j++) {
-				if (frame[j]!=last_frame[j]) {
-					printf("%d: %d\n",i,j);
+			if (visualize) {
+				if (display_type&DISPLAY_TEXT) {
+					printf("\033[H\033[2J");
 				}
+
+				display_command=display_update(display_type,
+							&ds,
+							frame_num,
+							ym_song.num_frames,
+							filename,0);
 			}
-
-			memcpy(last_frame,frame,sizeof(frame));
-		}
-
-		/* Scale if needed */
-		if (ym_song.master_clock!=AY38910_CLOCK) {
-
-			if (a_period==0) new_a=0;
-			else new_a=(double)AY38910_CLOCK/(16.0*a_freq);
-			if (b_period==0) new_b=0;
-			else new_b=(double)AY38910_CLOCK/(16.0*b_freq);
-			if (c_period==0) new_c=0;
-			else new_c=(double)AY38910_CLOCK/(16.0*c_freq);
-			if (n_period==0) new_n=0;
-			else new_n=(double)AY38910_CLOCK/(16.0*n_freq);
-			if (e_period==0) new_e=0;
-			else new_e=(double)AY38910_CLOCK/(256.0*e_freq);
-
-			if (new_a>0xfff) {
-				printf("A TOO BIG %x\n",new_a);
-			}
-			if (new_b>0xfff) {
-				printf("B TOO BIG %x\n",new_b);
-			}
-			if (new_c>0xfff) {
-				printf("C TOO BIG %x\n",new_c);
-			}
-			if (new_n>0x1f) {
-				printf("N TOO BIG %x\n",new_n);
-			}
-			if (new_e>0xffff) {
-				printf("E too BIG %x\n",new_e);
-			}
-
-			frame[0]=new_a&0xff;	frame[1]=(new_a>>8)&0xf;
-			frame[2]=new_b&0xff;	frame[3]=(new_b>>8)&0xf;
-			frame[4]=new_c&0xff;	frame[5]=(new_c>>8)&0xf;
-			frame[6]=new_n&0x1f;
-			frame[11]=new_e&0xff;	frame[12]=(new_e>>8)&0xff;
-
-			if (dump_info) {
-				printf("\t%04x %04x %04x %04x %04x\n",
-					new_a,new_b,new_c,new_n,new_e);
-
-			}
-
-		}
-
-		if (play_music) {
-			for(j=0;j<13;j++) {
-				write_ay_3_8910(j,frame[j],shift_size);
-			}
-
-			/* Special case.  Writing r13 resets it,	*/
-			/* so special 0xff marker means do not write	*/
-			if (frame[13]!=0xff) {
-				write_ay_3_8910(13,frame[13],shift_size);
-			}
-		}
-	}
-		if (visualize) {
-			if (display_type&DISPLAY_TEXT) {
-				printf("\033[H\033[2J");
-			}
-
-			display_command=display_update(display_type,
-						(frame[8]*11)/16,
-						(frame[9]*11)/16,
-						(frame[10]*11)/16,
-						(a_freq)/150,
-						(b_freq)/150,
-						(c_freq)/150,
-						i,ym_song.num_frames,
-						filename,0);
 		}
 
 		/* Calculate time it took to play/visualize */
@@ -316,44 +330,38 @@ static int play_song(char *filename) {
 		s=start.tv_sec+(start.tv_usec/1000000.0);
 		n=next.tv_sec+(next.tv_usec/1000000.0);
 
-		if (i%100==0) {
+		if (frame_num%100==0) {
 			hz=1/(n-s);
-			printf("Done frame %d/%d, %.1lfHz\n",i,ym_song.num_frames,hz);
+			printf("Done frame %d/%d, %.1lfHz\n",
+				frame_num,ym_song.num_frames,hz);
 		}
 		start.tv_sec=next.tv_sec;
 		start.tv_usec=next.tv_usec;
 
 		if (display_command==CMD_EXIT_PROGRAM) {
-			free(ym_file);
+			free(ym_song.file_data);
 			return CMD_EXIT_PROGRAM;
 		}
 
 		/* prev song */
 		if (display_command==CMD_BACK) {
-			free(ym_file);
+			free(ym_song.file_data);
 			return CMD_BACK;
 		}
 		/* next song */
 		if (display_command==CMD_FWD) {
-			free(ym_file);
+			free(ym_song.file_data);
 			return CMD_FWD;
 		}
 
 		/* rewind = Beginning of track */
 		if (display_command==CMD_RW) {
-			i=0;
-			file_offset=ym_song.data_begin;
+			frame_num=0;
 		}
 
 		/* fastfwd = skip ahead 5s */
 		if (display_command==CMD_FF) {
-			i+=5*ym_song.frame_rate;
-			if (ym_song.interleaved) {
-				file_offset+=5*ym_song.frame_rate;
-			}
-			else {
-				file_offset+=(5*ym_song.frame_rate)*ym_song.frame_size;
-			}
+			frame_num+=5*ym_song.frame_rate;
 		}
 
 
@@ -375,18 +383,12 @@ static int play_song(char *filename) {
 
 
 		/* increment frame */
-		if (!music_paused) i++;
+		if (!music_paused) frame_num++;
 
 		/* Check to see if done with file */
-		if (i>=ym_song.num_frames) {
+		if (frame_num>=ym_song.num_frames) {
 			if (music_loop) {
-				i=ym_song.loop_frame;
-				if (ym_song.interleaved) {
-					file_offset=ym_song.data_begin+i;
-				}
-				else {
-					file_offset=ym_song.data_begin+i*ym_song.frame_size;
-				}
+				frame_num=ym_song.loop_frame;
 			}
 			else {
 				break;
@@ -395,28 +397,27 @@ static int play_song(char *filename) {
 
 	}
 
-	if (i>ym_song.num_frames) {
+	if (frame_num>ym_song.num_frames) {
 		printf("Fast-forwarded, skipping end check\n");
 	}
 	else {
+		int file_offset;
 
-		if (ym_song.interleaved) {
-			file_offset+=15*ym_song.num_frames;
-		}
+		file_offset=(frame_num)*ym_song.frame_size;
 
 		if (ym_song.type>3) {
 			/* Read the tail of the file and ensure */
 			/* it has the proper trailer */
-			if (memcmp(&ym_file[file_offset],"End!",4)) {
+			if (memcmp(&ym_song.frame_data[file_offset],"End!",4)) {
 				fprintf(stderr,"ERROR! Bad ending! %x\n",
-					ym_file[file_offset]);
+					ym_song.frame_data[file_offset]);
 				return -1;
 			}
 		}
 	}
 
 	/* Free the ym file */
-	free(ym_file);
+	free(ym_song.file_data);
 
 	if (dump_info) {
 		printf("Max a=%.2lf b=%.2lf c=%.2lf\n",max_a,max_b,max_c);

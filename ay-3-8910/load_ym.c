@@ -340,7 +340,7 @@ int load_ym_song(
 	if (dump_info) printf("Frames start at %lx\n",file_offset);
 
 	ym_song->file_data=data;
-	ym_song->data_begin=file_offset;
+	ym_song->frame_data=(data+file_offset);
 
 	return 0;
 }

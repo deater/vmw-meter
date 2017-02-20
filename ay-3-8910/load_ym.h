@@ -18,8 +18,8 @@ struct ym_song_t {
 	int extra_data;
 	int loop_frame;
 	int frame_size;
-	int data_begin;
 	unsigned char *file_data;
+	unsigned char *frame_data;
 	char song_name[MAX_YM_STRING];
 	char author[MAX_YM_STRING];
 	char comment[MAX_YM_STRING];

@@ -17,11 +17,16 @@
 #define CMD_RW			0x6
 #define CMD_LOOP		0x7
 
+struct display_stats {
+        int a_bar,b_bar,c_bar;
+        int a_freq,b_freq,c_freq;
+};
+
 
 int display_init(int type);
-int display_update(int type, int a1, int b1, int c1,
-				int a2, int b2, int c2,
-				int current_frame, int num_frames,
-				char *filename, int new_filename);
+int display_update(int type,
+			struct display_stats *ds,
+			int current_frame, int num_frames,
+			char *filename, int new_filename);
 int display_shutdown(int type);
 
