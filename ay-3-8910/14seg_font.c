@@ -264,7 +264,7 @@ int translate_to_adafruit(void) {
 		if (ascii_lookup[i]&(1<< 5)) adafruit_lookup[i]|=(1<< 4); // L
 		if (ascii_lookup[i]&(1<< 4)) adafruit_lookup[i]|=(1<< 3); // M
 		if (ascii_lookup[i]&(1<< 3)) adafruit_lookup[i]|=(1<<14); // N
-		if (ascii_lookup[i]&(1<< 2)) adafruit_lookup[i]|=(1<< 1); // P
+		if (ascii_lookup[i]&(1<< 2)) adafruit_lookup[i]|=(1<< 0); // P
 		if (ascii_lookup[i]&(1<< 1)) adafruit_lookup[i]|=(1<< 6); // .
 	}
 
