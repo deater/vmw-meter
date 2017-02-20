@@ -28,6 +28,7 @@ struct lyric_type {
 static int i2c_fd;
 
 static void print_ascii_art(int which);
+static int display_led_art(int which);
 
 static int y_line=0;
 
@@ -128,6 +129,7 @@ static int lyrics_play(struct lyric_type *l, int i2c_display) {
 					}
 					if ((ch>='1')&&(ch<=':')) {
 						print_ascii_art(ch-'1');
+						display_led_art(ch-'1');
 					}
 					if (ch=='f') {
 						clear_things(0);
@@ -273,18 +275,34 @@ int main(int argc, char **argv) {
 
 	if (visualize) {
 
-		/* Init display */
+		/* Init displays */
+
+		/* ALPHANUM #1 */
 		if (init_display(i2c_fd,HT16K33_ADDRESS3,10)) {
 			fprintf(stderr,"Error opening display\n");
 			return -1;
 		}
+
+		/* ALPHANUM #2 */
 		if (init_display(i2c_fd,HT16K33_ADDRESS7,10)) {
 			fprintf(stderr,"Error opening display\n");
 			return -1;
 		}
+
+		/* ALPHANUM #3 */ /* ? */
+
+		/* 8x16 */
+		if (init_display(i2c_fd,HT16K33_ADDRESS2,10)) {
+			fprintf(stderr,"Error opening display\n");
+			return -1;
+		}
+
+
 	}
 
 	translate_to_adafruit();
+
+	display_led_art(0);
 
 	load_lyrics(NULL,&l);
 
@@ -296,6 +314,79 @@ int main(int argc, char **argv) {
 
 	return 0;
 }
+
+static short led_art[10][8]={
+/* 1 = aperture */
+	{
+	0x03c0,		/*       ****       */
+	0x0560,		/*      * * **      */
+	0x0c10,		/*     **     *     */
+	0x0830,		/*     *     **     */
+	0x0c10,		/*     **     *     */
+	0x0830,		/*     *     **     */
+	0x06a0,		/*      ** * *      */
+	0x03c0,		/*       ****       */
+	},
+	{
+/* 2 = radiation */
+	0x01c0,		/*        ***      */
+	0x01c0,		/*        ***      */
+	0x0080,		/*         *       */
+	0x0000,		/*                 */
+	0x0080,		/*         *       */
+	0x0e38,		/*     ***   ***   */
+	0x0630,		/*      **   **    */
+	0x0220,		/*       *   *     */
+	},
+/* 3 = atom */
+	{
+	0x0180,		/*        **       */
+	0x1a58,		/*    ** *  * **   */
+	0x15a8,		/*    * * ** * *   */
+	0x0a50,		/*     * *  * *    */
+	0x0a50,		/*     * *  * *    */
+	0x15a8,		/*    * * ** * *   */
+	0x1a58,		/*    ** *  * **   */
+	0x0180,		/*        **       */
+	},
+/* 4 = broken heart */
+	{
+	0x0c30,		/*     **    **    */
+	0x1e78,		/*    ****  ****   */
+	0x1ce8,		/*    ***  *** *   */
+	0x1e78,		/*    ****  ****   */
+	0x0cf0,		/*     **  ****    */
+	0x0660,		/*      **  **     */
+	0x03c0,		/*       ****      */
+	0x0180,		/*        **       */
+	},
+/* 5 = explosion */
+	{
+	0x0200,		/*       *        */
+	0x0310,		/*       **   *   */
+	0x11a0,		/*    *   ** *    */
+	0x0fe8,		/*     ******* *  */
+	0x03f0,		/*       ******   */
+	0x07e0,		/*      ******    */
+	0x0db0,		/*     ** ** **   */
+	0x1118,		/*    *   *   **  */
+	},
+/* 6 = fire */
+	{
+	},
+/* 7 = check */
+	{
+	},
+/* 8 = black mesa */
+	{
+	},
+/* 9 = cake, delicious and moist */
+	{
+	},
+	/* : = GLaDOS */
+	{
+	},
+};
 
 static char ascii_art[10][21][41]={
 {
@@ -368,7 +459,7 @@ static char ascii_art[10][21][41]={
 	{"                 ,////,"},
 },
 {
-/* 4 = heart */
+/* 4 = broken heart */
 	{"                          .,---."},
 	{"                        ,/XM#MMMX;,"},
 	{"                      -%##########M%,"},
@@ -549,4 +640,41 @@ static void print_ascii_art(int which) {
 	write(1,"\033[u",3);
 
 	return;
+}
+
+static int display_led_art(int which) {
+
+	int i,x;
+	char buffer[17];
+
+	buffer[0]=0;
+
+	/* clear buffer */
+	for(i=0;i<16;i++) buffer[i+1]=0x0;
+
+	for(i=0;i<8;i++) {
+		buffer[i*2+1]=led_art[which][i]&0xff;
+		buffer[i*2+2]=(led_art[which][i]>>8);
+#if 0
+		for(x=0;x<8;x++) {
+			buffer[i+1]|=((led_art[which][i] & (1<<(x+8))))>>8;;
+			buffer[i+9]|=(led_art[which][i] & (1<<(x)));
+		}
+#endif
+	}
+
+	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
+		fprintf(stderr,"8x16 Error setting i2c address %x\n",
+			HT16K33_ADDRESS2);
+		return -1;
+	}
+
+
+	if ( (write(i2c_fd, buffer, 17)) !=17) {
+		fprintf(stderr,"Error writing display %s!\n",
+			strerror(errno));
+		return -1;
+	}
+
+	return 0;
 }
