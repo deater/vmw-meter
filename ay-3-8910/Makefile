@@ -30,11 +30,17 @@ ym_play.o:	ym_play.c display.h ay-3-8910.h
 14seg_font.o:	14seg_font.c 14seg_font.h
 	$(CC) $(CFLAGS) -c 14seg_font.c
 
-glados:	glados.o 14seg_font.o ../lib/i2c_lib.o
-	$(CC) $(LFLAGS) -o glados glados.o 14seg_font.o ../lib/i2c_lib.o
+lyrics.o:	lyrics.c lyrics.h
+	$(CC) $(CFLAGS) -c lyrics.c
 
-glados.o:	glados.c
-	$(CC) $(CFLAGS) -c glados.c
+glados:	glados.o 14seg_font.o ../lib/i2c_lib.o ay-3-8910.o ym_lib.o lyrics.o
+	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o glados glados.o 14seg_font.o \
+			lyrics.o ay-3-8910.o ym_lib.o \
+			../lib/i2c_lib.o \
+			/usr/local/lib/libbcm2835.a
+
+glados.o:	glados.c ym_lib.h
+	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c glados.c
 
 ###
 

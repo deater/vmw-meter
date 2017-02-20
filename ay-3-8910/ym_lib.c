@@ -493,12 +493,14 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 		}
 	}
 
-	ds->a_bar=(frame[8]*11)/16;
-	ds->b_bar=(frame[9]*11)/16;
-	ds->c_bar=(frame[10]*11)/16;
-	ds->a_freq=(a_freq)/150;
-	ds->b_freq=(b_freq)/150;
-	ds->c_freq=(c_freq)/150;
+	if (ds!=NULL) {
+		ds->a_bar=(frame[8]*11)/16;
+		ds->b_bar=(frame[9]*11)/16;
+		ds->c_bar=(frame[10]*11)/16;
+		ds->a_freq=(a_freq)/150;
+		ds->b_freq=(b_freq)/150;
+		ds->c_freq=(c_freq)/150;
+	}
 
 	return 0;
 
