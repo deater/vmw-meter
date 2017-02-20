@@ -1,3 +1,8 @@
+#define YM4_HEADER_SIZE 26
+#define YM5_HEADER_SIZE 34
+#define YM5_FRAME_SIZE  16
+#define YM3_FRAME_SIZE  16
+
 #define MAX_YM_STRING	256
 
 struct ym_song_t {

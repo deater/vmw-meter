@@ -21,14 +21,6 @@
 #include "lhasa.h"
 #endif
 
-#define YM4_HEADER_SIZE	26
-#define YM5_HEADER_SIZE	34
-#define YM5_FRAME_SIZE	16
-#define YM3_FRAME_SIZE	16
-
-
-//#define AY38910_CLOCK	1000000	/* 1MHz on our board */
-
 static int dump_info=0;
 
 static unsigned char *load_uncompressed_song(char *filename, int *read_size) {

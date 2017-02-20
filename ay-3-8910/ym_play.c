@@ -22,15 +22,6 @@
 #include "display.h"
 #include "load_ym.h"
 
-#ifdef USE_LIBLHASA
-#include "lhasa.h"
-#endif
-
-#define YM4_HEADER_SIZE	26
-#define YM5_HEADER_SIZE	34
-#define YM5_FRAME_SIZE	16
-#define YM3_FRAME_SIZE	16
-
 #define AY38910_CLOCK	1000000	/* 1MHz on our board */
 
 static int play_music=1;
@@ -57,7 +48,7 @@ static void quiet_and_exit(int sig) {
 
 }
 
-void print_help(int just_version, char *exec_name) {
+static void print_help(int just_version, char *exec_name) {
 
 	printf("\nym_play version %s by Vince Weaver <vince@deater.net>\n\n",VERSION);
 	if (just_version) exit(0);
