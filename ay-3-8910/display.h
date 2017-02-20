@@ -18,8 +18,8 @@
 #define CMD_LOOP		0x7
 
 struct display_stats {
-        int a_bar,b_bar,c_bar;
-        int a_freq,b_freq,c_freq;
+	int a_bar,b_bar,c_bar;
+	int a_freq,b_freq,c_freq;
 };
 
 

@@ -7,19 +7,19 @@ CC = gcc
 CFLAGS = -O2 -Wall -I../include -g
 LFLAGS = -lm
 
-all:	ym_play organ ym_to_ym5 text_to_ym lyrics_play
+all:	ym_play organ ym_to_ym5 text_to_ym glados
 
 ../lib/i2c_lib.o:	../lib/i2c_lib.c
 	cd ../lib && make
 
 ###
 
-load_ym.o:	load_ym.c load_ym.h
-	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c load_ym.c
+ym_lib.o:	ym_lib.c ym_lib.h
+	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c ym_lib.c
 
 
-ym_play:	ym_play.o ay-3-8910.o display.o load_ym.o ../lib/i2c_lib.o
-	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym_play ym_play.o ay-3-8910.o display.o load_ym.o \
+ym_play:	ym_play.o ay-3-8910.o display.o ym_lib.o ../lib/i2c_lib.o
+	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym_play ym_play.o ay-3-8910.o display.o ym_lib.o \
 			../lib/i2c_lib.o /usr/local/lib/libbcm2835.a
 
 ym_play.o:	ym_play.c display.h ay-3-8910.h
@@ -30,11 +30,11 @@ ym_play.o:	ym_play.c display.h ay-3-8910.h
 14seg_font.o:	14seg_font.c 14seg_font.h
 	$(CC) $(CFLAGS) -c 14seg_font.c
 
-lyrics_play:	lyrics_play.o 14seg_font.o ../lib/i2c_lib.o
-	$(CC) $(LFLAGS) -o lyrics_play lyrics_play.o 14seg_font.o ../lib/i2c_lib.o
+glados:	glados.o 14seg_font.o ../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o glados glados.o 14seg_font.o ../lib/i2c_lib.o
 
-lyrics_play.o:	lyrics_play.c
-	$(CC) $(CFLAGS) -c lyrics_play.c
+glados.o:	glados.c
+	$(CC) $(CFLAGS) -c glados.c
 
 ###
 
@@ -73,7 +73,7 @@ notes.o:	notes.c notes.h
 
 
 clean:	
-	rm -f *~ *.o ym_play organ text_to_ym ym_to_ym5 lyrics_play
+	rm -f *~ *.o ym_play organ text_to_ym ym_to_ym5 glados
 
 
 

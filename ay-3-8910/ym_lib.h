@@ -28,3 +28,15 @@ struct ym_song_t {
 int load_ym_song(
         char *filename,
         struct ym_song_t *ym_song );
+
+struct frame_stats {
+	int a_bar,b_bar,c_bar;
+	int a_freq,b_freq,c_freq;
+};
+
+
+int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
+                        struct frame_stats *ds,
+			int diff_mode,
+			int play_music);
+
