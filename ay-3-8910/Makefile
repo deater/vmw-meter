@@ -14,7 +14,11 @@ all:	ym_play organ ym_to_ym5 text_to_ym lyrics_play
 
 ###
 
-ym_play:	ym_play.o ay-3-8910.o display.o ../lib/i2c_lib.o
+load_ym.o:	load_ym.c load_ym.h
+	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c load_ym.c
+
+
+ym_play:	ym_play.o ay-3-8910.o display.o load_ym.o ../lib/i2c_lib.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym_play ym_play.o ay-3-8910.o display.o \
 			../lib/i2c_lib.o /usr/local/lib/libbcm2835.a
 
