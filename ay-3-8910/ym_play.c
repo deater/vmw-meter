@@ -2,7 +2,7 @@
 /* Used file info found here: http://leonard.oxg.free.fr/ymformat.html */
 /* Also useful: ftp://ftp.modland.com/pub/documents/format_documentation/Atari%20ST%20Sound%20Chip%20Emulator%20YM1-6%20(.ay,%20.ym).txt */
 
-#define VERSION "0.3"
+#define VERSION "0.4"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +20,7 @@
 
 #include "ay-3-8910.h"
 #include "display.h"
+#include "load_ym.h"
 
 #ifdef USE_LIBLHASA
 #include "lhasa.h"
@@ -29,7 +30,6 @@
 #define YM5_HEADER_SIZE	34
 #define YM5_FRAME_SIZE	16
 #define YM3_FRAME_SIZE	16
-#define MAX_STRING	256
 
 #define AY38910_CLOCK	1000000	/* 1MHz on our board */
 
@@ -83,178 +83,15 @@ void print_help(int just_version, char *exec_name) {
 	exit(0);
 }
 
-static unsigned char *load_uncompressed_song(char *filename, int *read_size) {
-
-	unsigned char *data=NULL;
-	struct stat file_stats;
-	int file_size=0,fd;
-	int result;
-
-	stat(filename,&file_stats);
-
-	file_size=file_stats.st_size;
-	data=calloc(file_size,sizeof(unsigned char));
-	if (data==NULL) {
-		fprintf(stderr,"Error allocating %d bytes\n",file_size);
-		return NULL;
-	}
-
-	fd=open(filename,O_RDONLY);
-	if (fd<0) {
-		fprintf(stderr,"Error opening %s\n",filename);
-		return NULL;
-	}
-
-	result=read(fd,data,file_size);
-	close(fd);
-
-	if (result<file_size) {
-		fprintf(stderr,"Error reading %d bytes\n",file_size);
-		return NULL;
-	}
-
-	*read_size=file_size;
-
-	return data;
-}
-
-
-static unsigned char *load_lha_compressed_song(char *filename, int *file_size) {
-
-	unsigned char *data=NULL;
-
-	size_t bytes;
-	FILE *fff;
-	LHAInputStream *stream;
-	LHAReader *reader;
-	LHAFileHeader *header;
-
-#ifndef USE_LIBLHASA
-	fprintf(stderr,"Probably a LHC compressed ym, "
-			"decompress with lhasa before playing.\n");
-	return data;
-#endif
-
-	fff=fopen(filename,"rb");
-	if (fff==NULL) {
-		fprintf(stderr,"Error opening %s!\n",filename);
-		return NULL;
-	}
-
-	stream = lha_input_stream_from_FILE(fff);
-	reader = lha_reader_new(stream);
-
-	header = lha_reader_next_file(reader);
-
-	printf("Decompressing %s, size %zu\n",header->filename,header->length);
-
-	data=calloc(header->length,sizeof(unsigned char));
-	if (data==NULL) {
-		fprintf(stderr,"Error allocating %zu bytes\n",header->length);
-		return NULL;
-	}
-
-	bytes = lha_reader_read(reader, data, header->length);
-	if (bytes != header->length) {
-		fprintf(stderr,"Error reading data!\n");
-		free(data);
-		return NULL;
-	}
-
-	*file_size=header->length;
-
-	return data;
-}
-
-static unsigned char *load_ym_song(char *filename, int *ym_type, int *file_size) {
-
-	int fd,result,compressed=0;
-	unsigned char *data=NULL;
-	unsigned char header[YM5_HEADER_SIZE];
-
-	char ym2_magic[]="YM2!";
-	char ym3_magic[]="YM3!";
-	char ym3b_magic[]="YM3b";
-	char ym4_magic[]="YM4!LeOnArD!";
-	char ym5_magic[]="YM5!LeOnArD!";
-	char ym6_magic[]="YM6!LeOnArD!";
-
-
-	fd=open(filename,O_RDONLY);
-	if (fd<1) {
-		fprintf(stderr,"Error opening %s, %s!\n",
-			filename,strerror(errno));
-		return NULL;
-	}
-
-	result=read(fd,header,YM5_HEADER_SIZE);
-	if (result<YM5_HEADER_SIZE) {
-		fprintf(stderr,"Error reading header!\n");
-		return NULL;
-	}
-
-	close(fd);
-
-	if ((header[3]=='l') && (header[4]=='h')) {
-		/* LHA compressed */
-		data=load_lha_compressed_song(filename,file_size);
-		memcpy(header,data,YM5_HEADER_SIZE);
-		compressed=1;
-	}
-
-	if (!memcmp(header,ym2_magic,4)) {
-		/* YM2 file */
-		if (!compressed) data=load_uncompressed_song(filename,file_size);
-		*ym_type=2;
-	} else
-	if (!memcmp(header,ym3_magic,4)) {
-		/* YM3 file */
-		if (!compressed) data=load_uncompressed_song(filename,file_size);
-		*ym_type=3;
-	} else
-	if (!memcmp(header,ym3b_magic,4)) {
-		/* YM3b file */
-		if (!compressed) data=load_uncompressed_song(filename,file_size);
-		*ym_type=3;
-	} else
-	if (!memcmp(header,ym4_magic,12)) {
-		/* YM4 file */
-		if (!compressed) data=load_uncompressed_song(filename,file_size);
-		*ym_type=4;
-	} else
-	if (!memcmp(header,ym5_magic,12)) {
-		/* YM5 file */
-		if (!compressed) data=load_uncompressed_song(filename,file_size);
-		*ym_type=5;
-	}
-	else if (!memcmp(header,ym6_magic,12)) {
-		/* YM6 file */
-		if (!compressed) data=load_uncompressed_song(filename,file_size);
-		*ym_type=6;
-	} else {
-		fprintf(stderr,"Error, not a known YM  file!\n");
-		return NULL;
-	}
-
-	return data;
-}
-
 static int play_song(char *filename) {
 
 	unsigned char *ym_file;
-	int ym_type,ym_size,ym_frame_size;
 	unsigned char frame[YM5_FRAME_SIZE];
 	unsigned char last_frame[YM5_FRAME_SIZE];
-	int num_frames,song_attributes,num_digidrum,master_clock;
-	int frame_rate,loop_frame,extra_data;
-	int drum_size,i,j;
+	long int file_offset=0;
+
+	int i,j;
 	int length_seconds;
-	char song_name[MAX_STRING];
-	char author[MAX_STRING];
-	char comment[MAX_STRING];
-	int pointer;
-	long int file_offset=0,data_begin;
-	int interleaved=0;
 	double s,n,hz,diff;
 	double max_a=0.0,max_b=0.0,max_c=0.0;
 
@@ -262,155 +99,20 @@ static int play_song(char *filename) {
 	double a_freq=0.0, b_freq=0.0, c_freq=0.0,n_freq=0.0,e_freq=0.0;
 	int new_a,new_b,new_c,new_n,new_e;
 
-	int display_command=0;
+	int display_command=0,result;
 
 	struct timeval start,next;
 
+	struct ym_song_t ym_song;
+
 	printf("\nPlaying song %s\n",filename);
 
-	ym_file=load_ym_song(filename,&ym_type,&ym_size);
-	if (ym_file==NULL) {
+	result=load_ym_song(filename,&ym_song);
+	if (result<0) {
 		return -1;
 	}
 
-	/* Decode header */
-
-
-	if (ym_type>3) {
-		/* version 4, 5, 6 */
-
-		num_frames=(ym_file[12]<<24)|(ym_file[13]<<16)|
-			(ym_file[14]<<8)|(ym_file[15]);
-
-		song_attributes=(ym_file[16]<<24)|(ym_file[17]<<16)|
-			(ym_file[18]<<8)|(ym_file[19]);
-		interleaved=song_attributes&0x1;
-
-		/* interleaved makes things compress better */
-		/* but much more of a pain to play */
-
-		num_digidrum=(ym_file[20]<<8)|(ym_file[21]);
-
-		if (ym_type==4) {
-
-			/* assume atari */
-			master_clock=2000000;
-			frame_rate=50;
-			extra_data=0;
-
-			loop_frame=(ym_file[22]<<24)|(ym_file[23]<<16)|
-				(ym_file[24]<<8)|(ym_file[25]);
-
-			file_offset=YM4_HEADER_SIZE;
-		}
-		else {
-
-			master_clock=(ym_file[22]<<24)|(ym_file[23]<<16)|
-				(ym_file[24]<<8)|(ym_file[25]);
-
-			frame_rate=(ym_file[26]<<8)|(ym_file[27]);
-
-			loop_frame=(ym_file[28]<<24)|(ym_file[29]<<16)|
-				(ym_file[30]<<8)|(ym_file[31]);
-
-			extra_data=(ym_file[32]<<8)|(ym_file[33]);
-
-			file_offset=YM5_HEADER_SIZE;
-		}
-
-		/* Skip digidrums (we can't play those) */
-
-		if (num_digidrum>0) {
-			fprintf(stderr,"Warning!  We don't handle digidrum\n");
-			fprintf(stderr,"\tskipping %d digidrums\n",num_digidrum);
-			for(i=0;i<num_digidrum;i++) {
-				drum_size=
-					(ym_file[file_offset]<<24)|
-					(ym_file[file_offset+1]<<16)|
-					(ym_file[file_offset+2]<<8)|
-					(ym_file[file_offset+3]);
-				file_offset+=4;
-				printf("\tDrum%d: %d bytes\n",i,drum_size);
-				file_offset+=drum_size;
-			}
-		}
-
-		/* Get the song name */
-
-		pointer=0;
-		while(1) {
-			if (!ym_file[file_offset]) {
-				song_name[pointer]=0;
-				break;
-			}
-			if (pointer<MAX_STRING) {
-				song_name[pointer]=ym_file[file_offset];
-				pointer++;
-			}
-			file_offset++;
-		}
-
-		/* Get the author name */
-
-		pointer=0;
-		file_offset++;
-		while(1) {
-			if (!ym_file[file_offset]) {
-				author[pointer]=0;
-				break;
-			}
-			if (pointer<MAX_STRING) {
-				author[pointer]=ym_file[file_offset];
-				pointer++;
-			}
-			file_offset++;
-		}
-
-		/* Get the comment */
-		pointer=0;
-		file_offset++;
-		while(1) {
-			if (!ym_file[file_offset]) {
-				comment[pointer]=0;
-				break;
-			}
-			if (pointer<MAX_STRING) {
-				comment[pointer]=ym_file[file_offset];
-				pointer++;
-			}
-			file_offset++;
-		}
-
-		file_offset++;
-		ym_frame_size=YM5_FRAME_SIZE;
-
-	}
-	else {
-		/* version 2, 3, 3b */
-		file_offset=4;
-		frame_rate=50;
-		/* Assuming Atari */
-		master_clock=2000000;
-		interleaved=1;
-		song_attributes=0x1;
-		num_frames=(ym_size-4)/14;
-		ym_frame_size=YM3_FRAME_SIZE;
-		extra_data=0;
-		num_digidrum=0;
-		strcpy(song_name,"UNKNOWN");
-		strcpy(author,"UNKNOWN");
-		strcpy(comment,"UNKNOWN");
-
-		//if (ym_type=3)
-		// check if filesize is 4 too many
-		// in that case, type 3b and loop_frame is last 4 bytes
-		// really we probably don't care
-		loop_frame=0;
-
-	}
-
-	if (dump_info) printf("Frames start at %lx\n",file_offset);
-	data_begin=file_offset;
+	ym_file=ym_song.file_data;
 
 	gettimeofday(&start,NULL);
 
@@ -418,44 +120,46 @@ static int play_song(char *filename) {
 	/* Print song summary */
 	/**********************/
 
-	printf("\tYM%d",ym_type);
-	printf("\tSong attributes (%d) : ",song_attributes);
-	printf("Interleaved=%s\n",interleaved?"yes":"no");
-	if (num_digidrum>0) {
-		printf("Num digidrum samples: %d\n",num_digidrum);
+	printf("\tYM%d",ym_song.type);
+	printf("\tSong attributes (%d) : ",ym_song.attributes);
+	printf("Interleaved=%s\n",ym_song.interleaved?"yes":"no");
+	if (ym_song.num_digidrum>0) {
+		printf("Num digidrum samples: %d\n",ym_song.num_digidrum);
 	}
-	printf("\tFrames: %d, ",num_frames);
-	printf("Chip clock: %d Hz, ",master_clock);
-	printf("Frame rate: %d Hz, ",frame_rate);
-		if (frame_rate!=50) {
-			fprintf(stderr,"FIX ME framerate %d\n",frame_rate);
-			exit(1);
-		}
-	length_seconds=num_frames/frame_rate;
+	printf("\tFrames: %d, ",ym_song.num_frames);
+	printf("Chip clock: %d Hz, ",ym_song.master_clock);
+	printf("Frame rate: %d Hz, ",ym_song.frame_rate);
+	if (ym_song.frame_rate!=50) {
+		fprintf(stderr,"FIX ME framerate %d\n",ym_song.frame_rate);
+		exit(1);
+	}
+	length_seconds=ym_song.num_frames/ym_song.frame_rate;
 	printf("Length=%d:%02d\n",length_seconds/60,length_seconds%60);
-	printf("\tLoop frame: %d, ",loop_frame);
-	printf("Extra data size: %d\n",extra_data);
-	printf("\tSong name: %s\n",song_name);
-	printf("\tAuthor name: %s\n",author);
-	printf("\tComment: %s\n",comment);
+	printf("\tLoop frame: %d, ",ym_song.loop_frame);
+	printf("Extra data size: %d\n",ym_song.extra_data);
+	printf("\tSong name: %s\n",ym_song.song_name);
+	printf("\tAuthor name: %s\n",ym_song.author);
+	printf("\tComment: %s\n",ym_song.comment);
 
 	/******************/
 	/* Play the song! */
 	/******************/
 
+	file_offset=ym_song.data_begin;
+
 	i=0;
 	while(1) {
 
 	if (!music_paused) {
-		if (interleaved) {
-			for(j=0;j<ym_frame_size;j++) {
-				frame[j]=ym_file[file_offset+j*num_frames];
+		if (ym_song.interleaved) {
+			for(j=0;j<ym_song.frame_size;j++) {
+				frame[j]=ym_file[file_offset+j*ym_song.num_frames];
 			}
 			file_offset++;
 		}
 		else {
-			memcpy(frame,&ym_file[file_offset],ym_frame_size);
-			file_offset+=ym_frame_size;
+			memcpy(frame,&ym_file[file_offset],ym_song.frame_size);
+			file_offset+=ym_song.frame_size;
 		}
 
 		/****************************************/
@@ -469,11 +173,11 @@ static int play_song(char *filename) {
 		n_period=frame[6]&0x1f;
 		e_period=((frame[12]&0xff)<<8)|frame[11];
 
-		if (a_period>0) a_freq=master_clock/(16.0*(double)a_period);
-		if (b_period>0) b_freq=master_clock/(16.0*(double)b_period);
-		if (c_period>0) c_freq=master_clock/(16.0*(double)c_period);
-		if (n_period>0) n_freq=master_clock/(16.0*(double)n_period);
-		if (e_period>0) e_freq=master_clock/(256.0*(double)e_period);
+		if (a_period>0) a_freq=ym_song.master_clock/(16.0*(double)a_period);
+		if (b_period>0) b_freq=ym_song.master_clock/(16.0*(double)b_period);
+		if (c_period>0) c_freq=ym_song.master_clock/(16.0*(double)c_period);
+		if (n_period>0) n_freq=ym_song.master_clock/(16.0*(double)n_period);
+		if (e_period>0) e_freq=ym_song.master_clock/(256.0*(double)e_period);
 
 		if (dump_info) {
 			printf("%05d:\tA:%04x B:%04x C:%04x N:%02x M:%02x ",
@@ -528,7 +232,7 @@ static int play_song(char *filename) {
 		}
 
 		/* Scale if needed */
-		if (master_clock!=AY38910_CLOCK) {
+		if (ym_song.master_clock!=AY38910_CLOCK) {
 
 			if (a_period==0) new_a=0;
 			else new_a=(double)AY38910_CLOCK/(16.0*a_freq);
@@ -595,7 +299,7 @@ static int play_song(char *filename) {
 						(a_freq)/150,
 						(b_freq)/150,
 						(c_freq)/150,
-						i,num_frames,
+						i,ym_song.num_frames,
 						filename,0);
 		}
 
@@ -612,7 +316,7 @@ static int play_song(char *filename) {
 			/* TODO: calculate correctly */
 		}
 		else {
-			if (visualize) usleep(1000000/frame_rate);
+			if (visualize) usleep(1000000/ym_song.frame_rate);
 		}
 
 		/* Calculate time it actually took, and print		*/
@@ -623,7 +327,7 @@ static int play_song(char *filename) {
 
 		if (i%100==0) {
 			hz=1/(n-s);
-			printf("Done frame %d/%d, %.1lfHz\n",i,num_frames,hz);
+			printf("Done frame %d/%d, %.1lfHz\n",i,ym_song.num_frames,hz);
 		}
 		start.tv_sec=next.tv_sec;
 		start.tv_usec=next.tv_usec;
@@ -647,17 +351,17 @@ static int play_song(char *filename) {
 		/* rewind = Beginning of track */
 		if (display_command==CMD_RW) {
 			i=0;
-			file_offset=data_begin;
+			file_offset=ym_song.data_begin;
 		}
 
 		/* fastfwd = skip ahead 5s */
 		if (display_command==CMD_FF) {
-			i+=5*frame_rate;
-			if (interleaved) {
-				file_offset+=5*frame_rate;
+			i+=5*ym_song.frame_rate;
+			if (ym_song.interleaved) {
+				file_offset+=5*ym_song.frame_rate;
 			}
 			else {
-				file_offset+=(5*frame_rate)*ym_frame_size;
+				file_offset+=(5*ym_song.frame_rate)*ym_song.frame_size;
 			}
 		}
 
@@ -683,14 +387,14 @@ static int play_song(char *filename) {
 		if (!music_paused) i++;
 
 		/* Check to see if done with file */
-		if (i>=num_frames) {
+		if (i>=ym_song.num_frames) {
 			if (music_loop) {
-				i=loop_frame;
-				if (interleaved) {
-					file_offset=data_begin+i;
+				i=ym_song.loop_frame;
+				if (ym_song.interleaved) {
+					file_offset=ym_song.data_begin+i;
 				}
 				else {
-					file_offset=data_begin+i*ym_frame_size;
+					file_offset=ym_song.data_begin+i*ym_song.frame_size;
 				}
 			}
 			else {
@@ -700,16 +404,16 @@ static int play_song(char *filename) {
 
 	}
 
-	if (i>num_frames) {
+	if (i>ym_song.num_frames) {
 		printf("Fast-forwarded, skipping end check\n");
 	}
 	else {
 
-		if (interleaved) {
-			file_offset+=15*num_frames;
+		if (ym_song.interleaved) {
+			file_offset+=15*ym_song.num_frames;
 		}
 
-		if (ym_type>3) {
+		if (ym_song.type>3) {
 			/* Read the tail of the file and ensure */
 			/* it has the proper trailer */
 			if (memcmp(&ym_file[file_offset],"End!",4)) {

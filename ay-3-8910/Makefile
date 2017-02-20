@@ -19,7 +19,7 @@ load_ym.o:	load_ym.c load_ym.h
 
 
 ym_play:	ym_play.o ay-3-8910.o display.o load_ym.o ../lib/i2c_lib.o
-	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym_play ym_play.o ay-3-8910.o display.o \
+	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym_play ym_play.o ay-3-8910.o display.o load_ym.o \
 			../lib/i2c_lib.o /usr/local/lib/libbcm2835.a
 
 ym_play.o:	ym_play.c display.h ay-3-8910.h

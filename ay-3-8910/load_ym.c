@@ -129,12 +129,11 @@ int load_ym_song(
 	char ym5_magic[]="YM5!LeOnArD!";
 	char ym6_magic[]="YM6!LeOnArD!";
 
-	unsigned char *ym_file=NULL;
-
 	int i,pointer=0;
 	long int file_offset=0;
 
 
+	/* Open the file */
 	fd=open(filename,O_RDONLY);
 	if (fd<1) {
 		fprintf(stderr,"Error opening %s, %s!\n",
@@ -142,14 +141,17 @@ int load_ym_song(
 		return -1;
 	}
 
+	/* read the header */
 	result=read(fd,header,YM5_HEADER_SIZE);
 	if (result<YM5_HEADER_SIZE) {
 		fprintf(stderr,"Error reading header!\n");
 		return -1;
 	}
 
+	/* close the file */
 	close(fd);
 
+	/* Handle a LHA compressed file */
 	if ((header[3]=='l') && (header[4]=='h')) {
 		/* LHA compressed */
 		data=load_lha_compressed_song(filename,&ym_song->file_size);
@@ -157,6 +159,7 @@ int load_ym_song(
 		compressed=1;
 	}
 
+	/* Load the file otherwise */
 	if (!memcmp(header,ym2_magic,4)) {
 		/* YM2 file */
 		if (!compressed) {
@@ -203,26 +206,26 @@ int load_ym_song(
 		return -1;
 	}
 
+	ym_song->file_data=data;
 
-	ym_file=data;
-
+	/*****************/
 	/* Decode header */
-
+	/*****************/
 
 	if (ym_song->type>3) {
 		/* version 4, 5, 6 */
 
-		ym_song->num_frames=(ym_file[12]<<24)|(ym_file[13]<<16)|
-			(ym_file[14]<<8)|(ym_file[15]);
+		ym_song->num_frames=(data[12]<<24)|(data[13]<<16)|
+			(data[14]<<8)|(data[15]);
 
-		ym_song->attributes=(ym_file[16]<<24)|(ym_file[17]<<16)|
-			(ym_file[18]<<8)|(ym_file[19]);
+		ym_song->attributes=(data[16]<<24)|(data[17]<<16)|
+			(data[18]<<8)|(data[19]);
 		ym_song->interleaved=(ym_song->attributes)&0x1;
 
 		/* interleaved makes things compress better */
 		/* but much more of a pain to play */
 
-		ym_song->num_digidrum=(ym_file[20]<<8)|(ym_file[21]);
+		ym_song->num_digidrum=(data[20]<<8)|(data[21]);
 
 		if (ym_song->type==4) {
 
@@ -231,22 +234,22 @@ int load_ym_song(
 			ym_song->frame_rate=50;
 			ym_song->extra_data=0;
 
-			ym_song->loop_frame=(ym_file[22]<<24)|(ym_file[23]<<16)|
-				(ym_file[24]<<8)|(ym_file[25]);
+			ym_song->loop_frame=(data[22]<<24)|(data[23]<<16)|
+				(data[24]<<8)|(data[25]);
 
 			file_offset=YM4_HEADER_SIZE;
 		}
 		else {
 
-			ym_song->master_clock=(ym_file[22]<<24)|(ym_file[23]<<16)|
-				(ym_file[24]<<8)|(ym_file[25]);
+			ym_song->master_clock=(data[22]<<24)|(data[23]<<16)|
+				(data[24]<<8)|(data[25]);
 
-			ym_song->frame_rate=(ym_file[26]<<8)|(ym_file[27]);
+			ym_song->frame_rate=(data[26]<<8)|(data[27]);
 
-			ym_song->loop_frame=(ym_file[28]<<24)|(ym_file[29]<<16)|
-				(ym_file[30]<<8)|(ym_file[31]);
+			ym_song->loop_frame=(data[28]<<24)|(data[29]<<16)|
+				(data[30]<<8)|(data[31]);
 
-			ym_song->extra_data=(ym_file[32]<<8)|(ym_file[33]);
+			ym_song->extra_data=(data[32]<<8)|(data[33]);
 
 			file_offset=YM5_HEADER_SIZE;
 		}
@@ -258,10 +261,10 @@ int load_ym_song(
 			fprintf(stderr,"\tskipping %d digidrums\n",ym_song->num_digidrum);
 			for(i=0;i<ym_song->num_digidrum;i++) {
 				ym_song->drum_size=
-					(ym_file[file_offset]<<24)|
-					(ym_file[file_offset+1]<<16)|
-					(ym_file[file_offset+2]<<8)|
-					(ym_file[file_offset+3]);
+					(data[file_offset]<<24)|
+					(data[file_offset+1]<<16)|
+					(data[file_offset+2]<<8)|
+					(data[file_offset+3]);
 				file_offset+=4;
 				printf("\tDrum%d: %d bytes\n",i,ym_song->drum_size);
 				file_offset+=ym_song->drum_size;
@@ -272,12 +275,12 @@ int load_ym_song(
 
 		pointer=0;
 		while(1) {
-			if (!ym_file[file_offset]) {
+			if (!data[file_offset]) {
 				ym_song->song_name[pointer]=0;
 				break;
 			}
 			if (pointer<MAX_YM_STRING) {
-				ym_song->song_name[pointer]=ym_file[file_offset];
+				ym_song->song_name[pointer]=data[file_offset];
 				pointer++;
 			}
 			file_offset++;
@@ -288,12 +291,12 @@ int load_ym_song(
 		pointer=0;
 		file_offset++;
 		while(1) {
-			if (!ym_file[file_offset]) {
+			if (!data[file_offset]) {
 				ym_song->author[pointer]=0;
 				break;
 			}
 			if (pointer<MAX_YM_STRING) {
-				ym_song->author[pointer]=ym_file[file_offset];
+				ym_song->author[pointer]=data[file_offset];
 				pointer++;
 			}
 			file_offset++;
@@ -303,12 +306,12 @@ int load_ym_song(
 		pointer=0;
 		file_offset++;
 		while(1) {
-			if (!ym_file[file_offset]) {
+			if (!data[file_offset]) {
 				ym_song->comment[pointer]=0;
 				break;
 			}
 			if (pointer<MAX_YM_STRING) {
-				ym_song->comment[pointer]=ym_file[file_offset];
+				ym_song->comment[pointer]=data[file_offset];
 				pointer++;
 			}
 			file_offset++;
@@ -343,6 +346,8 @@ int load_ym_song(
 	}
 
 	if (dump_info) printf("Frames start at %lx\n",file_offset);
+
+	ym_song->file_data=data;
 	ym_song->data_begin=file_offset;
 
 	return 0;
