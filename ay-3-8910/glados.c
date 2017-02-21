@@ -24,7 +24,7 @@
 
 #include "lyrics.h"
 
-static int visualize=1;
+static int i2c_display=1;
 static int play_music=1;
 static int shift_size=16;
 
@@ -145,7 +145,7 @@ int display_string(char *led_string) {
 
 #define NUM_ALPHANUM	12
 
-static int lyrics_play(struct lyric_type *l, int i2c_display) {
+static int lyrics_play(struct lyric_type *l) {
 
 	int frame=0,lnum=0,sub=0;
 	char led_string[NUM_ALPHANUM],ch;
@@ -313,10 +313,10 @@ int main(int argc, char **argv) {
 	i2c_fd=init_i2c("/dev/i2c-1");
 	if (i2c_fd < 0) {
 		fprintf(stderr,"Error opening device!\n");
-		visualize=0;
+		i2c_display=0;
 	}
 
-	if (visualize) {
+	if (i2c_display) {
 
 		/* Init displays */
 
@@ -351,13 +351,15 @@ int main(int argc, char **argv) {
 
 //	display_led_art(0);
 
-	load_lyrics(NULL,&l);
+	load_lyrics("sa/sa.lyrics",&l);
 
-	lyrics_play(&l,visualize);
+	lyrics_play(&l);
 
 	destroy_lyrics(&l);
 
-	close(i2c_fd);
+	if (i2c_display) {
+		close(i2c_fd);
+	}
 
 	return 0;
 }
@@ -692,6 +694,8 @@ static int display_led_art(int which) {
 
 	int i;
 	char buffer[17];
+
+	if (!i2c_display) return 0;
 
 	buffer[0]=0;
 
