@@ -349,7 +349,7 @@ int main(int argc, char **argv) {
 
 	translate_to_adafruit();
 
-//	display_led_art(0);
+//	display_led_art(6);
 
 	load_lyrics("sa/sa.lyrics",&l);
 
@@ -706,6 +706,16 @@ static void print_ascii_art(int which) {
 	return;
 }
 
+int reverse_bits(int b) {
+
+	int out;
+
+	out = ((b * 0x0802LU & 0x22110LU) |
+		(b * 0x8020LU & 0x88440LU)) *
+		0x10101LU >> 16;
+	return out&0xff;
+}
+
 static int display_led_art(int which) {
 
 	int i;
@@ -723,8 +733,8 @@ static int display_led_art(int which) {
 	} else {
 
 		for(i=0;i<8;i++) {
-			buffer[i*2+1]=led_art[which][i]&0xff;
-			buffer[i*2+2]=(led_art[which][i]>>8);
+			buffer[i*2+1]=reverse_bits((led_art[which][i]>>8));
+			buffer[i*2+2]=reverse_bits(led_art[which][i]&0xff);
 		}
 	}
 
