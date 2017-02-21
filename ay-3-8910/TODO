@@ -3,3 +3,12 @@ Playlists?
 menu for picking songs?
 menu for setting loop/repeat?
 confirmation on shutdown
+
+
+glados:
+Fix 14 seg font (colon and period most notably)
+Make letter timing match video
+Add escape char for the unspoken words
+Make teaser video
+Finish LED art
+
