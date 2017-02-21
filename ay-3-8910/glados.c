@@ -159,6 +159,8 @@ static int lyrics_play(struct lyric_type *l) {
 
 	struct ym_song_t ym_song;
 
+	int ignore_led=0;
+
 	result=load_ym_song("sa/sa.ym5",&ym_song);
 	if (result<0) {
 		return -1;
@@ -177,24 +179,31 @@ static int lyrics_play(struct lyric_type *l) {
 		if (frame>=l->l[lnum].frame) {
 
 			sub=0;
+			ignore_led=0;
 			while(1) {
 				if (l->l[lnum].text[sub]==0) break;
 
 				if (l->l[lnum].text[sub]=='\\') {
 					sub++;
 					ch=l->l[lnum].text[sub];
+
+					if (ch=='i') {
+						ignore_led=1;
+					}
+
 					if (ch=='n') {
 						y_line++;
 						sprintf(string,"\n\033[%d;2H",y_line);
 						write(1,string,strlen(string));
 
-						clear_next=1;
+						if (!ignore_led) clear_next=1;
 
 					}
 					if ((ch>='1')&&(ch<=':')) {
 						print_ascii_art(ch-'1');
 						display_led_art(ch-'1');
 					}
+
 					if (ch=='f') {
 						clear_things(0);
 						y_line=2;
@@ -209,6 +218,8 @@ static int lyrics_play(struct lyric_type *l) {
 				else {
 					ch=l->l[lnum].text[sub];
 					write(1,&ch,1);
+
+					if (!ignore_led) {
 
 					if (clear_next) {
 						for(i=0;i<NUM_ALPHANUM;i++) {
@@ -235,6 +246,7 @@ static int lyrics_play(struct lyric_type *l) {
 						led_string[led_offset]=ch;
 					}
 					led_offset++;
+					}
 				}
 
 				if (i2c_display) display_string(led_string);
