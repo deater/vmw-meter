@@ -17,6 +17,18 @@ int load_lyrics(char *filename, struct lyric_type *l) {
 	int sp;
 	int frame_num;
 	char *start;
+	FILE *fff;
+
+	if (filename==NULL) {
+		fff=stdin;
+	}
+	else {
+		fff=fopen(filename,"r");
+		if (fff==NULL) {
+			return -1;
+		}
+	}
+
 
 	l->l=calloc(sizeof(struct lyric_type),MAX_LYRICS);
 	if (l->l==NULL) {
@@ -25,7 +37,7 @@ int load_lyrics(char *filename, struct lyric_type *l) {
 	}
 
 	while(1) {
-		result=fgets(string,BUFSIZ,stdin);
+		result=fgets(string,BUFSIZ,fff);
 		if (result==NULL) {
 			break;
 		}
@@ -85,6 +97,10 @@ int load_lyrics(char *filename, struct lyric_type *l) {
 	}
 
 	l->num=num;
+
+	if ((filename) && (fff)) {
+		fclose(fff);
+	}
 
 	return 0;
 }
