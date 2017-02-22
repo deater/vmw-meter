@@ -342,6 +342,89 @@ int load_ym_song(
 	return 0;
 }
 
+
+static unsigned char last_frame[YM5_FRAME_SIZE];
+
+struct music_frame {
+	int a,b,c,n,e,m;
+	int aa,ab,ac;
+} last_music,current_music;
+
+
+void print_diff(int frame_num) {
+
+	printf("%4d: ",frame_num);
+
+	if (current_music.a!=last_music.a) {
+		printf("%4d ",last_music.a);
+	}
+	else {
+		printf("---- ");
+	}
+
+	if (current_music.b!=last_music.b) {
+		printf("%4d ",last_music.b);
+	}
+	else {
+		printf("---- ");
+	}
+
+	if (current_music.c!=last_music.c) {
+		printf("%4d ",last_music.c);
+	}
+	else {
+		printf("---- ");
+	}
+
+	if (current_music.n!=last_music.n) {
+		printf("%3d ",last_music.n);
+	}
+	else {
+		printf("--- ");
+	}
+
+	printf("N:");
+	if (last_music.m&0x20) printf("-"); else printf("C");
+	if (last_music.m&0x10) printf("-"); else printf("B");
+	if (last_music.m&0x08) printf("-"); else printf("A");
+	printf(" T:");
+	if (last_music.m&0x04) printf("-"); else printf("C");
+	if (last_music.m&0x02) printf("-"); else printf("B");
+	if (last_music.m&0x01) printf("-"); else printf("A");
+	printf(" ");
+
+	if (current_music.aa!=last_music.aa) {
+		printf("A%2d ",last_music.aa);
+	}
+	else {
+		printf("--- ");
+	}
+	if (current_music.ab!=last_music.ab) {
+		printf("B%2d ",last_music.ab);
+	}
+	else {
+		printf("--- ");
+	}
+	if (current_music.ac!=last_music.ac) {
+		printf("C%2d ",last_music.ac);
+	}
+	else {
+		printf("--- ");
+	}
+
+
+	if (current_music.e!=last_music.e) {
+		printf("%4d ",last_music.e);
+	}
+	else {
+		printf("---- ");
+	}
+
+	printf("\n");
+
+	return;
+}
+
 int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 			struct frame_stats *ds,
 			int diff_mode,
@@ -350,7 +433,6 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	int j;
 
 	unsigned char frame[YM5_FRAME_SIZE];
-	unsigned char last_frame[YM5_FRAME_SIZE];
 
 	int a_period,b_period,c_period,n_period,e_period;
 	double a_freq=0.0, b_freq=0.0, c_freq=0.0,n_freq=0.0,e_freq=0.0;
@@ -378,6 +460,18 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	c_period=((frame[5]&0xf)<<8)|frame[4];
 	n_period=frame[6]&0x1f;
 	e_period=((frame[12]&0xff)<<8)|frame[11];
+
+	if (diff_mode) {
+		current_music.a=a_period;
+		current_music.b=b_period;
+		current_music.c=c_period;
+		current_music.n=n_period;
+		current_music.e=e_period;
+		current_music.m=frame[7]&0x3f;
+		current_music.aa=frame[8]&0x3f;
+		current_music.ab=frame[9]&0x3f;
+		current_music.ac=frame[10]&0x3f;
+	}
 
 	if (a_period>0) a_freq=ym_song->master_clock/(16.0*(double)a_period);
 	if (b_period>0) b_freq=ym_song->master_clock/(16.0*(double)b_period);
@@ -429,13 +523,19 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	}
 
 	if (diff_mode) {
+		int frames_different=0;
+
 		for(j=0;j<YM5_FRAME_SIZE;j++) {
 			if (frame[j]!=last_frame[j]) {
-				printf("%d: %d\n",frame_num,j);
+				frames_different=1;
 			}
 		}
 
+		if (frames_different) print_diff(frame_num);
+
 		memcpy(last_frame,frame,sizeof(frame));
+		memcpy(&last_music,&current_music,sizeof(current_music));
+
 	}
 
 	/* Scale if needed */
