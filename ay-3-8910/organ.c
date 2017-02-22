@@ -29,13 +29,38 @@ static int shift_size=16;
 
 static int current_instrument=0;
 
+#define MAX_DRUMS	2
 #define MAX_INSTRUMENTS 6
 
 struct instrument_type {
 	int envelope[10];
 	int length;
 	char *name;
-} instruments[MAX_INSTRUMENTS] = {
+};
+
+struct drum_type {
+	int envelope[14];
+	int period[14];
+	int length;
+	char *name;
+};
+
+struct drum_type drum[MAX_DRUMS] = {
+	{
+	.name="raw",
+	.envelope={15,15,15,15,15,15,15,15,15,15},
+	.period=  { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5},
+	.length=5,
+	},
+	{
+	.name="boom",
+	.envelope={13,11, 9, 7, 5, 3, 12, 10, 8, 6, 4, 2, 14},
+	.period=  { 1, 6, 6, 6, 6, 6,  6,  6, 6, 6, 6, 1,  1},
+	.length=13,
+	},
+};
+
+struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	{
 	.name="raw",
 	.envelope={15,15,15,15,15,15,15,15,15,15},
@@ -115,7 +140,10 @@ static int play_organ(void) {
 	int quit=0;
 
 	int octave=4;
-	int a_freq=0,a_length=0,a_enabled=0;
+	int a_period=0,a_length=0,a_enabled=0;
+	int b_period=0,b_length=0,b_enabled=0;
+	int c_period=0,c_length=0,c_enabled=0;
+	int n_count=0,n_enabled=0,n_type=0;
 
 	struct termios new_tty;
 
@@ -163,47 +191,63 @@ static int play_organ(void) {
 			case 'q': quit=1; break;
 
 			case 'a':
-				printf("a");
 				freq=note_to_freq('C',0,0,octave);
-				a_freq=master_clock/(16.0*freq);
+				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
 			case 's':
 				freq=note_to_freq('D',0,0,octave);
-				a_freq=master_clock/(16.0*freq);
+				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
 			case 'd':
 				freq=note_to_freq('E',0,0,octave);
-				a_freq=master_clock/(16.0*freq);
+				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
 			case 'f':
 				freq=note_to_freq('F',0,0,octave);
-				a_freq=master_clock/(16.0*freq);
+				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
 			case 'g':
 				freq=note_to_freq('G',0,0,octave);
-				a_freq=master_clock/(16.0*freq);
+				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
 			case 'h':
 				freq=note_to_freq('A',0,0,octave);
-				a_freq=master_clock/(16.0*freq);
+				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
 			case 'j':
 				freq=note_to_freq('B',0,0,octave);
-				a_freq=master_clock/(16.0*freq);
+				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
+				break;
+			case '.':
+				n_type=0;
+				n_enabled=1;
+				n_count=0;
+
+				b_enabled=1;
+				b_length=drum[n_type].length;
+				break;
+
+			case ',':
+				n_type=1;
+				n_enabled=1;
+				n_count=0;
+
+				b_enabled=1;
+				b_length=drum[n_type].length;
 				break;
 
 			}
@@ -215,16 +259,42 @@ static int play_organ(void) {
 		/****************************************/
 
 		if (a_enabled) {
-			frame[0]=a_freq&0xff;
-			frame[1]=(a_freq>>8)&0xf;
-			frame[7]=0x38;
-			//printf("Before: %x %d %d\n",
-			//	frame[8],10-a_length,envelope[10-a_length]);
+			frame[0]=a_period&0xff;
+			frame[1]=(a_period>>8)&0xf;
+		}
+		if (b_enabled) {
+			frame[2]=b_period&0xff;
+			frame[3]=(b_period>>8)&0xf;
+		}
+
+		if (n_enabled) {
+			frame[6]=drum[n_type].period[n_count];
+		}
+
+		/* Setup mixer */
+		frame[7]=(c_enabled<<5)|(b_enabled<<4)|(a_enabled<<3)|
+			(n_enabled<<1);
+
+		/* Setup amplitude */
+		if (a_enabled) {
 			frame[8]=instruments[current_instrument].envelope[10-a_length]; //envelope[a_length-10];  // amp A
 		}
 		else {
 			frame[8]=0x0;
 		}
+
+		if (n_enabled) {
+			frame[9]=drum[n_type].envelope[n_count];
+		}
+
+		if (c_enabled) {
+			frame[10]=0x10;
+		}
+		else {
+			frame[10]=0x0;
+		}
+
+
 
 		if (play_music) {
 			for(j=0;j<13;j++) {
@@ -268,8 +338,23 @@ static int play_organ(void) {
 		start.tv_usec=next.tv_usec;
 
 		frames++;
+
 		if (a_length) a_length--;
+		if (b_length) b_length--;
+		if (c_length) c_length--;
+
+		if (n_enabled) n_count++;
+
 		if (a_length==0) a_enabled=0;
+		if (b_length==0) b_enabled=0;
+		if (c_length==0) c_enabled=0;
+
+		if (n_count>drum[n_type].length) {
+			n_enabled=0;
+			b_enabled=0;
+		}
+		printf("%d %d %d\n",n_count,n_enabled,b_enabled);
+
 	}
 
 	tcsetattr (0, TCSANOW, &saved_tty);
