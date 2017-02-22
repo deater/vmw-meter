@@ -145,6 +145,76 @@ int display_string(char *led_string) {
 
 #define NUM_ALPHANUM	12
 
+/* Currently we are 8 50Hz interrupts per 16th note */
+#define MAX_LYRIC_LEN	8
+
+
+static int ignore_led=0;
+
+static int parse_lyric(struct lyric_type *l, int lnum, char *string) {
+
+	int length=0,sub=0;
+	int ch;
+
+	while(1) {
+
+		ch=l->l[lnum].text[sub];
+
+		if (ch==0) break;
+
+		/* Handle special escape characters */
+		if (ch=='\\') {
+			sub++;
+			ch=l->l[lnum].text[sub];
+
+			/* \i means don't write text to LED display */
+			if (ch=='i') {
+				ignore_led=1;
+			}
+
+			/* \n is special, we delay updating LED */
+			if (ch=='n') {
+				string[length]='\n';
+				length++;
+				if (length>MAX_LYRIC_LEN) break;
+			}
+
+			/* \1 - \: (i.e. 1-10) */
+			/* Update ASCII art on screen and 8x16 panel */
+			if ((ch>='1')&&(ch<=':')) {
+				print_ascii_art(ch-'1');
+				display_led_art(ch-'1');
+			}
+
+			/* \f means clear screen */
+			if (ch=='f') {
+				string[length]='\f';
+				length++;
+				if (length>MAX_LYRIC_LEN) break;
+			}
+		}
+
+		else {
+			string[length]=ch;
+			length++;
+			if (length>MAX_LYRIC_LEN) break;
+		}
+
+		sub++;
+
+	}
+
+	if (length>MAX_LYRIC_LEN) {
+		fprintf(stderr,"ERROR! LYRIC TOO LONG!\n");
+		return -1;
+	}
+
+	/* NUL terminate */
+	string[length]=0;
+
+	return length;
+}
+
 static int lyrics_play(struct lyric_type *l) {
 
 	int frame=0,lnum=0,sub=0;
@@ -159,7 +229,8 @@ static int lyrics_play(struct lyric_type *l) {
 
 	struct ym_song_t ym_song;
 
-	int ignore_led=0;
+	int lyric_active=0;
+	char current_lyric[MAX_LYRIC_LEN+1];
 
 	result=load_ym_song("sa/sa.ym5",&ym_song);
 	if (result<0) {
@@ -170,57 +241,50 @@ static int lyrics_play(struct lyric_type *l) {
 
         gettimeofday(&start,NULL);
 
+	frame=0;
 	while(1) {
+
+		/* Play the music for this frame */
 		ym_play_frame(&ym_song,frame,shift_size,
 				NULL,0,play_music);
 
-		frame++;
 
-		if (frame>=l->l[lnum].frame) {
+		/* Parse any lyric updates for this frame */
 
+		/* We cross a lyric threshold, start a lyric */
+		if (frame==l->l[lnum].frame) {
+			lyric_active=1;
 			sub=0;
 			ignore_led=0;
-			while(1) {
-				if (l->l[lnum].text[sub]==0) break;
+			parse_lyric(l,lnum,current_lyric);
+		}
 
-				if (l->l[lnum].text[sub]=='\\') {
-					sub++;
-					ch=l->l[lnum].text[sub];
+		if (lyric_active) {
+			ch=current_lyric[sub];
+			if (ch==0) {
+				lyric_active=0;
+				lnum++;
+			}
+			else if (ch=='\n') {
+				y_line++;
+				sprintf(string,"\n\033[%d;2H",y_line);
+				write(1,string,strlen(string));
 
-					if (ch=='i') {
-						ignore_led=1;
-					}
+				if (!ignore_led) clear_next=1;
+			}
+			else if (ch=='\f') {
+				clear_things(0);
+				y_line=2;
 
-					if (ch=='n') {
-						y_line++;
-						sprintf(string,"\n\033[%d;2H",y_line);
-						write(1,string,strlen(string));
-
-						if (!ignore_led) clear_next=1;
-
-					}
-					if ((ch>='1')&&(ch<=':')) {
-						print_ascii_art(ch-'1');
-						display_led_art(ch-'1');
-					}
-
-					if (ch=='f') {
-						clear_things(0);
-						y_line=2;
-
-						for(i=0;i<NUM_ALPHANUM;i++) {
-							led_string[i]=' ';
-						}
-						led_offset=0;
-					}
+				for(i=0;i<NUM_ALPHANUM;i++) {
+					led_string[i]=' ';
 				}
+				led_offset=0;
+			}
+			else {
+				write(1,&ch,1);
 
-				else {
-					ch=l->l[lnum].text[sub];
-					write(1,&ch,1);
-
-					if (!ignore_led) {
-
+				if (!ignore_led) {
 					if (clear_next) {
 						for(i=0;i<NUM_ALPHANUM;i++) {
 							led_string[i]=' ';
@@ -246,35 +310,21 @@ static int lyrics_play(struct lyric_type *l) {
 						led_string[led_offset]=ch;
 					}
 					led_offset++;
-					}
 				}
-
-				if (i2c_display) display_string(led_string);
-
-				sub++;
-
-//				usleep(20000);
-//				usleep(20000);
-//				frame+=2;
-
-
 			}
-			lnum++;
+
+			if (i2c_display) display_string(led_string);
+
+			sub++;
 		}
 
 
-		/* Calculate time it actually took, and print           */
-		/* so we can see if things are going horribly wrong     */
+
+		/* Calculate time we were busy this frame */
 		gettimeofday(&next,NULL);
 		s=start.tv_sec+(start.tv_usec/1000000.0);
 		n=next.tv_sec+(next.tv_usec/1000000.0);
 		diff=(n-s)*1000000.0;
-
-//		if (frame%100==0) {
-//			double hz=1/(n-s);
-//			printf("Done frame %d/%d, %.1lfHz\n",
-//				frame,ym_song.num_frames,hz);
-//		}
 
 		start.tv_sec=next.tv_sec;
 		start.tv_usec=next.tv_usec;
@@ -289,10 +339,11 @@ static int lyrics_play(struct lyric_type *l) {
                         if (1) usleep(1000000/ym_song.frame_rate);
                 }
 
-//		usleep(20000);
 
+		frame++;
 
-		if (lnum>=l->num) break;
+		/* If hit the end of the song, then stop */
+		if (frame>ym_song.num_frames) break;
 	}
 
 	return 0;
