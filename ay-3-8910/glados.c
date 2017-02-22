@@ -142,6 +142,54 @@ int display_string(char *led_string) {
 
 }
 
+static int bargraph_i2c(int a, int b, int c) {
+
+	int i;
+
+	char buffer[17];
+
+	buffer[0]=0;
+
+	for(i=0;i<16;i++) buffer[i+1]=0x0;
+
+	/* a */
+	if (a>0) {
+		a--;
+		buffer[1]|=(2<<a)-1;
+		if (a>7) buffer[2]|=(2<<(a-8))-1;
+	}
+
+	/* b */
+	if (b>0) {
+		b--;
+		buffer[3]|=(2<<b)-1;
+		if (b>7) buffer[4]|=(2<<(b-8))-1;
+	}
+
+	/* c */
+	if (c>0) {
+		c--;
+		buffer[5]|=(2<<c)-1;
+		if (c>7) buffer[6]|=(2<<(c-8))-1;
+	}
+
+	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS0) < 0) {
+		fprintf(stderr,"Bargraph error setting i2c address %x\n",
+			HT16K33_ADDRESS0);
+		return -1;
+	}
+
+	if ( (write(i2c_fd, buffer, 17)) !=17) {
+		fprintf(stderr,"Error writing display %s!\n",
+			strerror(errno));
+		return -1;
+        }
+
+	return 0;
+}
+
+
+
 
 #define NUM_ALPHANUM	12
 
@@ -231,6 +279,7 @@ static int lyrics_play(struct lyric_type *l) {
 
 	int lyric_active=0;
 	char current_lyric[MAX_LYRIC_LEN+1];
+	struct frame_stats ds;
 
 	result=load_ym_song("sa/sa.ym5",&ym_song);
 	if (result<0) {
@@ -246,8 +295,10 @@ static int lyrics_play(struct lyric_type *l) {
 
 		/* Play the music for this frame */
 		ym_play_frame(&ym_song,frame,shift_size,
-				NULL,0,play_music);
+				&ds,0,play_music);
 
+		/* Update the bargraph */
+		bargraph_i2c(ds.a_bar,ds.b_bar,ds.c_bar);
 
 		/* Parse any lyric updates for this frame */
 
@@ -382,6 +433,12 @@ int main(int argc, char **argv) {
 	if (i2c_display) {
 
 		/* Init displays */
+
+		/* BARGRAPH */
+		if (init_display(i2c_fd,HT16K33_ADDRESS0,10)) {
+			fprintf(stderr,"Error opening display\n");
+			return -1;
+		}
 
 		/* ALPHANUM #1 */
 		if (init_display(i2c_fd,HT16K33_ADDRESS3,10)) {
@@ -843,3 +900,6 @@ static int display_led_art(int which) {
 
 	return 0;
 }
+
+
+
