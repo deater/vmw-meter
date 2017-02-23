@@ -55,7 +55,7 @@ struct drum_type drum[MAX_DRUMS] = {
 	{
 	.name="boom",
 	.envelope={13,11, 9, 7, 5, 3, 12, 10, 8, 6, 4, 2, 14},
-	.period=  { 1, 6, 6, 6, 6, 6,  6,  6, 6, 6, 6, 1,  1},
+	.period=  { 6, 6, 6, 6, 6, 6,  6,  6, 6, 6, 6, 1,  1},
 	.length=13,
 	},
 };
@@ -232,21 +232,23 @@ static int play_organ(void) {
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
-			case '.':
+			case ',':
 				n_type=0;
 				n_enabled=1;
 				n_count=0;
 
 				b_enabled=1;
+				b_period=656;
 				b_length=drum[n_type].length;
 				break;
 
-			case ',':
+			case '.':
 				n_type=1;
 				n_enabled=1;
 				n_count=0;
 
 				b_enabled=1;
+				b_period=656;
 				b_length=drum[n_type].length;
 				break;
 
@@ -258,13 +260,22 @@ static int play_organ(void) {
 		/* Write out the music			*/
 		/****************************************/
 
+		for(i=0;i<15;i++) frame[i]=0;
+
 		if (a_enabled) {
 			frame[0]=a_period&0xff;
 			frame[1]=(a_period>>8)&0xf;
 		}
+
+
 		if (b_enabled) {
 			frame[2]=b_period&0xff;
 			frame[3]=(b_period>>8)&0xf;
+		}
+
+		if (c_enabled) {
+			frame[4]=c_period&0xff;
+			frame[5]=(c_period>>8)&0xf;
 		}
 
 		if (n_enabled) {
@@ -349,12 +360,16 @@ static int play_organ(void) {
 		if (b_length==0) b_enabled=0;
 		if (c_length==0) c_enabled=0;
 
-		if (n_count>drum[n_type].length) {
+		if ((n_enabled) && (n_count>drum[n_type].length)) {
+			printf("Disabling b and n, %d > %d\n",
+				n_count,drum[n_type].length);
 			n_enabled=0;
 			b_enabled=0;
 		}
-		printf("%d %d %d\n",n_count,n_enabled,b_enabled);
 
+		if (n_enabled || b_enabled) {
+			printf("%d %d %d\n",n_count,n_enabled,b_enabled);
+		}
 	}
 
 	tcsetattr (0, TCSANOW, &saved_tty);
