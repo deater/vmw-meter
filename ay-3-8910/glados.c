@@ -295,7 +295,7 @@ static int lyrics_play(struct lyric_type *l) {
 
 		/* Play the music for this frame */
 		ym_play_frame(&ym_song,frame,shift_size,
-				&ds,0,play_music);
+				&ds,0,play_music,0);
 
 		/* Update the bargraph */
 		bargraph_i2c(ds.a_bar,ds.b_bar,ds.c_bar);

@@ -508,6 +508,15 @@ int display_update(int display_type,
 	}
 	else {
 		switch(ch) {
+			case 'a':
+				return CMD_MUTE_A;
+				break;
+			case 'b':
+				return CMD_MUTE_B;
+				break;
+			case 'c':
+				return CMD_MUTE_C;
+				break;
 			case ' ': /* pause/play */
 				return CMD_PAUSE;
 				break;

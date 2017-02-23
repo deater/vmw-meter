@@ -428,7 +428,8 @@ void print_diff(int frame_num) {
 int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 			struct frame_stats *ds,
 			int diff_mode,
-			int play_music) {
+			int play_music,
+			int mute_channel) {
 
 	int j;
 
@@ -580,6 +581,10 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 		}
 
 	}
+
+	if (mute_channel&0x1) frame[8]=0;
+	if (mute_channel&0x2) frame[9]=0;
+	if (mute_channel&0x4) frame[10]=0;
 
 	if (play_music) {
 		for(j=0;j<13;j++) {

@@ -38,5 +38,6 @@ struct frame_stats {
 int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
                         struct frame_stats *ds,
 			int diff_mode,
-			int play_music);
+			int play_music,
+			int mute_channel);
 

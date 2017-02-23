@@ -25,6 +25,7 @@
 //#define AY38910_CLOCK	1000000	/* 1MHz on our board */
 
 static int play_music=1;
+static int mute_channel=0;
 static int dump_info=0;
 static int visualize=1;
 static int display_type=DISPLAY_I2C;
@@ -132,7 +133,9 @@ static int play_song(char *filename) {
 		if (!music_paused) {
 
 			ym_play_frame(&ym_song,frame_num,shift_size,
-					&fs,diff_mode,play_music);
+					&fs,diff_mode,
+					play_music,
+					mute_channel);
 
 			if (visualize) {
 				if (display_type&DISPLAY_TEXT) {
@@ -184,6 +187,22 @@ static int play_song(char *filename) {
 		}
 		start.tv_sec=next.tv_sec;
 		start.tv_usec=next.tv_usec;
+
+		if (display_command==CMD_MUTE_A) {
+			if (mute_channel&0x01) mute_channel&=~0x01;
+			else mute_channel|=0x01;
+			printf("NEW %x\n",mute_channel);
+		}
+		if (display_command==CMD_MUTE_B) {
+			if (mute_channel&0x2) mute_channel&=~0x02;
+			else mute_channel|=0x02;
+			printf("NEW %x\n",mute_channel);
+		}
+		if (display_command==CMD_MUTE_C) {
+			if (mute_channel&0x04) mute_channel&=~0x04;
+			else mute_channel|=0x04;
+			printf("NEW %x\n",mute_channel);
+		}
 
 		if (display_command==CMD_EXIT_PROGRAM) {
 			free(ym_song.file_data);

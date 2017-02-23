@@ -17,6 +17,10 @@
 #define CMD_RW			0x6
 #define CMD_LOOP		0x7
 
+#define CMD_MUTE_A		0xA
+#define CMD_MUTE_B		0xB
+#define CMD_MUTE_C		0xC
+
 struct display_stats {
 	int a_bar,b_bar,c_bar;
 	int a_freq,b_freq,c_freq;
