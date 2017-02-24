@@ -20,6 +20,7 @@
 #define CMD_MUTE_A		0xA
 #define CMD_MUTE_B		0xB
 #define CMD_MUTE_C		0xC
+#define CMD_MUTE_N		0xD
 
 struct display_stats {
 	int a_bar,b_bar,c_bar;

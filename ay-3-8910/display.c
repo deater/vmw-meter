@@ -517,6 +517,9 @@ int display_update(int display_type,
 			case 'c':
 				return CMD_MUTE_C;
 				break;
+			case 'n':
+				return CMD_MUTE_N;
+				break;
 			case ' ': /* pause/play */
 				return CMD_PAUSE;
 				break;
