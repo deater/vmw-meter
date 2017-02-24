@@ -29,8 +29,9 @@ static int shift_size=16;
 
 static int current_instrument=0;
 
-#define MAX_DRUMS	2
+#define MAX_DRUMS	3
 #define MAX_INSTRUMENTS 6
+#define MAX_SOUNDS	2
 
 struct instrument_type {
 	int envelope[10];
@@ -45,6 +46,32 @@ struct drum_type {
 	char *name;
 };
 
+struct sound_type {
+	int envelope[40];
+	int period[40];
+	int length;
+	char *name;
+};
+
+struct sound_type sound[MAX_SOUNDS] = {
+	{
+	.name="monkey1",
+	.period   = {851,213,169,142,106,142,169,213,169,213,
+			169,142,169,142,169,213,169,142,142,},
+	.envelope = {15 , 15, 13, 13, 12, 12, 11, 11, 10, 10,
+			13,  13, 12, 12, 11, 11, 10,  9, 9,},
+	.length=18,
+	},
+	{
+	.name="monkey2",
+	.period=   {758,379,758,379,379,758,758,379,379,758,758,379,758,},
+	.envelope= {  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9},
+	.length=13,
+	},
+};
+
+
+
 struct drum_type drum[MAX_DRUMS] = {
 	{
 	.name="raw",
@@ -57,6 +84,12 @@ struct drum_type drum[MAX_DRUMS] = {
 	.envelope={13,11, 9, 7, 5, 3, 12, 10, 8, 6, 4, 2, 14},
 	.period=  { 6, 6, 6, 6, 6, 6,  6,  6, 6, 6, 6, 1,  1},
 	.length=13,
+	},
+	{
+	.name="tish",
+	.envelope={12,12,10,10, 9, 9, 8, 8, 6, 6, 4, 3, },
+	.period=  { 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, },
+	.length=12,
 	},
 };
 
@@ -142,8 +175,9 @@ static int play_organ(void) {
 	int octave=4;
 	int a_period=0,a_length=0,a_enabled=0;
 	int b_period=0,b_length=0,b_enabled=0;
-	int c_period=0,c_length=0,c_enabled=0;
+
 	int n_count=0,n_enabled=0,n_type=0;
+	int c_count=0,c_enabled=0,c_type=0;
 
 	struct termios new_tty;
 
@@ -252,6 +286,29 @@ static int play_organ(void) {
 				b_length=drum[n_type].length;
 				break;
 
+			case '/':
+				n_type=2;
+				n_enabled=1;
+				n_count=0;
+
+				b_enabled=1;
+				b_period=0;
+				b_length=drum[n_type].length;
+				break;
+
+			case 'p':
+				c_type=0;
+				c_enabled=1;
+				c_count=0;
+				break;
+
+			case 'o':
+				c_type=1;
+				c_enabled=1;
+				c_count=0;
+				break;
+
+
 			}
 		}
 		if (quit) break;
@@ -274,8 +331,8 @@ static int play_organ(void) {
 		}
 
 		if (c_enabled) {
-			frame[4]=c_period&0xff;
-			frame[5]=(c_period>>8)&0xf;
+			frame[4]=(sound[c_type].period[c_count])&0xff;
+			frame[5]=((sound[c_type].period[c_count])>>8)&0xf;
 		}
 
 		if (n_enabled) {
@@ -283,15 +340,17 @@ static int play_organ(void) {
 		}
 
 		/* Setup mixer */
-		frame[7]=(c_enabled<<5)|(b_enabled<<4)|(a_enabled<<3)|
-			(n_enabled<<1);
+		if (!c_enabled) frame[7]|=0x4;
+		if (!b_enabled) frame[7]|=0x2;
+		if (!a_enabled) frame[7]|=0x1;
+		if (!n_enabled) frame[7]|=0x10;
+		frame[7]|=0x20;
+		frame[7]|=0x08;
+
 
 		/* Setup amplitude */
 		if (a_enabled) {
 			frame[8]=instruments[current_instrument].envelope[10-a_length]; //envelope[a_length-10];  // amp A
-		}
-		else {
-			frame[8]=0x0;
 		}
 
 		if (n_enabled) {
@@ -299,10 +358,7 @@ static int play_organ(void) {
 		}
 
 		if (c_enabled) {
-			frame[10]=0x10;
-		}
-		else {
-			frame[10]=0x0;
+			frame[10]=sound[c_type].envelope[c_count];
 		}
 
 
@@ -352,24 +408,27 @@ static int play_organ(void) {
 
 		if (a_length) a_length--;
 		if (b_length) b_length--;
-		if (c_length) c_length--;
 
+		if (c_enabled) c_count++;
 		if (n_enabled) n_count++;
 
 		if (a_length==0) a_enabled=0;
 		if (b_length==0) b_enabled=0;
-		if (c_length==0) c_enabled=0;
+
+		if ((c_enabled) && (c_count>sound[c_type].length)) {
+			c_enabled=0;
+		}
 
 		if ((n_enabled) && (n_count>drum[n_type].length)) {
-			printf("Disabling b and n, %d > %d\n",
-				n_count,drum[n_type].length);
+//			printf("Disabling b and n, %d > %d\n",
+//				n_count,drum[n_type].length);
 			n_enabled=0;
 			b_enabled=0;
 		}
 
-		if (n_enabled || b_enabled) {
-			printf("%d %d %d\n",n_count,n_enabled,b_enabled);
-		}
+//		if (n_enabled || b_enabled) {
+//			printf("%d %d %d\n",n_count,n_enabled,b_enabled);
+//		}
 	}
 
 	tcsetattr (0, TCSANOW, &saved_tty);
