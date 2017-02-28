@@ -1,0 +1,30 @@
+Create all the Footprints
+
+create netlist by hand
+
+load it (???)
+
+Start pcb
+
+Preferences.
+	Set size of board
+	Update DRC, as defaults a bit too loose (?which one?)
+	
+
+before routing, turn off all the layers except top/bottom
+
+
+load netlist
+
+Optimize ratsnest
+	"O" (Connection)	
+
+
+
+
+
+#Edit display.sch by hand (??)
+#
+#gsch2pcb -d ../footprints/ display.sch
+#
+#select -> disperse_all_elements
