@@ -8,9 +8,10 @@ Element[ "" "Left Speaker" "" "" 0 0 25000 5000 0 150 ""]
 (
 
 # 3 Corner Pins
-	Pin[  -125.00mil   125.00mil 85.00mil 0.00mil 85.00mil 125.00mil "" "" 0x9]
-	Pin[  -125.00mil  2625.50mil 85.00mil 0.00mil 85.00mil 125.00mil "" "" 0x9]
-	Pin[ -1062.50mil  2625.50mil 85.00mil 0.00mil 85.00mil 125.00mil "" "" 0x9]
+	#         X           Y       Thick     Clear    Mask     Hole
+	Pin[  -125.00mil   125.00mil 125.00mil 10.00mil 125.00mil 125.00mil "" "" 0x9]
+	Pin[  -125.00mil  2625.50mil 125.00mil 10.00mil 125.00mil 125.00mil "" "" 0x9]
+	Pin[ -1062.50mil  2625.50mil 125.00mil 10.00mil 125.00mil 125.00mil "" "" 0x9]
 
 # Outline
 	ElementLine[     0.00mil    0.00mil  -300.00mil     0.00mil 10.00mil]
