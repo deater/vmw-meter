@@ -5,16 +5,17 @@
 # Measurements are taken from the datasheet
 #
 
-Element["" "hex_washer_125" "" "" 20062 18801 -169000 -210000 0 100 ""]
+Element["" "hex_washer_125" "" "" 0 0 0 0 0 100 ""]
 (
-	Pin[0 0 15000 1000 16000 12600 "" "1" 0x9]
-	ElementLine [-12500 0 -6250 10820 100]
-	ElementLine [-6250 10820 6250 10820 100]
-	ElementLine [6250 10820 12500 0 100]
-	ElementLine [12500 0 6250 -10820 100]
-	ElementLine [6250 -10820 -6250 -10820 100]
-	ElementLine [-6250 -10820 -12500 0 100]
-	ElementArc [0 0 6500 6500 0 360 100]
-	ElementArc [0 0 12500 12500 0 360 100]
+#               x y thickness clearance mask      drill	    name number flags
+	Pin[	0 0 150.00mil 15.00mil  160.00mil 126.00mil ""   "1"     "pin,hole"]
+	ElementLine [-12500 0 -6250 10820 200]
+	ElementLine [-6250 10820 6250 10820 200]
+	ElementLine [6250 10820 12500 0 200]
+	ElementLine [12500 0 6250 -10820 200]
+	ElementLine [6250 -10820 -6250 -10820 200]
+	ElementLine [-6250 -10820 -12500 0 200]
+	ElementArc [0 0 6500 6500 0 360 200]
+	ElementArc [0 0 12500 12500 0 360 200]
 
-	)
+)
