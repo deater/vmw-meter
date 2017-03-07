@@ -1,0 +1,51 @@
+
+
+
+Parts:
+
+Display 
+
+	NAME		WHERE		PART#		QTY	PRICE	TOTAL
+	PCB		OSH-PARK	VMW-DISPLAY	1	$40.00	$40.00
+	i2c-14seg	AdaFruit	?		3
+	i2c-8x16	AdaFruit	?		1
+	ht16k33 breaout	AdaFruit	?		1
+	Buttons		AdaFruit	?		8
+	OWO Resistors	?				8
+	Diode		?		?		1
+	RGY 10-seg LED	Jameco		?		6
+	1/8" spacers	Mouser		?		?
+	#2 Screws	Mouser		?		?
+	4-pin header	?		?		?
+	20-pin sockets	?		?		6
+
+Sound Board
+
+	AY-3-8910	E-bay		?		2
+	3.5mm Audio	DigiKey		?		1
+	1MHz Osc	?		?		1
+	Osc Socket
+	74HC595N	?		?		2
+	PCB		OSHPARK		VMW-SOUND	1	$40.00
+	40-pin header	AdaFruit
+	Level Shifter	AdaFruit	?		2
+	MAX98306 Break	AdaFruit	?		1
+	Resistors
+	Capacitors
+	1-wire DS1280	AdaFruit	?		1
+	4-pin header
+	40-pin sockets					2
+	4 Ohm Speakers	AdaFruit	?		1
+
+	Optional:
+
+	i2c EEPROM
+	8-pin socket
+	i2c-RTC
+
+Overall:
+	Case		?		?		?
+	XA Power Supply	?		?		?
+	Mounting Screws
+	Raspberry Pi2	?		?		?	$35.00
+	SD-Card		?		?		?
