@@ -153,7 +153,7 @@ static int play_song(char *filename) {
 				ds.b_freq=fs.b_freq;
 				ds.c_freq=fs.c_freq;
 
-				display_command=display_update(display_type,
+				display_update(display_type,
 							&ds,
 							frame_num,
 							ym_song.num_frames,
@@ -191,85 +191,88 @@ static int play_song(char *filename) {
 		start.tv_sec=next.tv_sec;
 		start.tv_usec=next.tv_usec;
 
-		if (display_command==CMD_MUTE_A) {
-			if (mute_channel&0x01) mute_channel&=~0x01;
-			else mute_channel|=0x01;
-			printf("NEW %x\n",mute_channel);
-		}
-		if (display_command==CMD_MUTE_B) {
-			if (mute_channel&0x2) mute_channel&=~0x02;
-			else mute_channel|=0x02;
-			printf("NEW %x\n",mute_channel);
-		}
-		if (display_command==CMD_MUTE_C) {
-			if (mute_channel&0x04) mute_channel&=~0x04;
-			else mute_channel|=0x04;
-			printf("NEW %x\n",mute_channel);
-		}
-		if (display_command==CMD_MUTE_N) {
-			if (mute_channel&0x05) mute_channel&=~0x05;
-			else mute_channel|=0x05;
-			printf("NEW %x\n",mute_channel);
-		}
+		/* Handle keypresses */
+		do {
+			display_command=display_read_keypad(display_type);
 
-		if (display_command==CMD_EXIT_PROGRAM) {
-			free(ym_song.file_data);
-			return CMD_EXIT_PROGRAM;
-		}
-
-		/* prev song */
-		if (display_command==CMD_BACK) {
-			free(ym_song.file_data);
-			return CMD_BACK;
-		}
-		/* next song */
-		if (display_command==CMD_FWD) {
-			free(ym_song.file_data);
-			return CMD_FWD;
-		}
-
-		/* rewind = Beginning of track */
-		if (display_command==CMD_RW) {
-			frame_num=0;
-		}
-
-		/* fastfwd = skip ahead 5s */
-		if (display_command==CMD_FF) {
-			frame_num+=5*ym_song.frame_rate;
-		}
-
-
-		if (display_command==CMD_PAUSE) {
-			if (music_paused) {
-				music_paused=0;
-//				max98306_disable();
+			if (display_command==CMD_MUTE_A) {
+				if (mute_channel&0x01) mute_channel&=~0x01;
+				else mute_channel|=0x01;
+				printf("NEW %x\n",mute_channel);
 			}
-			else {
-				music_paused=1;
-				quiet_ay_3_8910(shift_size);
-//				max98306_enable();
+			if (display_command==CMD_MUTE_B) {
+				if (mute_channel&0x2) mute_channel&=~0x02;
+				else mute_channel|=0x02;
+				printf("NEW %x\n",mute_channel);
 			}
-		}
+			if (display_command==CMD_MUTE_C) {
+				if (mute_channel&0x04) mute_channel&=~0x04;
+				else mute_channel|=0x04;
+				printf("NEW %x\n",mute_channel);
+			}
+			if (display_command==CMD_MUTE_N) {
+				if (mute_channel&0x05) mute_channel&=~0x05;
+				else mute_channel|=0x05;
+				printf("NEW %x\n",mute_channel);
+			}
 
-		if (display_command==CMD_VOL_UP) {
-			volume++;
-			if (volume>5) volume=5;
-			max98306_set_volume(volume);
-		}
+			if (display_command==CMD_EXIT_PROGRAM) {
+				free(ym_song.file_data);
+				return CMD_EXIT_PROGRAM;
+			}
 
-		if (display_command==CMD_VOL_DOWN) {
-			volume--;
-			if (volume<0) volume=0;
-			max98306_set_volume(volume);
-		}
+			/* prev song */
+			if (display_command==CMD_BACK) {
+				free(ym_song.file_data);
+				return CMD_BACK;
+			}
+			/* next song */
+			if (display_command==CMD_FWD) {
+				free(ym_song.file_data);
+				return CMD_FWD;
+			}
+
+			/* rewind = Beginning of track */
+			if (display_command==CMD_RW) {
+				frame_num=0;
+			}
+
+			/* fastfwd = skip ahead 5s */
+			if (display_command==CMD_FF) {
+				frame_num+=5*ym_song.frame_rate;
+			}
+
+			if (display_command==CMD_PAUSE) {
+				if (music_paused) {
+					music_paused=0;
+//					max98306_disable();
+				}
+				else {
+					music_paused=1;
+					quiet_ay_3_8910(shift_size);
+//					max98306_enable();
+				}
+			}
+
+			if (display_command==CMD_VOL_UP) {
+				volume++;
+				if (volume>5) volume=5;
+				max98306_set_volume(volume);
+			}
+
+			if (display_command==CMD_VOL_DOWN) {
+				volume--;
+				if (volume<0) volume=0;
+				max98306_set_volume(volume);
+			}
 
 
-		if (display_command==CMD_LOOP) {
-			music_loop=!music_loop;
-			if (music_loop) printf("MUSIC LOOP ON\n");
-			else printf("MUSIC LOOP OFF\n");
-		}
-
+			if (display_command==CMD_LOOP) {
+				music_loop=!music_loop;
+				if (music_loop) printf("MUSIC LOOP ON\n");
+				else printf("MUSIC LOOP OFF\n");
+			}
+		} while (music_paused);
 
 		/* increment frame */
 		if (!music_paused) frame_num++;

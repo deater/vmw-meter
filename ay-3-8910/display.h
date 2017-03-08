@@ -36,5 +36,6 @@ int display_update(int type,
 			struct display_stats *ds,
 			int current_frame, int num_frames,
 			char *filename, int new_filename);
+int display_read_keypad(int display_type);
 int display_shutdown(int type);
 

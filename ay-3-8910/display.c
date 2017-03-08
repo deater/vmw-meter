@@ -454,11 +454,6 @@ int display_update(int display_type,
 		int current_frame, int num_frames,
 		char *filename, int new_filename) {
 
-	unsigned char ch;
-	int result;
-	long long keypad;
-	static int old_keypad=0;
-	static int keypad_skip;
 
 	bargraph(display_type, ds->a_bar, ds->b_bar, ds->c_bar);
 
@@ -481,6 +476,17 @@ int display_update(int display_type,
 			break;
 	}
 
+	return 0;
+}
+
+
+int display_read_keypad(int display_type) {
+
+	unsigned char ch;
+	int result;
+	long long keypad;
+	static int old_keypad=0;
+	static int keypad_skip;
 
 	/* Read from Keyboard */
 	result=read(0,&ch,1);
