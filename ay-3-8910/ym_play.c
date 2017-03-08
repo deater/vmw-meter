@@ -245,12 +245,12 @@ static int play_song(char *filename) {
 			if (display_command==CMD_PAUSE) {
 				if (music_paused) {
 					music_paused=0;
-//					max98306_disable();
+					max98306_enable();
 				}
 				else {
 					music_paused=1;
 					quiet_ay_3_8910(shift_size);
-//					max98306_enable();
+					max98306_disable();
 				}
 			}
 
@@ -272,6 +272,8 @@ static int play_song(char *filename) {
 				if (music_loop) printf("MUSIC LOOP ON\n");
 				else printf("MUSIC LOOP OFF\n");
 			}
+			/* Avoid spinning CPU if paused */
+			if (music_paused) usleep(100000);
 		} while (music_paused);
 
 		/* increment frame */
