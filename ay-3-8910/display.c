@@ -544,6 +544,13 @@ int display_update(int display_type,
 					current_mode=0;
 				}
 				break;
+			case '-': /* volume down */
+				return CMD_VOL_DOWN;
+				break;
+			case '=':
+			case '+':
+				return CMD_VOL_UP;
+				break;
 			case 'q':
 			case 'Q':
 			case 27:

@@ -17,6 +17,9 @@
 #define CMD_RW			0x6
 #define CMD_LOOP		0x7
 
+#define CMD_VOL_UP		0x8
+#define CMD_VOL_DOWN		0x9
+
 #define CMD_MUTE_A		0xA
 #define CMD_MUTE_B		0xB
 #define CMD_MUTE_C		0xC

@@ -35,12 +35,14 @@ static int music_repeat=0;
 static int music_paused=0;
 static int music_loop=0;
 static int diff_mode=0;
+static int volume=1;
 
 static void quiet_and_exit(int sig) {
 
 	if (play_music) {
 		quiet_ay_3_8910(shift_size);
 		close_ay_3_8910();
+		max98306_free();
 	}
 
 	display_shutdown(display_type);
@@ -240,12 +242,27 @@ static int play_song(char *filename) {
 		if (display_command==CMD_PAUSE) {
 			if (music_paused) {
 				music_paused=0;
+//				max98306_disable();
 			}
 			else {
 				music_paused=1;
 				quiet_ay_3_8910(shift_size);
+//				max98306_enable();
 			}
 		}
+
+		if (display_command==CMD_VOL_UP) {
+			volume++;
+			if (volume>5) volume=5;
+			max98306_set_volume(volume);
+		}
+
+		if (display_command==CMD_VOL_DOWN) {
+			volume--;
+			if (volume<0) volume=0;
+			max98306_set_volume(volume);
+		}
+
 
 		if (display_command==CMD_LOOP) {
 			music_loop=!music_loop;
@@ -376,6 +393,16 @@ int main(int argc, char **argv) {
 			printf("Maybe try running as root?\n\n");
 			exit(0);
 		}
+		result=max98306_init();
+		if (result<0) {
+			printf("Error initializing max98306 amp\n");
+			exit(0);
+		}
+		result=max98306_enable();
+
+		printf("Headphone is: %d\n",
+			max98306_check_headphone());
+
 	}
 
 	/* Initialize the displays */
@@ -428,6 +455,7 @@ int main(int argc, char **argv) {
 	if (play_music) {
 		quiet_ay_3_8910(shift_size);
 		close_ay_3_8910();
+		max98306_free();
 	}
 
 	/* Clear out display */
