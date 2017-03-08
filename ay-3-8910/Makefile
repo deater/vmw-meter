@@ -18,8 +18,9 @@ ym_lib.o:	ym_lib.c ym_lib.h
 	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c ym_lib.c
 
 
-ym_play:	ym_play.o ay-3-8910.o display.o ym_lib.o ../lib/i2c_lib.o
-	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym_play ym_play.o ay-3-8910.o display.o ym_lib.o \
+ym_play:	ym_play.o ay-3-8910.o display.o max98306.o ym_lib.o ../lib/i2c_lib.o
+	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym_play ym_play.o ay-3-8910.o \
+			max98306.o display.o ym_lib.o \
 			../lib/i2c_lib.o /usr/local/lib/libbcm2835.a
 
 ym_play.o:	ym_play.c display.h ay-3-8910.h
@@ -73,6 +74,9 @@ ay-3-8910.o:	ay-3-8910.c ay-3-8910.h
 
 display.o:	display.c display.h font.h
 	$(CC) $(CFLAGS) -c display.c
+
+max98306.o:	max98306.c max98306.h
+	$(CC) $(CFLAGS) -c max98306.c
 
 notes.o:	notes.c notes.h
 	$(CC) $(CFLAGS) -c notes.c
