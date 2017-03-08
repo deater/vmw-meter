@@ -112,7 +112,7 @@ int max98306_check_headphone(void) {
 
 	/* Read Headphone GPIO */
 	sprintf(buffer,"/sys/class/gpio/gpio%d/value",HEADPHONE_GPIO);
-	fd=open(buffer,O_WRONLY);
+	fd=open(buffer,O_RDONLY);
 	if (fd<0) {
 		printf("Error opening value %s\n",strerror(errno));
 		return -1;
