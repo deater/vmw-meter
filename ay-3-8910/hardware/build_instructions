@@ -24,7 +24,7 @@ Sound Board
 	AY-3-8910	E-bay		?		2
 	3.5mm Audio	DigiKey		?		1
 	1MHz Osc	?		?		1
-	Osc Socket
+	Osc Socket					1
 	74HC595N	?		?		2
 	PCB		OSHPARK		VMW-SOUND	1	$40.00
 	40-pin header	AdaFruit
