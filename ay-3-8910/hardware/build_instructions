@@ -19,6 +19,61 @@ Display
 	4-pin header	?		?		?
 	20-pin sockets	?		?		6
 
+	i2c cable:
+	header, 4 pins, wire
+
+	header		Jameco	152734			2
+		.1" 4pin HSG
+	pins		Jameco	????			8
+
+
+
+1. Get the purple PCBs from OSH Park
+2. File down the little nubs around the edges, especially in the speaker
+	areas
+3. Make an i2c cable.  see the pi cluster directions.
+	not labeled on Mark1 PCB
+	square is VDD, then it's SDA, GND, SCL
+
+3. First solder on the things on the back.  First the 4 pin socket.
+
+4. Next to the ht16k33 breakout.  (Build it first, putting the pin
+	headers on each side)  We leave it at default i2c address (0x70)
+
+5.  Now might be a good time to hook things up and test with i2c-scan
+	to see if it is detecting properly.
+
+6.  Next the diode and 8 resistors 39korange white orange
+
+7. 20-pin sockets
+
+8 8 switches
+
+9. 14 seg.  left is 101, middle 110 111
+
+	put screws in toprow, screw through buttom, spacer, nut
+	on bottom, wrong size, so put going down, screw, spacer
+	and nut on other side.
+WHICH ONES?
+
+
+put in 8x16
+
+11. put in bargraph. left words on bottom, right words on top
+
+12 try it out
+
+
+
+
+
+
+
+
+
+
+
+
 Sound Board
 
 	AY-3-8910	E-bay		?		2
