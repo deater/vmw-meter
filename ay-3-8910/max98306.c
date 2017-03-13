@@ -5,17 +5,16 @@
 #include <unistd.h>
 
 #include "max98306.h"
+#include <bcm2835.h>
 
-#define SHUTDOWN_GPIO	5
-#define HEADPHONE_GPIO	6
+
+#define SHUTDOWN_GPIO	21
+#define HEADPHONE_GPIO	20
 #define GAIN_GPIO	12
 #define GAIN_PRIME_GPIO	13
 
 
 int max98306_init(void) {
-
-	int fd;
-	char buffer[BUFSIZ];
 
 	/* Initialize the GPIOs */
 
@@ -23,80 +22,10 @@ int max98306_init(void) {
 	/* SHUTDOWN */
 	/************/
 
-	sprintf(buffer,"%d",SHUTDOWN_GPIO);
-	fd=open("/sys/class/gpio/export",O_WRONLY);
-	if (fd<0) {
-		printf("Error opening %s\n",strerror(errno));
-	}
-	else {
-		write(fd,buffer,strlen(buffer));
-		close(fd);
-	}
-
-	/* Set direction to output */
-	sprintf(buffer,"/sys/class/gpio/gpio%d/direction",SHUTDOWN_GPIO);
-	fd=open(buffer,O_WRONLY);
-	if (fd<0) {
-		printf("Error direction %s\n",strerror(errno));
-	}
-	else {
-		write(fd,"out",3);
-		close(fd);
-	}
-
-
-	/*************************/
-	/* HEADPHONE JACK DETECT */
-	/*************************/
-
-	sprintf(buffer,"%d",HEADPHONE_GPIO);
-	fd=open("/sys/class/gpio/export",O_WRONLY);
-	if (fd<0) {
-		printf("Error opening %s\n",strerror(errno));
-	}
-	else {
-		write(fd,buffer,strlen(buffer));
-		close(fd);
-	}
-
-	/* Set direction to input */
-	sprintf(buffer,"/sys/class/gpio/gpio%d/direction",HEADPHONE_GPIO);
-	fd=open(buffer,O_WRONLY);
-	if (fd<0) {
-		printf("Error direction %s\n",strerror(errno));
-	}
-	else {
-		write(fd,"in",2);
-		close(fd);
-	}
-
-	/********/
-	/* GAIN */
-	/********/
-
-	sprintf(buffer,"%d",GAIN_GPIO);
-	fd=open("/sys/class/gpio/export",O_WRONLY);
-	if (fd<0) {
-		printf("Error opening %s\n",strerror(errno));
-	}
-	else {
-		write(fd,buffer,strlen(buffer));
-		close(fd);
-	}
-
-	/**************/
-	/* GAIN_PRIME */
-	/**************/
-
-	sprintf(buffer,"%d",GAIN_PRIME_GPIO);
-	fd=open("/sys/class/gpio/export",O_WRONLY);
-	if (fd<0) {
-		printf("Error opening %s\n",strerror(errno));
-	}
-	else {
-		write(fd,buffer,strlen(buffer));
-		close(fd);
-	}
+	bcm2835_gpio_fsel(SHUTDOWN_GPIO,  BCM2835_GPIO_FSEL_OUTP);
+	bcm2835_gpio_fsel(HEADPHONE_GPIO, BCM2835_GPIO_FSEL_INPT);
+	bcm2835_gpio_fsel(GAIN_GPIO, BCM2835_GPIO_FSEL_INPT);
+	bcm2835_gpio_fsel(GAIN_PRIME_GPIO, BCM2835_GPIO_FSEL_INPT);
 
 	/* Set volume to low as default */
 	max98306_set_volume(1);
@@ -106,23 +35,11 @@ int max98306_init(void) {
 
 int max98306_check_headphone(void) {
 
-	int fd;
-	char buffer[BUFSIZ];
 	int value=0;
 
-	/* Read Headphone GPIO */
-	sprintf(buffer,"/sys/class/gpio/gpio%d/value",HEADPHONE_GPIO);
-	fd=open(buffer,O_RDONLY);
-	if (fd<0) {
-		printf("Error opening value %s\n",strerror(errno));
-		return -1;
-	}
-	read(fd,buffer,1);
-	close(fd);
+	value=bcm2835_gpio_lev(HEADPHONE_GPIO);
 
-	value=buffer[0];
-
-	return (value-'0');
+	return value;
 
 }
 
@@ -134,8 +51,6 @@ int max98306_set_volume(int value) {
 
 	int volume;
 	int gain_setting,gain_prime_setting;
-	char buffer[BUFSIZ];
-	int fd;
 
 	/*
 				GAIN		GAIN_PRIME
@@ -186,60 +101,34 @@ int max98306_set_volume(int value) {
 	}
 
 	/* Set GAIN value */
-	sprintf(buffer,"/sys/class/gpio/gpio%d/direction",GAIN_GPIO);
-	fd=open(buffer,O_WRONLY);
-	if (fd<0) {
-		printf("Error direction %s\n",strerror(errno));
-	}
-
 	if (gain_setting==GAIN_FLOAT) {
 		/* Set float by making an INPUT */
-		write(fd,"in",2);
-		close(fd);
+		bcm2835_gpio_fsel(GAIN_GPIO, BCM2835_GPIO_FSEL_INPT);
 	}
 	else {
-		write(fd,"out",3);
-		close(fd);
-
-		/* Write Value */
-		sprintf(buffer,"/sys/class/gpio/gpio%d/value",GAIN_GPIO);
-		fd=open(buffer,O_WRONLY);
-		if (fd<0) {
-			printf("Error opening value %s\n",strerror(errno));
-			return -1;
+		bcm2835_gpio_fsel(GAIN_GPIO, BCM2835_GPIO_FSEL_OUTP);
+		if (gain_setting==GAIN_HIGH) {
+			bcm2835_gpio_set(GAIN_GPIO);
 		}
-		buffer[0]=gain_setting+'0';
-		write(fd,buffer,1);
-		close(fd);
+		else {
+			bcm2835_gpio_clr(GAIN_GPIO);
+		}
 	}
-
 
 	/* Set GAIN_PRIME value */
-	sprintf(buffer,"/sys/class/gpio/gpio%d/direction",GAIN_PRIME_GPIO);
-	fd=open(buffer,O_WRONLY);
-	if (fd<0) {
-		printf("Error direction %s\n",strerror(errno));
-	}
-
 	if (gain_prime_setting==GAIN_FLOAT) {
 		/* Set float by making an INPUT */
-		write(fd,"in",2);
-		close(fd);
+		bcm2835_gpio_fsel(GAIN_PRIME_GPIO, BCM2835_GPIO_FSEL_INPT);
 	}
 	else {
-		write(fd,"out",3);
-		close(fd);
-
-		/* Write Value */
-		sprintf(buffer,"/sys/class/gpio/gpio%d/value",GAIN_PRIME_GPIO);
-		fd=open(buffer,O_WRONLY);
-		if (fd<0) {
-			printf("Error opening value %s\n",strerror(errno));
-			return -1;
+		bcm2835_gpio_fsel(GAIN_PRIME_GPIO, BCM2835_GPIO_FSEL_OUTP);
+		if (gain_setting==GAIN_HIGH) {
+			bcm2835_gpio_set(GAIN_PRIME_GPIO);
 		}
-		buffer[0]=gain_prime_setting+'0';
-		write(fd,buffer,1);
-		close(fd);
+		else {
+			bcm2835_gpio_clr(GAIN_PRIME_GPIO);
+		}
+
 	}
 
 	return 0;
@@ -248,36 +137,14 @@ int max98306_set_volume(int value) {
 
 int max98306_disable(void) {
 
-	int fd;
-	char buffer[BUFSIZ];
-
-	/* Push !SHUTDOWN low */
-        sprintf(buffer,"/sys/class/gpio/gpio%d/value",SHUTDOWN_GPIO);
-        fd=open(buffer,O_WRONLY);
-        if (fd<0) {
-                printf("Error opening value %s\n",strerror(errno));
-                return -1;
-        }
-	write(fd,"0",1);
-	close(fd);
+	 bcm2835_gpio_clr(SHUTDOWN_GPIO);
 
 	return 0;
 }
 
 int max98306_enable(void) {
 
-	int fd;
-	char buffer[BUFSIZ];
-
-	/* Push !SHUTDOWN high */
-        sprintf(buffer,"/sys/class/gpio/gpio%d/value",SHUTDOWN_GPIO);
-        fd=open(buffer,O_WRONLY);
-        if (fd<0) {
-                printf("Error opening value %s\n",strerror(errno));
-                return -1;
-        }
-	write(fd,"1",1);
-	close(fd);
+	 bcm2835_gpio_set(SHUTDOWN_GPIO);
 
 	return 0;
 }
