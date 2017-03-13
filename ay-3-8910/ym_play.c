@@ -36,6 +36,7 @@ static int music_paused=0;
 static int music_loop=0;
 static int diff_mode=0;
 static int volume=1;
+static int headphones=1;
 
 static void quiet_and_exit(int sig) {
 
@@ -265,6 +266,15 @@ static int play_song(char *filename) {
 				if (volume<0) volume=0;
 				max98306_set_volume(volume);
 			}
+
+			if (display_command==CMD_HEADPHONE_IN) {
+				max98306_disable();
+			}
+
+			if (display_command==CMD_HEADPHONE_OUT) {
+				max98306_enable();
+			}
+
 
 
 			if (display_command==CMD_LOOP) {

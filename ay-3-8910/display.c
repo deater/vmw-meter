@@ -557,6 +557,12 @@ int display_read_keypad(int display_type) {
 			case '+':
 				return CMD_VOL_UP;
 				break;
+			case '1':
+				return CMD_HEADPHONE_IN;
+				break;
+			case '2':
+				return CMD_HEADPHONE_OUT;
+				break;
 			case 'q':
 			case 'Q':
 			case 27:

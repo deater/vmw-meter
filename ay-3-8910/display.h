@@ -25,6 +25,10 @@
 #define CMD_MUTE_C		0xC
 #define CMD_MUTE_N		0xD
 
+#define CMD_HEADPHONE_IN	0xE
+#define CMD_HEADPHONE_OUT	0xF
+
+
 struct display_stats {
 	int a_bar,b_bar,c_bar;
 	int a_freq,b_freq,c_freq;
