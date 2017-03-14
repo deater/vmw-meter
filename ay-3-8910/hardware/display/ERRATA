@@ -5,6 +5,6 @@ For MARK1 board:
 * The lower holes on the 14seg displays do not line up.
 * The #2 drill holes are just barely big enough, could be made a bit wider.
 * The top center offset hole isn't wide enough to take a washer/nut without
-  shorting the switch contacts.  Rotate 90 degrees and 180 degrees?
+  shorting the switch contacts.
 * The 10-segment bargraph footprint is actually wider than it needs to be.
-
+* The speaker openings could use some work too.

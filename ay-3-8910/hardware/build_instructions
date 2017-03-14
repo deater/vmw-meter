@@ -81,6 +81,7 @@ Display
 	on either side, so leave those off.
 
 10.	Now put on the Adafruit 8x16 LED display.  Attach the header.
+	Configure for i2c address ???? (check on that)
 	Expand all four holes on the board.
 	The holes all work for this one, so put the screw from the bottom,
 	with a spacer and nut on top.
