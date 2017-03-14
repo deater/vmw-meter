@@ -1,2 +1,10 @@
-Forgot to label buttons
+For MARK1 board:
+
+* Forgot to label buttons
+* Forgot to label V/D/G/C on the i2c adapter socket
+* The lower holes on the 14seg displays do not line up.
+* The #2 drill holes are just barely big enough, could be made a bit wider.
+* The top center offset hole isn't wide enough to take a washer/nut without
+  shorting the switch contacts.  Rotate 90 degrees and 180 degrees?
+* The 10-segment bargraph footprint is actually wider than it needs to be.
 
