@@ -43,35 +43,59 @@ Display
 5.  Now might be a good time to hook things up and test with i2c-scan
 	to see if it is detecting properly.
 
-6.  Next the diode and 8 resistors 39korange white orange
+6.  Next the diode (band direction is indicated)
+	and 8 39k  resistors (orange white orange)
 
-7. 20-pin sockets
+7.  Next solder in the 20-pin sockets
 
-8 8 switches
+8.  Next the 8 switches.  There are bumps on the bottom of the
+	switches that slot into holes on the board, which should
+	ensure correct orientation.
 
-9. 14 seg.  left is 101, middle 110 111
+9. Now it's time for the adafruit 14-segment LED boards.
+	First solder the headers onto them.
 
-	put screws in toprow, screw through buttom, spacer, nut
-	on bottom, wrong size, so put going down, screw, spacer
-	and nut on other side.
-WHICH ONES?
+	Next, assuming you are using #2 screws, we need to enlarge the
+	drill holes on the Adafruit boards as they are just slightly too
+	small.  I used a file, a drill can maybe be used.
 
+	Solder the three boards to have different i2c addresses.
+	Left is 101, middle 110, right 111.
 
-put in 8x16
+	Now set up the spacers and screws.  This didn't really go according
+	to plan (mostly due to nut size and the lower holes being in the
+	wrong place on the Mark1 board).
 
-11. put in bargraph. left words on bottom, right words on top
+	TODO: diagram
 
-12 try it out
+	Each board will be floating a bit in the air to avoid shorting out
+	against component leads from the other side.  The height is equal
+	to one 1/8" spacer plus a nut length.  
 
+	On the top row, put the screw from the bottom, with a spacer and a nut.
+	The board should slip onto this.  There is not enough clearance
+	to put an additiona nut on top.
+	On the lower ones, put the screw in from *the top* going through 
+	a spacer with a nut on the other side.
+	The bottom holes on the middle display are too close to the ones
+	on either side, so leave those off.
 
+10.	Now put on the Adafruit 8x16 LED display.  Attach the header.
+	Expand all four holes on the board.
+	The holes all work for this one, so put the screw from the bottom,
+	with a spacer and nut on top.
 
+11.	Put the 10-segment bargraph displays into the sockets.
+	On the left side of the board the lettering on the displays should
+	face down, on the right side they should face up.
 
+12.	Put the five 0.5" standoffs into the board from the bottom, with
+	a washer and nut on top.  The top center nut won't fit w/o shorting
+	the switch, so leave it out for now.
 
+13.	Put button tops onto the buttons (colors are up to you)
 
-
-
-
-
+14.	Plug in the i2c wire and test (if you haven't been testing all along)
 
 
 Sound Board
