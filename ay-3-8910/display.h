@@ -42,4 +42,8 @@ int display_update(int type,
 			char *filename, int new_filename);
 int display_read_keypad(int display_type);
 int display_shutdown(int type);
+int bargraph(int type, int a, int b, int c);
+int display_string(int display_type,char *led_string);
+
+#define NUM_ALPHANUM	12
 

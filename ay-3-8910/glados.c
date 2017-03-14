@@ -44,7 +44,7 @@ static void quiet_and_exit(int sig) {
 		close_ay_3_8910();
 	}
 
-//	display_shutdown(display_type);
+	display_shutdown(display_type);
 
 	printf("Quieting and exiting\n");
 	_exit(0);
@@ -75,124 +75,6 @@ static int clear_things(int side_too) {
 	y_line=2;
 	return 0;
 }
-
-
-int display_string(char *led_string) {
-
-	char buffer1[17],buffer2[17],buffer3[17];
-	int i,ch;
-
-	buffer1[0]=0;
-	buffer2[0]=0;
-	buffer3[0]=0;
-
-	for(i=0;i<4;i++) {
-		ch=led_string[i];
-		buffer1[(i*2)+1]=adafruit_lookup[ch]>>8;
-		buffer1[(i*2)+2]=adafruit_lookup[ch]&0xff;
-	}
-
-	for(i=0;i<4;i++) {
-		ch=led_string[i+4];
-		buffer2[(i*2)+1]=adafruit_lookup[ch]>>8;
-		buffer2[(i*2)+2]=adafruit_lookup[ch]&0xff;
-	}
-
-	for(i=0;i<4;i++) {
-		ch=led_string[i+8];
-		buffer3[(i*2)+1]=adafruit_lookup[ch]>>8;
-		buffer3[(i*2)+2]=adafruit_lookup[ch]&0xff;
-	}
-
-	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS5) < 0) {
-		fprintf(stderr,"Bargraph error setting i2c address %x\n",
-			HT16K33_ADDRESS5);
-		return -1;
-	}
-
-	if ( (write(i2c_fd, buffer1, 17)) !=17) {
-		fprintf(stderr,"Error writing display %s!\n",
-			strerror(errno));
-		return -1;
-	}
-
-	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS3) < 0) {
-		fprintf(stderr,"Bargraph error setting i2c address %x\n",
-			HT16K33_ADDRESS3);
-		return -1;
-	}
-
-	if ( (write(i2c_fd, buffer2, 17)) !=17) {
-		fprintf(stderr,"Error writing display %s!\n",
-			strerror(errno));
-		return -1;
-	}
-
-	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS7) < 0) {
-		fprintf(stderr,"Bargraph error setting i2c address %x\n",
-			HT16K33_ADDRESS7);
-		return -1;
-	}
-
-	if ( (write(i2c_fd, buffer3, 17)) !=17) {
-		fprintf(stderr,"Error writing display %s!\n",
-			strerror(errno));
-		return -1;
-	}
-	return 0;
-
-}
-
-static int bargraph_i2c(int a, int b, int c) {
-
-	int i;
-
-	char buffer[17];
-
-	buffer[0]=0;
-
-	for(i=0;i<16;i++) buffer[i+1]=0x0;
-
-	/* a */
-	if (a>0) {
-		a--;
-		buffer[1]|=(2<<a)-1;
-		if (a>7) buffer[2]|=(2<<(a-8))-1;
-	}
-
-	/* b */
-	if (b>0) {
-		b--;
-		buffer[3]|=(2<<b)-1;
-		if (b>7) buffer[4]|=(2<<(b-8))-1;
-	}
-
-	/* c */
-	if (c>0) {
-		c--;
-		buffer[5]|=(2<<c)-1;
-		if (c>7) buffer[6]|=(2<<(c-8))-1;
-	}
-
-	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS0) < 0) {
-		fprintf(stderr,"Bargraph error setting i2c address %x\n",
-			HT16K33_ADDRESS0);
-		return -1;
-	}
-
-	if ( (write(i2c_fd, buffer, 17)) !=17) {
-		fprintf(stderr,"Error writing display %s!\n",
-			strerror(errno));
-		return -1;
-        }
-
-	return 0;
-}
-
-
-
-
-#define NUM_ALPHANUM	12
 
 /* Currently we are 8 50Hz interrupts per 16th note */
 #define MAX_LYRIC_LEN	8
@@ -299,7 +181,7 @@ static int lyrics_play(struct lyric_type *l) {
 				&ds,0,play_music,0);
 
 		/* Update the bargraph */
-		bargraph_i2c(ds.a_bar,ds.b_bar,ds.c_bar);
+		bargraph(display_type,ds.a_bar,ds.b_bar,ds.c_bar);
 
 		/* Parse any lyric updates for this frame */
 
@@ -366,7 +248,7 @@ static int lyrics_play(struct lyric_type *l) {
 			}
 
 			if (display_type==DISPLAY_I2C) {
-				display_string(led_string);
+				display_string(display_type,led_string);
 			}
 			sub++;
 		}

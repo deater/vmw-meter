@@ -115,7 +115,7 @@ static int bargraph_text(int a, int b, int c) {
 }
 
 
-static int bargraph(int type, int a, int b, int c) {
+int bargraph(int type, int a, int b, int c) {
 
 	if (type&DISPLAY_I2C) {
 		bargraph_i2c(a,b,c);
@@ -682,3 +682,70 @@ int display_init(int type) {
 
 	return result;
 }
+
+int display_string(int display_type,char *led_string) {
+
+	char buffer1[17],buffer2[17],buffer3[17];
+	int i,ch;
+
+	buffer1[0]=0;
+	buffer2[0]=0;
+	buffer3[0]=0;
+
+	for(i=0;i<4;i++) {
+		ch=led_string[i];
+		buffer1[(i*2)+1]=adafruit_lookup[ch]>>8;
+		buffer1[(i*2)+2]=adafruit_lookup[ch]&0xff;
+	}
+
+	for(i=0;i<4;i++) {
+		ch=led_string[i+4];
+		buffer2[(i*2)+1]=adafruit_lookup[ch]>>8;
+		buffer2[(i*2)+2]=adafruit_lookup[ch]&0xff;
+	}
+
+	for(i=0;i<4;i++) {
+		ch=led_string[i+8];
+		buffer3[(i*2)+1]=adafruit_lookup[ch]>>8;
+		buffer3[(i*2)+2]=adafruit_lookup[ch]&0xff;
+	}
+
+	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS5) < 0) {
+		fprintf(stderr,"Bargraph error setting i2c address %x\n",
+			HT16K33_ADDRESS5);
+		return -1;
+	}
+
+	if ( (write(i2c_fd, buffer1, 17)) !=17) {
+		fprintf(stderr,"Error writing display %s!\n",
+			strerror(errno));
+		return -1;
+	}
+
+	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS3) < 0) {
+		fprintf(stderr,"Bargraph error setting i2c address %x\n",
+			HT16K33_ADDRESS3);
+		return -1;
+	}
+
+	if ( (write(i2c_fd, buffer2, 17)) !=17) {
+		fprintf(stderr,"Error writing display %s!\n",
+			strerror(errno));
+		return -1;
+	}
+
+	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS7) < 0) {
+		fprintf(stderr,"Bargraph error setting i2c address %x\n",
+			HT16K33_ADDRESS7);
+		return -1;
+	}
+
+	if ( (write(i2c_fd, buffer3, 17)) !=17) {
+		fprintf(stderr,"Error writing display %s!\n",
+			strerror(errno));
+		return -1;
+	}
+	return 0;
+
+}
+
