@@ -18,9 +18,10 @@ ym_lib.o:	ym_lib.c ym_lib.h
 	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c ym_lib.c
 
 
-ym_play:	ym_play.o ay-3-8910.o display.o max98306.o ym_lib.o ../lib/i2c_lib.o
+ym_play:	ym_play.o ay-3-8910.o display.o max98306.o ym_lib.o 14seg_font.o \
+		../lib/i2c_lib.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym_play ym_play.o ay-3-8910.o \
-			max98306.o display.o ym_lib.o \
+			max98306.o display.o ym_lib.o 14seg_font.o\
 			../lib/i2c_lib.o /usr/local/lib/libbcm2835.a
 
 ym_play.o:	ym_play.c display.h ay-3-8910.h
@@ -34,10 +35,11 @@ ym_play.o:	ym_play.c display.h ay-3-8910.h
 lyrics.o:	lyrics.c lyrics.h
 	$(CC) $(CFLAGS) -c lyrics.c
 
-glados:	glados.o 14seg_font.o ../lib/i2c_lib.o ay-3-8910.o ym_lib.o lyrics.o
+glados:	glados.o 14seg_font.o ../lib/i2c_lib.o ay-3-8910.o ym_lib.o lyrics.o \
+		max98306.o display.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o glados glados.o 14seg_font.o \
-			lyrics.o ay-3-8910.o ym_lib.o \
-			../lib/i2c_lib.o \
+			lyrics.o ay-3-8910.o ym_lib.o max98306.o \
+			../lib/i2c_lib.o display.o \
 			/usr/local/lib/libbcm2835.a
 
 glados.o:	glados.c ym_lib.h

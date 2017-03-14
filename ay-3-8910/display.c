@@ -17,12 +17,12 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 
-
 #include "i2c_lib.h"
 
 #include "display.h"
 
 #include "font.h"
+#include "14seg_font.h"
 
 static int current_mode=MODE_TITLE;
 static int kiosk_mode=0;
@@ -44,22 +44,40 @@ static int bargraph_i2c(int a, int b, int c) {
 	/* a */
 	if (a>0) {
 		a--;
+		/* left */
 		buffer[1]|=(2<<a)-1;
 		if (a>7) buffer[2]|=(2<<(a-8))-1;
+
+		/* right */
+		buffer[7]|=(2<<a)-1;
+		if (a>7) buffer[8]|=(2<<(a-8))-1;
+
+
 	}
 
 	/* b */
 	if (b>0) {
 		b--;
+		/* left */
 		buffer[3]|=(2<<b)-1;
 		if (b>7) buffer[4]|=(2<<(b-8))-1;
+
+		/* right */
+		buffer[9]|=(2<<b)-1;
+		if (b>7) buffer[10]|=(2<<(b-8))-1;
 	}
 
 	/* c */
 	if (c>0) {
 		c--;
+
+		/* left */
 		buffer[5]|=(2<<c)-1;
 		if (c>7) buffer[6]|=(2<<(c-8))-1;
+
+		/* right */
+		buffer[11]|=(2<<c)-1;
+		if (c>7) buffer[12]|=(2<<(c-8))-1;
 	}
 
 	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS0) < 0) {
@@ -626,20 +644,41 @@ int display_init(int type) {
 			return -1;
  		}
 
-		/* Init display */
+		/* Init bargraph/keypad */
 		if (init_display(i2c_fd,HT16K33_ADDRESS0,10)) {
-			fprintf(stderr,"Error opening display\n");
+			fprintf(stderr,"Error opening bargraph display\n");
 			return -1;
 		}
 
-		/* Init display */
+		/* ALPHANUM #1 */
+		if (init_display(i2c_fd,HT16K33_ADDRESS3,10)) {
+			fprintf(stderr,"Error opening 14seg-1 display\n");
+			return -1;
+		}
+
+		/* ALPHANUM #2 */
+		if (init_display(i2c_fd,HT16K33_ADDRESS7,10)) {
+			fprintf(stderr,"Error opening 14seg-2 display\n");
+			return -1;
+		}
+
+		/* ALPHANUM #3 */
+		if (init_display(i2c_fd,HT16K33_ADDRESS5,10)) {
+			fprintf(stderr,"Error opening 14seg-3 display\n");
+			return -1;
+		}
+
+		/* Init 8x16 display */
 		if (init_display(i2c_fd,HT16K33_ADDRESS2,10)) {
-			fprintf(stderr,"Error opening display\n");
+			fprintf(stderr,"Error opening 8x16 display\n");
 			return -1;
 		}
 
 		for(i=0;i<DISPLAY_LINES;i++) display_buffer[i]=0;
 	}
+
+	/* Setup the 14seg font */
+	translate_to_adafruit();
 
 	return result;
 }

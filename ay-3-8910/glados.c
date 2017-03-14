@@ -17,6 +17,7 @@
 
 #include "ay-3-8910.h"
 #include "ym_lib.h"
+#include "max98306.h"
 
 #include <bcm2835.h>
 
@@ -24,7 +25,7 @@
 
 #include "lyrics.h"
 
-static int i2c_display=1;
+static int display_type=DISPLAY_I2C;
 static int play_music=1;
 static int shift_size=16;
 
@@ -364,8 +365,9 @@ static int lyrics_play(struct lyric_type *l) {
 				}
 			}
 
-			if (i2c_display) display_string(led_string);
-
+			if (display_type==DISPLAY_I2C) {
+				display_string(led_string);
+			}
 			sub++;
 		}
 
@@ -401,88 +403,6 @@ static int lyrics_play(struct lyric_type *l) {
 
 }
 
-int main(int argc, char **argv) {
-
-	int result;
-
-	struct lyric_type l;
-
-	/* Setup control-C handler to quiet the music   */
-	/* otherwise if you force quit it keeps playing */
-	/* the last tones */
-	signal(SIGINT, quiet_and_exit);
-
-	/* Set to have highest possible priority */
-	setpriority(PRIO_PROCESS, 0, -20);
-
-	if (play_music) {
-		result=initialize_ay_3_8910(1);
-		if (result<0) {
-			printf("Error starting music!\n");
-			play_music=0;
-		}
-	}
-
-	/* Initialize the display */
-	i2c_fd=init_i2c("/dev/i2c-1");
-	if (i2c_fd < 0) {
-		fprintf(stderr,"Error opening device!\n");
-		i2c_display=0;
-	}
-
-	if (i2c_display) {
-
-		/* Init displays */
-
-		/* BARGRAPH */
-		if (init_display(i2c_fd,HT16K33_ADDRESS0,10)) {
-			fprintf(stderr,"Error opening display\n");
-			return -1;
-		}
-
-		/* ALPHANUM #1 */
-		if (init_display(i2c_fd,HT16K33_ADDRESS3,10)) {
-			fprintf(stderr,"Error opening display\n");
-			return -1;
-		}
-
-		/* ALPHANUM #2 */
-		if (init_display(i2c_fd,HT16K33_ADDRESS7,10)) {
-			fprintf(stderr,"Error opening display\n");
-			return -1;
-		}
-
-		/* ALPHANUM #3 */ /* ? */
-		if (init_display(i2c_fd,HT16K33_ADDRESS5,10)) {
-			fprintf(stderr,"Error opening display\n");
-			return -1;
-		}
-
-		/* 8x16 */
-		if (init_display(i2c_fd,HT16K33_ADDRESS2,10)) {
-			fprintf(stderr,"Error opening display\n");
-			return -1;
-		}
-
-
-	}
-
-	translate_to_adafruit();
-
-//	display_led_art(6);
-
-	load_lyrics("sa/sa.lyrics",&l);
-
-	lyrics_play(&l);
-
-	destroy_lyrics(&l);
-
-	if (i2c_display) {
-		close(i2c_fd);
-	}
-
-	return 0;
-}
 
 /* Inspired a bit by evi1wombat */
 /* https://www.youtube.com/watch?v=hfmGnLMlKvs */
@@ -868,7 +788,7 @@ static int display_led_art(int which) {
 	int i;
 	char buffer[17];
 
-	if (!i2c_display) return 0;
+	if (display_type!=DISPLAY_I2C) return 0;
 
 	buffer[0]=0;
 
@@ -903,3 +823,56 @@ static int display_led_art(int which) {
 
 
 
+
+int main(int argc, char **argv) {
+
+	int result;
+
+	struct lyric_type l;
+
+	/* Setup control-C handler to quiet the music   */
+	/* otherwise if you force quit it keeps playing */
+	/* the last tones */
+	signal(SIGINT, quiet_and_exit);
+
+	/* Set to have highest possible priority */
+	setpriority(PRIO_PROCESS, 0, -20);
+
+	if (play_music) {
+		result=initialize_ay_3_8910(1);
+		if (result<0) {
+			printf("Error initializing bcm2835!!\n");
+			play_music=0;
+		}
+		result=max98306_init();
+		if (result<0) {
+			printf("Error initializing max98306 amp!!\n");
+			play_music=0;
+		}
+		else {
+			result=max98306_enable();
+		}
+	}
+
+	result=display_init(0);
+
+//	translate_to_adafruit();
+
+//	display_led_art(6);
+
+	load_lyrics("sa/sa.lyrics",&l);
+
+	lyrics_play(&l);
+
+	destroy_lyrics(&l);
+
+	if (play_music) {
+		quiet_ay_3_8910(shift_size);
+		close_ay_3_8910();
+		max98306_free();
+	}
+
+	display_shutdown(display_type);
+
+	return 0;
+}
