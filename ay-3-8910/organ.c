@@ -1,6 +1,6 @@
 /* Musical Organ for ay-3-8910 */
 
-#define VERSION "0.3"
+#define VERSION "0.5"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,6 +18,7 @@
 #include <bcm2835.h>
 
 #include "ay-3-8910.h"
+#include "max98306.h"
 
 #include "notes.h"
 
@@ -135,6 +136,7 @@ static void quiet_and_exit(int sig) {
 	if (play_music) {
 		quiet_ay_3_8910(shift_size);
 		close_ay_3_8910();
+		max98306_free();
 	}
 
 	tcsetattr (0, TCSANOW, &saved_tty);
@@ -493,6 +495,14 @@ int main(int argc, char **argv) {
 			printf("Maybe try running as root?\n\n");
 			exit(0);
 		}
+		result=max98306_init();
+		if (result<0) {
+			printf("Error initializing max98306 amp!!\n");
+			play_music=0;
+		}
+		else {
+			result=max98306_enable();
+		}
 	}
 
 
@@ -503,6 +513,7 @@ int main(int argc, char **argv) {
 	if (play_music) {
 		quiet_ay_3_8910(shift_size);
 		close_ay_3_8910();
+		max98306_free();
 	}
 
 	return 0;

@@ -47,8 +47,8 @@ glados.o:	glados.c ym_lib.h
 
 ###
 
-organ:	organ.o ay-3-8910.o notes.o
-	$(CC) $(LFLAGS) -o organ organ.o ay-3-8910.o notes.o /usr/local/lib/libbcm2835.a
+organ:	organ.o ay-3-8910.o max98306.o notes.o
+	$(CC) $(LFLAGS) -o organ organ.o ay-3-8910.o max98306.o notes.o /usr/local/lib/libbcm2835.a
 
 organ.o:	organ.c ay-3-8910.h
 	$(CC) $(CFLAGS) -c organ.c
