@@ -228,9 +228,9 @@ static int play_song(char *filename) {
 				return CMD_BACK;
 			}
 			/* next song */
-			if (display_command==CMD_FWD) {
+			if (display_command==CMD_NEXT) {
 				free(ym_song.file_data);
-				return CMD_FWD;
+				return CMD_NEXT;
 			}
 
 			/* rewind = Beginning of track */
@@ -243,12 +243,20 @@ static int play_song(char *filename) {
 				frame_num+=5*ym_song.frame_rate;
 			}
 
-			if (display_command==CMD_PAUSE) {
+			if (display_command==CMD_PLAY) {
 				if (music_paused) {
 					music_paused=0;
 					max98306_enable();
 				}
 				else {
+					music_paused=1;
+					quiet_ay_3_8910(shift_size);
+					max98306_disable();
+				}
+			}
+
+			if (display_command==CMD_STOP) {
+				if (!music_paused) {
 					music_paused=1;
 					quiet_ay_3_8910(shift_size);
 					max98306_disable();
@@ -450,7 +458,7 @@ int main(int argc, char **argv) {
 			next_song-=2;
 			if (next_song<0) next_song=0;
 		}
-		if (result==CMD_FWD) {
+		if (result==CMD_NEXT) {
 			/* already point to next song */
 		}
 

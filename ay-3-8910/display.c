@@ -1,8 +1,9 @@
-/* assumes two ht16k33 displays hooked up on the first i2c bus	*/
-/* first one is custom with 3 (eventually 6?) 10 seg bargraphs	*/
-/* second one is an adafruit 8x16 led matrix backpack		*/
-
-/* The bargraphs are on i2c addr 0x70, the matrix on 0x72	*/
+/* This code assumes you have a VMW-HARDWARE-CHIPTUNES-DISPLAY-MK1        */
+/* This includes five ht16k33 based displays hooked to the first i2c bus: */
+/* + A ht16k33 breakout with six 10-segment GYR bargraphs (0x70)	  */
+/*   also 8 buttons are hooked up to the ht16k33 breakout.		  */
+/* + An adafruit 8x16 led matrix backpack (0x72) 			  */
+/* + Three adafruit 14seg led backpacks (..,..,..)			  */
 
 /* Be sure to modprobe i2c-dev */
 
@@ -498,6 +499,11 @@ int display_update(int display_type,
 }
 
 
+/*        4 5        */
+/*        3 6        */
+/* 2               7 */
+/* 1               8 */
+
 int display_read_keypad(int display_type) {
 
 	unsigned char ch;
@@ -517,11 +523,14 @@ int display_read_keypad(int display_type) {
 			old_keypad=keypad;
 			if (keypad!=0) {
 				result=0;
-				if (keypad&256) ch=',';
-				if (keypad&512) ch=' ';
-				if (keypad&1024) ch='.';
-				if (keypad&2048) ch='m';
-				if (keypad&4096) ch='q';
+				if (keypad&32) ch=',';		/* rewind */
+				if (keypad&64) ch='<';		/* back */
+				if (keypad&128) ch='m';		/* menu */
+				if (keypad&256) ch=' ';		/* play */
+				if (keypad&512) ch='s';		/* stop */
+				if (keypad&1024) ch='x';	/* cancel */
+				if (keypad&2048) ch='>';	/* next */
+				if (keypad&4096) ch='.';	/* ffwd */
 			}
 		}
 		keypad_skip=0;
@@ -532,42 +541,8 @@ int display_read_keypad(int display_type) {
 	}
 	else {
 		switch(ch) {
-			case 'a':
-				return CMD_MUTE_A;
-				break;
-			case 'b':
-				return CMD_MUTE_B;
-				break;
-			case 'c':
-				return CMD_MUTE_C;
-				break;
-			case 'n':
-				return CMD_MUTE_N;
-				break;
-			case ' ': /* pause/play */
-				return CMD_PAUSE;
-				break;
-			case '<': /* back */
-				return CMD_BACK;
-				break;
-			case '>': /* forward */
-				return CMD_FWD;
-				break;
-			case ',': /* rewind */
-				return CMD_RW;
-				break;
-			case '.': /* fast-forward */
-				return CMD_FF;
-				break;
-			case 'l': /* toggle loop */
-				return CMD_LOOP;
-				break;
-			case 'm': /* mode */
-				current_mode++;
-				if (current_mode==MODE_MAX) {
-					current_mode=0;
-				}
-				break;
+
+			/* Number Row */
 			case '-': /* volume down */
 				return CMD_VOL_DOWN;
 				break;
@@ -581,11 +556,61 @@ int display_read_keypad(int display_type) {
 			case '2':
 				return CMD_HEADPHONE_OUT;
 				break;
+
+			/* Top Row */
 			case 'q':
 			case 'Q':
 			case 27:
 				/* quit */
 				return CMD_EXIT_PROGRAM;
+				break;
+
+			/* Middle Row */
+			case 'a':
+				return CMD_MUTE_A;
+				break;
+			case 's':
+				return CMD_STOP;
+				break;
+			case 'l': /* toggle loop */
+				return CMD_LOOP;
+				break;
+
+			/* Bottom Row */
+			case 'x':
+				return CMD_CANCEL;
+				break;
+			case 'c':
+				return CMD_MUTE_C;
+				break;
+			case 'b':
+				return CMD_MUTE_B;
+				break;
+			case 'n':
+				return CMD_MUTE_N;
+				break;
+			case 'm': /* mode */
+				current_mode++;
+				if (current_mode==MODE_MAX) {
+					current_mode=0;
+				}
+				break;
+			case ',': /* rewind */
+				return CMD_RW;
+				break;
+			case '<': /* back */
+				return CMD_BACK;
+				break;
+			case '.': /* fast-forward */
+				return CMD_FF;
+				break;
+			case '>': /* next */
+				return CMD_NEXT;
+				break;
+
+			/* Space Row */
+			case ' ': /* pause/play */
+				return CMD_PLAY;
 				break;
 
 		}
@@ -675,6 +700,10 @@ int display_init(int type) {
 		}
 
 		for(i=0;i<DISPLAY_LINES;i++) display_buffer[i]=0;
+
+		/* clear out any lingering keypresses */
+		display_read_keypad(DISPLAY_I2C);
+
 	}
 
 	/* Setup the 14seg font */

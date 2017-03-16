@@ -9,9 +9,9 @@
 #define MODE_VOLUME	0x4	/* Allows setting the volume */
 #define MODE_MAX	0x5
 
-#define CMD_PAUSE		0x1
+#define CMD_STOP		0x1
 #define CMD_BACK		0x2
-#define CMD_FWD			0x3
+#define CMD_NEXT		0x3
 #define CMD_EXIT_PROGRAM	0x4
 #define CMD_FF			0x5
 #define CMD_RW			0x6
@@ -28,6 +28,9 @@
 #define CMD_HEADPHONE_IN	0xE
 #define CMD_HEADPHONE_OUT	0xF
 
+#define CMD_PLAY		0x10
+#define CMD_MENU		0x11
+#define CMD_CANCEL		0x12
 
 struct display_stats {
 	int a_bar,b_bar,c_bar;
