@@ -79,19 +79,29 @@ static void print_help(int just_version, char *exec_name) {
 	exit(0);
 }
 
+#define TEXT_MODE_BANNER	0
+#define TEXT_MODE_FILENAME	1
+#define TEXT_MODE_SONGNAME	2
+#define TEXT_MODE_AUTHOR	3
+#define TEXT_MODE_TIMER		4
+#define TEXT_MODE_MENU		5
+
 static int play_song(char *filename) {
 
 	int length_seconds;
 	double s,n,hz,diff;
 
 	int display_command=0,result;
-	int frame_num=0;
+	int frame_num=0,frames_elapsed=0;
 
 	struct timeval start,next;
 
 	struct ym_song_t ym_song;
 	struct display_stats ds;
 	struct frame_stats fs;
+
+	int text_mode=TEXT_MODE_BANNER;
+	char display_text[13];
 
 	printf("\nPlaying song %s\n",filename);
 
@@ -126,6 +136,9 @@ static int play_song(char *filename) {
 	printf("\tSong name: %s\n",ym_song.song_name);
 	printf("\tAuthor name: %s\n",ym_song.author);
 	printf("\tComment: %s\n",ym_song.comment);
+
+	sprintf(display_text,"VMW CHIPTUNE");
+	display_string(display_type,display_text);
 
 	/******************/
 	/* Play the song! */
@@ -307,6 +320,38 @@ static int play_song(char *filename) {
 			}
 		}
 
+		frames_elapsed++;
+
+		if (frames_elapsed==50) {
+			text_mode=TEXT_MODE_FILENAME;
+			memset(display_text,0,12);
+			snprintf(display_text,12,filename);
+			display_string(display_type,display_text);
+		}
+
+		if (frames_elapsed==150) {
+			text_mode=TEXT_MODE_SONGNAME;
+			memset(display_text,0,12);
+			snprintf(display_text,12,ym_song.song_name);
+			display_string(display_type,display_text);
+		}
+
+		if (frames_elapsed==250) {
+			text_mode=TEXT_MODE_AUTHOR;
+			memset(display_text,0,12);
+			snprintf(display_text,12,ym_song.author);
+			display_string(display_type,display_text);
+		}
+		if (frames_elapsed>350) {
+			if (frames_elapsed%25==0) {
+				text_mode=TEXT_MODE_TIMER;
+				memset(display_text,0,12);
+				snprintf(display_text,12,"%2d:%02d/%2d:%02d",
+					(frame_num/50)/60,(frame_num/50)%60,
+					length_seconds/60,length_seconds%60);
+				display_string(display_type,display_text);
+			}
+		}
 	}
 
 	if (frame_num>ym_song.num_frames) {
@@ -326,6 +371,7 @@ static int play_song(char *filename) {
 				return -1;
 			}
 		}
+
 	}
 
 	/* Free the ym file */

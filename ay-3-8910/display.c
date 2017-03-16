@@ -25,7 +25,7 @@
 #include "font.h"
 #include "14seg_font.h"
 
-static int current_mode=MODE_TITLE;
+static int current_mode=MODE_VISUAL;
 static int kiosk_mode=0;
 
 static unsigned char display_buffer[DISPLAY_LINES];
@@ -565,6 +565,9 @@ int display_read_keypad(int display_type) {
 				return CMD_EXIT_PROGRAM;
 				break;
 
+			/* e through p reserved for piano keyboard */
+
+
 			/* Middle Row */
 			case 'a':
 				return CMD_MUTE_A;
@@ -590,10 +593,7 @@ int display_read_keypad(int display_type) {
 				return CMD_MUTE_N;
 				break;
 			case 'm': /* mode */
-				current_mode++;
-				if (current_mode==MODE_MAX) {
-					current_mode=0;
-				}
+				return CMD_MENU;
 				break;
 			case ',': /* rewind */
 				return CMD_RW;
