@@ -47,3 +47,6 @@ int display_string(int display_type,char *led_string);
 
 #define NUM_ALPHANUM	12
 
+int display_led_art(int display_type,
+                short led_art[10][8],
+                int which);
