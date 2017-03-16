@@ -346,7 +346,7 @@ static int play_song(char *filename) {
 			if (frames_elapsed%25==0) {
 				text_mode=TEXT_MODE_TIMER;
 				memset(display_text,0,12);
-				snprintf(display_text,13,"%2d/%02d--%2d/%02d",
+				snprintf(display_text,13,"%2d:%02d--%2d:%02d",
 					(frame_num/50)/60,(frame_num/50)%60,
 					length_seconds/60,length_seconds%60);
 				display_string(display_type,display_text);

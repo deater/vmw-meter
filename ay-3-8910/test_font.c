@@ -54,6 +54,10 @@ static int text_input(void) {
 			for(i=0;i<13;i++) text[i]=0;
 			pointer=0;
 		}
+		else if (ch==127) {
+			if (pointer>0) pointer--;
+			text[pointer]=' ';
+		}
 		else {
 			if (pointer>11) {
 				for(i=1;i<12;i++) text[i-1]=text[i];
