@@ -86,6 +86,16 @@ static void print_help(int just_version, char *exec_name) {
 #define TEXT_MODE_TIMER		4
 #define TEXT_MODE_MENU		5
 
+
+/* TIMING */
+/* for 50Hz have a 20ms deadline */
+/* Currently (with GPIO music and Linux i2c):			   */
+/*   ym_play_frame:        14ms (need to move to SPI!)             */
+/*   display_update:        1-3ms (depends on if all are updated)  */
+/*   display_read_keypad: 0.5ms                                    */
+/*   display_string:        5ms (slow!  3 i2c addresses            */
+/*				5.02ms (Linux) 4.9ms (libbcm)	   */
+
 static int play_song(char *filename) {
 
 	int length_seconds;
@@ -102,6 +112,15 @@ static int play_song(char *filename) {
 
 	int text_mode=TEXT_MODE_BANNER;
 	char display_text[13];
+
+#define TIMING_DEBUG	0
+
+#if TIMING_DEBUG==1
+	struct timeval before,after;
+	double b,a;
+	FILE *debug_file;
+	debug_file=fopen("timing.debug","w");
+#endif
 
 	printf("\nPlaying song %s\n",filename);
 
@@ -174,36 +193,6 @@ static int play_song(char *filename) {
 							filename,0);
 			}
 		}
-
-		/* Calculate time it took to play/visualize */
-		gettimeofday(&next,NULL);
-		s=start.tv_sec+(start.tv_usec/1000000.0);
-		n=next.tv_sec+(next.tv_usec/1000000.0);
-		diff=(n-s)*1000000.0;
-
-		/* Delay until time for next update (often 50Hz) */
-		if (play_music) {
-			if (diff>0) bcm2835_delayMicroseconds(20000-diff);
-			/* often 50Hz = 20000 */
-			/* TODO: calculate correctly */
-		}
-		else {
-			if (visualize) usleep(1000000/ym_song.frame_rate);
-		}
-
-		/* Calculate time it actually took, and print		*/
-		/* so we can see if things are going horribly wrong	*/
-		gettimeofday(&next,NULL);
-		s=start.tv_sec+(start.tv_usec/1000000.0);
-		n=next.tv_sec+(next.tv_usec/1000000.0);
-
-		if (frame_num%100==0) {
-			hz=1/(n-s);
-			printf("Done frame %d/%d, %.1lfHz\n",
-				frame_num,ym_song.num_frames,hz);
-		}
-		start.tv_sec=next.tv_sec;
-		start.tv_usec=next.tv_usec;
 
 		/* Handle keypresses */
 		do {
@@ -345,13 +334,62 @@ static int play_song(char *filename) {
 		if (frames_elapsed>350) {
 			if (frames_elapsed%25==0) {
 				text_mode=TEXT_MODE_TIMER;
-				memset(display_text,0,12);
+				memset(display_text,0,13);
 				snprintf(display_text,13,"%2d:%02d--%2d:%02d",
 					(frame_num/50)/60,(frame_num/50)%60,
 					length_seconds/60,length_seconds%60);
+
+#if TIMING_DEBUG==1
+			gettimeofday(&before,NULL);
+#endif
+
 				display_string(display_type,display_text);
+
+#if TIMING_DEBUG==1
+			gettimeofday(&after,NULL);
+			b=before.tv_sec+(before.tv_usec/1000000.0);
+			a=after.tv_sec+(after.tv_usec/1000000.0);
+			fprintf(debug_file,"T: %lf\n",(a-b));
+#endif
 			}
+
 		}
+
+		/* Calculate time it took to play/visualize */
+		gettimeofday(&next,NULL);
+		s=start.tv_sec+(start.tv_usec/1000000.0);
+		n=next.tv_sec+(next.tv_usec/1000000.0);
+		diff=(n-s)*1000000.0;
+
+		/* Delay until time for next update (often 50Hz) */
+		if (play_music) {
+			if (diff>0) bcm2835_delayMicroseconds(20000-diff);
+			/* often 50Hz = 20000 */
+			/* TODO: calculate correctly */
+#if TIMING_DEBUG==1
+			fprintf(debug_file,"D: %lf\n",(20000-diff));
+#endif
+		}
+		else {
+			if (visualize) usleep(1000000/ym_song.frame_rate);
+		}
+
+		/* Calculate time it actually took, and print		*/
+		/* so we can see if things are going horribly wrong	*/
+		gettimeofday(&next,NULL);
+//		s=start.tv_sec+(start.tv_usec/1000000.0);
+		n=next.tv_sec+(next.tv_usec/1000000.0);
+
+		if (frame_num%100==0) {
+			hz=1/(n-s);
+			printf("Done frame %d/%d, %.1lfHz\n",
+				frame_num,ym_song.num_frames,hz);
+		}
+		start.tv_sec=next.tv_sec;
+		start.tv_usec=next.tv_usec;
+
+
+
 	}
 
 	if (frame_num>ym_song.num_frames) {
@@ -376,6 +414,10 @@ static int play_song(char *filename) {
 
 	/* Free the ym file */
 	free(ym_song.file_data);
+
+#if TIMING_DEBUG==1
+	fclose(debug_file);
+#endif
 
 //	if (dump_info) {
 //		printf("Max a=%.2lf b=%.2lf c=%.2lf\n",max_a,max_b,max_c);

@@ -7,6 +7,8 @@
 
 /* Be sure to modprobe i2c-dev */
 
+#define USE_LINUX_I2C 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -15,10 +17,13 @@
 #include <termios.h>
 #include <fcntl.h>
 
+#if USE_LINUX_I2C==1
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
-
 #include "i2c_lib.h"
+#else
+#include <bcm2835.h>
+#endif
 
 #include "display.h"
 
@@ -28,9 +33,16 @@
 static int current_mode=MODE_VISUAL;
 static int kiosk_mode=0;
 
-static unsigned char display_buffer[DISPLAY_LINES];
 
+
+#if USE_LINUX_I2C==1
 static int i2c_fd=-1;
+#else
+#define DISPLAY_LINES	8
+#endif
+
+
+static unsigned char display_buffer[DISPLAY_LINES];
 
 static int bargraph_i2c(int a, int b, int c) {
 
@@ -81,6 +93,7 @@ static int bargraph_i2c(int a, int b, int c) {
 		if (c>7) buffer[12]|=(2<<(c-8))-1;
 	}
 
+#if USE_LINUX_I2C==1
 	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS0) < 0) {
 		fprintf(stderr,"Bargraph error setting i2c address %x\n",
 			HT16K33_ADDRESS0);
@@ -92,6 +105,10 @@ static int bargraph_i2c(int a, int b, int c) {
 			strerror(errno));
 		return -1;
         }
+#else
+	bcm2835_i2c_setSlaveAddress(0x70);
+	bcm2835_i2c_write(buffer,17);
+#endif
 
 	return 0;
 }
@@ -158,6 +175,7 @@ static int put_8x16display(int display_type, int refresh_i2c) {
 				buffer[i+1]|=(freq_matrix[x+(8*(i%2))][i/2]<<x);
 			}
 		}
+#if USE_LINUX_I2C
 
 		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
 			fprintf(stderr,"8x16 Error setting i2c address %x\n",
@@ -171,6 +189,11 @@ static int put_8x16display(int display_type, int refresh_i2c) {
 				strerror(errno));
 			return -1;
         	}
+#else
+		bcm2835_i2c_setSlaveAddress(0x72);
+		bcm2835_i2c_write(buffer,17);
+#endif
+
 	}
 
 	if (display_type&DISPLAY_TEXT) {
@@ -279,6 +302,7 @@ static int close_freq_display(int display_type) {
 			}
 		}
 
+#if USE_LINUX_I2C==1
 		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
 			fprintf(stderr,"Close Error setting i2c address %x\n",
 				HT16K33_ADDRESS2);
@@ -291,6 +315,11 @@ static int close_freq_display(int display_type) {
 				strerror(errno));
 			return -1;
         	}
+#else
+		bcm2835_i2c_setSlaveAddress(0x72);
+		bcm2835_i2c_write(buffer,17);
+#endif
+
 	}
 
 	return 0;
@@ -514,7 +543,7 @@ int display_read_keypad(int display_type) {
 
 	/* Read from Keyboard */
 	result=read(0,&ch,1);
-
+#if 1
 	/* Read from keypad */
 	if ((display_type&DISPLAY_I2C) && (keypad_skip==2)) {
 		keypad=read_keypad(i2c_fd,HT16K33_ADDRESS0);
@@ -536,7 +565,7 @@ int display_read_keypad(int display_type) {
 		keypad_skip=0;
 	}
 	keypad_skip++;
-
+#endif
 	if (result<0) { //printf("Error %s\n",strerror(errno));
 	}
 	else {
@@ -627,7 +656,9 @@ int display_shutdown(int display_type) {
 
 	/* read any lingering keypad presses */
 	if (display_type&DISPLAY_I2C) {
+#if 0
 		read_keypad(i2c_fd,HT16K33_ADDRESS0);
+#endif
 	}
 
 	close_freq_display(display_type);
@@ -663,6 +694,7 @@ int display_init(int type) {
 
 	if (type&DISPLAY_I2C) {
 
+#if USE_LINUX_I2C==1
 		i2c_fd=init_i2c("/dev/i2c-1");
 		if (i2c_fd < 0) {
 			fprintf(stderr,"Error opening device!\n");
@@ -699,10 +731,15 @@ int display_init(int type) {
 			return -1;
 		}
 
-		for(i=0;i<DISPLAY_LINES;i++) display_buffer[i]=0;
-
 		/* clear out any lingering keypresses */
 		display_read_keypad(DISPLAY_I2C);
+
+#else
+
+#endif
+
+		for(i=0;i<DISPLAY_LINES;i++) display_buffer[i]=0;
+
 
 	}
 
@@ -738,7 +775,7 @@ int display_string(int display_type,char *led_string) {
 		buffer3[(i*2)+1]=adafruit_lookup[ch]>>8;
 		buffer3[(i*2)+2]=adafruit_lookup[ch]&0xff;
 	}
-
+#if USE_LINUX_I2C==1
 	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS5) < 0) {
 		fprintf(stderr,"Bargraph error setting i2c address %x\n",
 			HT16K33_ADDRESS5);
@@ -774,6 +811,16 @@ int display_string(int display_type,char *led_string) {
 			strerror(errno));
 		return -1;
 	}
+#else
+	bcm2835_i2c_setSlaveAddress(0x75);
+	bcm2835_i2c_write(buffer1,17);
+	bcm2835_i2c_setSlaveAddress(0x73);
+	bcm2835_i2c_write(buffer2,17);
+	bcm2835_i2c_setSlaveAddress(0x77);
+	bcm2835_i2c_write(buffer3,17);
+
+#endif
+
 	return 0;
 
 }
@@ -811,7 +858,7 @@ int display_led_art(int display_type,
 			buffer[i*2+2]=reverse_bits(led_art[which][i]&0xff);
 		}
 	}
-
+#if USE_LINUX_I2C==1
 	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
 		fprintf(stderr,"8x16 Error setting i2c address %x\n",
 			HT16K33_ADDRESS2);
@@ -824,6 +871,10 @@ int display_led_art(int display_type,
 			strerror(errno));
 		return -1;
 	}
+#else
+	bcm2835_i2c_setSlaveAddress(0x72);
+	bcm2835_i2c_write(buffer,17);
+#endif
 
 	return 0;
 }
