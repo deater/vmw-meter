@@ -321,9 +321,17 @@ static int play_song(char *filename) {
 		/********************************************/
 
 		if (frames_elapsed==150) {
+			int k;
 			text_mode=TEXT_MODE_FILENAME;
 			memset(display_text,0,13);
-			strcpy(full_text,filename);
+
+			/* strip off path info */
+			k=strlen(filename)-1;
+			while(k>0) {
+				if (filename[k-1]=='/') break;
+				k--;
+			}
+			strcpy(full_text,filename+k);
 			snprintf(display_text,13,full_text);
 			state_count=0;
 			string_pointer=0;
