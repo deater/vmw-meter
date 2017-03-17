@@ -112,6 +112,10 @@ static int play_song(char *filename) {
 
 	int text_mode=TEXT_MODE_BANNER;
 	char display_text[13];
+	int state_count=0;
+	int string_pointer=0;
+	int scroll_rate=0;
+	char full_text[BUFSIZ];
 
 #define TIMING_DEBUG	0
 
@@ -311,49 +315,97 @@ static int play_song(char *filename) {
 
 		frames_elapsed++;
 
-		if (frames_elapsed==50) {
-			text_mode=TEXT_MODE_FILENAME;
-			memset(display_text,0,13);
-			snprintf(display_text,13,filename);
-			display_string(display_type,display_text);
-		}
+
+		/********************************************/
+		/* Update the alphanum display statemachine */
+		/********************************************/
 
 		if (frames_elapsed==150) {
+			text_mode=TEXT_MODE_FILENAME;
+			memset(display_text,0,13);
+			strcpy(full_text,filename);
+			snprintf(display_text,13,full_text);
+			state_count=0;
+			string_pointer=0;
+			scroll_rate=0;
+			if (strlen(full_text)>12) {
+				scroll_rate=100/(strlen(full_text)-12);
+			}
+		} else if (frames_elapsed==300) {
 			text_mode=TEXT_MODE_SONGNAME;
 			memset(display_text,0,13);
-			snprintf(display_text,13,ym_song.song_name);
-			display_string(display_type,display_text);
-		}
-
-		if (frames_elapsed==250) {
+			strcpy(full_text,ym_song.song_name);
+			snprintf(display_text,13,full_text);
+			state_count=0;
+			string_pointer=0;
+			scroll_rate=0;
+			if (strlen(full_text)>12) {
+				scroll_rate=100/(strlen(full_text)-12);
+			}
+		} else if (frames_elapsed==450) {
 			text_mode=TEXT_MODE_AUTHOR;
 			memset(display_text,0,13);
-			snprintf(display_text,13,ym_song.author);
-			display_string(display_type,display_text);
-		}
-		if (frames_elapsed>350) {
-			if (frames_elapsed%25==0) {
-				text_mode=TEXT_MODE_TIMER;
-				memset(display_text,0,13);
-				snprintf(display_text,13,"%2d:%02d--%2d:%02d",
-					(frame_num/50)/60,(frame_num/50)%60,
-					length_seconds/60,length_seconds%60);
+			sprintf(full_text,"BY: %s",ym_song.author);
 
-#if TIMING_DEBUG==1
-			gettimeofday(&before,NULL);
-#endif
-
-				display_string(display_type,display_text);
-
-#if TIMING_DEBUG==1
-			gettimeofday(&after,NULL);
-			b=before.tv_sec+(before.tv_usec/1000000.0);
-			a=after.tv_sec+(after.tv_usec/1000000.0);
-			fprintf(debug_file,"T: %lf\n",(a-b));
-#endif
+			snprintf(display_text,13,full_text);
+			state_count=0;
+			string_pointer=0;
+			scroll_rate=0;
+			if (strlen(full_text)>12) {
+				scroll_rate=100/(strlen(full_text)-12);
 			}
-
+		} else if (frames_elapsed==600) {
+			text_mode=TEXT_MODE_TIMER;
 		}
+
+
+
+		switch(text_mode) {
+			case TEXT_MODE_BANNER:
+				/* do nothing, banner already displayed */
+				break;
+			case TEXT_MODE_FILENAME:
+			case TEXT_MODE_SONGNAME:
+			case TEXT_MODE_AUTHOR:
+				/* have 3s (150 frames) */
+				if (state_count<25) {
+					/* do nothing, show beginning for a bit */
+					/* to give time to read */
+				}
+				else if (state_count<125) {
+					if (scroll_rate) {
+						if ((state_count-25)%scroll_rate==0) {
+							string_pointer++;
+							snprintf(display_text,13,full_text+string_pointer);
+						}
+					}
+				}
+				break;
+			case TEXT_MODE_TIMER:
+				if (frames_elapsed%25==0) {
+					memset(display_text,0,13);
+					snprintf(display_text,13,"%2d:%02d--%2d:%02d",
+						(frame_num/50)/60,(frame_num/50)%60,
+						length_seconds/60,length_seconds%60);
+				}
+				break;
+			default:
+				break;
+		}
+
+#if TIMING_DEBUG==1
+		gettimeofday(&before,NULL);
+#endif
+		display_string(display_type,display_text);
+		state_count++;
+
+#if TIMING_DEBUG==1
+		gettimeofday(&after,NULL);
+		b=before.tv_sec+(before.tv_usec/1000000.0);
+		a=after.tv_sec+(after.tv_usec/1000000.0);
+		fprintf(debug_file,"T: %lf\n",(a-b));
+#endif
+
 
 		/* Calculate time it took to play/visualize */
 		gettimeofday(&next,NULL);
@@ -377,7 +429,6 @@ static int play_song(char *filename) {
 		/* Calculate time it actually took, and print		*/
 		/* so we can see if things are going horribly wrong	*/
 		gettimeofday(&next,NULL);
-//		s=start.tv_sec+(start.tv_usec/1000000.0);
 		n=next.tv_sec+(next.tv_usec/1000000.0);
 
 		if (frame_num%100==0) {
