@@ -751,6 +751,7 @@ int display_init(int type) {
 
 int display_string(int display_type,char *led_string) {
 
+	static char old_buffer1[17],old_buffer2[17],old_buffer3[17];
 	char buffer1[17],buffer2[17],buffer3[17];
 	int i,ch;
 
@@ -775,51 +776,70 @@ int display_string(int display_type,char *led_string) {
 		buffer3[(i*2)+1]=adafruit_lookup[ch]>>8;
 		buffer3[(i*2)+2]=adafruit_lookup[ch]&0xff;
 	}
+
+	if (memcmp(buffer1,old_buffer1,17)!=0) {
+
 #if USE_LINUX_I2C==1
-	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS5) < 0) {
-		fprintf(stderr,"Bargraph error setting i2c address %x\n",
-			HT16K33_ADDRESS5);
-		return -1;
-	}
+		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS5) < 0) {
+			fprintf(stderr,"Bargraph error setting i2c address %x\n",
+				HT16K33_ADDRESS5);
+			return -1;
+		}
 
-	if ( (write(i2c_fd, buffer1, 17)) !=17) {
-		fprintf(stderr,"Error writing display %s!\n",
-			strerror(errno));
-		return -1;
-	}
-
-	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS3) < 0) {
-		fprintf(stderr,"Bargraph error setting i2c address %x\n",
-			HT16K33_ADDRESS3);
-		return -1;
-	}
-
-	if ( (write(i2c_fd, buffer2, 17)) !=17) {
-		fprintf(stderr,"Error writing display %s!\n",
-			strerror(errno));
-		return -1;
-	}
-
-	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS7) < 0) {
-		fprintf(stderr,"Bargraph error setting i2c address %x\n",
-			HT16K33_ADDRESS7);
-		return -1;
-	}
-
-	if ( (write(i2c_fd, buffer3, 17)) !=17) {
-		fprintf(stderr,"Error writing display %s!\n",
-			strerror(errno));
-		return -1;
-	}
+		if ( (write(i2c_fd, buffer1, 17)) !=17) {
+			fprintf(stderr,"Error writing display %s!\n",
+				strerror(errno));
+			return -1;
+		}
 #else
-	bcm2835_i2c_setSlaveAddress(0x75);
-	bcm2835_i2c_write(buffer1,17);
-	bcm2835_i2c_setSlaveAddress(0x73);
-	bcm2835_i2c_write(buffer2,17);
-	bcm2835_i2c_setSlaveAddress(0x77);
-	bcm2835_i2c_write(buffer3,17);
+		bcm2835_i2c_setSlaveAddress(0x75);
+		bcm2835_i2c_write(buffer1,17);
+#endif
+		memcpy(old_buffer1,buffer1,17);
+	}
+
+	if (memcmp(buffer2,old_buffer2,17)!=0) {
+#if USE_LINUX_I2C==1
+		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS3) < 0) {
+			fprintf(stderr,"Bargraph error setting i2c address %x\n",
+				HT16K33_ADDRESS3);
+			return -1;
+		}
+
+		if ( (write(i2c_fd, buffer2, 17)) !=17) {
+			fprintf(stderr,"Error writing display %s!\n",
+				strerror(errno));
+			return -1;
+		}
+#else
+			bcm2835_i2c_setSlaveAddress(0x73);
+			bcm2835_i2c_write(buffer2,17);
+#endif
+		memcpy(old_buffer2,buffer2,17);
+	}
+
+
+	if (memcmp(buffer3,old_buffer3,17)!=0) {
+#if USE_LINUX_I2C==1
+		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS7) < 0) {
+			fprintf(stderr,"Bargraph error setting i2c address %x\n",
+				HT16K33_ADDRESS7);
+			return -1;
+		}
+
+		if ( (write(i2c_fd, buffer3, 17)) !=17) {
+			fprintf(stderr,"Error writing display %s!\n",
+				strerror(errno));
+			return -1;
+		}
+#else
+		bcm2835_i2c_setSlaveAddress(0x77);
+		bcm2835_i2c_write(buffer3,17);
 
 #endif
+		memcpy(old_buffer3,buffer3,17);
+	}
+
 
 	return 0;
 
