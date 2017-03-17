@@ -156,6 +156,169 @@ static int close_bargraph(int type) {
 	return 0;
 }
 
+
+int display_string(int display_type,char *led_string) {
+
+	static char old_buffer1[17],old_buffer2[17],old_buffer3[17];
+	char buffer1[17],buffer2[17],buffer3[17];
+	int i,ch;
+
+	buffer1[0]=0;
+	buffer2[0]=0;
+	buffer3[0]=0;
+
+	for(i=0;i<4;i++) {
+		ch=led_string[i];
+		buffer1[(i*2)+1]=adafruit_lookup[ch]>>8;
+		buffer1[(i*2)+2]=adafruit_lookup[ch]&0xff;
+	}
+
+	for(i=0;i<4;i++) {
+		ch=led_string[i+4];
+		buffer2[(i*2)+1]=adafruit_lookup[ch]>>8;
+		buffer2[(i*2)+2]=adafruit_lookup[ch]&0xff;
+	}
+
+	for(i=0;i<4;i++) {
+		ch=led_string[i+8];
+		buffer3[(i*2)+1]=adafruit_lookup[ch]>>8;
+		buffer3[(i*2)+2]=adafruit_lookup[ch]&0xff;
+	}
+
+	if (memcmp(buffer1,old_buffer1,17)!=0) {
+
+#if USE_LINUX_I2C==1
+		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS5) < 0) {
+			fprintf(stderr,"Bargraph error setting i2c address %x\n",
+				HT16K33_ADDRESS5);
+			return -1;
+		}
+
+		if ( (write(i2c_fd, buffer1, 17)) !=17) {
+			fprintf(stderr,"Error writing display %s!\n",
+				strerror(errno));
+			return -1;
+		}
+#else
+		bcm2835_i2c_setSlaveAddress(0x75);
+		bcm2835_i2c_write(buffer1,17);
+#endif
+		memcpy(old_buffer1,buffer1,17);
+	}
+
+	if (memcmp(buffer2,old_buffer2,17)!=0) {
+#if USE_LINUX_I2C==1
+		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS3) < 0) {
+			fprintf(stderr,"Bargraph error setting i2c address %x\n",
+				HT16K33_ADDRESS3);
+			return -1;
+		}
+
+		if ( (write(i2c_fd, buffer2, 17)) !=17) {
+			fprintf(stderr,"Error writing display %s!\n",
+				strerror(errno));
+			return -1;
+		}
+#else
+			bcm2835_i2c_setSlaveAddress(0x73);
+			bcm2835_i2c_write(buffer2,17);
+#endif
+		memcpy(old_buffer2,buffer2,17);
+	}
+
+
+	if (memcmp(buffer3,old_buffer3,17)!=0) {
+#if USE_LINUX_I2C==1
+		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS7) < 0) {
+			fprintf(stderr,"Bargraph error setting i2c address %x\n",
+				HT16K33_ADDRESS7);
+			return -1;
+		}
+
+		if ( (write(i2c_fd, buffer3, 17)) !=17) {
+			fprintf(stderr,"Error writing display %s!\n",
+				strerror(errno));
+			return -1;
+		}
+#else
+		bcm2835_i2c_setSlaveAddress(0x77);
+		bcm2835_i2c_write(buffer3,17);
+
+#endif
+		memcpy(old_buffer3,buffer3,17);
+	}
+
+
+	return 0;
+
+}
+
+static int reverse_bits(int b) {
+
+	int out;
+
+	out = ((b * 0x0802LU & 0x22110LU) |
+		(b * 0x8020LU & 0x88440LU)) *
+		0x10101LU >> 16;
+	return out&0xff;
+}
+
+int display_led_art(int display_type,
+		short led_art[10][8],
+		int which) {
+
+	int i;
+	char buffer[17];
+
+	if (display_type!=DISPLAY_I2C) return 0;
+
+	buffer[0]=0;
+
+	/* clear buffer */
+	for(i=0;i<16;i++) buffer[i+1]=0x0;
+
+	if (which==1024) {
+		/* special case, clear screen */
+	} else {
+
+		for(i=0;i<8;i++) {
+			buffer[i*2+1]=reverse_bits((led_art[which][i]>>8));
+			buffer[i*2+2]=reverse_bits(led_art[which][i]&0xff);
+		}
+	}
+#if USE_LINUX_I2C==1
+	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
+		fprintf(stderr,"8x16 Error setting i2c address %x\n",
+			HT16K33_ADDRESS2);
+		return -1;
+	}
+
+
+	if ( (write(i2c_fd, buffer, 17)) !=17) {
+		fprintf(stderr,"Error writing display %s!\n",
+			strerror(errno));
+		return -1;
+	}
+#else
+	bcm2835_i2c_setSlaveAddress(0x72);
+	bcm2835_i2c_write(buffer,17);
+#endif
+
+	return 0;
+}
+
+static int close_text(int type) {
+
+	char buffer[13];
+
+	strcpy(buffer,"            ");
+	display_string(type,buffer);
+
+	return 0;
+
+}
+
+
 static int freq_max[16];
 static int freq_matrix[16][8];
 
@@ -652,25 +815,6 @@ int display_read_keypad(int display_type) {
 
 static struct termios saved_tty;
 
-int display_shutdown(int display_type) {
-
-	/* read any lingering keypad presses */
-	if (display_type&DISPLAY_I2C) {
-#if 0
-		read_keypad(i2c_fd,HT16K33_ADDRESS0);
-#endif
-	}
-
-	close_freq_display(display_type);
-	close_bargraph(display_type);
-
-	/* restore keyboard */
-	tcsetattr (0, TCSANOW, &saved_tty);
-
-	return 0;
-}
-
-
 
 int display_init(int type) {
 
@@ -749,152 +893,24 @@ int display_init(int type) {
 	return result;
 }
 
-int display_string(int display_type,char *led_string) {
+int display_shutdown(int display_type) {
 
-	static char old_buffer1[17],old_buffer2[17],old_buffer3[17];
-	char buffer1[17],buffer2[17],buffer3[17];
-	int i,ch;
-
-	buffer1[0]=0;
-	buffer2[0]=0;
-	buffer3[0]=0;
-
-	for(i=0;i<4;i++) {
-		ch=led_string[i];
-		buffer1[(i*2)+1]=adafruit_lookup[ch]>>8;
-		buffer1[(i*2)+2]=adafruit_lookup[ch]&0xff;
-	}
-
-	for(i=0;i<4;i++) {
-		ch=led_string[i+4];
-		buffer2[(i*2)+1]=adafruit_lookup[ch]>>8;
-		buffer2[(i*2)+2]=adafruit_lookup[ch]&0xff;
-	}
-
-	for(i=0;i<4;i++) {
-		ch=led_string[i+8];
-		buffer3[(i*2)+1]=adafruit_lookup[ch]>>8;
-		buffer3[(i*2)+2]=adafruit_lookup[ch]&0xff;
-	}
-
-	if (memcmp(buffer1,old_buffer1,17)!=0) {
-
-#if USE_LINUX_I2C==1
-		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS5) < 0) {
-			fprintf(stderr,"Bargraph error setting i2c address %x\n",
-				HT16K33_ADDRESS5);
-			return -1;
-		}
-
-		if ( (write(i2c_fd, buffer1, 17)) !=17) {
-			fprintf(stderr,"Error writing display %s!\n",
-				strerror(errno));
-			return -1;
-		}
-#else
-		bcm2835_i2c_setSlaveAddress(0x75);
-		bcm2835_i2c_write(buffer1,17);
+	/* read any lingering keypad presses */
+	if (display_type&DISPLAY_I2C) {
+#if 1
+		read_keypad(i2c_fd,HT16K33_ADDRESS0);
 #endif
-		memcpy(old_buffer1,buffer1,17);
 	}
 
-	if (memcmp(buffer2,old_buffer2,17)!=0) {
-#if USE_LINUX_I2C==1
-		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS3) < 0) {
-			fprintf(stderr,"Bargraph error setting i2c address %x\n",
-				HT16K33_ADDRESS3);
-			return -1;
-		}
+	close_freq_display(display_type);
+	close_bargraph(display_type);
 
-		if ( (write(i2c_fd, buffer2, 17)) !=17) {
-			fprintf(stderr,"Error writing display %s!\n",
-				strerror(errno));
-			return -1;
-		}
-#else
-			bcm2835_i2c_setSlaveAddress(0x73);
-			bcm2835_i2c_write(buffer2,17);
-#endif
-		memcpy(old_buffer2,buffer2,17);
-	}
+	close_text(display_type);
 
-
-	if (memcmp(buffer3,old_buffer3,17)!=0) {
-#if USE_LINUX_I2C==1
-		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS7) < 0) {
-			fprintf(stderr,"Bargraph error setting i2c address %x\n",
-				HT16K33_ADDRESS7);
-			return -1;
-		}
-
-		if ( (write(i2c_fd, buffer3, 17)) !=17) {
-			fprintf(stderr,"Error writing display %s!\n",
-				strerror(errno));
-			return -1;
-		}
-#else
-		bcm2835_i2c_setSlaveAddress(0x77);
-		bcm2835_i2c_write(buffer3,17);
-
-#endif
-		memcpy(old_buffer3,buffer3,17);
-	}
-
-
-	return 0;
-
-}
-
-static int reverse_bits(int b) {
-
-	int out;
-
-	out = ((b * 0x0802LU & 0x22110LU) |
-		(b * 0x8020LU & 0x88440LU)) *
-		0x10101LU >> 16;
-	return out&0xff;
-}
-
-int display_led_art(int display_type,
-		short led_art[10][8],
-		int which) {
-
-	int i;
-	char buffer[17];
-
-	if (display_type!=DISPLAY_I2C) return 0;
-
-	buffer[0]=0;
-
-	/* clear buffer */
-	for(i=0;i<16;i++) buffer[i+1]=0x0;
-
-	if (which==1024) {
-		/* special case, clear screen */
-	} else {
-
-		for(i=0;i<8;i++) {
-			buffer[i*2+1]=reverse_bits((led_art[which][i]>>8));
-			buffer[i*2+2]=reverse_bits(led_art[which][i]&0xff);
-		}
-	}
-#if USE_LINUX_I2C==1
-	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
-		fprintf(stderr,"8x16 Error setting i2c address %x\n",
-			HT16K33_ADDRESS2);
-		return -1;
-	}
-
-
-	if ( (write(i2c_fd, buffer, 17)) !=17) {
-		fprintf(stderr,"Error writing display %s!\n",
-			strerror(errno));
-		return -1;
-	}
-#else
-	bcm2835_i2c_setSlaveAddress(0x72);
-	bcm2835_i2c_write(buffer,17);
-#endif
+	/* restore keyboard */
+	tcsetattr (0, TCSANOW, &saved_tty);
 
 	return 0;
 }
+
+
