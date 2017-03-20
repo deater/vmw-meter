@@ -6,6 +6,7 @@
 
 #include <math.h>
 
+#include <sys/time.h>
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 
@@ -52,6 +53,10 @@ int main(int argc, char **argv) {
 	int i2c_fd;
 	unsigned char buffer[16];
 	double vobject,tambient;
+
+	struct timeval start_time, now_time;
+
+	gettimeofday(&start_time, NULL);
 
 	i2c_fd=init_i2c("/dev/i2c-1");
 	if (i2c_fd < 0) {
@@ -126,7 +131,9 @@ int main(int argc, char **argv) {
 			vobject,
 			tambient+272.15);
 
-		printf("%.3lf (* C, %.3lfK %.3lfF *)\n",
+		gettimeofday(&now_time, NULL);
+		printf("%d %.3lf (* C, %.3lfK %.3lfF *)\n",
+			(int)(now_time.tv_sec-start_time.tv_sec),
 			temperature-272.15,
 			temperature,
 			c_to_f(temperature-272.15));

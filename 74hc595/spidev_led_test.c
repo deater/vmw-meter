@@ -71,14 +71,14 @@ int main(int argc, char **argv) {
                 return -1;
         }
 
-	data_out[0]=0xaa;
+	data_out[0]=0xa5;
 	data_in[0]=0x0;
 
 	memset(&spi,0,sizeof(struct spi_ioc_transfer));
 	spi.tx_buf = (unsigned long)&data_out;
 	spi.rx_buf = (unsigned long)&data_in;
 	spi.len = 1;    /* 1 byte */
-	spi.delay_usecs = 100 ;
+	spi.delay_usecs = 0 ;
 	spi.speed_hz = 100000 ;
 	spi.bits_per_word = 8 ;
 	spi.cs_change = 0;
