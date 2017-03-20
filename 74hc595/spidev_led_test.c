@@ -21,6 +21,14 @@ int main(int argc, char **argv) {
 	unsigned char data_out[3];
 	unsigned char data_in[3];
 	int new_mode;
+	int pattern;
+
+	if (argc>1) {
+		pattern=strtol(argv[1],NULL,16);
+	}
+	else {
+		pattern=0xa9;
+	}
 
 	/* Open SPI device */
 	spi_fd=open("/dev/spidev0.0", O_RDWR);
@@ -71,7 +79,7 @@ int main(int argc, char **argv) {
                 return -1;
         }
 
-	data_out[0]=0xa5;
+	data_out[0]=pattern;
 	data_in[0]=0x0;
 
 	memset(&spi,0,sizeof(struct spi_ioc_transfer));
