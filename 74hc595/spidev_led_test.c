@@ -13,6 +13,14 @@
 /* want CS active low */
 /* pi can only do MSB first(?) */
 
+/* NOTE NOTE NOTE */
+/* The problems I was having was most likely due */
+/* to 3.3V from Pi not enough to trigger the inputs */
+/* So you *do* seem to need a level shifter */
+/* And the adafruit bi-directional (i2c) one doesn't seem to work */
+/* but the 74HC125 does */
+
+
 int main(int argc, char **argv) {
 
 	int spi_fd;
