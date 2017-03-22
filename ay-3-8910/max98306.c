@@ -8,10 +8,14 @@
 #include <bcm2835.h>
 
 
-#define SHUTDOWN_GPIO	21
-#define HEADPHONE_GPIO	20
-#define GAIN_GPIO	12
-#define GAIN_PRIME_GPIO	13
+#define SHUTDOWN_GPIO		21
+#define HEADPHONE_GPIO		13
+
+#define GAIN_GPIO		19
+#define GAIN_GPIO_EN		26
+
+#define GAIN_PRIME_GPIO		16
+#define GAIN_PRIME_GPIO_EN	20
 
 
 int max98306_init(void) {
@@ -21,11 +25,14 @@ int max98306_init(void) {
 	/************/
 	/* SHUTDOWN */
 	/************/
-
 	bcm2835_gpio_fsel(SHUTDOWN_GPIO,  BCM2835_GPIO_FSEL_OUTP);
 	bcm2835_gpio_fsel(HEADPHONE_GPIO, BCM2835_GPIO_FSEL_INPT);
-	bcm2835_gpio_fsel(GAIN_GPIO, BCM2835_GPIO_FSEL_INPT);
-	bcm2835_gpio_fsel(GAIN_PRIME_GPIO, BCM2835_GPIO_FSEL_INPT);
+
+	/* Gains */
+	bcm2835_gpio_fsel(GAIN_GPIO, BCM2835_GPIO_FSEL_OUTP);
+	bcm2835_gpio_fsel(GAIN_GPIO_EN, BCM2835_GPIO_FSEL_OUTP);
+	bcm2835_gpio_fsel(GAIN_PRIME_GPIO, BCM2835_GPIO_FSEL_OUTP);
+	bcm2835_gpio_fsel(GAIN_PRIME_GPIO_EN, BCM2835_GPIO_FSEL_OUTP);
 
 	/* Set volume to low as default */
 	max98306_set_volume(1);
@@ -102,11 +109,11 @@ int max98306_set_volume(int value) {
 
 	/* Set GAIN value */
 	if (gain_setting==GAIN_FLOAT) {
-		/* Set float by making an INPUT */
-		bcm2835_gpio_fsel(GAIN_GPIO, BCM2835_GPIO_FSEL_INPT);
+		/* Set float by setting !OE high*/
+		bcm2835_gpio_set(GAIN_GPIO_EN);
 	}
 	else {
-		bcm2835_gpio_fsel(GAIN_GPIO, BCM2835_GPIO_FSEL_OUTP);
+		bcm2835_gpio_clr(GAIN_GPIO_EN);
 		if (gain_setting==GAIN_HIGH) {
 			bcm2835_gpio_set(GAIN_GPIO);
 		}
@@ -117,12 +124,12 @@ int max98306_set_volume(int value) {
 
 	/* Set GAIN_PRIME value */
 	if (gain_prime_setting==GAIN_FLOAT) {
-		/* Set float by making an INPUT */
-		bcm2835_gpio_fsel(GAIN_PRIME_GPIO, BCM2835_GPIO_FSEL_INPT);
+		/* Set float by setting !OE high*/
+		bcm2835_gpio_set(GAIN_PRIME_GPIO_EN);
 	}
 	else {
-		bcm2835_gpio_fsel(GAIN_PRIME_GPIO, BCM2835_GPIO_FSEL_OUTP);
-		if (gain_setting==GAIN_HIGH) {
+		bcm2835_gpio_clr(GAIN_PRIME_GPIO_EN);
+		if (gain_prime_setting==GAIN_HIGH) {
 			bcm2835_gpio_set(GAIN_PRIME_GPIO);
 		}
 		else {
