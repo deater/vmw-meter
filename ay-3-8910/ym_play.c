@@ -172,10 +172,25 @@ static int play_song(char *filename) {
 
 		if (!music_paused) {
 
+#if TIMING_DEBUG==1
+		gettimeofday(&before,NULL);
+#endif
+
 			ym_play_frame(&ym_song,frame_num,shift_size,
 					&fs,diff_mode,
 					play_music,
 					mute_channel);
+
+
+#if TIMING_DEBUG==1
+		gettimeofday(&after,NULL);
+		b=before.tv_sec+(before.tv_usec/1000000.0);
+		a=after.tv_sec+(after.tv_usec/1000000.0);
+		fprintf(debug_file,"T: %lf\n",(a-b));
+#endif
+
+
+
 
 			if (visualize) {
 				if (display_type&DISPLAY_TEXT) {
@@ -401,19 +416,9 @@ static int play_song(char *filename) {
 				break;
 		}
 
-#if TIMING_DEBUG==1
-		gettimeofday(&before,NULL);
-#endif
+
 		display_string(display_type,display_text);
 		state_count++;
-
-#if TIMING_DEBUG==1
-		gettimeofday(&after,NULL);
-		b=before.tv_sec+(before.tv_usec/1000000.0);
-		a=after.tv_sec+(after.tv_usec/1000000.0);
-		fprintf(debug_file,"T: %lf\n",(a-b));
-#endif
-
 
 		/* Calculate time it took to play/visualize */
 		gettimeofday(&next,NULL);

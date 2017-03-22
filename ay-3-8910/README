@@ -3,39 +3,32 @@
 	by Vince Weaver (vince@deater.net)
 
 Hardware:
-	Should update this with more complete info.
 
-	Parts are:
-		AY-3-8910 (bought off e-bay)
-		74HC595 shift register (to reduce GPIO count as 
-			well as act as 3.3V to 5V converter)
-		Adafruit level converter (for the I/O lines)
-		1MHz oscillator (anything from 1-2MHz probably works
-			but you get overflows on some sound files
-			if you use 2MHz)
-		LM386 and various discrete components.
-			Reference design is based on Figure 16 in
-			the AY-3-8910 manual.
-			Have replaced with adafruit MAX98306 class-D
-			streo amplifier in my setup.
-		ht16k33 i2c breakout board, adafruit (i2c addr 0x70)
-			To run the three bargraphs.
-			Bargraphs were GYR models from Jameco/SEED
-		ht16k33 i2c 16x8 backpack, adafruit (i2c addr 0x72)
-		8 Ohm speaker
+	See the full details and build instructions in
+	./hardware/build_instructions
+
+	As a summary, it's two AY-3-8910 chips, with 3 channels each.
+	One is for right, one for left.
+
+	The pi talks to the AY-3-8910 via SPI and GPIOs.
+
+	In addition there is a MAX 98306 amplifier, which the Pi
+	controls the volume of using GPIO.
+
+	Also a headphone jack with an auto-sense circuit.
 
 	Pi Connections:
-		Pi to 74HC595:
-			DS (serial in)		GPIO17
-			SHCP (serial clock)	GPIO27
-			STCP (output clock)	GPIO22
+		Pi to 74HC595 (through level converter)
+			DS (serial in)		MOSI
+			SHCP (serial clock)	CLK
+			STCP (output clock)	CE0
 		Pi to AY-3-8910 (through level converter)
 			BC1			GPIO18
 			BDIR			GPIO23
 			|RESET			GPIO24
 
 
-Installing:
+Software Installing:
 
 	+ Install the bcm2835 library
 
@@ -79,7 +72,9 @@ Keybindings:
 	l		toggle looping of current song
 	r		toggle repeating playlist when done
 	m		switch 8x16 display mode
-
+	+		volume up
+	-		volume down
+	a/b/c/n		toggle channel
 
 More info on the YM file format:
 
@@ -102,17 +97,44 @@ More info on the YM file format:
 TODO:
 	* Make up some PCBs
 	* Put it in a case/enclosure
-	* Use SPI to drive the shift register instead of GPIO
-	* Optimize the software.
-		Even using libbcm2835 it's hard to hit 50Hz from inside Linux
-		(maybe use my custom low-level OS instead).
-		The overhead wouldn't be so bad if I was using a parallel
-		load of the registers, but that would have taken 11 GPIOs
-		(with 3.3V to 5V level conversion).
-		I do need to make a bare metal design, because it's sad to
-		have the Pi shown better by an old 6502 Apple II running at
-		1MHz (see the French Touch "Pure Noise" Demo)
 	* Find a tracker and start writing my own YM files. 
+
+Performance:
+	In general, to play 50Hz sound files (typical) need to update
+	the AY-3-8910 every 20ms.
+
+	We need libbcm2835 for this, as the Linux sysfs GPIO interface
+	is nowhere near fast enough.
+
+	We use a serial->parallel shift register to avoid using too many
+	GPIOs (and a similar number of 3.3V to 5V level converters)
+
+	Initially had problems with SPI so was bitbanging everything:
+
+		ym_play_frame:				 14ms
+		display_update (bars+waterfall):	1-3ms
+		display_read_keypad:			  0.5ms
+		display_string (14seg):			  5ms
+							=======
+							 23ms
+
+	You can see that was too much delay and we couldn't hit 50Hz.
+
+	I did finally get SPI working and now it is much better:
+
+		ym_play_frame:				  8ms
+		display_update (bars+waterfall):	1-3ms
+		display_read_keypad:			  0.5ms
+		display_string (14seg):			  5ms
+							========
+							 17ms
+
+	Probably could get much better performance if running w/o
+	Linux on my own OS, but this is probably good enough for now.
+
+	Funny it's so hard to get Linux on a high-end ARM chip to keep
+	up, as the 1MHz Apple II can manage with a similar Mockingboard 
+	sound card (see the French Touch "Pure Noise" Demo)
 
 Related work:
 	Examples of AY-3-8910/1/2 projects on Embedded Boards
