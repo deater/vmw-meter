@@ -129,7 +129,7 @@ static int spi_shift_74hc595(int value, int size) {
 
 	/* For now just duplicate */
 	data_out[0]=b;
-	data_out[1]=0;
+	data_out[1]=b;
 
 	bcm2835_spi_writenb((char *)data_out,2);
 
@@ -215,8 +215,8 @@ int initialize_ay_3_8910(int output_use_gpio) {
 		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_4096 );
 //		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_16384 );
 //		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32768 );
-		bcm2835_spi_chipSelect(BCM2835_SPI_CS1);
-		bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS1,0);
+		bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
+		bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0,0);
 		bcm2835_spi_setDataMode (BCM2835_SPI_MODE0);
 
 		/* Doesn't work, always is MSB first */

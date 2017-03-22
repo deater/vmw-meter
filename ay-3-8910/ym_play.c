@@ -557,7 +557,7 @@ int main(int argc, char **argv) {
 
 	/* Initialize the Chip interface */
 	if (play_music) {
-		result=initialize_ay_3_8910(1);
+		result=initialize_ay_3_8910(0);
 		if (result<0) {
 			printf("Error initializing bcm2835!\n");
 			printf("Maybe try running as root?\n\n");

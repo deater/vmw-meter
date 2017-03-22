@@ -318,7 +318,7 @@ int main(int argc, char **argv) {
 	setpriority(PRIO_PROCESS, 0, -20);
 
 	if (play_music) {
-		result=initialize_ay_3_8910(1);
+		result=initialize_ay_3_8910(0);
 		if (result<0) {
 			printf("Error initializing bcm2835!!\n");
 			play_music=0;
