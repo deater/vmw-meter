@@ -136,6 +136,14 @@ Performance:
 	up, as the 1MHz Apple II can manage with a similar Mockingboard 
 	sound card (see the French Touch "Pure Noise" Demo)
 
+
+Recording from line out:
+	This is needlessly tricky on Linux.
+	
+	One solution I found, when using a USB sound card for input,
+	was "audacity"
+
+
 Related work:
 	Examples of AY-3-8910/1/2 projects on Embedded Boards
 
