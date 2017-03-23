@@ -279,9 +279,6 @@ static int lyrics_play(struct lyric_type *l) {
 		n=next.tv_sec+(next.tv_usec/1000000.0);
 		diff=(n-s)*1000000.0;
 
-		start.tv_sec=next.tv_sec;
-		start.tv_usec=next.tv_usec;
-
 		/* Delay until time for next update (often 50Hz) */
                 if (play_music) {
                         if (diff>0) bcm2835_delayMicroseconds(20000-diff);
@@ -291,6 +288,11 @@ static int lyrics_play(struct lyric_type *l) {
                 else {
                         if (1) usleep(1000000/ym_song.frame_rate);
                 }
+
+		gettimeofday(&next,NULL);
+                n=next.tv_sec+(next.tv_usec/1000000.0);
+		start.tv_sec=next.tv_sec;
+		start.tv_usec=next.tv_usec;
 
 
 		frame++;
