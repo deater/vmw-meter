@@ -1,0 +1,17 @@
+Many of these made myself, or based on the geda provided ones.
+
+
+Turning a bitmap image into a footprint is a pain.
+
+Load into inkscape, path trace->bitmap
+
+Get it traced, then save as ps
+
+pstoedit -f pcb tf7_vince.ps -ssp tf7_vince.fp
+
+But this is made of polygons, and you can't put polygons into a footprint
+(it only wants lines and vias).
+
+One thing you can do is load into pcb and then trace over it with the
+line tool, which is what I did in the end.
+
