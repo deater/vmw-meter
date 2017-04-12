@@ -791,7 +791,7 @@ Attribute("PCB::grid::size" "5.00mil")
 Element["" "resistor" "R3" "" 5655.00mil 1570.00mil -56.00mil 138.00mil 2 100 ""]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "1" ""]
-	Pin[0.0000 400.00mil 60.00mil 30.00mil 60.00mil 28.50mil "" "2" ""]
+	Pin[0.0000 400.00mil 60.00mil 30.00mil 60.00mil 28.50mil "" "2" "warn"]
 	ElementLine [0.0000 50.00mil 0.0000 140.00mil 10.00mil]
 	ElementLine [-40.00mil 140.00mil 40.00mil 140.00mil 10.00mil]
 	ElementLine [40.00mil 140.00mil 40.00mil 260.00mil 10.00mil]
@@ -803,7 +803,7 @@ Element["" "resistor" "R3" "" 5655.00mil 1570.00mil -56.00mil 138.00mil 2 100 ""
 
 Element["" "J2" "J2" "" 5610.00mil 2605.00mil 210.00mil -50.00mil 3 100 ""]
 (
-	Pin[0.0000 0.0000 60.00mil 30.00mil 66.00mil 38.00mil "1" "1" "square,edge2"]
+	Pin[0.0000 0.0000 60.00mil 30.00mil 66.00mil 38.00mil "1" "1" "square,warn,edge2"]
 	Pin[100.00mil 0.0000 60.00mil 30.00mil 66.00mil 38.00mil "2" "2" "edge2"]
 	ElementLine [-50.00mil -50.00mil -50.00mil 50.00mil 10.00mil]
 	ElementLine [-50.00mil 50.00mil 150.00mil 50.00mil 10.00mil]
@@ -1112,9 +1112,9 @@ Element["" "hex_washer_125" "" "" 1350.00mil 3815.00mil 0.0000 0.0000 0 100 ""]
 
 	)
 
-Element["selected" "hex_washer_125" "" "" 5380.00mil 3815.00mil 125.00mil -90.00mil 0 100 "selected"]
+Element["" "hex_washer_125" "" "" 5380.00mil 3815.00mil 125.00mil -90.00mil 0 100 ""]
 (
-	Pin[0.0000 0.0000 150.00mil 15.00mil 160.00mil 126.00mil "" "1" "hole,selected"]
+	Pin[0.0000 0.0000 150.00mil 15.00mil 160.00mil 126.00mil "" "1" "hole"]
 	ElementLine [-125.00mil 0.0000 -62.50mil 108.20mil 2.00mil]
 	ElementLine [-62.50mil 108.20mil 62.50mil 108.20mil 2.00mil]
 	ElementLine [62.50mil 108.20mil 125.00mil 0.0000 2.00mil]
@@ -1151,32 +1151,6 @@ Element["" "hex_washer_125" "" "" 6455.00mil 1900.00mil 15.00mil 70.00mil 0 100 
 	ElementLine [-62.50mil -108.20mil -125.00mil 0.0000 2.00mil]
 	ElementArc [0.0000 0.0000 65.00mil 65.00mil 0 360 2.00mil]
 	ElementArc [0.0000 0.0000 125.00mil 125.00mil 0 360 2.00mil]
-
-	)
-
-Element["" "MAX98306-BREAKOUT" "MAX" "" 1440.00mil 1080.00mil 0.0000 0.0000 1 150 ""]
-(
-	Pin[95.00mil -855.00mil 100.00mil 20.00mil 100.00mil 100.00mil "" "" "hole,edge2"]
-	Pin[1005.00mil -855.00mil 100.00mil 20.00mil 100.00mil 100.00mil "" "" "hole,edge2"]
-	Pin[150.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "9" "edge2"]
-	Pin[250.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "8" "edge2"]
-	Pin[350.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "7" "edge2"]
-	Pin[450.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "6" "edge2"]
-	Pin[550.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "5" "edge2"]
-	Pin[650.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "5" "edge2"]
-	Pin[750.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "5" "edge2"]
-	Pin[850.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "5" "edge2"]
-	Pin[950.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "5" "square,edge2"]
-	ElementLine [0.0000 -950.00mil 0.0000 0.0000 10.00mil]
-	ElementLine [0.0000 -950.00mil 1100.00mil -950.00mil 10.00mil]
-	ElementLine [1100.00mil -950.00mil 1100.00mil 0.0000 10.00mil]
-	ElementLine [0.0000 0.0000 1100.00mil 0.0000 10.00mil]
-	ElementLine [550.00mil -950.00mil 550.00mil -700.00mil 10.00mil]
-	ElementLine [300.00mil -700.00mil 550.00mil -700.00mil 10.00mil]
-	ElementLine [300.00mil -950.00mil 300.00mil -700.00mil 10.00mil]
-	ElementLine [300.00mil -950.00mil 800.00mil -950.00mil 10.00mil]
-	ElementLine [800.00mil -950.00mil 800.00mil -700.00mil 10.00mil]
-	ElementLine [550.00mil -700.00mil 800.00mil -700.00mil 10.00mil]
 
 	)
 
@@ -1632,19 +1606,6 @@ Element["" "capacitor_100" "C9" "" 3005.00mil 1240.00mil 245.00mil 45.00mil 0 10
 
 	)
 
-Element["" "Connector 1x4" "OUT1" "" 2675.00mil 460.00mil 100.00mil 50.00mil 0 150 ""]
-(
-	Pin[100.00mil 450.00mil 60.00mil 20.00mil 70.00mil 38.00mil "1" "1" "square,edge2"]
-	Pin[200.00mil 450.00mil 60.00mil 20.00mil 70.00mil 38.00mil "2" "2" "edge2"]
-	Pin[300.00mil 450.00mil 60.00mil 20.00mil 70.00mil 38.00mil "3" "3" "edge2"]
-	Pin[400.00mil 450.00mil 60.00mil 20.00mil 70.00mil 38.00mil "4" "4" "edge2"]
-	ElementLine [0.0000 0.0000 500.00mil 0.0000 10.00mil]
-	ElementLine [500.00mil 0.0000 500.00mil 450.00mil 10.00mil]
-	ElementLine [500.00mil 450.00mil 0.0000 450.00mil 10.00mil]
-	ElementLine [0.0000 450.00mil 0.0000 0.0000 10.00mil]
-
-	)
-
 Element["" "DS18B20" "DS" "" 3465.00mil 440.00mil -10.00mil 130.00mil 2 100 ""]
 (
 	Pin[-200.00mil 0.0000 72.00mil 30.00mil 78.00mil 42.00mil "1" "1" "square,edge2"]
@@ -1655,7 +1616,7 @@ Element["" "DS18B20" "DS" "" 3465.00mil 440.00mil -10.00mil 130.00mil 2 100 ""]
 
 	)
 
-Element["" "Connector 1x4" "OUT2" "" 5555.00mil 1290.00mil -100.00mil -50.00mil 2 150 ""]
+Element["" "Connector 1x4" "I2COUT" "" 5555.00mil 1290.00mil -100.00mil -50.00mil 2 150 ""]
 (
 	Pin[-100.00mil -450.00mil 60.00mil 20.00mil 70.00mil 38.00mil "1" "1" "square,edge2"]
 	Pin[-200.00mil -450.00mil 60.00mil 20.00mil 70.00mil 38.00mil "2" "2" "edge2"]
@@ -1715,6 +1676,100 @@ Element["" "capacitor_100" "C6" "" 4130.00mil 2725.00mil 245.00mil 45.00mil 0 10
 	ElementLine [60.00mil -15.00mil 60.00mil 15.00mil 10.00mil]
 
 	)
+
+Element["" "SlideBoard" "SLIDE" "" 595.00mil 1300.00mil 100.00mil 50.00mil 0 150 ""]
+(
+	Pin[0.0000 -1040.00mil 128.50mil 0.5000mm 128.50mil 128.50mil "" "" "hole"]
+	Pin[0.0000 1040.00mil 128.50mil 0.5000mm 128.50mil 128.50mil "" "" "hole"]
+	Pin[-50.00mil 800.00mil 60.00mil 30.00mil 66.00mil 38.00mil "1" "1" "square"]
+	Pin[50.00mil 800.00mil 60.00mil 30.00mil 66.00mil 38.00mil "2" "2" ""]
+	Pin[-50.00mil -800.00mil 60.00mil 30.00mil 66.00mil 38.00mil "3" "3" "square"]
+	Pin[50.00mil -800.00mil 60.00mil 30.00mil 66.00mil 38.00mil "4" "4" ""]
+	ElementLine [-6.4000mm -1170.00mil -8.0000mm -1170.00mil 10.00mil]
+	ElementLine [-8.0000mm -1170.00mil -8.0000mm 1170.00mil 10.00mil]
+	ElementLine [-8.0000mm 1170.00mil -6.4000mm 1170.00mil 10.00mil]
+	ElementLine [-6.4000mm 1170.00mil -6.4000mm -1170.00mil 10.00mil]
+	ElementLine [-6.4000mm -1170.00mil -6.4000mm -910.00mil 10.00mil]
+	ElementLine [-6.4000mm -910.00mil -4.8300mm -910.00mil 10.00mil]
+	ElementLine [-4.8300mm -910.00mil -4.8300mm -1170.00mil 10.00mil]
+	ElementLine [-4.8300mm -1170.00mil -6.4000mm -1170.00mil 10.00mil]
+	ElementLine [-6.4000mm 1170.00mil -6.4000mm 910.00mil 10.00mil]
+	ElementLine [-6.4000mm 910.00mil -4.8300mm 910.00mil 10.00mil]
+	ElementLine [-4.8300mm 910.00mil -4.8300mm 1170.00mil 10.00mil]
+	ElementLine [-4.8300mm 1170.00mil -6.4000mm 1170.00mil 10.00mil]
+	ElementLine [-6.4000mm -1170.00mil -6.4000mm -910.00mil 10.00mil]
+	ElementLine [-6.4000mm -910.00mil 3.1000mm -910.00mil 10.00mil]
+	ElementLine [3.1000mm -910.00mil 3.1000mm -1170.00mil 10.00mil]
+	ElementLine [3.1000mm -1170.00mil -6.4000mm -1170.00mil 10.00mil]
+	ElementLine [-6.4000mm 1170.00mil -6.4000mm 910.00mil 10.00mil]
+	ElementLine [-6.4000mm 910.00mil 3.1000mm 910.00mil 10.00mil]
+	ElementLine [3.1000mm 910.00mil 3.1000mm 1170.00mil 10.00mil]
+	ElementLine [3.1000mm 1170.00mil -6.4000mm 1170.00mil 10.00mil]
+	ElementLine [-8.0000mm -22.5000mm -15.0000mm -22.5000mm 10.00mil]
+	ElementLine [-15.0000mm -22.5000mm -15.0000mm 22.5000mm 10.00mil]
+	ElementLine [-15.0000mm 22.5000mm -8.0000mm 22.5000mm 10.00mil]
+	ElementLine [-8.0000mm 22.5000mm -8.0000mm -22.5000mm 10.00mil]
+
+	)
+
+Element["" "MAX98306-BREAKOUT" "MAX" "" 1355.00mil 1030.00mil 0.0000 0.0000 1 150 ""]
+(
+	Pin[95.00mil -855.00mil 100.00mil 20.00mil 100.00mil 100.00mil "" "" "hole,edge2"]
+	Pin[1005.00mil -855.00mil 100.00mil 20.00mil 100.00mil 100.00mil "" "" "hole,edge2"]
+	Pin[150.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "9" "edge2"]
+	Pin[250.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "8" "edge2"]
+	Pin[350.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "7" "edge2"]
+	Pin[450.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "6" "edge2"]
+	Pin[550.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "5" "edge2"]
+	Pin[650.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "4" "edge2"]
+	Pin[750.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "3" "edge2"]
+	Pin[850.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "2" "edge2"]
+	Pin[950.00mil -100.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "1" "square,edge2"]
+	Pin[8.7000mm -20.0000mm 65.00mil 20.00mil 70.00mil 38.00mil "" "10" "edge2"]
+	Pin[12.2000mm -20.0000mm 65.00mil 20.00mil 70.00mil 38.00mil "" "11" "edge2"]
+	Pin[16.5000mm -20.0000mm 65.00mil 20.00mil 70.00mil 38.00mil "" "12" "edge2"]
+	Pin[20.0000mm -20.0000mm 65.00mil 20.00mil 70.00mil 38.00mil "" "13" "square,edge2"]
+	ElementLine [0.0000 -950.00mil 0.0000 0.0000 10.00mil]
+	ElementLine [0.0000 -950.00mil 1100.00mil -950.00mil 10.00mil]
+	ElementLine [1100.00mil -950.00mil 1100.00mil 0.0000 10.00mil]
+	ElementLine [0.0000 0.0000 1100.00mil 0.0000 10.00mil]
+	ElementLine [560.00mil -950.00mil 560.00mil -650.00mil 10.00mil]
+	ElementLine [270.00mil -650.00mil 560.00mil -650.00mil 10.00mil]
+	ElementLine [270.00mil -950.00mil 270.00mil -650.00mil 10.00mil]
+	ElementLine [270.00mil -950.00mil 860.00mil -950.00mil 10.00mil]
+	ElementLine [860.00mil -950.00mil 860.00mil -650.00mil 10.00mil]
+	ElementLine [560.00mil -650.00mil 860.00mil -650.00mil 10.00mil]
+
+	)
+
+Element["selected" "Connector 1x4" "OUT1" "" 2725.00mil 305.00mil 100.00mil 50.00mil 0 150 "selected"]
+(
+	Pin[100.00mil 450.00mil 60.00mil 20.00mil 70.00mil 38.00mil "1" "1" "selected,square,edge2"]
+	Pin[200.00mil 450.00mil 60.00mil 20.00mil 70.00mil 38.00mil "2" "2" "selected,edge2"]
+	Pin[300.00mil 450.00mil 60.00mil 20.00mil 70.00mil 38.00mil "3" "3" "selected,edge2"]
+	Pin[400.00mil 450.00mil 60.00mil 20.00mil 70.00mil 38.00mil "4" "4" "selected,edge2"]
+	ElementLine [0.0000 0.0000 500.00mil 0.0000 10.00mil]
+	ElementLine [500.00mil 0.0000 500.00mil 450.00mil 10.00mil]
+	ElementLine [500.00mil 450.00mil 0.0000 450.00mil 10.00mil]
+	ElementLine [0.0000 450.00mil 0.0000 0.0000 10.00mil]
+
+	)
+
+Element["" "DS1307-BREAKOUT" "RTC" "" 5080.00mil 2710.00mil 0.0000 0.0000 0 150 ""]
+(
+	Pin[27.0000mm 2.5000mm 3.0000mm 1.0000mm 3.0000mm 3.0000mm "" "" "hole,edge2"]
+	Pin[2.5000mm 21.5000mm 3.0000mm 1.0000mm 3.0000mm 3.0000mm "" "" "hole,edge2"]
+	Pin[2.0000mm 80.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "5" "edge2"]
+	Pin[2.0000mm 180.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "4" "edge2"]
+	Pin[2.0000mm 280.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "3" "edge2"]
+	Pin[2.0000mm 380.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "2" "edge2"]
+	Pin[2.0000mm 480.00mil 65.00mil 20.00mil 70.00mil 38.00mil "" "1" "square,edge2"]
+	ElementLine [0.0000 0.0000 30.0000mm 0.0000 10.00mil]
+	ElementLine [30.0000mm 0.0000 30.0000mm 24.0000mm 10.00mil]
+	ElementLine [30.0000mm 24.0000mm 0.0000 24.0000mm 10.00mil]
+	ElementLine [0.0000 24.0000mm 0.0000 0.0000 10.00mil]
+
+	)
 Rat[3026.40mil 67.0472mm 5 4010.00mil 3355.00mil 0  ""]
 Rat[3026.40mil 67.0472mm 5 40.5110mm 61.0856mm 5  ""]
 Rat[74.9265mm 71.7405mm 5 4010.00mil 3055.00mil 0  ""]
@@ -1742,20 +1797,18 @@ Rat[3715.00mil 3085.00mil 0 4340.00mil 2480.00mil 5  ""]
 Rat[3700.00mil 3085.00mil 5 755.00mil 3150.00mil 5  ""]
 Rat[70.0664mm 83.4738mm 5 1862.80mil 77.5122mm 5  ""]
 Rat[1862.80mil 77.5122mm 5 2195.00mil 2450.00mil 5  ""]
-Rat[1590.00mil 980.00mil 5 4030.00mil 1210.00mil 0  ""]
+Rat[1505.00mil 930.00mil 5 4030.00mil 1210.00mil 0  ""]
 Rat[73.4828mm 35.4019mm 5 3105.00mil 1240.00mil 5  ""]
 Rat[73.4828mm 35.4019mm 5 2550.00mil 1145.00mil 5  ""]
-Rat[2550.00mil 1145.00mil 5 2390.00mil 980.00mil 5  ""]
-Rat[2390.00mil 980.00mil 5 2290.00mil 980.00mil 5  ""]
-Rat[2290.00mil 980.00mil 5 2190.00mil 980.00mil 5  ""]
-Rat[2190.00mil 980.00mil 5 2090.00mil 980.00mil 5  ""]
-Rat[2090.00mil 980.00mil 5 1990.00mil 980.00mil 5  ""]
-Rat[1990.00mil 980.00mil 5 1890.00mil 980.00mil 5  ""]
-Rat[1890.00mil 980.00mil 5 1545.00mil 1135.00mil 5  ""]
+Rat[2550.00mil 1145.00mil 5 2205.00mil 930.00mil 5  ""]
+Rat[2205.00mil 930.00mil 5 1905.00mil 930.00mil 5  ""]
+Rat[1905.00mil 930.00mil 5 1805.00mil 930.00mil 5  ""]
+Rat[1805.00mil 930.00mil 5 1545.00mil 1135.00mil 5  ""]
 Rat[1545.00mil 1135.00mil 5 935.00mil 1310.00mil 5  ""]
 Rat[935.00mil 1310.00mil 5 15.7389mm 41.1045mm 5  ""]
 Rat[3105.00mil 1240.00mil 5 3265.00mil 440.00mil 5  ""]
-Rat[3265.00mil 440.00mil 5 4090.00mil 830.00mil 5  ""]
+Rat[3265.00mil 440.00mil 5 3665.00mil 380.00mil 5  ""]
+Rat[3665.00mil 380.00mil 5 4090.00mil 830.00mil 5  ""]
 Rat[4090.00mil 830.00mil 5 4345.00mil 1110.00mil 5  ""]
 Rat[4360.00mil 1110.00mil 0 4360.00mil 1410.00mil 5  ""]
 Rat[4360.00mil 1410.00mil 0 4360.00mil 1510.00mil 5  ""]
@@ -1766,11 +1819,11 @@ Rat[4030.00mil 1610.00mil 0 4025.00mil 1880.00mil 5  ""]
 Rat[4360.00mil 1510.00mil 0 4652.80mil 39.5089mm 5  ""]
 Rat[4652.80mil 39.5089mm 5 4652.80mil 44.5889mm 5  ""]
 Rat[4652.80mil 44.5889mm 5 4752.80mil 49.6689mm 5  ""]
-Rat[4355.00mil 1980.00mil 0 4355.00mil 2280.00mil 5  ""]
-Rat[4355.00mil 2280.00mil 0 4652.80mil 57.2889mm 5  ""]
 Rat[4025.00mil 1880.00mil 0 4025.00mil 2180.00mil 5  ""]
 Rat[4025.00mil 2180.00mil 0 4025.00mil 2280.00mil 5  ""]
 Rat[4025.00mil 2280.00mil 0 4025.00mil 2480.00mil 5  ""]
+Rat[4040.00mil 2280.00mil 5 4340.00mil 2280.00mil 5  ""]
+Rat[4355.00mil 2280.00mil 0 4652.80mil 57.2889mm 5  ""]
 Rat[4652.80mil 57.2889mm 5 4652.80mil 64.9089mm 5  ""]
 Rat[4652.80mil 64.9089mm 5 4752.80mil 69.9889mm 5  ""]
 Rat[4752.80mil 69.9889mm 5 4652.80mil 75.0689mm 5  ""]
@@ -1783,19 +1836,23 @@ Rat[4010.00mil 2855.00mil 5 3715.00mil 2885.00mil 0  ""]
 Rat[4025.00mil 2855.00mil 5 4025.00mil 3155.00mil 5  ""]
 Rat[4025.00mil 3155.00mil 5 4025.00mil 3455.00mil 5  ""]
 Rat[4652.80mil 39.5089mm 5 4752.80mil 31.8889mm 5  ""]
+Rat[4752.80mil 69.9889mm 5 131.0320mm 2790.00mil 5  ""]
 Rat[3700.00mil 2885.00mil 5 3595.00mil 2470.00mil 5  ""]
+Rat[131.0320mm 2790.00mil 5 5610.00mil 2605.00mil 5  ""]
+Rat[5610.00mil 2605.00mil 5 5510.00mil 2430.00mil 5  ""]
+Rat[5510.00mil 2430.00mil 5 5510.00mil 2330.00mil 5  ""]
+Rat[5510.00mil 2330.00mil 5 5510.00mil 2230.00mil 5  ""]
+Rat[5510.00mil 2230.00mil 5 5510.00mil 2130.00mil 5  ""]
+Rat[5510.00mil 2130.00mil 5 5650.00mil 2000.00mil 5  ""]
 Rat[3700.00mil 2885.00mil 5 3400.00mil 3285.00mil 5  ""]
 Rat[3385.00mil 3285.00mil 5 72.0105mm 78.7805mm 5  ""]
-Rat[4752.80mil 49.6689mm 5 5510.00mil 2130.00mil 5  ""]
-Rat[5510.00mil 2130.00mil 5 5510.00mil 2230.00mil 5  ""]
-Rat[5510.00mil 2230.00mil 5 5510.00mil 2330.00mil 5  ""]
-Rat[5510.00mil 2330.00mil 5 5510.00mil 2430.00mil 5  ""]
-Rat[5510.00mil 2130.00mil 5 5650.00mil 2000.00mil 5  ""]
-Rat[5510.00mil 2430.00mil 5 5610.00mil 2605.00mil 5  ""]
+Rat[4752.80mil 31.8889mm 5 5255.00mil 840.00mil 5  ""]
+Rat[935.00mil 1310.00mil 5 645.00mil 500.00mil 5  ""]
+Rat[645.00mil 500.00mil 5 545.00mil 500.00mil 5  ""]
+Rat[645.00mil 500.00mil 5 1040.00mil 8.0810mm 5  ""]
 Rat[15.7389mm 41.1045mm 5 635.00mil 2535.00mil 5  ""]
 Rat[635.00mil 2535.00mil 5 740.00mil 2950.00mil 5  ""]
 Rat[740.00mil 2950.00mil 5 440.00mil 3350.00mil 5  ""]
-Rat[1545.00mil 1135.00mil 5 1040.00mil 8.0810mm 5  ""]
 Rat[755.00mil 2950.00mil 5 45.3711mm 72.8189mm 5  ""]
 Rat[45.3711mm 72.8189mm 5 1895.00mil 2450.00mil 5  ""]
 Rat[3365.00mil 440.00mil 5 3660.00mil 560.00mil 5  ""]
@@ -1808,7 +1865,7 @@ Rat[4652.80mil 31.8889mm 5 4360.00mil 1210.00mil 0  ""]
 Rat[4652.80mil 62.3689mm 5 4025.00mil 2955.00mil 5  ""]
 Rat[4652.80mil 59.8289mm 5 4340.00mil 3355.00mil 0  ""]
 Rat[4752.80mil 34.4289mm 5 4045.00mil 1010.00mil 5  ""]
-Rat[1690.00mil 980.00mil 5 4030.00mil 1510.00mil 0  ""]
+Rat[1605.00mil 930.00mil 5 4030.00mil 1510.00mil 0  ""]
 Rat[4652.80mil 47.1289mm 5 5655.00mil 1970.00mil 5  ""]
 Rat[5655.00mil 1970.00mil 5 5810.00mil 2330.00mil 5  ""]
 Rat[4752.80mil 47.1289mm 5 137.8013mm 1950.10mil 5  ""]
@@ -1818,20 +1875,34 @@ Rat[17.6829mm 45.7978mm 5 31.7629mm 39.9657mm 5  ""]
 Rat[31.7629mm 39.9657mm 5 2375.00mil 1565.00mil 5  ""]
 Rat[2375.00mil 1565.00mil 5 2550.00mil 1545.00mil 5  ""]
 Rat[590.00mil 1390.00mil 5 21.4160mm 515.00mil 5  ""]
+Rat[21.4160mm 515.00mil 5 2005.00mil 930.00mil 5  ""]
 Rat[755.00mil 2850.00mil 0 4340.00mil 2180.00mil 5  ""]
 Rat[4652.80mil 52.2089mm 5 4040.00mil 1980.00mil 5  ""]
 Rat[4752.80mil 52.2089mm 5 4355.00mil 2380.00mil 0  ""]
 Rat[4752.80mil 57.2889mm 5 4355.00mil 2080.00mil 0  ""]
+Rat[5155.00mil 840.00mil 5 4752.80mil 75.0689mm 5  ""]
+Rat[4752.80mil 75.0689mm 5 131.0320mm 3090.00mil 5  ""]
+Rat[5355.00mil 840.00mil 5 131.0320mm 2990.00mil 5  ""]
+Rat[131.0320mm 2990.00mil 5 4752.80mil 77.6089mm 5  ""]
 Rat[3475.00mil 1325.00mil 5 1415.00mil 1145.00mil 5  ""]
+Rat[1415.00mil 1145.00mil 5 545.00mil 2100.00mil 5  ""]
 Rat[690.00mil 1390.00mil 5 305.00mil 1195.00mil 6  ""]
+Rat[690.00mil 1390.00mil 5 645.00mil 2100.00mil 5  ""]
 Rat[71.0385mm 81.1270mm 5 46.3431mm 75.1655mm 5  ""]
 Rat[71.0385mm 81.1270mm 5 4325.00mil 3455.00mil 5  ""]
 Rat[71.5388mm 40.0952mm 5 70.5668mm 42.4419mm 5  ""]
 Rat[71.5388mm 40.0952mm 5 85.6187mm 45.9273mm 5  ""]
 Rat[70.5668mm 42.4419mm 5 1545.00mil 1535.00mil 5  ""]
 Rat[1545.00mil 1535.00mil 5 1415.00mil 1545.00mil 5  ""]
-Rat[3375.00mil 1325.00mil 5 1790.00mil 980.00mil 5  ""]
-Rat[1790.00mil 980.00mil 5 31.4160mm 515.00mil 5  ""]
+Rat[3375.00mil 1325.00mil 5 1705.00mil 930.00mil 5  ""]
+Rat[1705.00mil 930.00mil 5 31.4160mm 515.00mil 5  ""]
+Rat[2105.00mil 930.00mil 5 4345.00mil 1310.00mil 5  ""]
+Rat[43.1170mm 6.1620mm 5 2825.00mil 755.00mil 5  ""]
+Rat[46.6170mm 6.1620mm 5 2925.00mil 755.00mil 5  ""]
+Rat[54.4170mm 6.1620mm 5 3125.00mil 755.00mil 5  ""]
+Rat[50.9170mm 6.1620mm 5 3025.00mil 755.00mil 5  ""]
+Rat[4752.80mil 39.5089mm 5 4065.00mil 380.00mil 5  ""]
+Rat[4065.00mil 380.00mil 5 3830.00mil 145.00mil 5  ""]
 Rat[72.9825mm 3009.20mil 5 75.8985mm 69.3938mm 5  ""]
 Rat[75.8985mm 69.3938mm 5 3495.00mil 2470.00mil 5  ""]
 Rat[3495.00mil 2470.00mil 5 3700.00mil 2585.00mil 5  ""]
@@ -1839,6 +1910,7 @@ Rat[3715.00mil 2585.00mil 5 4130.00mil 2725.00mil 5  ""]
 Rat[4130.00mil 2725.00mil 5 4325.00mil 2855.00mil 5  ""]
 Rat[4340.00mil 2855.00mil 0 4652.80mil 77.6089mm 5  ""]
 Rat[4652.80mil 77.6089mm 5 4652.80mil 80.1489mm 5  ""]
+Rat[4652.80mil 77.6089mm 5 131.0320mm 2890.00mil 5  ""]
 Rat[3700.00mil 2585.00mil 5 3700.00mil 3185.00mil 5  ""]
 Rat[3495.00mil 2470.00mil 5 87.5627mm 41.2340mm 5  ""]
 Rat[87.5627mm 41.2340mm 5 3005.00mil 1240.00mil 5  ""]
@@ -1846,7 +1918,8 @@ Rat[87.5627mm 41.2340mm 5 4180.00mil 1720.00mil 5  ""]
 Rat[4180.00mil 1720.00mil 5 4340.00mil 1880.00mil 5  ""]
 Rat[4180.00mil 1720.00mil 5 4345.00mil 1010.00mil 5  ""]
 Rat[4345.00mil 1010.00mil 5 3990.00mil 830.00mil 5  ""]
-Rat[3005.00mil 1240.00mil 5 2195.00mil 1850.00mil 5  ""]
+Rat[3005.00mil 1240.00mil 5 2305.00mil 930.00mil 5  ""]
+Rat[2305.00mil 930.00mil 5 2195.00mil 1850.00mil 5  ""]
 Rat[2195.00mil 1850.00mil 5 41.4830mm 63.4323mm 5  ""]
 Rat[41.4830mm 63.4323mm 5 1748.00mil 2774.50mil 5  ""]
 Rat[41.4830mm 63.4323mm 5 755.00mil 2650.00mil 5  ""]
@@ -1858,10 +1931,12 @@ Rat[5750.00mil 2000.00mil 5 5810.00mil 2130.00mil 5  ""]
 Rat[5750.00mil 2000.00mil 5 146.6296mm 42.0698mm 5  ""]
 Rat[146.6296mm 42.0698mm 5 5655.00mil 1570.00mil 5  ""]
 Rat[5655.00mil 1570.00mil 5 141.6894mm 40.1460mm 5  ""]
+Rat[141.6894mm 40.1460mm 5 5455.00mil 840.00mil 5  ""]
 Rat[5750.00mil 2000.00mil 5 4752.80mil 59.8289mm 5  ""]
 Rat[4752.80mil 59.8289mm 5 4752.80mil 80.1489mm 5  ""]
-Rat[141.6894mm 40.1460mm 5 4060.00mil 560.00mil 5  ""]
-Rat[4060.00mil 560.00mil 5 3465.00mil 440.00mil 5  ""]
+Rat[5455.00mil 840.00mil 5 4060.00mil 560.00mil 5  ""]
+Rat[4060.00mil 560.00mil 5 95.2820mm 145.00mil 5  ""]
+Rat[95.2820mm 145.00mil 5 3465.00mil 440.00mil 5  ""]
 Rat[5710.00mil 2605.00mil 5 5810.00mil 2230.00mil 5  ""]
 Rat[5810.00mil 2230.00mil 5 150.5177mm 51.4564mm 5  ""]
 Layer(1 "top")
@@ -2065,6 +2140,7 @@ NetList()
 		Connect("C9-2")
 		Connect("C10-2")
 		Connect("DS-1")
+		Connect("I2COUT-3")
 		Connect("J2-1")
 		Connect("JACK0-1")
 		Connect("MAX-2")
@@ -2079,18 +2155,20 @@ NetList()
 		Connect("PI-30")
 		Connect("PI-34")
 		Connect("PI-39")
-		Connect("POT1-2")
-		Connect("POT2-2")
+		Connect("R5-2")
 		Connect("R8-2")
 		Connect("R9-2")
 		Connect("ROM1-1")
 		Connect("ROM1-2")
 		Connect("ROM1-3")
 		Connect("ROM1-4")
+		Connect("RTC-5")
 		Connect("SHIFT1-8")
 		Connect("SHIFT1-13")
 		Connect("SHIFT2-8")
 		Connect("SHIFT2-13")
+		Connect("SLIDE-3")
+		Connect("SLIDE-4")
 		Connect("TRI1-1")
 		Connect("TRI1-4")
 		Connect("TRI1-7")
@@ -2205,17 +2283,29 @@ NetList()
 		Connect("PI-19")
 		Connect("TRI2-12")
 	)
+	Net("PISCL" "(unknown)")
+	(
+		Connect("I2COUT-4")
+		Connect("PI-5")
+		Connect("RTC-2")
+	)
+	Net("PISDA" "(unknown)")
+	(
+		Connect("I2COUT-2")
+		Connect("PI-3")
+		Connect("RTC-3")
+	)
 	Net("PN1" "(unknown)")
 	(
 		Connect("C1-2")
-		Connect("POT1-1")
 		Connect("R7-2")
+		Connect("SLIDE-1")
 	)
 	Net("PN2" "(unknown)")
 	(
 		Connect("C2-2")
-		Connect("POT2-1")
 		Connect("R6-2")
+		Connect("SLIDE-2")
 	)
 	Net("RESET" "(unknown)")
 	(
@@ -2242,6 +2332,32 @@ NetList()
 		Connect("MAX-3")
 		Connect("TRI3-11")
 	)
+	Net("SLM" "(unknown)")
+	(
+		Connect("MAX-10")
+		Connect("OUT1-1")
+	)
+	Net("SLP" "(unknown)")
+	(
+		Connect("MAX-11")
+		Connect("OUT1-2")
+	)
+	Net("SRM" "(unknown)")
+	(
+		Connect("MAX-13")
+		Connect("OUT1-4")
+	)
+	Net("SRP" "(unknown)")
+	(
+		Connect("MAX-12")
+		Connect("OUT1-3")
+	)
+	Net("SWMID" "(unknown)")
+	(
+		Connect("PI-33")
+		Connect("R5-1")
+		Connect("SW1-2")
+	)
 	Net("VDD5V" "(unknown)")
 	(
 		Connect("AY1-25")
@@ -2261,6 +2377,7 @@ NetList()
 		Connect("OSC-14")
 		Connect("PI-2")
 		Connect("PI-4")
+		Connect("RTC-4")
 		Connect("SHIFT1-10")
 		Connect("SHIFT1-16")
 		Connect("SHIFT2-10")
@@ -2273,6 +2390,7 @@ NetList()
 	(
 		Connect("C10-1")
 		Connect("DS-3")
+		Connect("I2COUT-1")
 		Connect("PI-1")
 		Connect("PI-17")
 		Connect("R1-1")
@@ -2280,6 +2398,7 @@ NetList()
 		Connect("R3-1")
 		Connect("R10-1")
 		Connect("ROM1-8")
+		Connect("SW1-3")
 	)
 	Net("WRITE" "(unknown)")
 	(
