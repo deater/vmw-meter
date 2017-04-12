@@ -34,10 +34,10 @@ Element[ "" "MAX98306-BREAKOUT" "" "" 0 0 0mil 0mil 0 150 ""]
 	Pin [ 100mil  350mil  65mil  20mil  70mil  38mil   ""  "7" "pin"]
 	Pin [ 100mil  450mil  65mil  20mil  70mil  38mil   ""  "6" "pin"]
 	Pin [ 100mil  550mil  65mil  20mil  70mil  38mil   ""  "5" "pin"]
-	Pin [ 100mil  650mil  65mil  20mil  70mil  38mil   ""  "5" "pin"]
-	Pin [ 100mil  750mil  65mil  20mil  70mil  38mil   ""  "5" "pin"]
-	Pin [ 100mil  850mil  65mil  20mil  70mil  38mil   ""  "5" "pin"]
-	Pin [ 100mil  950mil  65mil  20mil  70mil  38mil   ""  "5" "pin,square"]
+	Pin [ 100mil  650mil  65mil  20mil  70mil  38mil   ""  "4" "pin"]
+	Pin [ 100mil  750mil  65mil  20mil  70mil  38mil   ""  "3" "pin"]
+	Pin [ 100mil  850mil  65mil  20mil  70mil  38mil   ""  "2" "pin"]
+	Pin [ 100mil  950mil  65mil  20mil  70mil  38mil   ""  "1" "pin,square"]
 
 
 
