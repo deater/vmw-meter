@@ -1,0 +1,13 @@
+ARGH THE PI IS TOO CLOSE TO EDGE, CORNER
+
+Pullup on the shutdown line so no noise on reboot?
+Test RTC
+Test the headphone switch
+
+Label the resistors with values
+Lable the caps with values
+Label the i2c connector
+Label the audio connector
+
+Ground fill
+Hole Clearances
