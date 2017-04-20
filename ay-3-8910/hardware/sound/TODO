@@ -1,3 +1,5 @@
+Flip the shifters so the one closest to the pi gets MOSI
+
 Make sure the bypass caps are bypassing
 
 Pullup on the shutdown line so no noise on reboot?
@@ -11,3 +13,7 @@ Label the audio connector
 
 Ground fill
 Hole Clearances
+
+
+Long Range:
+Flip the tri-states so wires don't cross?
