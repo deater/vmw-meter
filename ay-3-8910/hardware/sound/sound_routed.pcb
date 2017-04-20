@@ -1952,10 +1952,10 @@ Element["" "SlideBoard" "SLIDE" "" 10.0270mm 60.8418mm 100.00mil 50.00mil 0 150 
 	)
 Rat[47.8752mm 55.5210mm 0 260.00mil 2350.00mil 5  ""]
 Rat[48.2562mm 55.5210mm 5 3615.00mil 2190.00mil 5  ""]
-Rat[47.8752mm 60.6010mm 0 260.00mil 2050.00mil 5  ""]
+Rat[47.8752mm 47.9010mm 0 260.00mil 2550.00mil 5  ""]
 Rat[47.8752mm 52.9810mm 0 260.00mil 2250.00mil 5  ""]
 Rat[48.2562mm 52.9810mm 5 97.5246mm 2540.00mil 0  ""]
-Rat[260.00mil 2550.00mil 5 97.5246mm 2240.00mil 0  ""]
+Rat[48.2562mm 60.6010mm 5 97.5246mm 2240.00mil 0  ""]
 Layer(1 "top")
 (
 	Line[5310.00mil 2070.00mil 5310.00mil 2370.00mil 25.00mil 24.00mil "clearline"]
@@ -2245,7 +2245,7 @@ Layer(1 "top")
 	Line[535.00mil 2865.00mil 655.00mil 2870.00mil 25.00mil 24.00mil "clearline"]
 	Line[655.00mil 2870.00mil 25.0707mm 67.7161mm 25.00mil 24.00mil "clearline"]
 	Line[560.00mil 2050.00mil 590.00mil 1965.00mil 40.00mil 20.00mil "clearline"]
-	Line[14.9529mm 1968.70mil 450.00mil 40.5218mm 40.00mil 20.00mil "clearline"]
+	Line[14.9529mm 50.0050mm 450.00mil 40.5218mm 40.00mil 20.00mil "clearline"]
 	Line[260.00mil 2150.00mil 140.00mil 2225.00mil 40.00mil 20.00mil "clearline"]
 	Line[140.00mil 2225.00mil 145.00mil 2670.00mil 40.00mil 20.00mil "clearline"]
 	Line[145.00mil 2670.00mil 260.00mil 2750.00mil 40.00mil 20.00mil "clearline"]
@@ -2657,8 +2657,8 @@ NetList()
 	)
 	Net("CHAIN" "(unknown)")
 	(
-		Connect("SHIFT1-14")
-		Connect("SHIFT2-9")
+		Connect("SHIFT1-9")
+		Connect("SHIFT2-14")
 	)
 	Net("CLK" "(unknown)")
 	(
@@ -2823,7 +2823,7 @@ NetList()
 	)
 	Net("MOSI" "(unknown)")
 	(
-		Connect("SHIFT2-14")
+		Connect("SHIFT1-14")
 		Connect("TRI2-11")
 	)
 	Net("PICE0" "(unknown)")
