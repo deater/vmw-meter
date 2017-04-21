@@ -30,19 +30,19 @@ Element[ "" "jack" "" "" 0 0 -5mm -5mm 0 150 ""]
 
 	# Positioning Holes
 	#           x        y   thick  clear  mask   drill  name num flags
-	Pin [   0.0mm    0.0mm   1.2mm  0.20mm 1.2mm  1.2mm  ""   ""  "pin,hole"]
-	Pin [  -7.5mm   -5.0mm   1.2mm  0.20mm 1.2mm  1.2mm  ""   ""  "pin,hole"]
-	Pin [  -5.0mm   -5.0mm   1.2mm  0.20mm 1.2mm  1.2mm  ""   ""  "pin,hole"]
-	Pin [  -7.5mm    5.0mm   1.2mm  0.20mm 1.2mm  1.2mm  ""   ""  "pin,hole"]
-	Pin [  -5.0mm    5.0mm   1.2mm  0.20mm 1.2mm  1.2mm  ""   ""  "pin,hole"]
+	Pin [   0.0mm    0.0mm   1.2mm  0.60mm 1.2mm  1.2mm  ""   ""  "pin,hole"]
+	Pin [  -7.5mm   -5.0mm   1.2mm  0.60mm 1.2mm  1.2mm  ""   ""  "pin,hole"]
+	Pin [  -5.0mm   -5.0mm   1.2mm  0.60mm 1.2mm  1.2mm  ""   ""  "pin,hole"]
+	Pin [  -7.5mm    5.0mm   1.2mm  0.60mm 1.2mm  1.2mm  ""   ""  "pin,hole"]
+	Pin [  -5.0mm    5.0mm   1.2mm  0.60mm 1.2mm  1.2mm  ""   ""  "pin,hole"]
 
 	# Useful Holes
 	#           x        y   thick  clear  mask   drill  name num flags
-	Pin [  -5.0mm    0.0mm   2.1mm  0.20mm 2.2mm  1.5mm  ""   "1"  "pin"]
-	Pin [   0.0mm    5.0mm   2.1mm  0.20mm 2.2mm  1.5mm  ""   "2"  "pin"]
-	Pin [   0.0mm   -5.0mm   2.1mm  0.20mm 2.2mm  1.5mm  ""   "3"  "pin"]
-	Pin [   0.0mm    2.5mm   2.1mm  0.20mm 2.2mm  1.5mm  ""   "4"  "pin"]
-	Pin [   0.0mm   -2.5mm   2.1mm  0.20mm 2.2mm  1.5mm  ""   "5"  "pin"]
+	Pin [  -5.0mm    0.0mm   2.1mm  0.60mm 2.2mm  1.5mm  ""   "1"  "pin"]
+	Pin [   0.0mm    5.0mm   2.1mm  0.60mm 2.2mm  1.5mm  ""   "2"  "pin"]
+	Pin [   0.0mm   -5.0mm   2.1mm  0.60mm 2.2mm  1.5mm  ""   "3"  "pin"]
+	Pin [   0.0mm    2.5mm   2.1mm  0.60mm 2.2mm  1.5mm  ""   "4"  "pin"]
+	Pin [   0.0mm   -2.5mm   2.1mm  0.60mm 2.2mm  1.5mm  ""   "5"  "pin"]
 
 )
 
