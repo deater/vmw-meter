@@ -1,19 +1,21 @@
-Flip the shifters so the one closest to the pi gets MOSI
-
+Fix the pin order on the MAX breakout
 Make sure the bypass caps are bypassing
 
-Pullup on the shutdown line so no noise on reboot?
-Test RTC
-Test the headphone switch
-
 Label the resistors with values
-Lable the caps with values
+Label the caps with values
 Label the i2c connector
 Label the audio connector
 
-Ground fill
-Hole Clearances
-
-
 Long Range:
 Flip the tri-states so wires don't cross?
+
+Done:
++ Flip the shifters so the one closest to the pi gets MOSI
++ Ground Plane fill
++ Hole Clearances
++ Pullup on the shutdown line so no noise on reboot
+	(but haven't rebooted yet)
++ Test RTC (need battery)
++ Test the headphone switch (seems to work)
+
+
