@@ -15,9 +15,9 @@ Element[ "" "Switch" "" "" 1000 1000 10000 5000 0 150 ""]
 	Pin[ -4.1mm  0.0mm 1.5mm 0.5mm 1.5mm 1.5mm "" "" "pin,hole"]
 	Pin[  4.1mm  0.0mm 1.5mm 0.5mm 1.5mm 1.5mm "" "" "pin,hole"]
 
-	Pin[ -2.0mm  0.0mm 1.3mm 0.5mm 1.4mm 0.8mm "1" "1" "pin"]
-	Pin[  0.0mm  0.0mm 1.3mm 0.5mm 1.4mm 0.8mm "2" "2" "pin"]
-	Pin[  2.0mm  0.0mm 1.3mm 0.5mm 1.4mm 0.8mm "3" "3" "pin"]
+	Pin[ -2.0mm  0.0mm 1.4mm 0.5mm 1.5mm 0.8mm "1" "1" "pin"]
+	Pin[  0.0mm  0.0mm 1.4mm 0.5mm 1.5mm 0.8mm "2" "2" "pin"]
+	Pin[  2.0mm  0.0mm 1.4mm 0.5mm 1.5mm 0.8mm "3" "3" "pin"]
 
 	ElementLine[ -4.3mm  -2.2mm   4.3mm  -2.2mm 1000]
 	ElementLine[  4.3mm  -2.2mm   4.3mm   2.2mm 1000]
