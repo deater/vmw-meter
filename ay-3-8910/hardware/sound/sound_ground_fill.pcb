@@ -813,7 +813,7 @@ Via[1475.00mil 3020.00mil 60.00mil 24.00mil 0.0000 35.00mil "" ""]
 Via[1355.00mil 2755.00mil 60.00mil 24.00mil 0.0000 35.00mil "" ""]
 Via[4735.00mil 820.00mil 60.00mil 24.00mil 0.0000 35.00mil "" ""]
 
-Element["selected" "SlideBoard" "SLIDE" "" 10.0270mm 60.8418mm 100.00mil 50.00mil 0 150 ""]
+Element["" "SlideBoard" "SLIDE" "" 10.0270mm 60.8418mm 100.00mil 50.00mil 0 150 ""]
 (
 	Pin[0.0000 -1040.00mil 128.50mil 1.0000mm 128.50mil 128.50mil "" "" "hole"]
 	Pin[0.0000 1040.00mil 128.50mil 1.0000mm 128.50mil 128.50mil "" "" "hole"]
@@ -848,7 +848,7 @@ Element["selected" "SlideBoard" "SLIDE" "" 10.0270mm 60.8418mm 100.00mil 50.00mi
 
 	)
 
-Element["selected,onsolder" "capacitor_100" "C8" "" 21.2265mm 38.7063mm -1.5415mm -6.1943mm 3 100 "auto"]
+Element["onsolder" "capacitor_100" "C8" "" 21.2265mm 38.7063mm -2.0495mm -1.4953mm 2 100 "auto"]
 (
 	Pin[0.0000 0.0000 55.00mil 30.00mil 61.00mil 30.00mil "" "1" "square"]
 	Pin[-0.9720mm -92.39mil 55.00mil 30.00mil 61.00mil 30.00mil "" "2" "thermal(1X)"]
@@ -859,7 +859,7 @@ Element["selected,onsolder" "capacitor_100" "C8" "" 21.2265mm 38.7063mm -1.5415m
 
 	)
 
-Element["selected" "resistor" "R12" "" 1555.00mil 1265.00mil -138.00mil -56.00mil 1 100 ""]
+Element["" "resistor" "R12" "" 1555.00mil 1265.00mil -138.00mil -56.00mil 1 100 ""]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "1" "edge2,thermal(0X)"]
 	Pin[-400.00mil 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "2" "edge2"]
@@ -872,7 +872,7 @@ Element["selected" "resistor" "R12" "" 1555.00mil 1265.00mil -138.00mil -56.00mi
 
 	)
 
-Element["selected" "resistor" "R11" "" 4190.00mil 345.00mil -138.00mil -56.00mil 1 100 ""]
+Element["" "resistor" "R11" "" 4190.00mil 345.00mil -138.00mil -56.00mil 1 100 ""]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "1" "edge2"]
 	Pin[-400.00mil 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "2" "edge2"]
@@ -885,7 +885,7 @@ Element["selected" "resistor" "R11" "" 4190.00mil 345.00mil -138.00mil -56.00mil
 
 	)
 
-Element["selected,onsolder" "capacitor_100" "C9" "" 83.2615mm 38.4737mm -0.6277mm -6.0195mm 3 100 "auto"]
+Element["onsolder" "capacitor_100" "C9" "" 83.2615mm 38.4737mm -1.6583mm -3.1245mm 2 100 "auto"]
 (
 	Pin[0.0000 0.0000 55.00mil 30.00mil 61.00mil 30.00mil "" "1" "square"]
 	Pin[0.9720mm -92.39mil 55.00mil 30.00mil 61.00mil 30.00mil "" "2" "thermal(1X)"]
@@ -896,7 +896,7 @@ Element["selected,onsolder" "capacitor_100" "C9" "" 83.2615mm 38.4737mm -0.6277m
 
 	)
 
-Element["selected,onsolder" "jack" "JACK0" "" 19.2865mm 9.6227mm -5.0000mm -5.0000mm 1 150 "auto"]
+Element["onsolder" "jack" "JACK0" "" 19.2865mm 9.6227mm 0.4748mm -3.7182mm 2 150 "auto"]
 (
 	Pin[0.0000 0.0000 1.2000mm 0.7000mm 1.2000mm 1.2000mm "" "" "hole"]
 	Pin[-5.0000mm -7.5000mm 1.2000mm 0.7000mm 1.2000mm 1.2000mm "" "" "hole"]
@@ -926,7 +926,7 @@ Element["selected,onsolder" "jack" "JACK0" "" 19.2865mm 9.6227mm -5.0000mm -5.00
 
 	)
 
-Element["selected" "DIP-14-300" "SHIFT1" "" 52.0662mm 58.0610mm -454.85mil 2.3910mm 1 100 ""]
+Element["" "DIP-14-300" "SHIFT1" "" 52.0662mm 58.0610mm -454.85mil 2.3910mm 1 100 ""]
 (
 	Pin[150.00mil 300.00mil 60.00mil 25.00mil 80.00mil 35.00mil "" "1" ""]
 	Pin[150.00mil 200.00mil 60.00mil 25.00mil 80.00mil 35.00mil "" "2" ""]
@@ -986,7 +986,7 @@ Element["selected" "DIP-14-300" "SHIFT1" "" 52.0662mm 58.0610mm -454.85mil 2.391
 
 	)
 
-Element["selected" "DIP-14-300" "SHIFT2" "" 410.00mil 2450.00mil -1.5210mm 6.7266mm 1 100 ""]
+Element["" "DIP-14-300" "SHIFT2" "" 410.00mil 2450.00mil -1.5210mm 6.7266mm 1 100 ""]
 (
 	Pin[150.00mil 300.00mil 60.00mil 25.00mil 80.00mil 35.00mil "" "1" ""]
 	Pin[150.00mil 200.00mil 60.00mil 25.00mil 80.00mil 35.00mil "" "2" ""]
@@ -1046,7 +1046,7 @@ Element["selected" "DIP-14-300" "SHIFT2" "" 410.00mil 2450.00mil -1.5210mm 6.726
 
 	)
 
-Element["selected,onsolder" "DIP-40-600" "AY1" "" 3502.80mil 44.2326mm 11.1048mm 658.56mil 2 100 "auto"]
+Element["onsolder" "DIP-40-600" "AY1" "" 3502.80mil 44.2326mm -2.9922mm -36.44mil 2 100 "auto"]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 66.00mil 28.00mil "1" "1" "square,thermal(1X)"]
 	Pin[-0.9721mm 2.3467mm 60.00mil 30.00mil 66.00mil 28.00mil "2" "2" ""]
@@ -1097,7 +1097,7 @@ Element["selected,onsolder" "DIP-40-600" "AY1" "" 3502.80mil 44.2326mm 11.1048mm
 
 	)
 
-Element["selected" "Connector 1x4" "OUT1" "" 2990.00mil 895.00mil -100.00mil -50.00mil 2 150 ""]
+Element["" "Connector 1x4" "OUT1" "" 2990.00mil 895.00mil -100.00mil -50.00mil 2 150 ""]
 (
 	Pin[-100.00mil -450.00mil 60.00mil 24.00mil 70.00mil 38.00mil "1" "1" "square,edge2"]
 	Pin[-200.00mil -450.00mil 60.00mil 24.00mil 70.00mil 38.00mil "2" "2" "edge2"]
@@ -1110,7 +1110,7 @@ Element["selected" "Connector 1x4" "OUT1" "" 2990.00mil 895.00mil -100.00mil -50
 
 	)
 
-Element["selected,onsolder" "Switch" "SW1" "" 3925.00mil 90.00mil 225.00mil 35.00mil 0 150 "auto"]
+Element["onsolder" "Switch" "SW1" "" 3925.00mil 90.00mil 75.00mil 85.00mil 2 150 "auto"]
 (
 	Pin[-4.1000mm 0.0000 1.5000mm 1.0000mm 1.5000mm 1.5000mm "" "" "hole,edge2"]
 	Pin[4.1000mm 0.0000 1.5000mm 1.0000mm 1.5000mm 1.5000mm "" "" "hole,edge2"]
@@ -1129,7 +1129,7 @@ Element["selected,onsolder" "Switch" "SW1" "" 3925.00mil 90.00mil 225.00mil 35.0
 
 	)
 
-Element["selected" "resistor" "R3" "" 5455.00mil 1345.00mil -84.00mil 282.00mil 0 100 ""]
+Element["" "resistor" "R3" "" 5455.00mil 1345.00mil -84.00mil 282.00mil 0 100 ""]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "1" ""]
 	Pin[0.0000 400.00mil 60.00mil 30.00mil 60.00mil 28.50mil "" "2" ""]
@@ -1142,7 +1142,7 @@ Element["selected" "resistor" "R3" "" 5455.00mil 1345.00mil -84.00mil 282.00mil 
 
 	)
 
-Element["selected" "Connector 1x4" "I2COUT" "" 3700.00mil 1700.00mil 50.00mil -100.00mil 1 150 ""]
+Element["" "Connector 1x4" "I2COUT" "" 3700.00mil 1700.00mil 50.00mil -100.00mil 1 150 ""]
 (
 	Pin[450.00mil -100.00mil 60.00mil 30.00mil 70.00mil 38.00mil "1" "1" "square"]
 	Pin[450.00mil -200.00mil 60.00mil 30.00mil 70.00mil 38.00mil "2" "2" ""]
@@ -1155,7 +1155,7 @@ Element["selected" "Connector 1x4" "I2COUT" "" 3700.00mil 1700.00mil 50.00mil -1
 
 	)
 
-Element["selected" "hex_washer_125" "" "" 360.00mil 1845.00mil 95.00mil -20.00mil 0 100 ""]
+Element["" "hex_washer_125" "" "" 360.00mil 1845.00mil 95.00mil -20.00mil 0 100 ""]
 (
 	Pin[0.0000 0.0000 150.00mil 95.00mil 160.00mil 126.00mil "" "1" "hole"]
 	ElementLine [-125.00mil 0.0000 -62.50mil 108.20mil 2.00mil]
@@ -1169,7 +1169,7 @@ Element["selected" "hex_washer_125" "" "" 360.00mil 1845.00mil 95.00mil -20.00mi
 
 	)
 
-Element["selected" "hex_washer_125" "" "" 6540.00mil 1845.00mil 15.00mil 70.00mil 0 100 ""]
+Element["" "hex_washer_125" "" "" 6540.00mil 1845.00mil 15.00mil 70.00mil 0 100 ""]
 (
 	Pin[0.0000 0.0000 150.00mil 95.00mil 160.00mil 126.00mil "" "1" "hole"]
 	ElementLine [-125.00mil 0.0000 -62.50mil 108.20mil 2.00mil]
@@ -1183,7 +1183,7 @@ Element["selected" "hex_washer_125" "" "" 6540.00mil 1845.00mil 15.00mil 70.00mi
 
 	)
 
-Element["selected" "hex_washer_125" "" "" 5465.00mil 3760.00mil 125.00mil -90.00mil 0 100 ""]
+Element["" "hex_washer_125" "" "" 5465.00mil 3760.00mil 125.00mil -90.00mil 0 100 ""]
 (
 	Pin[0.0000 0.0000 150.00mil 95.00mil 160.00mil 126.00mil "" "1" "hole"]
 	ElementLine [-125.00mil 0.0000 -62.50mil 108.20mil 2.00mil]
@@ -1197,7 +1197,7 @@ Element["selected" "hex_washer_125" "" "" 5465.00mil 3760.00mil 125.00mil -90.00
 
 	)
 
-Element["selected" "hex_washer_125" "" "" 1435.00mil 3760.00mil -225.00mil -155.00mil 0 100 ""]
+Element["" "hex_washer_125" "" "" 1435.00mil 3760.00mil -225.00mil -155.00mil 0 100 ""]
 (
 	Pin[0.0000 0.0000 150.00mil 95.00mil 160.00mil 126.00mil "" "1" "hole"]
 	ElementLine [-125.00mil 0.0000 -62.50mil 108.20mil 2.00mil]
@@ -1211,7 +1211,7 @@ Element["selected" "hex_washer_125" "" "" 1435.00mil 3760.00mil -225.00mil -155.
 
 	)
 
-Element["selected" "DS1307-BREAKOUT" "RTC" "" 4905.00mil 2650.00mil 0.0000 0.0000 0 150 ""]
+Element["" "DS1307-BREAKOUT" "RTC" "" 4905.00mil 2650.00mil 0.0000 0.0000 0 150 ""]
 (
 	Pin[27.0000mm 2.5000mm 3.0000mm 1.0000mm 3.0000mm 3.0000mm "" "" "hole,edge2"]
 	Pin[2.5000mm 21.5000mm 3.0000mm 1.0000mm 3.0000mm 3.0000mm "" "" "hole,edge2"]
@@ -1227,7 +1227,7 @@ Element["selected" "DS1307-BREAKOUT" "RTC" "" 4905.00mil 2650.00mil 0.0000 0.000
 
 	)
 
-Element["selected,onsolder" "MAX98306-BREAKOUT" "MAX" "" 54.7858mm 1185.80mil 0.0000 0.0000 3 150 "auto"]
+Element["onsolder" "MAX98306-BREAKOUT" "MAX" "" 54.7858mm 1185.80mil -1.0445mm -19.2461mm 2 150 "auto"]
 (
 	Pin[-95.00mil -855.00mil 100.00mil 25.00mil 100.00mil 100.00mil "" "" "hole,edge2"]
 	Pin[-1005.00mil -855.00mil 100.00mil 25.00mil 100.00mil 100.00mil "" "" "hole,edge2"]
@@ -1257,7 +1257,7 @@ Element["selected,onsolder" "MAX98306-BREAKOUT" "MAX" "" 54.7858mm 1185.80mil 0.
 
 	)
 
-Element["selected" "capacitor_100" "C6" "" 2105.00mil 1710.00mil -245.00mil -45.00mil 2 100 ""]
+Element["" "capacitor_100" "C6" "" 2105.00mil 1710.00mil -245.00mil -45.00mil 2 100 ""]
 (
 	Pin[0.0000 0.0000 55.00mil 30.00mil 61.00mil 30.00mil "" "1" "square,edge2"]
 	Pin[-100.00mil 0.0000 55.00mil 30.00mil 61.00mil 30.00mil "" "2" "edge2,thermal(0X)"]
@@ -1268,7 +1268,7 @@ Element["selected" "capacitor_100" "C6" "" 2105.00mil 1710.00mil -245.00mil -45.
 
 	)
 
-Element["selected" "capacitor_100" "C10" "" 5500.00mil 1910.00mil -80.00mil 35.00mil 0 100 ""]
+Element["" "capacitor_100" "C10" "" 5500.00mil 1910.00mil -80.00mil 35.00mil 0 100 ""]
 (
 	Pin[0.0000 0.0000 55.00mil 30.00mil 61.00mil 30.00mil "" "1" "square,edge2"]
 	Pin[-100.00mil 0.0000 55.00mil 30.00mil 61.00mil 30.00mil "" "2" "edge2,thermal(6X)"]
@@ -1279,7 +1279,7 @@ Element["selected" "capacitor_100" "C10" "" 5500.00mil 1910.00mil -80.00mil 35.0
 
 	)
 
-Element["selected" "resistor" "R2" "" 5355.00mil 1480.00mil -6.1132mm 2.0968mm 0 100 ""]
+Element["" "resistor" "R2" "" 5355.00mil 1480.00mil -6.1132mm 2.0968mm 0 100 ""]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "1" ""]
 	Pin[-3.8881mm 9.3866mm 60.00mil 30.00mil 60.00mil 28.50mil "" "2" ""]
@@ -1292,7 +1292,7 @@ Element["selected" "resistor" "R2" "" 5355.00mil 1480.00mil -6.1132mm 2.0968mm 0
 
 	)
 
-Element["selected" "resistor" "R10" "" 5555.00mil 1480.00mil 3.9070mm 2.1156mm 0 100 ""]
+Element["" "resistor" "R10" "" 5555.00mil 1480.00mil 3.9070mm 2.1156mm 0 100 ""]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "1" ""]
 	Pin[3.8881mm 9.3866mm 60.00mil 30.00mil 60.00mil 28.50mil "" "2" ""]
@@ -1305,7 +1305,7 @@ Element["selected" "resistor" "R10" "" 5555.00mil 1480.00mil 3.9070mm 2.1156mm 0
 
 	)
 
-Element["selected" "DS18B20" "DS" "" 3555.00mil 395.00mil -10.00mil 130.00mil 2 100 ""]
+Element["" "DS18B20" "DS" "" 3555.00mil 395.00mil -10.00mil 130.00mil 2 100 ""]
 (
 	Pin[-200.00mil 0.0000 72.00mil 30.00mil 78.00mil 42.00mil "1" "1" "square,edge2,thermal(1X)"]
 	Pin[-100.00mil 0.0000 72.00mil 30.00mil 78.00mil 42.00mil "2" "2" "edge2"]
@@ -1315,7 +1315,7 @@ Element["selected" "DS18B20" "DS" "" 3555.00mil 395.00mil -10.00mil 130.00mil 2 
 
 	)
 
-Element["selected" "capacitor_100" "C7" "" 490.00mil 1965.00mil 245.00mil 45.00mil 0 100 ""]
+Element["" "capacitor_100" "C7" "" 490.00mil 1965.00mil 245.00mil 45.00mil 0 100 ""]
 (
 	Pin[0.0000 0.0000 55.00mil 30.00mil 61.00mil 30.00mil "" "1" "square,edge2"]
 	Pin[100.00mil 0.0000 55.00mil 30.00mil 61.00mil 30.00mil "" "2" "edge2"]
@@ -1326,7 +1326,7 @@ Element["selected" "capacitor_100" "C7" "" 490.00mil 1965.00mil 245.00mil 45.00m
 
 	)
 
-Element["selected,onsolder" "capacitor_100" "C5" "" 3625.00mil 1070.00mil -45.00mil -245.00mil 3 100 "auto"]
+Element["onsolder" "capacitor_100" "C5" "" 3625.00mil 1070.00mil -65.00mil -80.00mil 2 100 "auto"]
 (
 	Pin[0.0000 0.0000 55.00mil 30.00mil 61.00mil 30.00mil "" "1" "square"]
 	Pin[0.0000 -100.00mil 55.00mil 30.00mil 61.00mil 30.00mil "" "2" ""]
@@ -1337,7 +1337,7 @@ Element["selected,onsolder" "capacitor_100" "C5" "" 3625.00mil 1070.00mil -45.00
 
 	)
 
-Element["selected,onsolder" "capacitor_100" "C4" "" 3955.00mil 1825.00mil 245.00mil -45.00mil 0 100 "auto"]
+Element["onsolder" "capacitor_100" "C4" "" 3955.00mil 1825.00mil 80.00mil -110.00mil 2 100 "auto"]
 (
 	Pin[0.0000 0.0000 55.00mil 30.00mil 61.00mil 30.00mil "" "1" "square,edge2"]
 	Pin[100.00mil 0.0000 55.00mil 30.00mil 61.00mil 30.00mil "" "2" "edge2,thermal(1X)"]
@@ -1348,7 +1348,7 @@ Element["selected,onsolder" "capacitor_100" "C4" "" 3955.00mil 1825.00mil 245.00
 
 	)
 
-Element["selected,onsolder" "capacitor_100" "C3" "" 4000.00mil 2835.00mil -45.00mil -245.00mil 3 100 "auto"]
+Element["onsolder" "capacitor_100" "C3" "" 4000.00mil 2835.00mil -80.00mil -80.00mil 2 100 "auto"]
 (
 	Pin[0.0000 0.0000 55.00mil 30.00mil 61.00mil 30.00mil "" "1" "square"]
 	Pin[0.0000 -100.00mil 55.00mil 30.00mil 61.00mil 30.00mil "" "2" ""]
@@ -1359,7 +1359,7 @@ Element["selected,onsolder" "capacitor_100" "C3" "" 4000.00mil 2835.00mil -45.00
 
 	)
 
-Element["selected,onsolder" "capacitor_radial" "C2" "RADIAL_CAN 200" 1990.00mil 1515.00mil -150.00mil -100.00mil 2 100 "auto"]
+Element["onsolder" "capacitor_radial" "C2" "RADIAL_CAN 200" 1990.00mil 1515.00mil 70.00mil -180.00mil 2 100 "auto"]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 66.00mil 30.00mil "1" "1" "square"]
 	Pin[-100.00mil 0.0000 60.00mil 30.00mil 66.00mil 30.00mil "2" "2" ""]
@@ -1369,7 +1369,7 @@ Element["selected,onsolder" "capacitor_radial" "C2" "RADIAL_CAN 200" 1990.00mil 
 
 	)
 
-Element["selected,onsolder" "capacitor_radial" "C1" "RADIAL_CAN 200" 2200.00mil 1515.00mil 150.00mil 100.00mil 0 100 "auto"]
+Element["onsolder" "capacitor_radial" "C1" "RADIAL_CAN 200" 2200.00mil 1515.00mil 140.00mil -185.00mil 2 100 "auto"]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 66.00mil 30.00mil "1" "1" "square"]
 	Pin[100.00mil 0.0000 60.00mil 30.00mil 66.00mil 30.00mil "2" "2" ""]
@@ -1379,7 +1379,7 @@ Element["selected,onsolder" "capacitor_radial" "C1" "RADIAL_CAN 200" 2200.00mil 
 
 	)
 
-Element["selected,onsolder" "DIP-14-300" "TRI3" "" 3940.00mil 770.00mil 210.00mil -415.00mil 2 100 "auto"]
+Element["onsolder" "DIP-14-300" "TRI3" "" 3940.00mil 770.00mil 210.00mil -415.00mil 2 100 "auto"]
 (
 	Pin[150.00mil -300.00mil 60.00mil 25.00mil 80.00mil 35.00mil "" "1" ""]
 	Pin[150.00mil -200.00mil 60.00mil 25.00mil 80.00mil 35.00mil "" "2" ""]
@@ -1433,7 +1433,7 @@ Element["selected,onsolder" "DIP-14-300" "TRI3" "" 3940.00mil 770.00mil 210.00mi
 
 	)
 
-Element["selected,onsolder" "resistor" "R9" "" 2580.00mil 1775.00mil -56.00mil -138.00mil 2 100 "auto"]
+Element["onsolder" "resistor" "R9" "" 2580.00mil 1775.00mil 149.00mil -253.00mil 2 100 "auto"]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "1" ""]
 	Pin[0.0000 -400.00mil 60.00mil 30.00mil 60.00mil 28.50mil "" "2" "thermal(0X)"]
@@ -1446,7 +1446,7 @@ Element["selected,onsolder" "resistor" "R9" "" 2580.00mil 1775.00mil -56.00mil -
 
 	)
 
-Element["selected,onsolder" "resistor" "R8" "" 1530.00mil 1775.00mil -56.00mil -138.00mil 2 100 "auto"]
+Element["onsolder" "resistor" "R8" "" 1530.00mil 1775.00mil -71.00mil -258.00mil 2 100 "auto"]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "1" ""]
 	Pin[0.0000 -400.00mil 60.00mil 30.00mil 60.00mil 28.50mil "" "2" "thermal(0X)"]
@@ -1459,7 +1459,7 @@ Element["selected,onsolder" "resistor" "R8" "" 1530.00mil 1775.00mil -56.00mil -
 
 	)
 
-Element["selected,onsolder" "resistor" "R7" "" 2455.00mil 1825.00mil -56.00mil -138.00mil 2 100 "auto"]
+Element["onsolder" "resistor" "R7" "" 2455.00mil 1825.00mil -66.00mil -218.00mil 2 100 "auto"]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "1" ""]
 	Pin[0.0000 -400.00mil 60.00mil 30.00mil 60.00mil 28.50mil "" "2" ""]
@@ -1472,7 +1472,7 @@ Element["selected,onsolder" "resistor" "R7" "" 2455.00mil 1825.00mil -56.00mil -
 
 	)
 
-Element["selected,onsolder" "resistor" "R6" "" 1655.00mil 1825.00mil -131.00mil -138.00mil 2 100 "auto"]
+Element["onsolder" "resistor" "R6" "" 1655.00mil 1825.00mil 144.00mil -213.00mil 2 100 "auto"]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "1" ""]
 	Pin[0.0000 -400.00mil 60.00mil 30.00mil 60.00mil 28.50mil "" "2" ""]
@@ -1485,7 +1485,7 @@ Element["selected,onsolder" "resistor" "R6" "" 1655.00mil 1825.00mil -131.00mil 
 
 	)
 
-Element["selected" "resistor" "R5" "" 3665.00mil 315.00mil -56.00mil 138.00mil 2 100 ""]
+Element["" "resistor" "R5" "" 3665.00mil 315.00mil -56.00mil 138.00mil 2 100 ""]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "1" ""]
 	Pin[0.0000 400.00mil 60.00mil 30.00mil 60.00mil 28.50mil "" "2" ""]
@@ -1498,7 +1498,7 @@ Element["selected" "resistor" "R5" "" 3665.00mil 315.00mil -56.00mil 138.00mil 2
 
 	)
 
-Element["selected,onsolder" "DIP-14-300" "TRI1" "" 4000.00mil 3255.00mil 210.00mil -415.00mil 2 100 "auto"]
+Element["onsolder" "DIP-14-300" "TRI1" "" 4000.00mil 3255.00mil 210.00mil -415.00mil 2 100 "auto"]
 (
 	Pin[150.00mil -300.00mil 60.00mil 25.00mil 80.00mil 35.00mil "" "1" ""]
 	Pin[150.00mil -200.00mil 60.00mil 25.00mil 80.00mil 35.00mil "" "2" ""]
@@ -1552,7 +1552,7 @@ Element["selected,onsolder" "DIP-14-300" "TRI1" "" 4000.00mil 3255.00mil 210.00m
 
 	)
 
-Element["selected,onsolder" "DIP-14-300" "TRI2" "" 101.7156mm 2240.00mil 210.00mil -415.00mil 2 100 "auto"]
+Element["onsolder" "DIP-14-300" "TRI2" "" 101.7156mm 2240.00mil 210.00mil -415.00mil 2 100 "auto"]
 (
 	Pin[150.00mil -300.00mil 60.00mil 25.00mil 80.00mil 35.00mil "" "1" ""]
 	Pin[150.00mil -200.00mil 60.00mil 25.00mil 80.00mil 35.00mil "" "2" ""]
@@ -1606,7 +1606,7 @@ Element["selected,onsolder" "DIP-14-300" "TRI2" "" 101.7156mm 2240.00mil 210.00m
 
 	)
 
-Element["selected" "hex_washer_125" "" "" 3455.00mil 700.00mil 85.00mil -55.00mil 0 100 ""]
+Element["" "hex_washer_125" "" "" 3455.00mil 700.00mil 85.00mil -55.00mil 0 100 ""]
 (
 	Pin[0.0000 0.0000 150.00mil 95.00mil 160.00mil 126.00mil "" "1" "hole"]
 	ElementLine [-125.00mil 0.0000 -62.50mil 108.20mil 2.00mil]
@@ -1620,7 +1620,7 @@ Element["selected" "hex_washer_125" "" "" 3455.00mil 700.00mil 85.00mil -55.00mi
 
 	)
 
-Element["selected" "resistor" "R1" "" 4190.00mil 250.00mil -138.00mil -56.00mil 1 100 ""]
+Element["" "resistor" "R1" "" 4190.00mil 250.00mil -138.00mil -56.00mil 1 100 ""]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "1" "edge2"]
 	Pin[-400.00mil 0.0000 60.00mil 30.00mil 60.00mil 28.50mil "" "2" "edge2"]
@@ -1633,7 +1633,7 @@ Element["selected" "resistor" "R1" "" 4190.00mil 250.00mil -138.00mil -56.00mil 
 
 	)
 
-Element["selected" "DIP-8-300" "ROM1" "" 5310.00mil 2070.00mil 170.00mil 50.00mil 3 100 ""]
+Element["" "DIP-8-300" "ROM1" "" 5310.00mil 2070.00mil 170.00mil 50.00mil 3 100 ""]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 66.00mil 28.00mil "1" "1" "square,thermal(6X)"]
 	Pin[0.0000 100.00mil 60.00mil 30.00mil 66.00mil 28.00mil "2" "2" "thermal(6X)"]
@@ -1652,7 +1652,7 @@ Element["selected" "DIP-8-300" "ROM1" "" 5310.00mil 2070.00mil 170.00mil 50.00mi
 
 	)
 
-Element["selected,onsolder" "DIP-14-300-OSC" "OSC" "" 2045.00mil 3645.00mil 0.0000 -150.00mil 0 100 "auto"]
+Element["onsolder" "DIP-14-300-OSC" "OSC" "" 2045.00mil 3645.00mil 110.00mil -160.00mil 2 100 "auto"]
 (
 	Pin[-300.00mil -150.00mil 60.00mil 30.00mil 66.00mil 30.00mil "" "1" "edge2"]
 	Pin[-300.00mil 150.00mil 60.00mil 30.00mil 66.00mil 30.00mil "" "14" "edge2"]
@@ -1668,7 +1668,7 @@ Element["selected,onsolder" "DIP-14-300-OSC" "OSC" "" 2045.00mil 3645.00mil 0.00
 
 	)
 
-Element["selected" "J2" "J2" "" 5405.00mil 2515.00mil 210.00mil -50.00mil 3 100 ""]
+Element["" "J2" "J2" "" 5405.00mil 2515.00mil 210.00mil -50.00mil 3 100 ""]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 66.00mil 38.00mil "1" "1" "square,edge2"]
 	Pin[100.00mil 0.0000 60.00mil 30.00mil 66.00mil 38.00mil "2" "2" "edge2"]
@@ -1681,7 +1681,7 @@ Element["selected" "J2" "J2" "" 5405.00mil 2515.00mil 210.00mil -50.00mil 3 100 
 
 	)
 
-Element["selected,onsolder" "DIP-40-600" "AY2" "" 29.4305mm 1512.50mil 16.4165mm 997.50mil 2 100 "auto"]
+Element["onsolder" "DIP-40-600" "AY2" "" 29.4305mm 1512.50mil -1.2365mm 127.50mil 2 100 "auto"]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 66.00mil 28.00mil "1" "1" "square,thermal(0X)"]
 	Pin[0.9721mm 2.3467mm 60.00mil 30.00mil 66.00mil 28.00mil "2" "2" ""]
@@ -1862,7 +1862,7 @@ Element["onsolder" "tfv" "" "" 164.5256mm -38.00mil 0.0000 50.00mil 2 150 "auto"
 
 	)
 
-Element["selected,onsolder" "VMW-LOGO" "" "" 153.7272mm 95.5025mm 300.00mil -100.00mil 2 100 "auto"]
+Element["onsolder" "VMW-LOGO" "" "" 153.7272mm 95.5025mm 300.00mil -100.00mil 2 100 "auto"]
 (
 	ElementLine [300.00mil -100.00mil 200.00mil 100.00mil 10.00mil]
 	ElementLine [-200.00mil 100.00mil 200.00mil 100.00mil 10.00mil]
@@ -1875,7 +1875,7 @@ Element["selected,onsolder" "VMW-LOGO" "" "" 153.7272mm 95.5025mm 300.00mil -100
 
 	)
 
-Element["selected" "VMW-LOGO" "" "" 21.0065mm 95.6026mm -300.00mil -100.00mil 0 100 ""]
+Element["" "VMW-LOGO" "" "" 21.0065mm 95.6026mm -300.00mil -100.00mil 0 100 ""]
 (
 	ElementLine [-300.00mil -100.00mil -200.00mil 100.00mil 10.00mil]
 	ElementLine [-200.00mil 100.00mil 200.00mil 100.00mil 10.00mil]
@@ -1888,7 +1888,7 @@ Element["selected" "VMW-LOGO" "" "" 21.0065mm 95.6026mm -300.00mil -100.00mil 0 
 
 	)
 
-Element["selected" "RasPi-2" "PI" "" 4395.00mil 3345.00mil 10.0000mm -10.0000mm 1 150 ""]
+Element["" "RasPi-2" "PI" "" 4395.00mil 3345.00mil 10.0000mm -10.0000mm 1 150 ""]
 (
 	Pin[3.5000mm -3.5000mm 6.2000mm 6.2000mm 6.2000mm 2.7500mm "" "" "hole"]
 	Pin[3.5000mm -61.5000mm 6.2000mm 6.2000mm 6.2000mm 2.7500mm "" "" "hole"]
@@ -2648,6 +2648,20 @@ Layer(9 "silk")
 	Text[5190.00mil 3680.00mil 2 275 "VMW HARDWARE" "clearline,onsolder"]
 	Text[3020.00mil 3685.00mil 2 252 "CHIPTUNE SOUND MK1" "clearline,onsolder"]
 	Text[975.00mil 3685.00mil 2 252 "2017" "clearline,onsolder"]
+	Text[3970.00mil 3120.00mil 1 100 "74AHCT125N" "clearline,onsolder"]
+	Text[3970.00mil 2095.00mil 1 100 "74AHCT125N" "clearline,onsolder"]
+	Text[3905.00mil 590.00mil 1 100 "74AHCT125N" "clearline,onsolder"]
+	Text[4575.00mil 60.00mil 2 100 "AMPLIFIER OFF" "clearline,onsolder"]
+	Text[3350.00mil 1795.00mil 2 100 "AY-3-8910" "clearline,onsolder"]
+	Text[2175.00mil 3560.00mil 2 100 "1 MHz" "clearline,onsolder"]
+	Text[1110.00mil 1725.00mil 2 100 "AY-3-8910" "clearline,onsolder"]
+	Text[2265.00mil 1330.00mil 2 100 "100uF" "clearline,onsolder"]
+	Text[1965.00mil 1330.00mil 2 100 "100uF" "clearline,onsolder"]
+	Text[2725.00mil 1590.00mil 2 100 "1K" "clearline,onsolder"]
+	Text[2395.00mil 1680.00mil 2 100 "10K" "clearline,onsolder"]
+	Text[1810.00mil 1680.00mil 2 100 "10K" "clearline,onsolder"]
+	Text[1450.00mil 1585.00mil 2 100 "1K" "clearline,onsolder"]
+	Text[2125.00mil 560.00mil 2 100 "MAX 98306 BREAKOUT" "clearline,onsolder"]
 )
 Layer(10 "silk")
 (
