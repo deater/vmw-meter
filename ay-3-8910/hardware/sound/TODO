@@ -1,11 +1,3 @@
-Fix the pin order on the MAX breakout
-Make sure the bypass caps are bypassing
-
-Label the resistors with values
-Label the caps with values
-Label the i2c connector
-Label the audio connector
-
 Long Range:
 Flip the tri-states so wires don't cross?
 
@@ -17,5 +9,13 @@ Done:
 	(but haven't rebooted yet)
 + Test RTC (need battery)
 + Test the headphone switch (seems to work)
++ Fix the pin order on the MAX breakout
++ Make sure the bypass caps are bypassing
+  (the ones on the shifters aren't as close to Vdd as they could be)
++ Label the resistors with values
++ Label the caps with values
++ Label the i2c connector
++ Label the audio connector
+
 
 

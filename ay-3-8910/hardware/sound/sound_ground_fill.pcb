@@ -2972,15 +2972,15 @@ NetList()
 		Connect("PI-36")
 		Connect("TRI3-5")
 	)
+	Net("GPIO18" "(unknown)")
+	(
+		Connect("PI-12")
+		Connect("TRI1-5")
+	)
 	Net("GPIO19" "(unknown)")
 	(
 		Connect("PI-35")
 		Connect("TRI3-2")
-	)
-	Net("GPIO20" "(unknown)")
-	(
-		Connect("PI-12")
-		Connect("TRI1-5")
 	)
 	Net("GPIO20" "(unknown)")
 	(
