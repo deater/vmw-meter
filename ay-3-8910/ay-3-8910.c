@@ -12,7 +12,7 @@
 #else
 #define DS	10
 #define	SH	11
-#define ST	7
+#define ST	8
 #endif
 
 
@@ -20,6 +20,7 @@
 /* DS 	MOSI/GPIO10 (pin19)	*/
 /* SHCP CLK/GPIO11 (pin23)	*/
 /* STCP	CE1/GPIO7 (pin26)	*/
+/* Why not CE0/GPIO08 (pin24)	*/
 
 /* For either */
 /* BC1  GPIO18   */
