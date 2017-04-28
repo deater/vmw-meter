@@ -11,6 +11,10 @@ static int debug=0;
 
 static int external_frequency=1000000;
 static int bpm=120;
+static int baselen=96;  /* 120/minute, 50Hz, should really be 100 */
+static int frames_per_line=6;
+
+
 
 
 struct ym_header {
@@ -28,9 +32,9 @@ struct ym_header {
 static int note_to_length(int length) {
 
 	int len=0;
-	int baselen=96;  /* 120/minute, 50Hz, should really be 100 */
 
 	switch(length) {
+		case 0: len=(baselen*5)/2; break;
 		case 1:	len=baselen; break;
 		case 2: len=baselen/2; break;
 		case 3: len=(baselen*3)/8; break;
@@ -43,11 +47,8 @@ static int note_to_length(int length) {
 			fprintf(stderr,"Unknown length %d\n",length);
 	}
 
-	return len-2;
+	return len-1;
 }
-
-#define FRAMES_PER_LINE	6
-
 
 struct note_type {
 	unsigned char which;
@@ -62,7 +63,7 @@ struct note_type {
 
 
 
-int get_note(char *string, int sp, struct note_type *n) {
+static int get_note(char *string, int sp, struct note_type *n) {
 
 	double freq;
 
@@ -106,7 +107,6 @@ int get_note(char *string, int sp, struct note_type *n) {
 	else {
 		n->freq=0;
 	}
-
 
 	return sp;
 }
@@ -232,10 +232,21 @@ int main(int argc, char **argv) {
 
 	}
 
-	if (bpm!=120) {
-		fprintf(stderr,"Warning!  Unusual BPM of %d\n",bpm);
+	if (bpm==120) {
+		baselen=96;	/* 120/min = 500ms, 50Hz=20ms 25*4=100 */
 	}
-
+	else if (bpm==136) {
+		baselen=48;	/* 136/min = 233ms, 50Hz=20ms, 11.7*4 = 47 */
+	}
+	else if (bpm==160) {
+		baselen=48;	/* 160/min = 266ms, 50Hz=20ms, 13*4 = 53 */
+	}
+	else {
+		fprintf(stderr,"Warning!  Unusual BPM of %d\n",bpm);
+		baselen=96;
+	}
+	/* 16 lines per frame in our text file (smallest note 16th note) */
+	frames_per_line=baselen/16;
 
 	/* Skip header, we'll fill in later */
 	header_length=sizeof(struct ym_header)+
@@ -273,7 +284,7 @@ int main(int argc, char **argv) {
 			}
 		}
 
-		for(j=0;j<FRAMES_PER_LINE;j++) {
+		for(j=0;j<frames_per_line;j++) {
 
 			if (a.enabled) {
 				frame[0]=a.freq&0xff;
@@ -289,7 +300,7 @@ int main(int argc, char **argv) {
 				frame[2]=b.freq&0xff;
 				frame[3]=(b.freq>>8)&0xf;
 				frame[7]=0x38;
-				frame[9]=0x0a;	// amp B
+				frame[9]=0x0f;	// amp B
 			}
 			else {
 				frame[9]=0x0;
@@ -299,7 +310,7 @@ int main(int argc, char **argv) {
 				frame[4]=c.freq&0xff;
 				frame[5]=(c.freq>>8)&0xf;
 				frame[7]=0x38;
-				frame[10]=0x0a;	// amp C
+				frame[10]=0x0f;	// amp C
 			}
 			else {
 				frame[10]=0x0;
@@ -310,6 +321,7 @@ int main(int argc, char **argv) {
 			}
 			frames++;
 
+			//printf("%d %d\n",a.length,a.enabled);
 			if (a.length) a.length--;
 			if (a.length==0) a.enabled=0;
 
