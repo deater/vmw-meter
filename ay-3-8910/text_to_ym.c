@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 #include <arpa/inet.h>
 #include <math.h>
 
@@ -111,9 +112,8 @@ int main(int argc, char **argv) {
 
 	char string[BUFSIZ];
 	char *result;
-	char *ym_file;
-	char *lyrics_file;
-	FILE *fff,*ggg;
+	char *ym_filename,*lyrics_filename,*in_filename;
+	FILE *ym_file,*lyrics_file,*in_file;
 	int frames=0,digidrums=0;
 	int frequency=50,attributes=0;
 	int loop=0;
@@ -129,18 +129,35 @@ int main(int argc, char **argv) {
 
 	unsigned char frame[16];
 
-	ym_file=strdup("sa.ym");
-	lyrics_file=strdup("sa.lyrics");
 
-	fff=fopen(ym_file,"w");
-	if (fff==NULL) {
-		fprintf(stderr,"Couldn't open %s\n",ym_file);
+
+	if (argc<2) {
+		printf("%s -- create a YM music file\n",argv[0]);
+		printf("\n");
+		printf("Usage:	%s INFILE OUTROOT\n\n",argv[0]);
+		printf("\n");
+		exit(1);
+	}
+
+	in_filename=strdup("sa.txt");
+	ym_filename=strdup("sa.ym");
+	lyrics_filename=strdup("sa.lyrics");
+
+	in_file=fopen(in_filename,"r");
+	if (in_file==NULL) {
+		fprintf(stderr,"Couldn't open %s\n",in_filename);
 		return -1;
 	}
 
-	ggg=fopen(lyrics_file,"w");
-	if (ggg==NULL) {
-		fprintf(stderr,"Couldn't open %s\n",lyrics_file);
+	ym_file=fopen(ym_filename,"w");
+	if (ym_file==NULL) {
+		fprintf(stderr,"Couldn't open %s\n",ym_filename);
+		return -1;
+	}
+
+	lyrics_file=fopen(lyrics_filename,"w");
+	if (lyrics_file==NULL) {
+		fprintf(stderr,"Couldn't open %s\n",lyrics_filename);
 		return -1;
 	}
 
@@ -151,12 +168,12 @@ int main(int argc, char **argv) {
 		strlen(author_name)+1+
 		strlen(comments)+1;
 
-	fseek(fff, header_length, SEEK_SET);
+	fseek(ym_file, header_length, SEEK_SET);
 
 	a.which='A';	b.which='B';	c.which='C';
 
 	while(1) {
-		result=fgets(string,BUFSIZ,stdin);
+		result=fgets(string,BUFSIZ,in_file);
 		if (result==NULL) break;
 		line++;
 
@@ -177,7 +194,7 @@ int main(int argc, char **argv) {
 		if (sp!=-1) {
 			while((string[sp]==' ' || string[sp]=='\t')) sp++;
 			if (string[sp]!='\n') {
-				fprintf(ggg,"%d %s",frames,&string[sp]);
+				fprintf(lyrics_file,"%d %s",frames,&string[sp]);
 			}
 		}
 
@@ -214,7 +231,7 @@ int main(int argc, char **argv) {
 			}
 
 			for(i=0;i<16;i++) {
-				fprintf(fff,"%c",frame[i]);
+				fprintf(ym_file,"%c",frame[i]);
 			}
 			frames++;
 
@@ -230,9 +247,9 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	fgetpos(fff,&save);
+	fgetpos(ym_file,&save);
 
-	rewind(fff);
+	rewind(ym_file);
 
 	strncpy(our_header.id,"YM5!",4);
 	strncpy(our_header.check,"LeOnArD!",8);
@@ -244,18 +261,18 @@ int main(int argc, char **argv) {
 	our_header.loop=htonl(loop);
 	our_header.additional_data=htons(0);
 
-	fwrite(&our_header,sizeof(struct ym_header),1,fff);
+	fwrite(&our_header,sizeof(struct ym_header),1,ym_file);
 
-	fprintf(fff,"%s%c",song_name,0);
-	fprintf(fff,"%s%c",author_name,0);
-	fprintf(fff,"%s%c",comments,0);
+	fprintf(ym_file,"%s%c",song_name,0);
+	fprintf(ym_file,"%s%c",author_name,0);
+	fprintf(ym_file,"%s%c",comments,0);
 
-	fsetpos(fff,&save);
+	fsetpos(ym_file,&save);
 
-	fprintf(fff,"End!");
+	fprintf(ym_file,"End!");
 
-	fclose(fff);
-	fclose(ggg);
+	fclose(ym_file);
+	fclose(lyrics_file);
 
 	return 0;
 }
