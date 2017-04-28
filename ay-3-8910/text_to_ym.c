@@ -111,7 +111,7 @@ int get_note(char *string, int sp, struct note_type *n) {
 	return sp;
 }
 
-static int get_string(char *string, char *key, char *output) {
+static int get_string(char *string, char *key, char *output, int strip_linefeed) {
 
 	char *found;
 
@@ -127,7 +127,7 @@ static int get_string(char *string, char *key, char *output) {
 	strcpy(output,found);
 
 	/* remove trailing linefeed */
-	output[strlen(output)-1]=0;
+	if (strip_linefeed) output[strlen(output)-1]=0;
 
 	return 0;
 
@@ -152,7 +152,8 @@ int main(int argc, char **argv) {
 
 	char song_name[BUFSIZ];//="Still Alive";
 	char author_name[BUFSIZ];//"Vince Weaver <vince@deater.net>";
-	char comments[]="from Portal, Words and Music by Jonathan Coulton";
+	char comments[BUFSIZ];//="from Portal, Words and Music by Jonathan Coulton";
+	char *comments_ptr=comments;
 
 	unsigned char frame[16];
 
@@ -203,32 +204,34 @@ int main(int argc, char **argv) {
 		line++;
 		if (strstr(string,"ENDHEADER")) break;
 		if (strstr(string,"TITLE:")) {
-			get_string(string,"TITLE:",song_name);
+			get_string(string,"TITLE:",song_name,1);
 		}
 		if (strstr(string,"AUTHOR:")) {
-			get_string(string,"AUTHOR:",author_name);
+			get_string(string,"AUTHOR:",author_name,1);
 		}
 		if (strstr(string,"COMMENTS:")) {
-			printf("Comments: %s\n",string);
+			get_string(string,"COMMENTS:",comments_ptr,0);
+			comments_ptr=&comments[strlen(comments)];
 		}
 		if (strstr(string,"BPM:")) {
-			get_string(string,"BPM:",temp);
+			get_string(string,"BPM:",temp,1);
 			bpm=atoi(temp);
 		}
 		if (strstr(string,"FREQ:")) {
-			get_string(string,"FREQ:",temp);
+			get_string(string,"FREQ:",temp,1);
 			external_frequency=atoi(temp);
 		}
 		if (strstr(string,"IRQ:")) {
-			get_string(string,"IRQ:",temp);
+			get_string(string,"IRQ:",temp,1);
 			irq=atoi(temp);
 		}
 		if (strstr(string,"LOOP:")) {
-			get_string(string,"LOOP:",temp);
+			get_string(string,"LOOP:",temp,1);
 			loop=atoi(temp);
 		}
 
 	}
+	printf("Comments:%s\n",comments);
 
 	if (bpm!=120) {
 		fprintf(stderr,"Warning!  Unusual BPM of %d\n",bpm);
