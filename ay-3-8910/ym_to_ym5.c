@@ -1,3 +1,8 @@
+/* Interleave a ym file */
+/* Many players won't play unless it is interleaved */
+/* Interleaving makes it a lot more compressible */
+/* We should LHA compress as well, but no open-source code will do that? */
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -17,13 +22,27 @@ struct ym_header {
 
 int main(int argc, char **argv) {
 
-	char in_file[]="sa.ym";
-	char out_file[]="sa.ym5";
+	char in_file[BUFSIZ];
+	char out_file[BUFSIZ];
+
 	FILE *fin,*fout;
 	int ch;
 	int num_frames;
 	char *frames;
 	int i,j;
+
+	if (argc<2) {
+		printf("%s -- interleave a ym file\n",argv[0]);
+		printf("\n\n");
+		printf("Usage:\t%s BASE\n",argv[0]);
+		printf("\tWill convert BASE.ym to BASE.ym5\n\n");
+		/* All your BASE are belong to us */
+		exit(1);
+	}
+
+	sprintf(in_file,"%s.ym",argv[1]);
+	sprintf(out_file,"%s.ym5",argv[1]);
+
 
 	fin=fopen(in_file,"r");
 	if (fin==NULL) {

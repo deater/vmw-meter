@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 
 	char string[BUFSIZ];
 	char *result;
-	char *ym_filename,*lyrics_filename,*in_filename;
+	char ym_filename[BUFSIZ],lyrics_filename[BUFSIZ],*in_filename;
 	FILE *ym_file,*lyrics_file,*in_file;
 	int frames=0,digidrums=0;
 	int frequency=50,attributes=0;
@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
 
 
 
-	if (argc<2) {
+	if (argc<3) {
 		printf("%s -- create a YM music file\n",argv[0]);
 		printf("\n");
 		printf("Usage:	%s INFILE OUTROOT\n\n",argv[0]);
@@ -139,15 +139,20 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
-	in_filename=strdup("sa.txt");
-	ym_filename=strdup("sa.ym");
-	lyrics_filename=strdup("sa.lyrics");
-
-	in_file=fopen(in_filename,"r");
-	if (in_file==NULL) {
-		fprintf(stderr,"Couldn't open %s\n",in_filename);
-		return -1;
+	if (argv[1][0]=='-') {
+		in_file=stdin;
 	}
+	else {
+		in_filename=strdup(argv[1]);
+		in_file=fopen(in_filename,"r");
+		if (in_file==NULL) {
+			fprintf(stderr,"Couldn't open %s\n",in_filename);
+			return -1;
+		}
+	}
+
+	sprintf(ym_filename,"%s.ym",argv[2]);
+	sprintf(lyrics_filename,"%s.lyrics",argv[2]);
 
 	ym_file=fopen(ym_filename,"w");
 	if (ym_file==NULL) {
