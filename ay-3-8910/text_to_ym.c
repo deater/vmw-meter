@@ -14,9 +14,6 @@ static int bpm=120;
 static int baselen=96;  /* 120/minute, 50Hz, should really be 100 */
 static int frames_per_line=6;
 
-
-
-
 struct ym_header {
 	char id[4];				// 0  -> 4
 	char check[8];				// 4  -> 12
@@ -66,17 +63,21 @@ struct note_type {
 static int get_note(char *string, int sp, struct note_type *n) {
 
 	double freq;
-
-	n->sharp=0;
-	n->flat=0;
+	int ch;
 
 	/* Skip white space */
 	while((string[sp]==' ' || string[sp]=='\t')) sp++;
 
 	if (string[sp]=='\n') return -1;
 
+	/* return early if no change */
+	ch=string[sp];
+	if (ch=='-') return sp+6;
+
 	/* get note info */
-	n->note=string[sp];
+	n->sharp=0;
+	n->flat=0;
+	n->note=ch;
 	sp++;
 	if (string[sp]=='#') n->sharp=1;
 	if (string[sp]=='-') n->flat=1;
@@ -286,44 +287,56 @@ int main(int argc, char **argv) {
 
 		for(j=0;j<frames_per_line;j++) {
 
-			if (a.enabled) {
-				frame[0]=a.freq&0xff;
-				frame[1]=(a.freq>>8)&0xf;
-				frame[7]=0x38;
-				frame[8]=0x0f;	// amp A
-			}
-			else {
-				frame[8]=0x0;
-			}
+		if (a.enabled) {
+			frame[0]=a.freq&0xff;
+			frame[1]=(a.freq>>8)&0xf;
+			frame[7]=0x38;
+			frame[8]=0x0f;	// amp A
+		}
+		else {
+			frame[8]=0x0;
+		}
 
-			if (b.enabled) {
-				frame[2]=b.freq&0xff;
-				frame[3]=(b.freq>>8)&0xf;
-				frame[7]=0x38;
-				frame[9]=0x0f;	// amp B
-			}
-			else {
-				frame[9]=0x0;
-			}
+		if (b.enabled) {
+			frame[2]=b.freq&0xff;
+			frame[3]=(b.freq>>8)&0xf;
+			frame[7]=0x38;
+			frame[9]=0x0f;	// amp B
+		}
+		else {
+			frame[9]=0x0;
+		}
 
-			if (c.enabled) {
-				frame[4]=c.freq&0xff;
-				frame[5]=(c.freq>>8)&0xf;
-				frame[7]=0x38;
-				frame[10]=0x0f;	// amp C
-			}
-			else {
-				frame[10]=0x0;
-			}
+		if (c.enabled) {
+			frame[4]=c.freq&0xff;
+			frame[5]=(c.freq>>8)&0xf;
+			frame[7]=0x38;
+			frame[10]=0x0f;	// amp C
+		}
+		else {
+			frame[10]=0x0;
+		}
+
 
 			for(i=0;i<16;i++) {
 				fprintf(ym_file,"%c",frame[i]);
 			}
+
+			printf("%d\t",frames);
+			for(i=0;i<16;i++) {
+				printf("%4d",frame[i]);
+			}
+			printf("\n");
+
 			frames++;
 
-			//printf("%d %d\n",a.length,a.enabled);
 			if (a.length) a.length--;
-			if (a.length==0) a.enabled=0;
+			if (a.length==0) {
+				a.enabled=0;
+				printf("A disabled\n");
+			}
+
+//		printf("a.length=%d a.enabled=%d\n",a.length,a.enabled);
 
 			if (b.length) b.length--;
 			if (b.length==0) b.enabled=0;
