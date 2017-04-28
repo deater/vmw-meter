@@ -4,10 +4,13 @@
 ' COMMENTS:	Words and Music by Jonathan Coulton
 ' COMMENTS:	From the sheet music transcribed by Ryan Maziarz
 '
+' LOOP: 0
+'
 ' BPM: 120
 ' FREQ: 1000000
 ' IRQ:	50
 '
+' ENDHEADER
 ----------
 ' This was a tri-
 0	-----		-----		-----	"\iForms "

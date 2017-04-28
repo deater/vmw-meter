@@ -9,6 +9,10 @@
 
 static int debug=0;
 
+static int external_frequency=1000000;
+static int bpm=120;
+
+
 struct ym_header {
 	char id[4];				// 0  -> 4
 	char check[8];				// 4  -> 12
@@ -56,7 +60,6 @@ struct note_type {
 	int length;
 };
 
-static int external_frequency=1000000;
 
 
 int get_note(char *string, int sp, struct note_type *n) {
@@ -108,29 +111,52 @@ int get_note(char *string, int sp, struct note_type *n) {
 	return sp;
 }
 
+static int get_string(char *string, char *key, char *output) {
+
+	char *found;
+
+	found=strstr(string,key);
+	found=found+strlen(key);
+
+	/* get rid of leading whitespace */
+	while(1) {
+		if ((*found==' ') || (*found=='\t')) found++;
+		else break;
+	}
+
+	strcpy(output,found);
+
+	/* remove trailing linefeed */
+	output[strlen(output)-1]=0;
+
+	return 0;
+
+}
+
+
 int main(int argc, char **argv) {
 
 	char string[BUFSIZ];
 	char *result;
 	char ym_filename[BUFSIZ],lyrics_filename[BUFSIZ],*in_filename;
+	char temp[BUFSIZ];
 	FILE *ym_file,*lyrics_file,*in_file;
 	int frames=0,digidrums=0;
-	int frequency=50,attributes=0;
-	int loop=0;
+	int attributes=0;
+	int irq=50,loop=0;
 	int header_length=0;
 	int sp,i,j;
 	fpos_t save;
 	int line=0;
 	struct note_type a,b,c;
 
-	char song_name[]="Still Alive";
-	char author_name[]="Vince Weaver <vince@deater.net>";
+	char song_name[BUFSIZ];//="Still Alive";
+	char author_name[BUFSIZ];//"Vince Weaver <vince@deater.net>";
 	char comments[]="from Portal, Words and Music by Jonathan Coulton";
 
 	unsigned char frame[16];
 
-
-
+	/* Check command line arguments */
 	if (argc<3) {
 		printf("%s -- create a YM music file\n",argv[0]);
 		printf("\n");
@@ -139,6 +165,7 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
+	/* Open the input file */
 	if (argv[1][0]=='-') {
 		in_file=stdin;
 	}
@@ -151,6 +178,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	/* Open the output/lyrics files */
 	sprintf(ym_filename,"%s.ym",argv[2]);
 	sprintf(lyrics_filename,"%s.lyrics",argv[2]);
 
@@ -164,6 +192,46 @@ int main(int argc, char **argv) {
 	if (lyrics_file==NULL) {
 		fprintf(stderr,"Couldn't open %s\n",lyrics_filename);
 		return -1;
+	}
+
+
+
+	/* Get the info for the header */
+	while(1) {
+		result=fgets(string,BUFSIZ,in_file);
+		if (result==NULL) break;
+		line++;
+		if (strstr(string,"ENDHEADER")) break;
+		if (strstr(string,"TITLE:")) {
+			get_string(string,"TITLE:",song_name);
+		}
+		if (strstr(string,"AUTHOR:")) {
+			get_string(string,"AUTHOR:",author_name);
+		}
+		if (strstr(string,"COMMENTS:")) {
+			printf("Comments: %s\n",string);
+		}
+		if (strstr(string,"BPM:")) {
+			get_string(string,"BPM:",temp);
+			bpm=atoi(temp);
+		}
+		if (strstr(string,"FREQ:")) {
+			get_string(string,"FREQ:",temp);
+			external_frequency=atoi(temp);
+		}
+		if (strstr(string,"IRQ:")) {
+			get_string(string,"IRQ:",temp);
+			irq=atoi(temp);
+		}
+		if (strstr(string,"LOOP:")) {
+			get_string(string,"LOOP:",temp);
+			loop=atoi(temp);
+		}
+
+	}
+
+	if (bpm!=120) {
+		fprintf(stderr,"Warning!  Unusual BPM of %d\n",bpm);
 	}
 
 
@@ -262,7 +330,7 @@ int main(int argc, char **argv) {
 	our_header.song_attr=htonl(attributes);
 	our_header.digidrum=htonl(digidrums);
 	our_header.external_frequency=htonl(external_frequency);
-	our_header.player_frequency=htons(frequency);
+	our_header.player_frequency=htons(irq);
 	our_header.loop=htonl(loop);
 	our_header.additional_data=htons(0);
 
