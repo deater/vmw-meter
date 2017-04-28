@@ -1,6 +1,6 @@
 '
 ' TITLE:	Still Alive (from Portal)
-' AUTHOR:	Vince Weaver <vince.weaver@maine.edu>
+' AUTHOR:	Vince Weaver <vince@deater.net>
 ' COMMENTS:	Words and Music by Jonathan Coulton
 ' COMMENTS:	From the sheet music transcribed by Ryan Maziarz
 '

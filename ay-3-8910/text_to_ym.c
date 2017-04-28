@@ -231,7 +231,6 @@ int main(int argc, char **argv) {
 		}
 
 	}
-	printf("Comments:%s\n",comments);
 
 	if (bpm!=120) {
 		fprintf(stderr,"Warning!  Unusual BPM of %d\n",bpm);
