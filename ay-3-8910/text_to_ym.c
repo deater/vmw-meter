@@ -31,15 +31,17 @@ static int note_to_length(int length) {
 	int len=0;
 
 	switch(length) {
-		case 0: len=(baselen*5)/2; break;
-		case 1:	len=baselen; break;
-		case 2: len=baselen/2; break;
-		case 3: len=(baselen*3)/8; break;
-		case 4: len=baselen/4; break;
-		case 5: len=(baselen*5)/8; break;
-		case 8: len=baselen/8; break;
-		case 9: len=(baselen*3)/16; break;
-		case 6: len=baselen/16; break;
+		case 0: len=(baselen*5)/2; break;	// 0 = 2.5
+		case 1:	len=baselen; break;		// 1 =   1 whole
+		case 2: len=baselen/2; break;		// 2 = 1/2 half
+		case 3: len=(baselen*3)/8; break;	// 3 = 3/8 dotted quarter
+		case 4: len=baselen/4; break;		// 4 = 1/4 quarter
+		case 5: len=(baselen*5)/8; break;	// 5 = 5/8 ?
+		case 8: len=baselen/8; break;		// 8 = 1/8 eighth
+		case 9: len=(baselen*3)/16; break;	// 9 = 3/16 dotted eighth
+		case 6: len=baselen/16; break;		// 6 = 1/16 sixteenth
+		case 10: len=(baselen*3)/4; break;	// : = 3/4 dotted half
+		case 11: len=(baselen*9)/8; break;	// ; = 9/8 dotted half + dotted quarter
 		default:
 			fprintf(stderr,"Unknown length %d\n",length);
 	}
@@ -60,7 +62,7 @@ struct note_type {
 
 
 
-static int get_note(char *string, int sp, struct note_type *n) {
+static int get_note(char *string, int sp, struct note_type *n, int line) {
 
 	double freq;
 	int ch;
@@ -104,6 +106,8 @@ static int get_note(char *string, int sp, struct note_type *n) {
 		n->freq=external_frequency/(16.0*freq);
 		n->enabled=1;
 		n->length=note_to_length(n->len);
+
+		if (n->length<0) printf("Error line %d\n",line);
 	}
 	else {
 		n->freq=0;
@@ -273,9 +277,9 @@ int main(int argc, char **argv) {
 		/* Skip line number */
 		while((string[sp]!=' ' && string[sp]!='\t')) sp++;
 
-		sp=get_note(string,sp,&a);
-		if (sp!=-1) sp=get_note(string,sp,&b);
-		if (sp!=-1) sp=get_note(string,sp,&c);
+		sp=get_note(string,sp,&a,line);
+		if (sp!=-1) sp=get_note(string,sp,&b,line);
+		if (sp!=-1) sp=get_note(string,sp,&c,line);
 
 		/* handle lyrics */
 		if (sp!=-1) {
@@ -287,54 +291,57 @@ int main(int argc, char **argv) {
 
 		for(j=0;j<frames_per_line;j++) {
 
-		if (a.enabled) {
-			frame[0]=a.freq&0xff;
-			frame[1]=(a.freq>>8)&0xf;
-			frame[7]=0x38;
-			frame[8]=0x0f;	// amp A
-		}
-		else {
-			frame[8]=0x0;
-		}
+			if (a.enabled) {
+				frame[0]=a.freq&0xff;
+				frame[1]=(a.freq>>8)&0xf;
+				frame[7]=0x38;
+				frame[8]=0x0f;	// amp A
+			}
+			else {
+				frame[0]=0x0;
+				frame[1]=0x0;
+				frame[8]=0x0;
+			}
 
-		if (b.enabled) {
-			frame[2]=b.freq&0xff;
-			frame[3]=(b.freq>>8)&0xf;
-			frame[7]=0x38;
-			frame[9]=0x0f;	// amp B
-		}
-		else {
-			frame[9]=0x0;
-		}
+			if (b.enabled) {
+				frame[2]=b.freq&0xff;
+				frame[3]=(b.freq>>8)&0xf;
+				frame[7]=0x38;
+				frame[9]=0x0f;	// amp B
+			}
+			else {
+				frame[2]=0x0;
+				frame[3]=0x0;
+				frame[9]=0x0;
+			}
 
-		if (c.enabled) {
-			frame[4]=c.freq&0xff;
-			frame[5]=(c.freq>>8)&0xf;
-			frame[7]=0x38;
-			frame[10]=0x0f;	// amp C
-		}
-		else {
-			frame[10]=0x0;
-		}
+			if (c.enabled) {
+				frame[4]=c.freq&0xff;
+				frame[5]=(c.freq>>8)&0xf;
+				frame[7]=0x38;
+				frame[10]=0x0f;	// amp C
+			}
+			else {
+				frame[4]=0x0;
+				frame[5]=0x0;
+				frame[10]=0x0;
+			}
 
 
 			for(i=0;i<16;i++) {
 				fprintf(ym_file,"%c",frame[i]);
 			}
-
+#if 0
 			printf("%d\t",frames);
 			for(i=0;i<16;i++) {
 				printf("%4d",frame[i]);
 			}
 			printf("\n");
-
+#endif
 			frames++;
 
 			if (a.length) a.length--;
-			if (a.length==0) {
-				a.enabled=0;
-				printf("A disabled\n");
-			}
+			if (a.length==0) a.enabled=0;
 
 //		printf("a.length=%d a.enabled=%d\n",a.length,a.enabled);
 
