@@ -42,6 +42,7 @@ static int note_to_length(int length) {
 		case 6: len=baselen/16; break;		// 6 = 1/16 sixteenth
 		case 10: len=(baselen*3)/4; break;	// : = 3/4 dotted half
 		case 11: len=(baselen*9)/8; break;	// ; = 9/8 dotted half + dotted quarter
+		case 12: len=(baselen*3)/2; break;	// < = 3/2 dotted whole
 		default:
 			fprintf(stderr,"Unknown length %d\n",length);
 	}
@@ -331,13 +332,14 @@ int main(int argc, char **argv) {
 			for(i=0;i<16;i++) {
 				fprintf(ym_file,"%c",frame[i]);
 			}
-#if 0
-			printf("%d\t",frames);
-			for(i=0;i<16;i++) {
-				printf("%4d",frame[i]);
+
+			if (debug) {
+				printf("%d\t",frames);
+				for(i=0;i<16;i++) {
+					printf("%4d",frame[i]);
+				}
+				printf("\n");
 			}
-			printf("\n");
-#endif
 			frames++;
 
 			if (a.length) a.length--;
