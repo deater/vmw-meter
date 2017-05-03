@@ -22,8 +22,8 @@ double note_to_freq(char note, int flat, int sharp, int octave) {
 		default:
 			fprintf(stderr,"Unknown note %c\n",note);
 	}
-	if (flat) step++;
-	if (sharp) step--;
+	if (flat) step+=flat;
+	if (sharp) step-=sharp;
 
 	step-=(4-octave)*12;
 

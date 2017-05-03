@@ -82,8 +82,13 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 	n->flat=0;
 	n->note=ch;
 	sp++;
-	if (string[sp]=='#') n->sharp=1;
-	if (string[sp]=='-') n->flat=1;
+	if (string[sp]==' ') ;
+	else if (string[sp]=='#') n->sharp=1;
+	else if (string[sp]=='-') n->flat=1;
+	else if (string[sp]=='=') n->flat=2;
+	else {
+		fprintf(stderr,"Unknown note modifier %c\n",string[sp]);
+	}
 	sp++;
 	n->octave=string[sp]-'0';
 	sp++;
@@ -242,7 +247,7 @@ int main(int argc, char **argv) {
 		baselen=96;	/* 120/min = 500ms, 50Hz=20ms 25*4=100 */
 	}
 	else if (bpm==136) {
-		baselen=48;	/* 136/min = 233ms, 50Hz=20ms, 11.7*4 = 47 */
+		baselen=80;	/* 136/min = 440ms, 50Hz=20ms, 22*4 = 88 */
 	}
 	else if (bpm==160) {
 		baselen=48;	/* 160/min = 266ms, 50Hz=20ms, 13*4 = 53 */
