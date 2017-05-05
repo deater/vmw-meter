@@ -43,6 +43,7 @@ static int note_to_length(int length) {
 		case 10: len=(baselen*3)/4; break;	// : = 3/4 dotted half
 		case 11: len=(baselen*9)/8; break;	// ; = 9/8 dotted half + dotted quarter
 		case 12: len=(baselen*3)/2; break;	// < = 3/2 dotted whole
+		case 13: len=(baselen*2); break;	// = = 2   double whole
 		default:
 			fprintf(stderr,"Unknown length %d\n",length);
 	}
