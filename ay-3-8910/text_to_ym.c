@@ -7,6 +7,56 @@
 
 #include "notes.h"
 
+
+#define MAX_INSTRUMENTS	7
+
+struct instrument_type {
+        int envelope[16];
+        int length;
+        char *name;
+};
+
+#define DEFAULT	2
+
+struct instrument_type instruments[MAX_INSTRUMENTS] = {
+	{
+	.name="raw",
+	.envelope={15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15},
+	.length=16,
+	},
+	{
+	.name="silence",
+	.envelope={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	.length=16,
+	},
+	{
+	.name="piano",
+	.envelope={14,15,15,15,15,15,15,15,15,15,15,15,13,11,9,7},
+	.length=16,
+	},
+	{
+        .name="triangle",
+        .envelope={7,8,9,10,11,12,13,15,15,13,12,11,10,9,8,7},
+        .length=16,
+        },
+        {
+        .name="trill",
+        .envelope={9,15,9,15,9,15,9,15,9,15},
+        .length=10,
+        },
+        {
+        .name="sine",
+        .envelope={8,10,15,15,10,8,6,1,1,6},
+        .length=10,
+        },
+        {
+        .name="long trill",
+        .envelope={9,15,15,15,9,9,15,15,9,9},
+        .length=10,
+        },
+};
+
+
 static int debug=0;
 
 static int external_frequency=1000000;
@@ -60,6 +110,7 @@ struct note_type {
 	int enabled;
 	int freq;
 	int length;
+	int left;
 };
 
 
@@ -113,6 +164,7 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 		n->freq=external_frequency/(16.0*freq);
 		n->enabled=1;
 		n->length=note_to_length(n->len);
+		n->left=n->length;
 
 		if (n->length<0) printf("Error line %d\n",line);
 	}
@@ -302,7 +354,16 @@ int main(int argc, char **argv) {
 				frame[0]=a.freq&0xff;
 				frame[1]=(a.freq>>8)&0xf;
 				frame[7]=0x38;
-				frame[8]=0x0f;	// amp A
+				//frame[8]=0x0f;	// amp A
+				frame[8]=instruments[DEFAULT].envelope[
+					((a.length-a.left)*16)/a.length
+					];
+				printf("%d %d %d %d\n",a.length,a.left,
+					((a.length-a.left)*16)/a.length,
+					instruments[DEFAULT].envelope[
+					((a.length-a.left)*16)/a.length
+					]);
+
 			}
 			else {
 				frame[0]=0x0;
@@ -314,7 +375,10 @@ int main(int argc, char **argv) {
 				frame[2]=b.freq&0xff;
 				frame[3]=(b.freq>>8)&0xf;
 				frame[7]=0x38;
-				frame[9]=0x0f;	// amp B
+				//frame[9]=0x0f;	// amp B
+				frame[9]=instruments[DEFAULT].envelope[
+					((b.length-b.left)*16)/b.length
+					];
 			}
 			else {
 				frame[2]=0x0;
@@ -326,7 +390,11 @@ int main(int argc, char **argv) {
 				frame[4]=c.freq&0xff;
 				frame[5]=(c.freq>>8)&0xf;
 				frame[7]=0x38;
-				frame[10]=0x0f;	// amp C
+				//frame[10]=0x0f;	// amp C
+				frame[10]=instruments[DEFAULT].envelope[
+					((c.length-c.left)*16)/c.length
+					];
+//				frame[10]=instruments[1].envelope[(c.length-c.left)/16];
 			}
 			else {
 				frame[4]=0x0;
@@ -348,16 +416,16 @@ int main(int argc, char **argv) {
 			}
 			frames++;
 
-			if (a.length) a.length--;
-			if (a.length==0) a.enabled=0;
+			if (a.left) a.left--;
+			if (a.left==0) a.enabled=0;
 
 //		printf("a.length=%d a.enabled=%d\n",a.length,a.enabled);
 
-			if (b.length) b.length--;
-			if (b.length==0) b.enabled=0;
+			if (b.left) b.left--;
+			if (b.left==0) b.enabled=0;
 
-			if (c.length) c.length--;
-			if (c.length==0) c.enabled=0;
+			if (c.left) c.left--;
+			if (c.left==0) c.enabled=0;
 
 		}
 	}

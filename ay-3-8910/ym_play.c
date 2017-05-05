@@ -36,7 +36,7 @@ static int music_paused=0;
 static int music_loop=0;
 static int diff_mode=0;
 static int volume=1;
-static int headphones=1;
+static int amp_disable=1;
 
 static void quiet_and_exit(int sig) {
 
@@ -573,10 +573,16 @@ int main(int argc, char **argv) {
 			printf("Error initializing max98306 amp\n");
 			exit(0);
 		}
-		result=max98306_enable();
 
 		printf("Headphone is: %d\n",
 			max98306_check_headphone());
+
+		if (amp_disable) {
+			result=max98306_disable();
+		}
+		else {
+			result=max98306_enable();
+		}
 
 	}
 
