@@ -2,7 +2,8 @@ CC = gcc
 CFLAGS = -O2 -Wall
 LFLAGS = -lm
 
-all:	sa.ym5 korobeiniki.ym5 fighting.ym5 highwind.ym5
+all:	sa.ym5 korobeiniki.ym5 fighting.ym5 highwind.ym5 \
+	highwind.ed
 
 ###
 
@@ -13,6 +14,9 @@ fighting.ym5:	../ym_to_ym5 fighting.ym
 	../ym_to_ym5 fighting
 
 ###
+
+highwind.ed:	../text_to_ed highwind.txt
+	../text_to_ed highwind.txt highwind
 
 highwind.ym:	../text_to_ym highwind.txt
 	../text_to_ym highwind.txt highwind

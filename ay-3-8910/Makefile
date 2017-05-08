@@ -7,7 +7,7 @@ CC = gcc
 CFLAGS = -O2 -Wall -I../include -g
 LFLAGS = -lm
 
-all:	ym_play organ ym_to_ym5 text_to_ym glados test_font
+all:	ym_play organ ym_to_ym5 text_to_ym text_to_ed glados test_font
 
 ../lib/i2c_lib.o:	../lib/i2c_lib.c
 	cd ../lib && make
@@ -69,6 +69,15 @@ text_to_ym:	text_to_ym.o notes.o
 text_to_ym.o:	text_to_ym.c notes.h
 	$(CC) $(CFLAGS) -c text_to_ym.c
 
+####
+
+text_to_ed:	text_to_ed.o notes.o
+	$(CC) $(LFLAGS) -o text_to_ed text_to_ed.o notes.o
+
+text_to_ed.o:	text_to_ed.c notes.h
+	$(CC) $(CFLAGS) -c text_to_ed.c
+
+
 ###
 
 ym_to_ym5:	ym_to_ym5.o
@@ -93,13 +102,4 @@ notes.o:	notes.c notes.h
 
 
 clean:	
-	rm -f *~ *.o ym_play organ text_to_ym ym_to_ym5 glados test_font
-
-
-
-
-
-
-
-
-
+	rm -f *~ *.o ym_play organ text_to_ym ym_to_ym5 glados test_font text_to_ed
