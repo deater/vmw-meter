@@ -167,6 +167,13 @@ int display_string(int display_type,char *led_string) {
 	buffer2[0]=0;
 	buffer3[0]=0;
 
+	if (display_type&DISPLAY_TEXT) {
+		printf("%s\n",led_string);
+	}
+
+	if (display_type&DISPLAY_I2C) {
+
+
 	for(i=0;i<4;i++) {
 		ch=led_string[i];
 		buffer1[(i*2)+1]=adafruit_lookup[ch]>>8;
@@ -189,7 +196,7 @@ int display_string(int display_type,char *led_string) {
 
 #if USE_LINUX_I2C==1
 		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS5) < 0) {
-			fprintf(stderr,"Bargraph error setting i2c address %x\n",
+			fprintf(stderr,"String1 error setting i2c address %x\n",
 				HT16K33_ADDRESS5);
 			return -1;
 		}
@@ -209,7 +216,7 @@ int display_string(int display_type,char *led_string) {
 	if (memcmp(buffer2,old_buffer2,17)!=0) {
 #if USE_LINUX_I2C==1
 		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS3) < 0) {
-			fprintf(stderr,"Bargraph error setting i2c address %x\n",
+			fprintf(stderr,"String2 error setting i2c address %x\n",
 				HT16K33_ADDRESS3);
 			return -1;
 		}
@@ -230,7 +237,7 @@ int display_string(int display_type,char *led_string) {
 	if (memcmp(buffer3,old_buffer3,17)!=0) {
 #if USE_LINUX_I2C==1
 		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS7) < 0) {
-			fprintf(stderr,"Bargraph error setting i2c address %x\n",
+			fprintf(stderr,"String3 error setting i2c address %x\n",
 				HT16K33_ADDRESS7);
 			return -1;
 		}
@@ -247,7 +254,7 @@ int display_string(int display_type,char *led_string) {
 #endif
 		memcpy(old_buffer3,buffer3,17);
 	}
-
+	}
 
 	return 0;
 
