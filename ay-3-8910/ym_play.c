@@ -2,8 +2,6 @@
 /* Used file info found here: http://leonard.oxg.free.fr/ymformat.html */
 /* Also useful: ftp://ftp.modland.com/pub/documents/format_documentation/Atari%20ST%20Sound%20Chip%20Emulator%20YM1-6%20(.ay,%20.ym).txt */
 
-#define VERSION "0.5"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -22,6 +20,8 @@
 #include "display.h"
 #include "ym_lib.h"
 #include "max98306.h"
+
+#include "version.h"
 
 //#define AY38910_CLOCK	1000000	/* 1MHz on our board */
 

@@ -1,7 +1,5 @@
 /* Musical Organ for ay-3-8910 */
 
-#define VERSION "0.5"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -21,6 +19,8 @@
 #include "max98306.h"
 
 #include "notes.h"
+
+#include "version.h"
 
 #define AY38910_CLOCK	1000000	/* 1MHz on our board */
 

@@ -1,7 +1,5 @@
 /* Test the 14-seg font */
 
-#define VERSION "0.5"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -14,6 +12,8 @@
 #include <sys/resource.h>
 
 #include "display.h"
+
+#include "version.h"
 
 static void quiet_and_exit(int sig) {
 
