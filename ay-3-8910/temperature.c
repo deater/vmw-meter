@@ -123,13 +123,28 @@ static int display_temp(void) {
 	/* W  79^F 79^C */
 
 	if (display_type&DISPLAY_I2C) {
-		sprintf(text,"W%3.0lf%cF %2.0lf%cC",
+		sprintf(text,"TEMPERATURE");
+		display_string(DISPLAY_I2C,text);
+		sleep(2);
+
+		sprintf(text,"W1%3.0lf%cF %2.0lf%cC",
 			c_to_f(w1_temp),0xb0,w1_temp,0xb0);
 		display_string(DISPLAY_I2C,text);
+		sleep(2);
+
+		sprintf(text,"PI%3.0lf%cF %2.0lf%cC",
+			c_to_f(pi_temp),0xb0,pi_temp,0xb0);
+		display_string(DISPLAY_I2C,text);
+		sleep(2);
+
 	}
 	else {
+		printf("Temperature\n");
+		sleep(1);
 		printf("W1: %.1lf%cC %.0lf%cF\n",w1_temp,0xb0,c_to_f(w1_temp),0xb0);
+		sleep(1);
 		printf("Pi: %.1lf%cC %.0lf%cF\n",pi_temp,0xb0,c_to_f(pi_temp),0xb0);
+		sleep(1);
 	}
 
 	return 0;
