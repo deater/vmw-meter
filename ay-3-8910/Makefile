@@ -7,7 +7,8 @@ CC = gcc
 CFLAGS = -O2 -Wall -I../include -g
 LFLAGS = -lm
 
-all:	ym_play organ ym_to_ym5 text_to_ym text_to_ed glados test_font
+all:	ym_play organ ym_to_ym5 text_to_ym text_to_ed glados test_font \
+	temperature
 
 ../lib/i2c_lib.o:	../lib/i2c_lib.c
 	cd ../lib && make
@@ -52,6 +53,15 @@ organ:	organ.o ay-3-8910.o max98306.o notes.o
 
 organ.o:	organ.c ay-3-8910.h
 	$(CC) $(CFLAGS) -c organ.c
+
+###
+
+temperature:	temperature.o display.o ../lib/i2c_lib.o 14seg_font.o
+	$(CC) $(LFLAGS) -o temperature temperature.o display.o 14seg_font.o ../lib/i2c_lib.o
+
+temperature.o:	temperature.c display.h
+	$(CC) $(CFLAGS) -c temperature.c
+
 
 ###
 
@@ -102,4 +112,5 @@ notes.o:	notes.c notes.h
 
 
 clean:	
-	rm -f *~ *.o ym_play organ text_to_ym ym_to_ym5 glados test_font text_to_ed
+	rm -f *~ *.o ym_play organ text_to_ym ym_to_ym5 glados \
+		temperature test_font text_to_ed
