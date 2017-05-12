@@ -64,6 +64,24 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	},
 };
 
+#define MAX_LOUDS	8
+
+struct loudness_type {
+	char name[8];
+	int value;
+} loudness_values[MAX_LOUDS]={
+			/* sym  midi */
+	{ "ppp",12},	/* ppp  16 */
+	{ "pp", 13},	/* pp   32 */
+	{ "p",  13},	/* p    48 */
+	{ "mp", 14},	/* mp   64 */
+	{ "mf", 14},	/* mf   80 */
+	{ "f",  15},	/* f    96 */
+	{ "ff", 15},	/* ff  112 */
+	{ "fff",15},	/* fff 127 */
+};
+
+static int loudness[3]={15,15,15};
 
 static int debug=0;
 
@@ -188,8 +206,7 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 }
 
 static int calculate_amplitude(struct note_type *n,
-				struct instrument_type *i,
-				int debug) {
+				struct instrument_type *i) {
 
 	int result=0;
 
@@ -212,13 +229,39 @@ length=17
 		result=i->sustain;
 	}
 
-	if (debug) printf("%d %d %d\n",n->length,n->left,result);
+	/* scale by loudness */
+
+	result=(result * loudness[0])/15;
+
+	if (debug) printf("%d %d %d (%d)\n",n->length,n->left,result,loudness[0]);
 //		((n->length-n->left)*16)/n->length,
 //		instruments[DEFAULT].envelope[
 //			((n->length-n->left)*16)/n->length
 //		]);
 
 	return result;
+}
+
+static int get_loudness(char *string) {
+
+	int i;
+	char *pointer;
+
+	pointer=string+2;
+
+	//printf("FOUND LOUD DIRECTIVE %s\n",pointer);
+
+	for(i=0;i<MAX_LOUDS;i++) {
+		//printf("looking for %s in %s\n",loudness_values[i].name,pointer);
+		if (!strncmp(loudness_values[i].name,pointer,
+				strlen(loudness_values[i].name))) {
+			if (debug) printf("Found %s\n",loudness_values[i].name);
+			loudness[0]=loudness_values[i].value;
+			break;
+		}
+	}
+
+	return 0;
 }
 
 static int get_string(char *string, char *key, char *output, int strip_linefeed) {
@@ -376,6 +419,12 @@ int main(int argc, char **argv) {
 		if (string[0]=='\'') continue;
 		if (string[0]=='-') continue;
 
+		/* loudness */
+		if (string[0]=='*') {
+			get_loudness(string);
+			continue;
+		}
+
 		sp=0;
 
 		/* Skip line number */
@@ -401,7 +450,7 @@ int main(int argc, char **argv) {
 				frame[7]=0x38;
 				//frame[8]=0x0f;	// amp A
 				frame[8]=calculate_amplitude(&a,
-					&instruments[DEFAULT],1);
+					&instruments[DEFAULT]);
 			}
 			else {
 				frame[0]=0x0;
@@ -415,7 +464,7 @@ int main(int argc, char **argv) {
 				frame[7]=0x38;
 				//frame[9]=0x0f;	// amp B
 				frame[9]=calculate_amplitude(&b,
-					&instruments[DEFAULT],0);
+					&instruments[DEFAULT]);
 			}
 			else {
 				frame[2]=0x0;
@@ -429,7 +478,7 @@ int main(int argc, char **argv) {
 				frame[7]=0x38;
 				//frame[10]=0x0f;	// amp C
 				frame[10]=calculate_amplitude(&c,
-					&instruments[DEFAULT],0);
+					&instruments[DEFAULT]);
 //				frame[10]=instruments[1].envelope[(c.length-c.left)/16];
 			}
 			else {
