@@ -102,20 +102,29 @@ Display
 Sound Board
 
 	AY-3-8910	E-bay		?		2
-	3.5mm Audio	DigiKey		?		1
+	3.5mm Audio	DigiKey		CP1-3525NG-ND	1
+		Stereo
 	1MHz Osc	?		?		1
 	Osc Socket					1
 	74HC595N	?		?		2
 	PCB		OSHPARK		VMW-SOUND	1	$40.00
 	40-pin header	AdaFruit
 	Level Shifter	AdaFruit	?		2
-	MAX98306 Break	AdaFruit	?		1
+	MAX98306 Break	AdaFruit	987		1
+		3.7W Class D
 	Resistors
 	Capacitors
 	1-wire DS1280	AdaFruit	?		1
 	4-pin header
-	40-pin sockets					2
+	40-pin sockets	Jameco		112311		2
+	14-pin sockets	Jameco		37197		3
+	14-pin osc	Jameco		133006		1
+		socket
+	16 pin socket	Jameco		37402		2
+	8 pin socket					1
+	0.1uF caps
 	4 Ohm Speakers	AdaFruit	?		1
+	spdt switch	Jameco		588220		1
 
 	Optional:
 
@@ -123,9 +132,82 @@ Sound Board
 	8-pin socket
 	i2c-RTC
 
+Directions
+
+	1. Get the PCB
+	2. Put the sockets on the AY side first?
+		two 40-pin sockets
+		oscillator socket
+		the 14-pins which seem to be higher than 40-pin
+	3. Solder on the audio jack
+	5. solder on the two 1k and 10k resistors
+	Flip sides
+	solder on 2 16-pin sockets
+	solder on 8-pin socket
+	solder on 3 10k resistors, 2 1-k resistors, 2 3.9k
+
+
+
+	flip back
+	solder on the pi header.  attach to pi, then screw in place
+		with standoffs. then solder
+	solder on five 0.1uF caps
+	solder on two 100uF caps make sure minus pin in minus hole
+	4. Solder on the spdt switch (this is later, makes resistors
+	on other side easier)
+
+
+	flip back
+
+	solder on 3 bypass caps
+	DS18B20 (be sure to line up)
+	two 4-pin connectors
+	write protect 2-pin header
+	RTC (if desired)
+
+	flip back
+
+	MAX
+		easiest to start with fresh board.
+		Only do the 9 wide header and take 4 extra pins
+		and put then in the output holes.
+		solder the board to these, then solder the whole thing
+		to the board
+	
+	slide switch
+		screw in place
+		cut small 1/2" or so pieces of wire and solder in place
+		two toward top side of main board are ground, 
+		bottom two are signal
+
+	Testing:
+		5V+3.3V+GND continuity
+		Hook up a pi.  Check for smoke.
+		Run i2cdetect -y 1 and see if RTC found at 0x68
+		Check that the 1-wire DS1820 shows up
+			
+
+	pput in chips
+
+	snip the 1-pin indicator of the oscillator otherwise it's
+	a tight fit
+
+	wrap the standoff in electrical tape
+		
+
 Overall:
 	Case		?		?		?
 	XA Power Supply	?		?		?
 	Mounting Screws
 	Raspberry Pi2	?		?		?	$35.00
 	SD-Card		?		?		?
+
+
+ERRATA!
+
+the standoff behind the slider is too close to various components
+
+the standoff on the bottom left completely blocks the memory card slot
+
+
+
