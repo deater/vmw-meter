@@ -203,11 +203,31 @@ Overall:
 	SD-Card		?		?		?
 
 
+Building the case:
+
+	Drill the holes and openings as indicated.
+
+	Screw holes drilled with 7/64th bit
+
+	On the pi, put two extra washers on the one side so that it lays
+	flat.
+
+	put electrical tape around the standofs for close clearance
+	
+	quarter inch holes and used coping saw to cut out openings
+
+
+
+
+
 ERRATA!
 
 the standoff behind the slider is too close to various components
-
 the standoff on the bottom left completely blocks the memory card slot
 
-
+mk1 board:
+the capacitors should be at least 300 mil not 100 mil
+oscillator too close to the chip
+use curves not so many right angles
+standoffs in bad places.
 
