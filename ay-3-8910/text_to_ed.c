@@ -286,6 +286,8 @@ int main(int argc, char **argv) {
 
 	a.which='A';	b.which='B';	//c.which='C';
 
+	int a_last=0,b_last=0,same_count=0;
+
 	while(1) {
 		result=fgets(string,BUFSIZ,in_file);
 		if (result==NULL) break;
@@ -322,9 +324,21 @@ int main(int argc, char **argv) {
 			printf("%c%c%d %d (%d,%d)\n",
 				b.note,sharp_char[b.sharp+2*b.flat],b.octave,
 				b.len,b.ed_freq,b.length);
+
+			if ((a.ed_freq!=a_last) || (b.ed_freq!=b_last) || (same_count>250)) {
+				if (same_count!=0) {
+					fprintf(ed_file,"%c%c%c",same_count*5,a_last,b_last);
+					printf("*** %x %x %x\n",same_count*5,a_last,b_last);
+				}
+				same_count=0;
+			}
+
+			same_count++;
+
+			a_last=a.ed_freq;
+			b_last=b.ed_freq;
+
 		}
-
-
 
 	}
 

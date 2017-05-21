@@ -3,9 +3,13 @@ CFLAGS = -O2 -Wall
 LFLAGS = -lm
 
 all:	sa.ym5 korobeiniki.ym5 fighting.ym5 highwind.ym5 \
-	highwind.ed
+	highwind.ed fighting.ed sa.ed
 
 ###
+
+
+fighting.ed:	../text_to_ed fighting.txt
+	../text_to_ed fighting.txt fighting
 
 fighting.ym:	../text_to_ym fighting.txt
 	../text_to_ym fighting.txt fighting
@@ -34,6 +38,9 @@ korobeiniki.ym5:	../ym_to_ym5 korobeiniki.ym
 	../ym_to_ym5 korobeiniki
 
 ###
+
+sa.ed:	../text_to_ed sa.txt
+	../text_to_ed sa.txt sa
 
 sa.ym:	../text_to_ym sa.txt
 	../text_to_ym sa.txt sa
