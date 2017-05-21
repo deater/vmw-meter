@@ -270,14 +270,14 @@ int main(int argc, char **argv) {
 
 	}
 
-	if (bpm==120) {
+	if (bpm==120) { // 2Hz, 500ms, 80x=500, x=6.25
 		baselen=80;
 	}
-	else if (bpm==136) {
-		baselen=80;
+	else if (bpm==136) { // 2.3Hz, 440ms, should be 70
+		baselen=70;
 	}
-	else if (bpm==160) {
-		baselen=80;
+	else if (bpm==160) {// 2.66Hz, 375ms, should be 60
+		baselen=60;
 	}
 	else {
 		fprintf(stderr,"Warning!  Unusual BPM of %d\n",bpm);
@@ -327,8 +327,8 @@ int main(int argc, char **argv) {
 
 			if ((a.ed_freq!=a_last) || (b.ed_freq!=b_last) || (same_count>250)) {
 				if (same_count!=0) {
-					fprintf(ed_file,"%c%c%c",same_count*5,a_last,b_last);
-					printf("*** %x %x %x\n",same_count*5,a_last,b_last);
+					fprintf(ed_file,"%c%c%c",same_count*(baselen/16),a_last,b_last);
+					printf("*** %x %x %x\n",same_count*(baselen/16),a_last,b_last);
 				}
 				same_count=0;
 			}
