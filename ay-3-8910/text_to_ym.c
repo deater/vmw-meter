@@ -205,8 +205,13 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 	return sp;
 }
 
+#define A_CHANNEL 0
+#define B_CHANNEL 1
+#define C_CHANNEL 2
+
 static int calculate_amplitude(struct note_type *n,
-				struct instrument_type *i) {
+				struct instrument_type *i,
+				int which) {
 
 	int result=0;
 
@@ -231,9 +236,10 @@ length=17
 
 	/* scale by loudness */
 
-	result=(result * loudness[0])/15;
+	result=(result * loudness[which])/15;
 
-	if (debug) printf("%d %d %d (%d)\n",n->length,n->left,result,loudness[0]);
+	if (debug) printf("%d %d %d (%d)\n",n->length,n->left,result,
+		loudness[which]);
 //		((n->length-n->left)*16)/n->length,
 //		instruments[DEFAULT].envelope[
 //			((n->length-n->left)*16)/n->length
@@ -244,19 +250,24 @@ length=17
 
 static int get_loudness(char *string) {
 
-	int i;
+	int i,which;
 	char *pointer;
 
 	pointer=string+2;
 
 	//printf("FOUND LOUD DIRECTIVE %s\n",pointer);
 
+	// FIXME: proper check
+	which=(*pointer)-'A';
+	pointer+=2;
+
 	for(i=0;i<MAX_LOUDS;i++) {
 		//printf("looking for %s in %s\n",loudness_values[i].name,pointer);
 		if (!strncmp(loudness_values[i].name,pointer,
 				strlen(loudness_values[i].name))) {
-			if (debug) printf("Found %s\n",loudness_values[i].name);
-			loudness[0]=loudness_values[i].value;
+			if (debug) printf("Found %d %s\n",which,
+						loudness_values[i].name);
+			loudness[which]=loudness_values[i].value;
 			break;
 		}
 	}
@@ -451,7 +462,7 @@ int main(int argc, char **argv) {
 				frame[7]=0x38;
 				//frame[8]=0x0f;	// amp A
 				frame[8]=calculate_amplitude(&a,
-					&instruments[DEFAULT]);
+					&instruments[DEFAULT],A_CHANNEL);
 			}
 			else {
 				frame[0]=0x0;
@@ -465,7 +476,7 @@ int main(int argc, char **argv) {
 				frame[7]=0x38;
 				//frame[9]=0x0f;	// amp B
 				frame[9]=calculate_amplitude(&b,
-					&instruments[DEFAULT]);
+					&instruments[DEFAULT],B_CHANNEL);
 			}
 			else {
 				frame[2]=0x0;
@@ -479,7 +490,7 @@ int main(int argc, char **argv) {
 				frame[7]=0x38;
 				//frame[10]=0x0f;	// amp C
 				frame[10]=calculate_amplitude(&c,
-					&instruments[DEFAULT]);
+					&instruments[DEFAULT],C_CHANNEL);
 //				frame[10]=instruments[1].envelope[(c.length-c.left)/16];
 			}
 			else {
