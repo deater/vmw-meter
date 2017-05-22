@@ -36,17 +36,17 @@ double note_to_freq(char note, int flat, int sharp, int octave) {
 /* From a spreadsheet from ed2midi */
 /*      Octave  1       2       3       4       5
         A       255     128     64      32      16
-        A#      240     120     60      30      15
+        A#/B-   240     120     60      30      15
         B       228     114     57      28      14
         C       216     108     54      27      13
-        C#      204     102     51      25      12
+        C#/D-   204     102     51      25      12
         D       192      96     48      24      12
-        D#      180      90     45      22      11
+        D#/E-   180      90     45      22      11
         E       172      86     43      21      10
         F       160      80     40      20      10
-        F#      152      76     38      19      9
+        F#/G-   152      76     38      19      9
         G       144      72     36      18      9
-        G#      136      68     34      17      8
+        G#/A-   136      68     34      17      8
 */
 
 int note_to_ed(char note, int flat, int sharp, int octave) {
