@@ -36,7 +36,7 @@ static int music_paused=0;
 static int music_loop=0;
 static int diff_mode=0;
 static int volume=1;
-static int amp_disable=1;
+static int amp_disable=0;
 
 static void quiet_and_exit(int sig) {
 
