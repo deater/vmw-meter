@@ -437,8 +437,9 @@ int main(int argc, char **argv) {
 		/* handle lyrics */
 		if (sp!=-1) {
 			while((string[sp]==' ' || string[sp]=='\t')) sp++;
-			if (string[sp]!='\n') {
-				fprintf(lyrics_file,"%d %s",frames,&string[sp]);
+			if ((string[sp]) && (string[sp]!='\n')) {
+				fprintf(lyrics_file,"%d %s",
+					frames,&string[sp]);
 			}
 		}
 
