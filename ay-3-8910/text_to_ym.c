@@ -10,7 +10,7 @@
 
 #define MAX_INSTRUMENTS	7
 
-#define DEFAULT	0
+#define DEFAULT	2
 
 struct instrument_type {
 	int attack[16];

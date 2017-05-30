@@ -36,7 +36,7 @@
 /* buffer[16] = lower right */
 
 /* Code to put raw data on the 8x16 display */
-int display_8x16_raw(int display_type, char *buffer) {
+int display_8x16_raw(int display_type, unsigned char *buffer) {
 
 	int x,y;
 
@@ -84,7 +84,7 @@ int close_8x16_display(int display_type) {
 
 	int i;
 
-	char buffer[17];
+	unsigned char buffer[17];
 
 	buffer[0]=0;
 	for(i=0;i<16;i++) buffer[i+1]=0x0;
@@ -94,6 +94,32 @@ int close_8x16_display(int display_type) {
 	return 0;
 }
 
+
+void display_8x16_vertical_putpixel(unsigned char *buffer,int x,int y) {
+
+	int which,offset;
+
+	if ((x<0) || (x>7)) return;
+	if ((y<0) || (y>15)) return;
+
+	which=(x*2)+(y<8);
+	offset=1<<(7-(y&7));
+
+	buffer[which]|=offset;
+}
+
+int display_8x16_vertical_getpixel(unsigned char *buffer,int x,int y) {
+
+	int which,offset;
+
+	if ((x<0) || (x>7)) return 0;
+	if ((y<0) || (y>15)) return 0;
+
+	which=(x*2)+(y<8);
+	offset=1<<(7-(y&7));
+
+	return !!(buffer[which]&offset);
+}
 
 static int reverse_bits(int b) {
 
@@ -111,7 +137,7 @@ int display_8x16_led_art(int display_type,
 		int which) {
 
 	int i;
-	char buffer[17];
+	unsigned char buffer[17];
 
 	buffer[0]=0;
 
@@ -141,7 +167,7 @@ static int freq_matrix[16][8];
 
 static int freq_8x16display(int display_type, int refresh_i2c) {
 
-	char buffer[17];
+	unsigned char buffer[17];
 	int i,x;
 
 

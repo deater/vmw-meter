@@ -34,7 +34,18 @@
 /* 2               7 */
 /* 1               8 */
 
-int display_read_keypad(int display_type) {
+/*       Play Stop   */
+/*       Mode X      */
+/*  <              > */
+/* <<             >> */
+
+/*       ' ' s       */
+/*       m   x       */
+/*  <              > */
+/*  ,              . */
+
+
+int display_keypad_read(int display_type) {
 
 	unsigned char ch;
 	int result;
@@ -152,3 +163,23 @@ int display_read_keypad(int display_type) {
 }
 
 
+
+int display_keypad_clear(int display_type) {
+
+	while(display_keypad_read(display_type));
+
+	return 0;
+}
+
+int display_keypad_repeat_until_keypressed(int display_type) {
+
+	int ch;
+
+	while(1) {
+		ch=display_keypad_read(display_type);
+		if (ch) break;
+		usleep(10000);
+	}
+
+	return ch;
+}

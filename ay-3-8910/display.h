@@ -56,10 +56,12 @@ int display_14seg_string(int display_type,char *led_string);
 int close_14seg(int type);
 
 /********************* display_keypad.c */
-int display_read_keypad(int display_type);
+int display_keypad_read(int display_type);
+int display_keypad_clear(int display_type);
+int display_keypad_repeat_until_keypressed(int display_type);
 
 /********************* display_8x16.c */
-int display_8x16_raw(int display_type, char *buffer);
+int display_8x16_raw(int display_type, unsigned char *buffer);
 int close_8x16_display(int display_type);
 int display_8x16_led_art(int display_type,
                 short led_art[10][8],
@@ -70,6 +72,8 @@ int display_8x16_time(int display_type, int current_frame, int total_frames);
 int display_8x16_title(int display_type);
 int display_8x16_scroll_text(int display_type, char *string, int new_string);
 
+void display_8x16_vertical_putpixel(unsigned char *buffer,int x,int y);
+int display_8x16_vertical_getpixel(unsigned char *buffer,int x,int y);
 
 /********************* display.c */
 int display_init(int type);

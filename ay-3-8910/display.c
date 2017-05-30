@@ -135,7 +135,7 @@ int display_init(int type) {
 		}
 
 		/* clear out any lingering keypresses */
-		display_read_keypad(DISPLAY_I2C);
+		display_keypad_clear(DISPLAY_I2C);
 
 #else
 

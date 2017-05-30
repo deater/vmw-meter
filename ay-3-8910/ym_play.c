@@ -92,7 +92,7 @@ static void print_help(int just_version, char *exec_name) {
 /* Currently (with GPIO music and Linux i2c):			   */
 /*   ym_play_frame:        14ms (need to move to SPI!)             */
 /*   display_update:        1-3ms (depends on if all are updated)  */
-/*   display_read_keypad: 0.5ms                                    */
+/*   display_keypad_read: 0.5ms                                    */
 /*   display_string:        5ms (slow!  3 i2c addresses            */
 /*				5.02ms (Linux) 4.9ms (libbcm)	   */
 
@@ -215,7 +215,7 @@ static int play_song(char *filename) {
 
 		/* Handle keypresses */
 		do {
-			display_command=display_read_keypad(display_type);
+			display_command=display_keypad_read(display_type);
 
 			if (display_command==CMD_MUTE_A) {
 				if (mute_channel&0x01) mute_channel&=~0x01;
