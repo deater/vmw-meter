@@ -7,6 +7,9 @@ CC = gcc
 CFLAGS = -O2 -Wall -I../include -g
 LFLAGS = -lm
 
+
+DISPLAY = display.o display_bargraph.o display_keypad.o display_14seg.o
+
 all:	ym_play organ ym_to_ym5 text_to_ym text_to_ed glados test_font \
 	temperature falling_blocks
 
@@ -20,11 +23,11 @@ ym_lib.o:	ym_lib.c ym_lib.h
 
 
 ym_play:	ym_play.o ay-3-8910.o max98306.o ym_lib.o \
-			display.o display_bargraph.o display_14seg.o \
+			$(DISPLAY) \
 			../lib/i2c_lib.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym_play ym_play.o ay-3-8910.o \
 			max98306.o \
-			display.o display_bargraph.o display_14seg.o ym_lib.o \
+			$(DISPLAY) ym_lib.o \
 			../lib/i2c_lib.o /usr/local/lib/libbcm2835.a
 
 ym_play.o:	ym_play.c display.h ay-3-8910.h
@@ -37,11 +40,11 @@ lyrics.o:	lyrics.c lyrics.h
 
 glados:	glados.o ../lib/i2c_lib.o ay-3-8910.o ym_lib.o lyrics.o \
 		max98306.o \
-		display.o display_bargraph.o display_14seg.o
+		$(DISPLAY)
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o glados glados.o \
 			lyrics.o ay-3-8910.o ym_lib.o max98306.o \
 			../lib/i2c_lib.o \
-			display.o display_bargraph.o display_14seg.o \
+			$(DISPLAY) \
 			/usr/local/lib/libbcm2835.a
 
 glados.o:	glados.c display.h ym_lib.h
@@ -57,10 +60,10 @@ organ.o:	organ.c ay-3-8910.h
 
 ###
 
-temperature:	temperature.o display.o display_bargraph.o display_14seg.o \
+temperature:	temperature.o $(DISPLAY) \
 		../lib/i2c_lib.o
 	$(CC) $(LFLAGS) -o temperature temperature.o \
-		display.o display_bargraph.o display_14seg.o \
+		$(DISPLAY) \
 		../lib/i2c_lib.o
 
 temperature.o:	temperature.c display.h
@@ -70,14 +73,14 @@ temperature.o:	temperature.c display.h
 ###
 
 falling_blocks:	falling_blocks.o \
-		display.o display_bargraph.o display_14seg.o \
+		$(DISPLAY) \
 		../lib/i2c_lib.o ay-3-8910.o \
 		ym_lib.o lyrics.o \
 		max98306.o display.o display_bargraph.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o falling_blocks falling_blocks.o \
 		../lib/i2c_lib.o ay-3-8910.o ym_lib.o lyrics.o \
 		max98306.o \
-		display.o display_bargraph.o display_14seg.o \
+		$(DISPLAY) \
 		/usr/local/lib/libbcm2835.a
 
 falling_blocks.o:	falling_blocks.c display.h
@@ -88,10 +91,10 @@ falling_blocks.o:	falling_blocks.c display.h
 ###
 
 test_font:	test_font.o \
-		display.o display_bargraph.o display_14seg.o \
+		$(DISPLAY) \
 		../lib/i2c_lib.o
 	$(CC) $(LFLAGS) -o test_font test_font.o \
-		display.o display_bargraph.o display_14seg.o \
+		$(DISPLAY) \
 		../lib/i2c_lib.o
 
 test_font.o:	test_font.c display.h
@@ -132,6 +135,9 @@ display.o:	display.c display.h font.h
 
 display_bargraph.o:	display_bargraph.c display.h
 	$(CC) $(CFLAGS) -c display_bargraph.c
+
+display_keypad.o:	display_keypad.c display.h
+	$(CC) $(CFLAGS) -c display_keypad.c
 
 display_14seg.o:	display_14seg.c display.h font.h
 	$(CC) $(CFLAGS) -c display_14seg.c
