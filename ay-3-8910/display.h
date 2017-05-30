@@ -59,12 +59,13 @@ int close_14seg(int type);
 int display_read_keypad(int display_type);
 
 /********************* display_8x16.c */
+int display_8x16_raw(int display_type, char *buffer);
+int close_8x16_display(int display_type);
 int display_8x16_led_art(int display_type,
                 short led_art[10][8],
                 int which);
-int display_8x16_raw(int display_type, char *buffer);
 int display_8x16_freq(int display_type, int a, int b, int c);
-int close_freq_display(int display_type);
+
 int display_8x16_time(int display_type, int current_frame, int total_frames);
 int display_8x16_title(int display_type);
 int display_8x16_scroll_text(int display_type, char *string, int new_string);

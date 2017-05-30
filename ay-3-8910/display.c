@@ -161,7 +161,7 @@ int display_shutdown(int display_type) {
 #endif
 	}
 
-	close_freq_display(display_type);
+	close_8x16_display(display_type);
 	close_bargraph(display_type);
 	close_14seg(display_type);
 

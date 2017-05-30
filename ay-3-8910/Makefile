@@ -11,7 +11,7 @@ LFLAGS = -lm
 DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_14seg.o
 
 all:	ym_play organ ym_to_ym5 text_to_ym text_to_ed glados test_font \
-	temperature falling_blocks
+	test_8x16 temperature falling_blocks
 
 ../lib/i2c_lib.o:	../lib/i2c_lib.c
 	cd ../lib && make
@@ -90,15 +90,21 @@ falling_blocks.o:	falling_blocks.c display.h
 
 ###
 
-test_font:	test_font.o \
-		$(DISPLAY) \
-		../lib/i2c_lib.o
-	$(CC) $(LFLAGS) -o test_font test_font.o \
-		$(DISPLAY) \
-		../lib/i2c_lib.o
+test_font:	test_font.o $(DISPLAY) ../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o test_font test_font.o $(DISPLAY) ../lib/i2c_lib.o
 
 test_font.o:	test_font.c display.h
 	$(CC) $(CFLAGS) -c test_font.c
+
+####
+
+test_8x16:	test_8x16.o $(DISPLAY) ../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o test_8x16 test_8x16.o $(DISPLAY) \
+		../lib/i2c_lib.o
+
+test_8x16.o:	test_8x16.c display.h
+	$(CC) $(CFLAGS) -c test_8x16.c
+
 
 ###
 

@@ -27,63 +27,15 @@
 
 #include "font.h"
 
-static int reverse_bits(int b) {
+/* Raw format for adafruit 8x16 display */
+/* buffer[0] = 0   (says to start at address 0) */
+/* buffer[1] = upper left, low bit first, 0 - 8 */
+/* buffer[2] = upper right, low bit first, 0 - 8 */
+/* .... */
+/* buffer[15] = lower left  */
+/* buffer[16] = lower right */
 
-	int out;
-
-	out = ((b * 0x0802LU & 0x22110LU) |
-		(b * 0x8020LU & 0x88440LU)) *
-		0x10101LU >> 16;
-	return out&0xff;
-}
-
-int display_8x16_led_art(int display_type,
-		short led_art[10][8],
-		int which) {
-
-	int i;
-	char buffer[17];
-
-	if (display_type!=DISPLAY_I2C) return 0;
-
-	buffer[0]=0;
-
-	/* clear buffer */
-	for(i=0;i<16;i++) buffer[i+1]=0x0;
-
-	if (which==1024) {
-		/* special case, clear screen */
-	} else {
-
-		for(i=0;i<8;i++) {
-			buffer[i*2+1]=reverse_bits((led_art[which][i]>>8));
-			buffer[i*2+2]=reverse_bits(led_art[which][i]&0xff);
-		}
-	}
-#if USE_LINUX_I2C==1
-	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
-		fprintf(stderr,"8x16 Error setting i2c address %x\n",
-			HT16K33_ADDRESS2);
-		return -1;
-	}
-
-
-	if ( (write(i2c_fd, buffer, 17)) !=17) {
-		fprintf(stderr,"Error writing display %s!\n",
-			strerror(errno));
-		return -1;
-	}
-#else
-	bcm2835_i2c_setSlaveAddress(0x72);
-	bcm2835_i2c_write(buffer,17);
-#endif
-
-	return 0;
-}
-
-static int freq_max[16];
-static int freq_matrix[16][8];
-
+/* Code to put raw data on the 8x16 display */
 int display_8x16_raw(int display_type, char *buffer) {
 
 	int x,y;
@@ -113,8 +65,12 @@ int display_8x16_raw(int display_type, char *buffer) {
 
 	if (display_type&DISPLAY_TEXT) {
 		for(y=0;y<8;y++) {
-			for(x=0;x<16;x++) {
-				if (buffer[x+1]&(1<<y)) printf("*");
+			for(x=0;x<8;x++) {
+				if (buffer[1+(y*2)]&(1<<x)) printf("*");
+				else printf(" ");
+			}
+			for(x=0;x<8;x++) {
+				if (buffer[2+(y*2)]&(1<<x)) printf("*");
 				else printf(" ");
 			}
 			printf("\n");
@@ -122,6 +78,65 @@ int display_8x16_raw(int display_type, char *buffer) {
 	}
 	return 0;
 }
+
+/* Clear the display to black */
+int close_8x16_display(int display_type) {
+
+	int i;
+
+	char buffer[17];
+
+	buffer[0]=0;
+	for(i=0;i<16;i++) buffer[i+1]=0x0;
+
+	display_8x16_raw(display_type, buffer);
+
+	return 0;
+}
+
+
+static int reverse_bits(int b) {
+
+	int out;
+
+	out = ((b * 0x0802LU & 0x22110LU) |
+		(b * 0x8020LU & 0x88440LU)) *
+		0x10101LU >> 16;
+	return out&0xff;
+}
+
+/* Display some LED art */
+int display_8x16_led_art(int display_type,
+		short led_art[10][8],
+		int which) {
+
+	int i;
+	char buffer[17];
+
+	buffer[0]=0;
+
+	/* clear buffer */
+	for(i=0;i<16;i++) buffer[i+1]=0x0;
+
+	if (which==1024) {
+		/* special case, clear screen */
+	} else {
+
+		for(i=0;i<8;i++) {
+			buffer[i*2+1]=reverse_bits((led_art[which][i]>>8));
+			buffer[i*2+2]=reverse_bits(led_art[which][i]&0xff);
+		}
+	}
+
+	display_8x16_raw(display_type, buffer);
+
+	return 0;
+}
+
+
+static int freq_max[16];
+static int freq_matrix[16][8];
+
 
 
 static int freq_8x16display(int display_type, int refresh_i2c) {
@@ -221,53 +236,7 @@ int display_8x16_freq(int display_type, int a, int b, int c) {
 
 
 
-int close_freq_display(int display_type) {
 
-	int x,y;
-	int i;
-
-	char buffer[17];
-
-	/* Clear background */
-	for(y=0;y<8;y++) {
-		for(x=0;x<16;x++) {
-			freq_matrix[x][y]=0;
-		}
-	}
-
-	if (display_type&DISPLAY_I2C) {
-
-		buffer[0]=0;
-		for(i=0;i<16;i++) buffer[i+1]=0x0;
-
-		for(i=0;i<16;i++) {
-			for(x=0;x<8;x++) {
-				buffer[i+1]|=(freq_matrix[x+(8*(i%2))][i/2]<<x);
-			}
-		}
-
-#if USE_LINUX_I2C==1
-		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
-			fprintf(stderr,"Close Error setting i2c address %x\n",
-				HT16K33_ADDRESS2);
-			return -1;
-		}
-
-
-		if ( (write(i2c_fd, buffer, 17)) !=17) {
-			fprintf(stderr,"Error writing display %s!\n",
-				strerror(errno));
-			return -1;
-        	}
-#else
-		bcm2835_i2c_setSlaveAddress(0x72);
-		bcm2835_i2c_write(buffer,17);
-#endif
-
-	}
-
-	return 0;
-}
 
 static int put_number(int which, int x, int y) {
 
