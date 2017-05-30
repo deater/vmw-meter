@@ -124,17 +124,17 @@ static int display_temp(void) {
 
 	if (display_type&DISPLAY_I2C) {
 		sprintf(text,"TEMPERATURE");
-		display_string(DISPLAY_I2C,text);
+		display_14seg_string(DISPLAY_I2C,text);
 		sleep(2);
 
 		sprintf(text,"W1%3.0lf%cF %2.0lf%cC",
 			c_to_f(w1_temp),0xb0,w1_temp,0xb0);
-		display_string(DISPLAY_I2C,text);
+		display_14seg_string(DISPLAY_I2C,text);
 		sleep(2);
 
 		sprintf(text,"PI%3.0lf%cF %2.0lf%cC",
 			c_to_f(pi_temp),0xb0,pi_temp,0xb0);
-		display_string(DISPLAY_I2C,text);
+		display_14seg_string(DISPLAY_I2C,text);
 		sleep(2);
 
 	}

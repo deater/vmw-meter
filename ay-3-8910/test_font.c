@@ -70,7 +70,7 @@ static int text_input(void) {
 		}
 
 
-		display_string(DISPLAY_I2C,text);
+		display_14seg_string(DISPLAY_I2C,text);
 
 	}
 

@@ -161,7 +161,7 @@ static int play_song(char *filename) {
 	printf("\tComment: %s\n",ym_song.comment);
 
 	sprintf(display_text,"VMW CHIPTUNE");
-	display_string(display_type,display_text);
+	display_14seg_string(display_type,display_text);
 
 	/******************/
 	/* Play the song! */
@@ -417,7 +417,7 @@ static int play_song(char *filename) {
 		}
 
 
-		display_string(display_type,display_text);
+		display_14seg_string(display_type,display_text);
 		state_count++;
 
 		/* Calculate time it took to play/visualize */

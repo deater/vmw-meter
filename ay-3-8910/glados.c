@@ -21,8 +21,6 @@
 
 #include <bcm2835.h>
 
-#include "14seg_font.h"
-
 #include "lyrics.h"
 #include "glados_ascii_art.h"
 
@@ -199,7 +197,9 @@ static int lyrics_play(struct lyric_type *l) {
 				&ds,0,play_music,0);
 
 		/* Update the bargraph */
-		bargraph(display_type,ds.a_bar,ds.b_bar,ds.c_bar);
+		bargraph(display_type,
+			ds.a_bar,ds.b_bar,ds.c_bar,
+			ds.a_bar,ds.b_bar,ds.c_bar);
 
 		/* Parse any lyric updates for this frame */
 
@@ -266,7 +266,7 @@ static int lyrics_play(struct lyric_type *l) {
 			}
 
 			if (display_type==DISPLAY_I2C) {
-				display_string(display_type,led_string);
+				display_14seg_string(display_type,led_string);
 			}
 			sub++;
 		}

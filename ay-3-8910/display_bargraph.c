@@ -7,8 +7,6 @@
 
 /* Be sure to modprobe i2c-dev */
 
-#define USE_LINUX_I2C 1
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -16,6 +14,8 @@
 #include <string.h>
 #include <termios.h>
 #include <fcntl.h>
+
+#include "display.h"
 
 #if USE_LINUX_I2C==1
 #include <sys/ioctl.h>
@@ -25,7 +25,7 @@
 #include <bcm2835.h>
 #endif
 
-#include "display.h"
+
 
 
 static int bargraph_i2c(int left_a, int left_b, int left_c,

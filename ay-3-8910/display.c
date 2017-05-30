@@ -28,7 +28,7 @@
 #include "display.h"
 
 #include "font.h"
-#include "14seg_font.h"
+
 
 static int current_mode=MODE_VISUAL;
 static int kiosk_mode=0;
@@ -43,109 +43,6 @@ int i2c_fd=-1;
 
 
 static unsigned char display_buffer[DISPLAY_LINES];
-
-int display_string(int display_type,char *led_string) {
-
-	static char old_buffer1[17],old_buffer2[17],old_buffer3[17];
-	char buffer1[17],buffer2[17],buffer3[17];
-	int i,ch;
-
-	buffer1[0]=0;
-	buffer2[0]=0;
-	buffer3[0]=0;
-
-	if (display_type&DISPLAY_TEXT) {
-		printf("%s\n",led_string);
-	}
-
-	if (display_type&DISPLAY_I2C) {
-
-
-	for(i=0;i<4;i++) {
-		ch=led_string[i];
-		buffer1[(i*2)+1]=adafruit_lookup[ch]>>8;
-		buffer1[(i*2)+2]=adafruit_lookup[ch]&0xff;
-	}
-
-	for(i=0;i<4;i++) {
-		ch=led_string[i+4];
-		buffer2[(i*2)+1]=adafruit_lookup[ch]>>8;
-		buffer2[(i*2)+2]=adafruit_lookup[ch]&0xff;
-	}
-
-	for(i=0;i<4;i++) {
-		ch=led_string[i+8];
-		buffer3[(i*2)+1]=adafruit_lookup[ch]>>8;
-		buffer3[(i*2)+2]=adafruit_lookup[ch]&0xff;
-	}
-
-	if (memcmp(buffer1,old_buffer1,17)!=0) {
-
-#if USE_LINUX_I2C==1
-		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS5) < 0) {
-			fprintf(stderr,"String1 error setting i2c address %x\n",
-				HT16K33_ADDRESS5);
-			return -1;
-		}
-
-		if ( (write(i2c_fd, buffer1, 17)) !=17) {
-			fprintf(stderr,"Error writing display %s!\n",
-				strerror(errno));
-			return -1;
-		}
-#else
-		bcm2835_i2c_setSlaveAddress(0x75);
-		bcm2835_i2c_write(buffer1,17);
-#endif
-		memcpy(old_buffer1,buffer1,17);
-	}
-
-	if (memcmp(buffer2,old_buffer2,17)!=0) {
-#if USE_LINUX_I2C==1
-		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS3) < 0) {
-			fprintf(stderr,"String2 error setting i2c address %x\n",
-				HT16K33_ADDRESS3);
-			return -1;
-		}
-
-		if ( (write(i2c_fd, buffer2, 17)) !=17) {
-			fprintf(stderr,"Error writing display %s!\n",
-				strerror(errno));
-			return -1;
-		}
-#else
-			bcm2835_i2c_setSlaveAddress(0x73);
-			bcm2835_i2c_write(buffer2,17);
-#endif
-		memcpy(old_buffer2,buffer2,17);
-	}
-
-
-	if (memcmp(buffer3,old_buffer3,17)!=0) {
-#if USE_LINUX_I2C==1
-		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS7) < 0) {
-			fprintf(stderr,"String3 error setting i2c address %x\n",
-				HT16K33_ADDRESS7);
-			return -1;
-		}
-
-		if ( (write(i2c_fd, buffer3, 17)) !=17) {
-			fprintf(stderr,"Error writing display %s!\n",
-				strerror(errno));
-			return -1;
-		}
-#else
-		bcm2835_i2c_setSlaveAddress(0x77);
-		bcm2835_i2c_write(buffer3,17);
-
-#endif
-		memcpy(old_buffer3,buffer3,17);
-	}
-	}
-
-	return 0;
-
-}
 
 static int reverse_bits(int b) {
 
@@ -200,18 +97,6 @@ int display_led_art(int display_type,
 
 	return 0;
 }
-
-static int close_text(int type) {
-
-	char buffer[13];
-
-	strcpy(buffer,"            ");
-	display_string(type,buffer);
-
-	return 0;
-
-}
-
 
 static int freq_max[16];
 static int freq_matrix[16][8];
@@ -803,7 +688,7 @@ int display_init(int type) {
 	}
 
 	/* Setup the 14seg font */
-	translate_to_adafruit();
+	setup_14seg_font();
 
 	return result;
 }
@@ -819,8 +704,7 @@ int display_shutdown(int display_type) {
 
 	close_freq_display(display_type);
 	close_bargraph(display_type);
-
-	close_text(display_type);
+	close_14seg(display_type);
 
 	/* restore keyboard */
 	tcsetattr (0, TCSANOW, &saved_tty);

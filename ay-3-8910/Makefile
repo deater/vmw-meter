@@ -19,10 +19,12 @@ ym_lib.o:	ym_lib.c ym_lib.h
 	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c ym_lib.c
 
 
-ym_play:	ym_play.o ay-3-8910.o display.o display_bargraph.o max98306.o ym_lib.o 14seg_font.o \
-		../lib/i2c_lib.o
+ym_play:	ym_play.o ay-3-8910.o max98306.o ym_lib.o \
+			display.o display_bargraph.o display_14seg.o \
+			../lib/i2c_lib.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym_play ym_play.o ay-3-8910.o \
-			max98306.o display.o display_bargraph.o ym_lib.o 14seg_font.o\
+			max98306.o \
+			display.o display_bargraph.o display_14seg.o ym_lib.o \
 			../lib/i2c_lib.o /usr/local/lib/libbcm2835.a
 
 ym_play.o:	ym_play.c display.h ay-3-8910.h
@@ -30,20 +32,19 @@ ym_play.o:	ym_play.c display.h ay-3-8910.h
 
 ###
 
-14seg_font.o:	14seg_font.c 14seg_font.h
-	$(CC) $(CFLAGS) -c 14seg_font.c
-
 lyrics.o:	lyrics.c lyrics.h
 	$(CC) $(CFLAGS) -c lyrics.c
 
-glados:	glados.o 14seg_font.o ../lib/i2c_lib.o ay-3-8910.o ym_lib.o lyrics.o \
-		max98306.o display.o display_bargraph.o
-	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o glados glados.o 14seg_font.o \
+glados:	glados.o ../lib/i2c_lib.o ay-3-8910.o ym_lib.o lyrics.o \
+		max98306.o \
+		display.o display_bargraph.o display_14seg.o
+	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o glados glados.o \
 			lyrics.o ay-3-8910.o ym_lib.o max98306.o \
-			../lib/i2c_lib.o display.o display_bargraph.o \
+			../lib/i2c_lib.o \
+			display.o display_bargraph.o display_14seg.o \
 			/usr/local/lib/libbcm2835.a
 
-glados.o:	glados.c ym_lib.h
+glados.o:	glados.c display.h ym_lib.h
 	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c glados.c
 
 ###
@@ -56,8 +57,11 @@ organ.o:	organ.c ay-3-8910.h
 
 ###
 
-temperature:	temperature.o display.o display_bargraph.o ../lib/i2c_lib.o 14seg_font.o
-	$(CC) $(LFLAGS) -o temperature temperature.o display.o display_bargraph.o 14seg_font.o ../lib/i2c_lib.o
+temperature:	temperature.o display.o display_bargraph.o display_14seg.o \
+		../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o temperature temperature.o \
+		display.o display_bargraph.o display_14seg.o \
+		../lib/i2c_lib.o
 
 temperature.o:	temperature.c display.h
 	$(CC) $(CFLAGS) -c temperature.c
@@ -65,12 +69,16 @@ temperature.o:	temperature.c display.h
 
 ###
 
-falling_blocks:	falling_blocks.o display.o display_bargraph.o ../lib/i2c_lib.o ay-3-8910.o \
-		14seg_font.o ym_lib.o lyrics.o \
+falling_blocks:	falling_blocks.o \
+		display.o display_bargraph.o display_14seg.o \
+		../lib/i2c_lib.o ay-3-8910.o \
+		ym_lib.o lyrics.o \
 		max98306.o display.o display_bargraph.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o falling_blocks falling_blocks.o \
-		14seg_font.o ../lib/i2c_lib.o ay-3-8910.o ym_lib.o lyrics.o \
-		max98306.o display.o display_bargraph.o /usr/local/lib/libbcm2835.a
+		../lib/i2c_lib.o ay-3-8910.o ym_lib.o lyrics.o \
+		max98306.o \
+		display.o display_bargraph.o display_14seg.o \
+		/usr/local/lib/libbcm2835.a
 
 falling_blocks.o:	falling_blocks.c display.h
 	$(CC) $(CFLAGS) -c falling_blocks.c
@@ -79,8 +87,12 @@ falling_blocks.o:	falling_blocks.c display.h
 
 ###
 
-test_font:	test_font.o display.o display_bargraph.o ../lib/i2c_lib.o 14seg_font.o
-	$(CC) $(LFLAGS) -o test_font test_font.o display.o display_bargraph.o 14seg_font.o ../lib/i2c_lib.o
+test_font:	test_font.o \
+		display.o display_bargraph.o display_14seg.o \
+		../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o test_font test_font.o \
+		display.o display_bargraph.o display_14seg.o \
+		../lib/i2c_lib.o
 
 test_font.o:	test_font.c display.h
 	$(CC) $(CFLAGS) -c test_font.c
@@ -118,8 +130,13 @@ ay-3-8910.o:	ay-3-8910.c ay-3-8910.h
 display.o:	display.c display.h font.h
 	$(CC) $(CFLAGS) -c display.c
 
-display_bargraph.o:	display_bargraph.c display.h font.h
+display_bargraph.o:	display_bargraph.c display.h
 	$(CC) $(CFLAGS) -c display_bargraph.c
+
+display_14seg.o:	display_14seg.c display.h font.h
+	$(CC) $(CFLAGS) -c display_14seg.c
+
+
 
 max98306.o:	max98306.c max98306.h
 	$(CC) $(CFLAGS) -c max98306.c

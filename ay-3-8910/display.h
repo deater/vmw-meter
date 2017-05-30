@@ -36,6 +36,9 @@ extern int i2c_fd;
 #define CMD_MENU		0x11
 #define CMD_CANCEL		0x12
 
+
+#define NUM_ALPHANUM	12
+
 struct display_stats {
 	int a_bar,b_bar,c_bar;
 	int a_freq,b_freq,c_freq;
@@ -47,6 +50,11 @@ int bargraph(int type, int left_a, int left_b, int left_c,
 int close_bargraph(int type);
 
 
+/********************* dispay_14seg.c */
+int setup_14seg_font(void);
+int display_14seg_string(int display_type,char *led_string);
+int close_14seg(int type);
+
 
 int display_init(int type);
 int display_update(int type,
@@ -55,10 +63,6 @@ int display_update(int type,
 			char *filename, int new_filename);
 int display_read_keypad(int display_type);
 int display_shutdown(int type);
-
-int display_string(int display_type,char *led_string);
-
-#define NUM_ALPHANUM	12
 
 int display_led_art(int display_type,
                 short led_art[10][8],
