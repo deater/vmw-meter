@@ -36,126 +36,13 @@ static int kiosk_mode=0;
 
 
 #if USE_LINUX_I2C==1
-static int i2c_fd=-1;
+int i2c_fd=-1;
 #else
 #define DISPLAY_LINES	8
 #endif
 
 
 static unsigned char display_buffer[DISPLAY_LINES];
-
-static int bargraph_i2c(int a, int b, int c) {
-
-	int i;
-
-	char buffer[17];
-
-	buffer[0]=0;
-
-	for(i=0;i<16;i++) buffer[i+1]=0x0;
-
-	/* a */
-	if (a>0) {
-		a--;
-		/* left */
-		buffer[1]|=(2<<a)-1;
-		if (a>7) buffer[2]|=(2<<(a-8))-1;
-
-		/* right */
-		buffer[7]|=(2<<a)-1;
-		if (a>7) buffer[8]|=(2<<(a-8))-1;
-
-
-	}
-
-	/* b */
-	if (b>0) {
-		b--;
-		/* left */
-		buffer[3]|=(2<<b)-1;
-		if (b>7) buffer[4]|=(2<<(b-8))-1;
-
-		/* right */
-		buffer[9]|=(2<<b)-1;
-		if (b>7) buffer[10]|=(2<<(b-8))-1;
-	}
-
-	/* c */
-	if (c>0) {
-		c--;
-
-		/* left */
-		buffer[5]|=(2<<c)-1;
-		if (c>7) buffer[6]|=(2<<(c-8))-1;
-
-		/* right */
-		buffer[11]|=(2<<c)-1;
-		if (c>7) buffer[12]|=(2<<(c-8))-1;
-	}
-
-#if USE_LINUX_I2C==1
-	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS0) < 0) {
-		fprintf(stderr,"Bargraph error setting i2c address %x\n",
-			HT16K33_ADDRESS0);
-		return -1;
-	}
-
-	if ( (write(i2c_fd, buffer, 17)) !=17) {
-		fprintf(stderr,"Error writing display %s!\n",
-			strerror(errno));
-		return -1;
-        }
-#else
-	bcm2835_i2c_setSlaveAddress(0x70);
-	bcm2835_i2c_write(buffer,17);
-#endif
-
-	return 0;
-}
-
-static int bargraph_text(int a, int b, int c) {
-
-	int i,j,value;
-
-	for(j=0;j<3;j++) {
-		if (j==0) value=a;
-		if (j==1) value=b;
-		if (j==2) value=c;
-
-		if (value>10) value=10;
-
-		printf("[");
-		for(i=0;i<value;i++) printf("*");
-		for(i=value;i<10;i++) printf(" ");
-		printf("]\n");
-	}
-	return 0;
-}
-
-
-int bargraph(int type, int a, int b, int c) {
-
-	if (type&DISPLAY_I2C) {
-		bargraph_i2c(a,b,c);
-	}
-
-	if (type&DISPLAY_TEXT) {
-		bargraph_text(a,b,c);
-	}
-
-	return 0;
-}
-
-
-static int close_bargraph(int type) {
-
-	if (type&DISPLAY_I2C) {
-		bargraph_i2c(0,0,0);
-	}
-
-	return 0;
-}
-
 
 int display_string(int display_type,char *led_string) {
 
@@ -329,34 +216,24 @@ static int close_text(int type) {
 static int freq_max[16];
 static int freq_matrix[16][8];
 
-static int put_8x16display(int display_type, int refresh_i2c) {
+int put_8x16display(int display_type, char *buffer) {
 
-	char buffer[17];
-	int i,x,y;
+	int x,y;
 
-	if ((display_type&DISPLAY_I2C) && (refresh_i2c)) {
 
-		buffer[0]=0;
+	if (display_type&DISPLAY_I2C) {
 
-		for(i=0;i<16;i++) buffer[i+1]=0x0;
-
-		for(i=0;i<16;i++) {
-			for(x=0;x<8;x++) {
-				buffer[i+1]|=(freq_matrix[x+(8*(i%2))][i/2]<<x);
-			}
-		}
 #if USE_LINUX_I2C
 
 		if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS2) < 0) {
 			fprintf(stderr,"8x16 Error setting i2c address %x\n",
-				HT16K33_ADDRESS2);
+					HT16K33_ADDRESS2);
 			return -1;
 		}
 
-
 		if ( (write(i2c_fd, buffer, 17)) !=17) {
 			fprintf(stderr,"Error writing display %s!\n",
-				strerror(errno));
+					strerror(errno));
 			return -1;
         	}
 #else
@@ -369,12 +246,41 @@ static int put_8x16display(int display_type, int refresh_i2c) {
 	if (display_type&DISPLAY_TEXT) {
 		for(y=0;y<8;y++) {
 			for(x=0;x<16;x++) {
-				if (freq_matrix[x][y]) printf("*");
+				if (buffer[x+1]&(1<<y)) printf("*");
 				else printf(" ");
 			}
 			printf("\n");
 		}
 	}
+	return 0;
+}
+
+
+static int freq_8x16display(int display_type, int refresh_i2c) {
+
+	char buffer[17];
+	int i,x;
+
+
+	buffer[0]=0;
+
+	for(i=0;i<16;i++) buffer[i+1]=0x0;
+
+	for(i=0;i<16;i++) {
+		for(x=0;x<8;x++) {
+			buffer[i+1]|=(freq_matrix[x+(8*(i%2))][i/2]<<x);
+		}
+	}
+
+	if ((display_type&DISPLAY_I2C) && (!refresh_i2c)) {
+		/* don't display if not time to refresh */
+	}
+
+	else {
+
+		put_8x16display(display_type, buffer);
+	}
+
 	return 0;
 }
 
@@ -425,9 +331,9 @@ static int freq_display(int display_type, int a, int b, int c) {
 	}
 
 	if (divider==0) {
-		put_8x16display(display_type,1);
+		freq_8x16display(display_type,1);
 	} else {
-		put_8x16display(display_type,0);
+		freq_8x16display(display_type,0);
 	}
 
 	divider++;
@@ -516,7 +422,7 @@ static int time_display(int display_type, int current_frame, int total_frames) {
 	/* Only update a few times a second? */
 	/* Should do more for responsiveness? */
 	if (current_frame%16!=0) {
-		put_8x16display(display_type,0);
+		freq_8x16display(display_type,0);
 		return 0;
 	}
 
@@ -557,7 +463,7 @@ static int time_display(int display_type, int current_frame, int total_frames) {
 	put_number(display_s/10,9,0);
 	put_number(display_s%10,13,0);
 
-	put_8x16display(display_type,1);
+	freq_8x16display(display_type,1);
 
 	return 0;
 }
@@ -587,7 +493,7 @@ static int title_display(int display_type) {
 		}
 	}
 
-	put_8x16display(display_type,1);
+	freq_8x16display(display_type,1);
 
 	/* Only scroll at 1/6 of update time */
 	count++;
@@ -662,7 +568,7 @@ static int scroll_text(int display_type, char *string, int new_string) {
 		}
 	}
 
-	put_8x16display(display_type,1);
+	freq_8x16display(display_type,1);
 
 	return 0;
 }
@@ -673,7 +579,9 @@ int display_update(int display_type,
 		char *filename, int new_filename) {
 
 
-	bargraph(display_type, ds->a_bar, ds->b_bar, ds->c_bar);
+	bargraph(display_type,
+		ds->a_bar, ds->b_bar, ds->c_bar,
+		ds->a_bar, ds->b_bar, ds->c_bar);
 
 	switch(current_mode) {
 		case MODE_TITLE:

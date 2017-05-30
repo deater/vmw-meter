@@ -1,3 +1,7 @@
+#define USE_LINUX_I2C 1
+
+extern int i2c_fd;
+
 #define DISPLAY_I2C	0x1
 #define DISPLAY_TEXT	0x2
 #define DISPLAY_BOTH	0x3
@@ -37,6 +41,12 @@ struct display_stats {
 	int a_freq,b_freq,c_freq;
 };
 
+/********************* display_bargraph.c */
+int bargraph(int type, int left_a, int left_b, int left_c,
+			int right_a, int right_b, int right_c);
+int close_bargraph(int type);
+
+
 
 int display_init(int type);
 int display_update(int type,
@@ -45,7 +55,7 @@ int display_update(int type,
 			char *filename, int new_filename);
 int display_read_keypad(int display_type);
 int display_shutdown(int type);
-int bargraph(int type, int a, int b, int c);
+
 int display_string(int display_type,char *led_string);
 
 #define NUM_ALPHANUM	12

@@ -3,7 +3,7 @@ CFLAGS = -O2 -Wall
 LFLAGS = -lm
 
 all:	sa.ym5 korobeiniki.ym5 fighting.ym5 highwind.ym5 \
-	highwind.ed fighting.ed sa.ed
+	highwind.ed fighting.ed sa.ed sa_chiptune.ym5
 
 ###
 
@@ -47,6 +47,13 @@ sa.ym:	../text_to_ym sa.txt
 
 sa.ym5:	../ym_to_ym5 sa.ym
 	../ym_to_ym5 sa
+
+
+sa_chiptune.ym:	../text_to_ym sa_chiptune.txt
+	../text_to_ym sa_chiptune.txt sa_chiptune
+
+sa_chiptune.ym5:	../ym_to_ym5 sa_chiptune.ym
+	../ym_to_ym5 sa_chiptune
 
 
 clean:	

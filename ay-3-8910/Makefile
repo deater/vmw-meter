@@ -8,7 +8,7 @@ CFLAGS = -O2 -Wall -I../include -g
 LFLAGS = -lm
 
 all:	ym_play organ ym_to_ym5 text_to_ym text_to_ed glados test_font \
-	temperature
+	temperature falling_blocks
 
 ../lib/i2c_lib.o:	../lib/i2c_lib.c
 	cd ../lib && make
@@ -19,10 +19,10 @@ ym_lib.o:	ym_lib.c ym_lib.h
 	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c ym_lib.c
 
 
-ym_play:	ym_play.o ay-3-8910.o display.o max98306.o ym_lib.o 14seg_font.o \
+ym_play:	ym_play.o ay-3-8910.o display.o display_bargraph.o max98306.o ym_lib.o 14seg_font.o \
 		../lib/i2c_lib.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym_play ym_play.o ay-3-8910.o \
-			max98306.o display.o ym_lib.o 14seg_font.o\
+			max98306.o display.o display_bargraph.o ym_lib.o 14seg_font.o\
 			../lib/i2c_lib.o /usr/local/lib/libbcm2835.a
 
 ym_play.o:	ym_play.c display.h ay-3-8910.h
@@ -37,10 +37,10 @@ lyrics.o:	lyrics.c lyrics.h
 	$(CC) $(CFLAGS) -c lyrics.c
 
 glados:	glados.o 14seg_font.o ../lib/i2c_lib.o ay-3-8910.o ym_lib.o lyrics.o \
-		max98306.o display.o
+		max98306.o display.o display_bargraph.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o glados glados.o 14seg_font.o \
 			lyrics.o ay-3-8910.o ym_lib.o max98306.o \
-			../lib/i2c_lib.o display.o \
+			../lib/i2c_lib.o display.o display_bargraph.o \
 			/usr/local/lib/libbcm2835.a
 
 glados.o:	glados.c ym_lib.h
@@ -56,8 +56,8 @@ organ.o:	organ.c ay-3-8910.h
 
 ###
 
-temperature:	temperature.o display.o ../lib/i2c_lib.o 14seg_font.o
-	$(CC) $(LFLAGS) -o temperature temperature.o display.o 14seg_font.o ../lib/i2c_lib.o
+temperature:	temperature.o display.o display_bargraph.o ../lib/i2c_lib.o 14seg_font.o
+	$(CC) $(LFLAGS) -o temperature temperature.o display.o display_bargraph.o 14seg_font.o ../lib/i2c_lib.o
 
 temperature.o:	temperature.c display.h
 	$(CC) $(CFLAGS) -c temperature.c
@@ -65,8 +65,22 @@ temperature.o:	temperature.c display.h
 
 ###
 
-test_font:	test_font.o display.o ../lib/i2c_lib.o 14seg_font.o
-	$(CC) $(LFLAGS) -o test_font test_font.o display.o 14seg_font.o ../lib/i2c_lib.o
+falling_blocks:	falling_blocks.o display.o display_bargraph.o ../lib/i2c_lib.o ay-3-8910.o \
+		14seg_font.o ym_lib.o lyrics.o \
+		max98306.o display.o display_bargraph.o
+	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o falling_blocks falling_blocks.o \
+		14seg_font.o ../lib/i2c_lib.o ay-3-8910.o ym_lib.o lyrics.o \
+		max98306.o display.o display_bargraph.o /usr/local/lib/libbcm2835.a
+
+falling_blocks.o:	falling_blocks.c display.h
+	$(CC) $(CFLAGS) -c falling_blocks.c
+
+
+
+###
+
+test_font:	test_font.o display.o display_bargraph.o ../lib/i2c_lib.o 14seg_font.o
+	$(CC) $(LFLAGS) -o test_font test_font.o display.o display_bargraph.o 14seg_font.o ../lib/i2c_lib.o
 
 test_font.o:	test_font.c display.h
 	$(CC) $(CFLAGS) -c test_font.c
@@ -104,6 +118,9 @@ ay-3-8910.o:	ay-3-8910.c ay-3-8910.h
 display.o:	display.c display.h font.h
 	$(CC) $(CFLAGS) -c display.c
 
+display_bargraph.o:	display_bargraph.c display.h font.h
+	$(CC) $(CFLAGS) -c display_bargraph.c
+
 max98306.o:	max98306.c max98306.h
 	$(CC) $(CFLAGS) -c max98306.c
 
@@ -113,4 +130,4 @@ notes.o:	notes.c notes.h
 
 clean:	
 	rm -f *~ *.o ym_play organ text_to_ym ym_to_ym5 glados \
-		temperature test_font text_to_ed
+		falling_blocks temperature test_font text_to_ed
