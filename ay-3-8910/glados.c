@@ -57,7 +57,7 @@ static int clear_things(int side_too) {
 		write(1,"\033[2J",4);
 
 		/* clear 16x8 display */
-		display_led_art(display_type,led_art,1024);
+		display_8x16_led_art(display_type,led_art,1024);
 	}
 
 	write(1,"\033[1;1H--------------------------------------",44);
@@ -130,7 +130,7 @@ static int parse_lyric(struct lyric_type *l, int lnum, char *string) {
 			/* Update ASCII art on screen and 8x16 panel */
 			if ((ch>='1')&&(ch<=':')) {
 				print_ascii_art(ch-'1');
-				display_led_art(display_type,led_art,ch-'1');
+				display_8x16_led_art(display_type,led_art,ch-'1');
 			}
 
 			/* \f means clear screen */

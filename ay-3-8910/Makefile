@@ -8,7 +8,7 @@ CFLAGS = -O2 -Wall -I../include -g
 LFLAGS = -lm
 
 
-DISPLAY = display.o display_bargraph.o display_keypad.o display_14seg.o
+DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_14seg.o
 
 all:	ym_play organ ym_to_ym5 text_to_ym text_to_ed glados test_font \
 	temperature falling_blocks
@@ -138,6 +138,9 @@ display_bargraph.o:	display_bargraph.c display.h
 
 display_keypad.o:	display_keypad.c display.h
 	$(CC) $(CFLAGS) -c display_keypad.c
+
+display_8x16.o:	display_8x16.c display.h
+	$(CC) $(CFLAGS) -c display_8x16.c
 
 display_14seg.o:	display_14seg.c display.h font.h
 	$(CC) $(CFLAGS) -c display_14seg.c
