@@ -8,11 +8,14 @@
 #include "notes.h"
 
 
+#define NUM_CHANNELS	3
+
 #define MAX_INSTRUMENTS	7
 
-#define DEFAULT	2
+#define DEFAULT	0
 
 struct instrument_type {
+	int adsr;
 	int attack[16];
 	int attack_size;
 	int decay[16];
@@ -26,7 +29,8 @@ struct instrument_type {
 
 struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	{
-	.name="raw",
+	.name="raw",		// 0
+	.adsr=1,
 	.attack_size=0,
 	.decay_size=0,
 	.release_size=1,
@@ -34,7 +38,8 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	.sustain=15,
 	},
 	{
-	.name="silence",
+	.name="silence",	// 1
+	.adsr=1,
 	.attack_size=0,
 	.decay_size=0,
 	.release_size=1,
@@ -42,7 +47,8 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	.sustain=0,
 	},
 	{
-	.name="piano",
+	.name="piano",		// 2
+	.adsr=1,
 	.attack={14,15},
 	.attack_size=2,
 	.decay={14},
@@ -52,7 +58,8 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	.release_size=2,
 	},
 	{
-	.name="piano2",
+	.name="piano2",		// 3
+	.adsr=1,
 	.attack={13,14,15},
 	.attack_size=3,
 	.decay={14,13,12},
@@ -60,7 +67,12 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	.sustain=11,
 	.release={10},
 	.release_size=1,
-
+	},
+	{
+	.name="trill",		// 4
+	.adsr=0,
+	.attack={9,15,9,15},
+	.attack_size=4,
 	},
 };
 
@@ -80,8 +92,6 @@ struct loudness_type {
 	{ "ff", 15},	/* ff  112 */
 	{ "fff",15},	/* fff 127 */
 };
-
-static int loudness[3]={15,15,15};
 
 static int debug=0;
 
@@ -138,8 +148,12 @@ struct note_type {
 	int freq;
 	int length;
 	int left;
+
+	int loud;
+	int instrument;
 };
 
+static struct note_type a,b,c;
 
 
 static int get_note(char *string, int sp, struct note_type *n, int line) {
@@ -205,15 +219,12 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 	return sp;
 }
 
-#define A_CHANNEL 0
-#define B_CHANNEL 1
-#define C_CHANNEL 2
-
-static int calculate_amplitude(struct note_type *n,
-				struct instrument_type *i,
-				int which) {
+static int calculate_amplitude(struct note_type *n) {
 
 	int result=0;
+	struct instrument_type *i;
+
+	i=&instruments[n->instrument];
 
 /*
  A  A  A  D  D  D                    R R
@@ -221,25 +232,32 @@ static int calculate_amplitude(struct note_type *n,
 
 length=17
 */
-	if ( n->left < i->release_size ) {
-		result=i->release[i->release_size-n->left];
-	}
-	else if (n->left>(n->length-(i->attack_size+1))) {
-		result=i->attack[(n->length-n->left-1)];
-	}
-	else if (n->left>(n->length-i->attack_size-i->decay_size-1)) {
-		result=i->decay[(n->length-n->left-i->attack_size-1)];
+
+	if (i->adsr) {
+
+		if ( n->left < i->release_size ) {
+			result=i->release[i->release_size-n->left];
+		}
+		else if (n->left>(n->length-(i->attack_size+1))) {
+			result=i->attack[(n->length-n->left-1)];
+		}
+		else if (n->left>(n->length-i->attack_size-i->decay_size-1)) {
+			result=i->decay[(n->length-n->left-i->attack_size-1)];
+		}
+		else {
+			result=i->sustain;
+		}
 	}
 	else {
-		result=i->sustain;
+		result=i->attack[n->left%i->attack_size];
 	}
 
 	/* scale by loudness */
 
-	result=(result * loudness[which])/15;
+	result=(result * n->loud)/15;
 
 	if (debug) printf("%d %d %d (%d)\n",n->length,n->left,result,
-		loudness[which]);
+		n->loud);
 //		((n->length-n->left)*16)/n->length,
 //		instruments[DEFAULT].envelope[
 //			((n->length-n->left)*16)/n->length
@@ -248,28 +266,90 @@ length=17
 	return result;
 }
 
-static int get_loudness(char *string) {
+static struct note_type *find_note(char which) {
 
-	int i,which;
-	char *pointer;
+	if (which==a.which) return &a;
+	if (which==b.which) return &b;
+	if (which==c.which) return &c;
 
-	pointer=string+2;
+	return NULL;
+}
 
-	//printf("FOUND LOUD DIRECTIVE %s\n",pointer);
+static int get_instrument(struct note_type *n,char *string) {
 
-	// FIXME: proper check
-	which=(*pointer)-'A';
-	pointer+=2;
+	n->instrument=atoi(string);
+	if (debug) printf("Found instrument %d\n",n->instrument);
+
+	if (n->instrument<0) {
+		fprintf(stderr,"Instrument too small: %d\n",n->instrument);
+	}
+
+	if (n->instrument>=MAX_INSTRUMENTS) {
+		fprintf(stderr,"Instrument too big: %d\n",n->instrument);
+	}
+
+	return 0;
+}
+
+static int get_loudness(struct note_type *n,char *string) {
+
+	int i,which,found=0;
 
 	for(i=0;i<MAX_LOUDS;i++) {
 		//printf("looking for %s in %s\n",loudness_values[i].name,pointer);
-		if (!strncmp(loudness_values[i].name,pointer,
+		if (!strncmp(loudness_values[i].name,string,
 				strlen(loudness_values[i].name))) {
 			if (debug) printf("Found %d %s\n",which,
 						loudness_values[i].name);
-			loudness[which]=loudness_values[i].value;
+			n->loud=loudness_values[i].value;
+			found=1;
 			break;
 		}
+	}
+	if (!found) {
+		n->loud=atoi(string);
+		if (debug) printf("Found %d\n",n->loud);
+	}
+
+	if (n->loud>15) {
+		fprintf(stderr,"Too loud %d\n",n->loud);
+		n->loud=15;
+	}
+	if (n->loud<0) {
+		fprintf(stderr,"Too soft %d\n",n->loud);
+		n->loud=0;
+	}
+
+	return 0;
+}
+
+static int get_directive(char *string) {
+
+	int which,type;
+	char *pointer;
+	struct note_type *n;
+
+	pointer=string+2;
+
+	// FIXME: proper check
+	which=*pointer;
+	pointer+=2;
+
+	n=find_note(which);
+	if (n==NULL) {
+		fprintf(stderr,"Unknown note %c \"%s\"\n",which,pointer);
+		return -1;
+	}
+
+	type=*pointer;
+
+	switch(type) {
+		case 'L':	get_loudness(n,pointer+2);
+				break;
+		case 'I':	get_instrument(n,pointer+2);
+				break;
+		default:	fprintf(stderr,"Unknown directive %c\n",type);
+				break;
 	}
 
 	return 0;
@@ -311,7 +391,6 @@ int main(int argc, char **argv) {
 	int sp,i,j;
 	fpos_t save;
 	int line=0;
-	struct note_type a,b,c;
 
 	char song_name[BUFSIZ];//="Still Alive";
 	char author_name[BUFSIZ];//"Vince Weaver <vince@deater.net>";
@@ -420,6 +499,8 @@ int main(int argc, char **argv) {
 	fseek(ym_file, header_length, SEEK_SET);
 
 	a.which='A';	b.which='B';	c.which='C';
+	a.loud=15;	b.loud=15;	c.loud=15;
+	a.instrument=0;	b.instrument=0;	c.instrument=0;
 
 	while(1) {
 		result=fgets(string,BUFSIZ,in_file);
@@ -432,7 +513,7 @@ int main(int argc, char **argv) {
 
 		/* loudness */
 		if (string[0]=='*') {
-			get_loudness(string);
+			get_directive(string);
 			continue;
 		}
 
@@ -461,8 +542,7 @@ int main(int argc, char **argv) {
 				frame[1]=(a.freq>>8)&0xf;
 				frame[7]=0x38;
 				//frame[8]=0x0f;	// amp A
-				frame[8]=calculate_amplitude(&a,
-					&instruments[DEFAULT],A_CHANNEL);
+				frame[8]=calculate_amplitude(&a);
 			}
 			else {
 				frame[0]=0x0;
@@ -474,9 +554,7 @@ int main(int argc, char **argv) {
 				frame[2]=b.freq&0xff;
 				frame[3]=(b.freq>>8)&0xf;
 				frame[7]=0x38;
-				//frame[9]=0x0f;	// amp B
-				frame[9]=calculate_amplitude(&b,
-					&instruments[DEFAULT],B_CHANNEL);
+				frame[9]=calculate_amplitude(&b);
 			}
 			else {
 				frame[2]=0x0;
@@ -488,17 +566,13 @@ int main(int argc, char **argv) {
 				frame[4]=c.freq&0xff;
 				frame[5]=(c.freq>>8)&0xf;
 				frame[7]=0x38;
-				//frame[10]=0x0f;	// amp C
-				frame[10]=calculate_amplitude(&c,
-					&instruments[DEFAULT],C_CHANNEL);
-//				frame[10]=instruments[1].envelope[(c.length-c.left)/16];
+				frame[10]=calculate_amplitude(&c);
 			}
 			else {
 				frame[4]=0x0;
 				frame[5]=0x0;
 				frame[10]=0x0;
 			}
-
 
 			for(i=0;i<16;i++) {
 				fprintf(ym_file,"%c",frame[i]);
@@ -515,8 +589,6 @@ int main(int argc, char **argv) {
 
 			if (a.left) a.left--;
 			if (a.left<0) a.enabled=0;
-
-//		printf("a.length=%d a.enabled=%d\n",a.length,a.enabled);
 
 			if (b.left) b.left--;
 			if (b.left<0) b.enabled=0;
