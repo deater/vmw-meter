@@ -73,6 +73,8 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	.adsr=0,
 	.attack={9,15,9,15},
 	.attack_size=4,
+	.release_size=1,
+	.release={0},
 	},
 };
 
@@ -235,6 +237,8 @@ length=17
 
 	if (i->adsr) {
 
+		/* ADSR type envelope */
+
 		if ( n->left < i->release_size ) {
 			result=i->release[i->release_size-n->left];
 		}
@@ -249,7 +253,15 @@ length=17
 		}
 	}
 	else {
-		result=i->attack[n->left%i->attack_size];
+
+		/* no envelope */
+
+		if ( n->left < i->release_size ) {
+			result=i->release[i->release_size-n->left];
+		}
+		else {
+			result=i->attack[n->left%i->attack_size];
+		}
 	}
 
 	/* scale by loudness */

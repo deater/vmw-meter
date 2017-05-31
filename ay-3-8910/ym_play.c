@@ -74,7 +74,7 @@ static void print_help(int just_version, char *exec_name) {
 	printf("\t-s: use stereo (two AY-3-8910s hooked up)\n");
 	printf("\t-n: no sound (useful when debugging)\n");
 	// printf("\t-k: kiosk mode (standalone without keyboard/monitor)\n");
-	printf("\tfilename: must be uncompressed YM5 file for now\n\n");
+	//printf("\tfilename: must be uncompressed YM5 file for now\n\n");
 
 	exit(0);
 }
