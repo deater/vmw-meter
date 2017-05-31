@@ -41,3 +41,5 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 			int play_music,
 			int mute_channel);
 
+
+int ym_dump_frame(struct ym_song_t *ym_song, int frame_num, int diff_mode);

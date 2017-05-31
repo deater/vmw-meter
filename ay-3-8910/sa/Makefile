@@ -57,4 +57,4 @@ sa_chiptune.ym5:	../ym_to_ym5 sa_chiptune.ym
 
 
 clean:	
-	rm -f *~  rm sa.ym5 sa.ym korobeiniki.ym5 korobeiniki.ym
+	rm -f *~  rm *.ym5 *.ym *.lyrics *.ed

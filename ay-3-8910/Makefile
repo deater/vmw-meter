@@ -11,7 +11,7 @@ LFLAGS = -lm
 DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_14seg.o
 
 all:	ym_play organ ym_to_ym5 text_to_ym text_to_ed glados test_font \
-	test_8x16 temperature falling_blocks
+	test_8x16 temperature falling_blocks dump_ym5
 
 ../lib/i2c_lib.o:	../lib/i2c_lib.c
 	cd ../lib && make
@@ -32,6 +32,21 @@ ym_play:	ym_play.o ay-3-8910.o max98306.o ym_lib.o \
 
 ym_play.o:	ym_play.c display.h ay-3-8910.h
 	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c ym_play.c
+
+
+######
+
+dump_ym5:	dump_ym5.o ay-3-8910.o max98306.o ym_lib.o \
+			$(DISPLAY) \
+			../lib/i2c_lib.o
+	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o dump_ym5 dump_ym5.o ay-3-8910.o \
+			max98306.o \
+			$(DISPLAY) ym_lib.o \
+			../lib/i2c_lib.o /usr/local/lib/libbcm2835.a
+
+dump_ym5.o:	dump_ym5.c display.h ay-3-8910.h
+	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c dump_ym5.c
+
 
 ###
 
@@ -162,4 +177,5 @@ notes.o:	notes.c notes.h
 
 clean:	
 	rm -f *~ *.o ym_play organ text_to_ym ym_to_ym5 glados \
-		falling_blocks temperature test_font text_to_ed
+		falling_blocks temperature test_font text_to_ed \
+		dump_ym5
