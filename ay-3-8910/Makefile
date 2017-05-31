@@ -11,10 +11,18 @@ LFLAGS = -lm
 DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_14seg.o
 
 all:	ym_play organ ym_to_ym5 text_to_ym text_to_ed glados test_font \
-	test_8x16 temperature falling_blocks dump_ym5
+	test_8x16 temperature falling_blocks dump_ym5 dump_xm
 
 ../lib/i2c_lib.o:	../lib/i2c_lib.c
 	cd ../lib && make
+
+###
+
+dump_xm.o:	dump_xm.c
+	$(CC) $(CFLAGS) -c dump_xm.c
+
+dump_xm:	dump_xm.o
+	$(CC) $(LFLAGS) -o dump_xm dump_xm.o
 
 ###
 
@@ -178,4 +186,4 @@ notes.o:	notes.c notes.h
 clean:	
 	rm -f *~ *.o ym_play organ text_to_ym ym_to_ym5 glados \
 		falling_blocks temperature test_font text_to_ed \
-		dump_ym5
+		dump_ym5 dump_xm
