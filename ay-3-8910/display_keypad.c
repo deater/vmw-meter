@@ -131,8 +131,15 @@ int display_keypad_read(int display_type) {
 				return CMD_MUTE_B;
 				break;
 			case 'n':
-				return CMD_MUTE_N;
+				return CMD_MUTE_NA;
 				break;
+			case 'o':
+				return CMD_MUTE_NB;
+				break;
+			case 'p':
+				return CMD_MUTE_NC;
+				break;
+
 			case 'm': /* mode */
 				return CMD_MENU;
 				break;

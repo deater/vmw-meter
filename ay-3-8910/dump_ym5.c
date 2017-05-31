@@ -95,7 +95,7 @@ static int play_song(char *filename) {
 			printf("%02d:%02d  ----- A     B     C     N     E -------------------------------\n",m,s);
 		}
 
-		ym_dump_frame(&ym_song,frame_num,0);
+		ym_dump_frame(&ym_song,frame_num,0,0);
 
 		frame_num++;
 

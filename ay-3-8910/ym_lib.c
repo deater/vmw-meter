@@ -585,7 +585,9 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	if (mute_channel&0x1) frame[8]=0;
 	if (mute_channel&0x2) frame[9]=0;
 	if (mute_channel&0x4) frame[10]=0;
-	if (mute_channel&0x5) frame[7]|=0x38;
+	if (mute_channel&0x8) frame[7]|=0x8;
+	if (mute_channel&0x10) frame[7]|=0x10;
+	if (mute_channel&0x20) frame[7]|=0x20;
 
 	if (play_music) {
 		for(j=0;j<13;j++) {
@@ -770,7 +772,8 @@ static void prettyprint_freq(double f) {
 
 }
 
-int ym_dump_frame(struct ym_song_t *ym_song, int frame_num, int diff_mode) {
+int ym_dump_frame(struct ym_song_t *ym_song, int frame_num, int raw,
+		int diff_mode) {
 
 	int j;
 
@@ -820,15 +823,16 @@ int ym_dump_frame(struct ym_song_t *ym_song, int frame_num, int diff_mode) {
 	if (e_period>0) e_freq=ym_song->master_clock/(256.0*(double)e_period);
 
 
-//	printf("%05d:\tA:%04x B:%04x C:%04x N:%02x M:%02x ",
-//			frame_num,
-//			a_period,b_period,c_period,n_period,frame[7]);
+	if (raw) {
+		printf("%05d:\tA:%04x B:%04x C:%04x N:%02x M:%02x ",
+				frame_num,
+				a_period,b_period,c_period,n_period,frame[7]);
 
-//	printf("AA:%02x AB:%02x AC:%02x E:%04x,%02x %04x\n",
-//			frame[8],frame[9],frame[10],
-//			(frame[12]<<8)+frame[11],frame[13],
-//			(frame[14]<<8)+frame[15]);
-
+		printf("AA:%02x AB:%02x AC:%02x E:%04x,%02x %04x\n",
+				frame[8],frame[9],frame[10],
+				(frame[12]<<8)+frame[11],frame[13],
+				(frame[14]<<8)+frame[15]);
+	}
 
 
 	printf("%05d:\t",frame_num);
@@ -836,7 +840,8 @@ int ym_dump_frame(struct ym_song_t *ym_song, int frame_num, int diff_mode) {
 	prettyprint_freq(a_freq);
 	prettyprint_freq(b_freq);
 	prettyprint_freq(c_freq);
-	prettyprint_freq(n_freq);
+	//prettyprint_freq(n_freq);
+	printf("%6.0lf ",n_freq);
 	prettyprint_freq(e_freq);
 
 	printf("N:%c%c%c T:%c%c%c ",
@@ -847,11 +852,11 @@ int ym_dump_frame(struct ym_song_t *ym_song, int frame_num, int diff_mode) {
 			(frame[7]&0x02)?' ':'B',
 			(frame[7]&0x01)?' ':'A');
 
-	if (frame[8]&0x10) printf("VA: E ");
+	if (frame[8]&0x10) printf("VA:  E ");
 	else printf("VA: %2d ",frame[8]&0xf);
-	if (frame[9]&0x10) printf("VB: E ");
+	if (frame[9]&0x10) printf("VB:  E ");
 	else printf("VB: %2d ",frame[9]&0xf);
-	if (frame[10]&0x10) printf("VC: E ");
+	if (frame[10]&0x10) printf("VC:  E ");
 	else printf("VC: %2d ",frame[10]&0xf);
 
 	if (frame[13]==0xff) {

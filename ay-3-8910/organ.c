@@ -30,7 +30,7 @@ static int shift_size=16;
 
 static int current_instrument=0;
 
-#define MAX_DRUMS	3
+#define MAX_DRUMS	10
 #define MAX_INSTRUMENTS 6
 #define MAX_SOUNDS	2
 
@@ -43,6 +43,7 @@ struct instrument_type {
 struct drum_type {
 	int envelope[14];
 	int period[14];
+	int period2[14];
 	int length;
 	char *name;
 };
@@ -75,22 +76,53 @@ struct sound_type sound[MAX_SOUNDS] = {
 
 struct drum_type drum[MAX_DRUMS] = {
 	{
-	.name="raw",
+	.name="raw",// 0
 	.envelope={15,15,15,15,15,15,15,15,15,15},
 	.period=  { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5},
+	.period2= { 668,668,668,668,668},
 	.length=5,
 	},
 	{
-	.name="boom",
+	.name="boom",// 1
 	.envelope={13,11, 9, 7, 5, 3, 12, 10, 8, 6, 4, 2, 14},
 	.period=  { 6, 6, 6, 6, 6, 6,  6,  6, 6, 6, 6, 1,  1},
+	.period2= { 668,668,668,668,668,668,668,668,668,668,668,668,668},
 	.length=13,
 	},
 	{
-	.name="tish",
+	.name="tish",// 2
 	.envelope={12,12,10,10, 9, 9, 8, 8, 6, 6, 4, 3, },
 	.period=  { 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, },
+	.period2= { 668,668,668,668,668,668,668,668,668,668,668,668},
 	.length=12,
+	},
+	{
+	.name="snare",// 3
+	.envelope={15,15,14,13, 12, 12},
+	.period=  { 4, 6, 7, 9, 12, 17 },
+	.period2= { 0xef,0x11f,0x14f,0x175,0x1af,0x1df},
+	.length=6,
+	},
+	{
+	.name="snare2",// 4    FRAME 2196 CPCTL10A
+	.envelope={13, 11, 9, 7, 5, 3, 12, 10, 8, 6, 4, 2, 14},
+	.period=  { 1,  1, 1, 1, 1, 1,  1,  1, 1, 1, 1, 1,  1},
+	.period2= { 0,  0, 0, 0, 0, 0,  0,  0, 0, 0, 0, 0,  0},
+	.length=13,
+	},
+	{
+	.name="snare3",// 5    FRAME 2220 CPCTL10A
+	.envelope={12, 10, 8, 6, 4, 2,  9,  7, 5, 3, 1, 0, 14},
+	.period=  { 1,  1, 1, 1, 1, 1,  1,  1, 1, 1, 1, 1,  6},
+	.period2= { 0,  0, 0, 0, 0, 0,  0,  0, 0, 0, 0, 0, 0x190},
+	.length=13,
+	},
+	{
+	.name="snare4",// 6    FRAME 2220 CPCTL10A
+	.envelope={ 0, 14},
+	.period=  { 1,  6},
+	.period2= { 0, 0x190},
+	.length=2,
 	},
 };
 
@@ -269,12 +301,11 @@ static int play_organ(void) {
 				a_length=instruments[current_instrument].length;
 				break;
 			case ',':
-				n_type=0;
+				n_type=6;
 				n_enabled=1;
 				n_count=0;
 
 				b_enabled=1;
-				b_period=656;
 				b_length=drum[n_type].length;
 				break;
 
@@ -328,6 +359,7 @@ static int play_organ(void) {
 
 
 		if (b_enabled) {
+			b_period=drum[n_type].period2[n_count];
 			frame[2]=b_period&0xff;
 			frame[3]=(b_period>>8)&0xf;
 		}

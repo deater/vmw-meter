@@ -232,9 +232,19 @@ static int play_song(char *filename) {
 				else mute_channel|=0x04;
 				printf("NEW %x\n",mute_channel);
 			}
-			if (display_command==CMD_MUTE_N) {
-				if (mute_channel&0x05) mute_channel&=~0x05;
-				else mute_channel|=0x05;
+			if (display_command==CMD_MUTE_NA) {
+				if (mute_channel&0x08) mute_channel&=~0x08;
+				else mute_channel|=0x08;
+				printf("NEW %x\n",mute_channel);
+			}
+			if (display_command==CMD_MUTE_NB) {
+				if (mute_channel&0x10) mute_channel&=~0x10;
+				else mute_channel|=0x10;
+				printf("NEW %x\n",mute_channel);
+			}
+			if (display_command==CMD_MUTE_NC) {
+				if (mute_channel&0x20) mute_channel&=~0x20;
+				else mute_channel|=0x20;
 				printf("NEW %x\n",mute_channel);
 			}
 
