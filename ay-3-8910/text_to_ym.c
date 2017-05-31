@@ -586,6 +586,9 @@ int main(int argc, char **argv) {
 				frame[10]=0x0;
 			}
 
+			/* NOWRITE */
+			frame[13]=0xff;
+
 			for(i=0;i<16;i++) {
 				fprintf(ym_file,"%c",frame[i]);
 			}

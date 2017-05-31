@@ -45,6 +45,7 @@ static int play_song(char *filename) {
 
 	int result;
 	int frame_num=0;
+	int m,s;
 
 	struct ym_song_t ym_song;
 
@@ -86,9 +87,12 @@ static int play_song(char *filename) {
 
 	frame_num=0;
 	while(1) {
+		s=frame_num/60;
+		m=s/60;
+		s=s%60;
 
 		if (frame_num%96==0) {
-			printf("FRAME ---- A    B    C    N    E -------------------------------\n");
+			printf("%02d:%02d  ----- A     B     C     N     E -------------------------------\n",m,s);
 		}
 
 		ym_dump_frame(&ym_song,frame_num,0);
