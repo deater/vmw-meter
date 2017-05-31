@@ -39,11 +39,11 @@ static void print_help(int just_version, char *exec_name) {
 	exit(0);
 }
 
-static int play_song(char *filename) {
-
-	int length_seconds;
+static int dump_song(char *filename, int debug) {
 
 	int result;
+	int length_seconds;
+
 	int frame_num=0;
 	int m,s;
 
@@ -95,7 +95,7 @@ static int play_song(char *filename) {
 			printf("%02d:%02d  ----- A     B     C     N     E -------------------------------\n",m,s);
 		}
 
-		ym_dump_frame(&ym_song,frame_num,0,0);
+		ym_dump_frame(&ym_song,frame_num,debug,0);
 
 		frame_num++;
 
@@ -115,9 +115,9 @@ static int play_song(char *filename) {
 int main(int argc, char **argv) {
 
 	char filename[BUFSIZ]="intro2.ym";
-	int result;
-	int c,dump_info=0;
-	int next_song,first_song;
+
+	int c,dump_info;
+	int first_song;
 
 	/* Parse command line arguments */
 	while ((c = getopt(argc, argv, "dDmhvmsnitr"))!=-1) {
@@ -143,12 +143,12 @@ int main(int argc, char **argv) {
 
 	first_song=optind;
 
-	if (argv[first_song+next_song]!=NULL) {
-		strcpy(filename,argv[first_song+next_song]);
+	if (argv[first_song]!=NULL) {
+		strcpy(filename,argv[first_song]);
 	}
 
 	/* Dump the song */
-	result=play_song(filename);
+	dump_song(filename,dump_info);
 
 	return 0;
 }

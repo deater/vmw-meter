@@ -186,4 +186,4 @@ notes.o:	notes.c notes.h
 clean:	
 	rm -f *~ *.o ym_play organ text_to_ym ym_to_ym5 glados \
 		falling_blocks temperature test_font text_to_ed \
-		dump_ym5 dump_xm
+		dump_ym5 dump_xm test_8x16
