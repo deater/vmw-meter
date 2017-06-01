@@ -29,3 +29,4 @@ struct xm_info_struct {
 
 int dump_xm_file(struct xm_info_struct *xm);
 int load_xm_file(char *filename, struct xm_info_struct *xm);
+int xm_to_text(FILE *fff, struct xm_info_struct *xm);

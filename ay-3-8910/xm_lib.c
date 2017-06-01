@@ -4,21 +4,25 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <math.h>
+
 #include "xm_lib.h"
 
 /* ftp://ftp.modland.com/pub/documents/format_documentation/FastTracker%202%20v2.04%20(.xm).html */
 
 #define FIRST_HEADER_LENGTH	64
 
+
+
+/* 1 = C0 ? */
+/* C,C#,D,D#,E,F,F#,G,G#,A,A#,B */
+static char letters[12]={'C','C','D','D','E','F','F','G','G','A','A','B'};
+static int sharps[12]={   0 , 1 , 0 , 1 , 0 , 0 , 1 , 0 , 1 , 0 , 1 , 0};
+
 static void note_to_string(int note) {
 
-	/* 1 = C0 ? */
-	/* C,C#,D,D#,E,F,F#,G,G#,A,A#,B */
 
 	int letter,sharp,octave;
-
-	char letters[12]={'C','C','D','D','E','F','F','G','G','A','A','B'};
-	int sharps[12]={   0 , 1 , 0 , 1 , 0 , 0 , 1 , 0 , 1 , 0 , 1 , 0};
 
 	if (note==0) printf("...");
 	else if (note==97) printf("OFF");
@@ -30,6 +34,7 @@ static void note_to_string(int note) {
 		printf("%c%c%d",letter,sharp?'#':'-',octave);
 	}
 }
+
 
 int dump_xm_file(struct xm_info_struct *xm) {
 
@@ -101,6 +106,268 @@ int dump_xm_file(struct xm_info_struct *xm) {
 			printf("\n");
 			if (pattern_break) break;
 		}
+	}
+
+	return 0;
+}
+
+
+static void note_to_ym_string(FILE *fff,int note) {
+
+	/* 1 = C0 ? */
+	/* C,C#,D,D#,E,F,F#,G,G#,A,A#,B */
+
+	int letter,sharp,octave;
+
+	if (note==0) fprintf(fff,"---");
+	else if (note==97) fprintf(fff,"---");
+//	else if (note>97) fprintf(fff,"???");
+	else {
+		letter=letters[(note-1)%12];
+		octave=(note-1)/12;
+		sharp=sharps[(note-1)%12];
+		fprintf(fff,"%c%c%d",letter,sharp?'#':' ',octave);
+	}
+}
+
+
+static char channel_to_channel(int c) {
+
+	if (c==0) return 'A';
+	if (c==2) return 'B';
+	if (c==3) return 'C';
+
+	return '?';
+}
+
+	/* Note, ay-3-8910 volume is not linear */
+static int convert_volume(int v) {
+
+	double dv,nv;
+
+	if (v==0) return 0;
+	if (v==0x40) return 15;
+
+	dv=v;
+
+	nv= 15.0 - ( (log(64.0/dv)) / (log(sqrt(2))) );
+
+			//http://www.cpcwiki.eu/index.php/PSG
+			//amplitude = max / sqrt(2)^(15-nn)
+			// amiga = 40 / sqrt(2)^(15-nn)
+			// amiga/40 = 1 / sqrt(2)^(15-nn)
+			// (amiga/40)(sqrt(2)^(15-nn)) = 1
+			// (sqrt(2)^(15-nn) = 40/amiga
+			// (15-nn) = log(sqrt(2)) (40/amiga)
+			// -nn = log(sqrt(2))(40/amiga) - 15
+			// nn = 15 - log(sqrt(2))(40/amiga)
+			//
+			// 40 = 15
+			// 30 = 14
+			// 20 = 13
+			// 10 = 11
+			//  1 = 4
+			// 0
+	return (int)nv;
+}
+
+static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
+
+	int j,c;
+	int pattern_break=0;
+
+	fprintf(fff,"\' Pattern %x\n",which);
+
+	for(j=0; j < p->num_rows;j++) {
+
+		/* Handle effects */
+		for(c=0;c<4;c++) {
+			int effect;
+			int param;
+
+			// FIXME: make configurable
+			if (p->p[j][c].effect==0xd) pattern_break=1;
+			if (c==1) continue;
+
+			effect=p->p[j][c].effect;
+			param=p->p[j][c].param;
+
+			switch(effect) {
+				case 0:	/* arpeggio */
+					if (param==0) break;
+					fprintf(fff,"* %c E %x %02x\n",
+						channel_to_channel(c),
+						effect,param);
+					break;
+				case 1: /* portamento up */
+					fprintf(fff,"\'EFFECT port up %x%02x\n",
+						effect,param);
+					break;
+				case 2:	/* portamento down */
+					fprintf(fff,"\'EFFECT port dn %x%02x\n",
+						effect,param);
+					break;
+				case 4: /* Vibrato */
+					fprintf(fff,"\'EFFECT vibrato %x%02x\n",
+						effect,param);
+					break;
+				case 0xd:	/* early exit */
+					pattern_break=1;
+					break;
+				case 0xf:	/* Change temp */
+					/* FIXME: warn if changing */
+					break;
+				case 3:
+				case 5:
+				case 6:
+				case 7:
+				case 8:
+				case 9:
+				case 0xa:
+				case 0xb:
+				case 0xc:
+				case 0xe:
+				default:
+					printf("Unhandled effect %x\n",
+						effect);
+			}
+
+		}
+
+
+
+		/* Handle instrument */
+
+		for(c=0;c<4;c++) {
+			int instrument=0;
+
+			if (c==1) continue;
+
+			instrument=p->p[j][c].instrument;
+
+			if (instrument) {
+
+				if (instrument==1) instrument=0;
+				else if (instrument==2) instrument=2;
+				else if (instrument==3) instrument=0;
+				else if (instrument==4) instrument=1;
+				else if (instrument==5) instrument=1;
+				else if (instrument==6) instrument=1;
+
+				fprintf(fff,"* %c I %d\n",
+					channel_to_channel(c),
+					instrument);
+			}
+
+		}
+
+		/* Handle volume */
+
+		for(c=0;c<4;c++) {
+			int volume=0;
+
+			if (c==1) continue;
+
+
+			if (p->p[j][c].note) {
+				if (p->p[j][c].note==97) volume=0x11;
+				else volume=0x50;
+			}
+
+			if (p->p[j][c].volume) volume=p->p[j][c].volume;
+
+
+			if (volume) {
+				if (volume>0x50) {
+					fprintf(stderr,"Unhandled volume %d\n",
+						volume);
+					continue;
+				}
+
+
+				//volume=(volume-0x11)/4;
+				volume=convert_volume(volume);
+
+				fprintf(fff,"* %c L %d\n",
+					channel_to_channel(c),
+					volume);
+			}
+
+		}
+
+		fprintf(fff,"%02X ",j);
+
+		/* Handle Notes */
+		for(c=0;c<4;c++) {
+			if (c==1) continue;
+
+			note_to_ym_string(fff,p->p[j][c].note);
+
+			if ((p->p[j][c].note<97) &&
+				(p->p[j][c].note!=0)) {
+				fprintf(fff," ?\t");
+			}
+			else {
+				fprintf(fff,"--\t");
+			}
+#if 0
+			if (p->p[j][c].instrument) {
+				fprintf(fff,"%X",p->p[j][c].instrument);
+			}
+			else {
+				fprintf(fff,".");
+			}
+
+			if (p->p[j][c].volume) {
+				fprintf(fff,"%02X",p->p[j][c].volume-0x10);
+			}
+			else {
+				fprintf(fff,"..");
+			}
+
+			if ((p->p[j][c].effect) ||
+				(p->p[j][c].param)) {
+					fprintf(fff,"%X%02X",
+						p->p[j][c].effect,
+						p->p[j][c].param);
+			}
+			else {
+				fprintf(fff,"...");
+			}
+
+			fprintf(fff," ");
+#endif
+
+
+		}
+
+		fprintf(fff,"\n");
+		if (pattern_break) break;
+	}
+
+	return 0;
+}
+
+
+int xm_to_text(FILE *fff,struct xm_info_struct *xm) {
+
+	int i;
+
+	fprintf(fff,"\'\n");
+	fprintf(fff,"\' TITLE:\t%s\n",xm->module_name);
+	fprintf(fff,"\'\n");
+	fprintf(fff,"\' LOOP:\t\t%d\n",xm->restart_position);
+	fprintf(fff,"\' BPM:\t\t%d\n",xm->default_bpm);
+	fprintf(fff,"\' TEMPO:\t%d\n",xm->default_tempo);
+	fprintf(fff,"\' FREQ:\t\t1000000\n");
+	fprintf(fff,"\' IRQ:\t\t50\n");
+	fprintf(fff,"\'\n");
+	fprintf(fff,"\' ENDHEADER\n");
+	fprintf(fff,"\'\n");
+
+	for(i=0;i < xm->song_length;i++) {
+		dump_pattern( fff, xm->pattern_order[i],
+				&(xm->pattern[xm->pattern_order[i]]));
 	}
 
 	return 0;

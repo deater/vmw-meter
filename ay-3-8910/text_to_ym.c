@@ -80,25 +80,29 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 
 #define MAX_LOUDS	8
 
+/* Note, ay-3-8910 is logarithmic which makes this troublesome */
+/* nv= 15.0 - ( (log(127.0/dv)) / (log(sqrt(2))) ); */
+
 struct loudness_type {
 	char name[8];
 	int value;
 } loudness_values[MAX_LOUDS]={
-			/* sym  midi */
-	{ "ppp",12},	/* ppp  16 */
-	{ "pp", 13},	/* pp   32 */
-	{ "p",  13},	/* p    48 */
-	{ "mp", 14},	/* mp   64 */
-	{ "mf", 14},	/* mf   80 */
-	{ "f",  15},	/* f    96 */
-	{ "ff", 15},	/* ff  112 */
-	{ "fff",15},	/* fff 127 */
+			/* sym  midi	ay*/
+	{ "ppp",9},	/* ppp  16 	 9.0*/
+	{ "pp", 11},	/* pp   32	11.0 */
+	{ "p",  12},	/* p    48	12.2 */
+	{ "mp", 13},	/* mp   64	13.0 */
+	{ "mf", 14},	/* mf   80	13.7 */
+	{ "f",  14},	/* f    96	14.2 */
+	{ "ff", 15},	/* ff  112	14.7 */
+	{ "fff",15},	/* fff 127	15 */
 };
 
 static int debug=0;
 
 static int external_frequency=1000000;
 static int bpm=120;
+static int tempo=1;
 static int baselen=96;  /* 120/minute, 50Hz, should really be 100 */
 static int frames_per_line=6;
 
@@ -133,6 +137,7 @@ static int note_to_length(int length) {
 		case 12: len=(baselen*3)/2; break;	// < = 3/2 dotted whole
 		case 13: len=(baselen*2); break;	// = = 2   double whole
 		case 14: len=(baselen/3); break;	// > = 1/3   triple note
+		case 15: len=99999;	break;		// ? = forever
 		default:
 			fprintf(stderr,"Unknown length %d\n",length);
 	}
@@ -471,6 +476,10 @@ int main(int argc, char **argv) {
 			get_string(string,"BPM:",temp,1);
 			bpm=atoi(temp);
 		}
+		if (strstr(string,"TEMPO:")) {
+			get_string(string,"TEMPO:",temp,1);
+			tempo=atoi(temp);
+		}
 		if (strstr(string,"FREQ:")) {
 			get_string(string,"FREQ:",temp,1);
 			external_frequency=atoi(temp);
@@ -487,7 +496,12 @@ int main(int argc, char **argv) {
 	}
 
 	if (bpm==120) {
-		baselen=96;	/* 120/min = 500ms, 50Hz=20ms 25*4=100 */
+		if (tempo==1) {
+			baselen=96;	/* 120/min = 500ms, 50Hz=20ms 25*4=100 */
+		}
+		else if (tempo==3) {
+			baselen=48;
+		}
 	}
 	else if (bpm==136) {
 		baselen=80;	/* 136/min = 440ms, 50Hz=20ms, 22*4 = 88 */
