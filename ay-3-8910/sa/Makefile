@@ -68,4 +68,4 @@ sa_chiptune.ym5:	../ym_to_ym5 sa_chiptune.ym
 
 
 clean:	
-	rm -f *~  rm *.ym5 *.ym *.lyrics *.ed
+	rm -f *~  rm *.ym5 *.ym *.lyrics *.ed saxm.txt

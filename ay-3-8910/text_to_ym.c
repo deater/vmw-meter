@@ -10,19 +10,24 @@
 
 #define NUM_CHANNELS	3
 
-#define MAX_INSTRUMENTS	7
+#define MAX_INSTRUMENTS	25
 
 #define DEFAULT	0
 
 struct instrument_type {
+	int length;
 	int adsr;
-	int attack[16];
+	int attack[32];
 	int attack_size;
-	int decay[16];
+	int decay[32];
 	int decay_size;
 	int sustain;
-	int release[16];
+	int release[32];
 	int release_size;
+	int once;
+	int noise;
+	int noise_size;
+	int noise_period[32];
         char *name;
 };
 
@@ -31,24 +36,29 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	{
 	.name="raw",		// 0
 	.adsr=1,
+	.noise=0,
 	.attack_size=0,
 	.decay_size=0,
 	.release_size=1,
 	.release={0},
 	.sustain=15,
+	.once=0,
 	},
 	{
 	.name="silence",	// 1
 	.adsr=1,
+	.noise=0,
 	.attack_size=0,
 	.decay_size=0,
 	.release_size=1,
 	.release={0},
 	.sustain=0,
+	.once=0,
 	},
 	{
 	.name="piano",		// 2
 	.adsr=1,
+	.noise=0,
 	.attack={14,15},
 	.attack_size=2,
 	.decay={14},
@@ -56,10 +66,12 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	.sustain=13,
 	.release={10,5},
 	.release_size=2,
+	.once=0,
 	},
 	{
 	.name="piano2",		// 3
 	.adsr=1,
+	.noise=0,
 	.attack={13,14,15},
 	.attack_size=3,
 	.decay={14,13,12},
@@ -67,14 +79,77 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	.sustain=11,
 	.release={10},
 	.release_size=1,
+	.once=0,
 	},
 	{
 	.name="trill",		// 4
 	.adsr=0,
+	.noise=0,
 	.attack={9,15,9,15},
 	.attack_size=4,
 	.release_size=1,
 	.release={0},
+	.once=0,
+	},
+	{
+	.name="triangle", // 5
+	.adsr=0,
+	.noise=0,
+	.attack={13,14,15,14,13,12,9,12},
+	.attack_size=8,
+	.release_size=1,
+	.release={0},
+	.once=0,
+	},
+	{
+	.name="quiet raw",		// 6
+	.adsr=1,
+	.noise=0,
+	.attack_size=0,
+	.decay_size=0,
+	.release_size=1,
+	.release={0},
+	.sustain=13,
+	.once=0,
+	},
+	{
+	.name="bass",			// 7
+	.adsr=1,
+	.noise=1,
+	.attack_size=6,
+	.attack={14,14,13, 13, 9, 9, },
+	.release_size=1,
+	.release={0},
+	.noise_size=6,
+	.noise_period =  { 10, 10, 10, 10, 10, 10 },
+	.once=1,
+	.length=7,
+	},
+	{
+	.name="snare",			// 8
+	.adsr=1,
+	.noise=1,
+	.attack_size=6,
+	.attack={13,14,14,13, 12, 9 },
+	.release_size=1,
+	.release={0},
+	.noise_size=6,
+        .noise_period=  { 4, 5, 6, 7, 8, 8 },
+	.once=1,
+	.length=6,
+	},
+	{
+	.name="cymabl",			// 9
+	.adsr=1,
+	.noise=1,
+	.attack_size=6,
+	.attack={13,13,11,11, 10, 10},
+	.release_size=1,
+	.release={0},
+	.noise_size=6,
+	.noise_period =  { 1, 1, 1, 1, 1, 0},
+	.once=1,
+	.length=6,
 	},
 };
 
@@ -157,7 +232,7 @@ struct note_type {
 	int left;
 
 	int loud;
-	int instrument;
+	struct instrument_type *instrument;
 
 	int effect;
 	int effect_param;
@@ -227,8 +302,15 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 		n->freq3=external_frequency/(16.0*freq3);
 
 		n->enabled=1;
-		n->length=note_to_length(n->len);
+
+		if (n->instrument->once) {
+			n->length=n->instrument->length;
+		}
+		else {
+			n->length=note_to_length(n->len);
+		}
 		n->left=n->length-1;
+
 
 		if (n->length<=0) {
 			printf("Error line %d\n",line);
@@ -242,12 +324,35 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 	return sp;
 }
 
+static int calculate_noise(struct note_type *n) {
+
+	struct instrument_type *i;
+	int result=0;
+
+	i=n->instrument;
+
+	if (i->noise) {
+		result=i->noise_period[i->length - n->left];
+	}
+
+	return result;
+}
+
+static int enable_noise(struct note_type *n, int which) {
+	int mask;
+
+	mask=1<<(3+which);
+
+	return mask;
+}
+
+
 static int calculate_amplitude(struct note_type *n) {
 
 	int result=0;
 	struct instrument_type *i;
 
-	i=&instruments[n->instrument];
+	i=n->instrument;
 
 /*
  A  A  A  D  D  D                    R R
@@ -323,16 +428,22 @@ static int get_effect(struct note_type *n,char *string) {
 
 static int get_instrument(struct note_type *n,char *string) {
 
-	n->instrument=atoi(string);
-	if (debug) printf("Found instrument %d\n",n->instrument);
+	int num;
 
-	if (n->instrument<0) {
-		fprintf(stderr,"Instrument too small: %d\n",n->instrument);
+	num=atoi(string);
+
+	if (debug) printf("Found instrument %d\n",num);
+
+	if (num<0) {
+		fprintf(stderr,"Instrument too small: %d\n",num);
 	}
 
-	if (n->instrument>=MAX_INSTRUMENTS) {
-		fprintf(stderr,"Instrument too big: %d\n",n->instrument);
+	if (num>=MAX_INSTRUMENTS) {
+		fprintf(stderr,"Instrument too big: %d\n",num);
 	}
+
+	n->instrument=&instruments[num];
+
 
 	return 0;
 }
@@ -557,9 +668,10 @@ int main(int argc, char **argv) {
 
 	a.which='A';		b.which='B';		c.which='C';
 	a.loud=15;		b.loud=15;		c.loud=15;
-	a.instrument=0;		b.instrument=0;		c.instrument=0;
 	a.effect=0;		b.effect=0;		c.effect=0;
 	a.effect_param=0;	b.effect_param=0;	c.effect_param=0;
+	a.instrument=&instruments[0];			c.instrument=&instruments[0];
+				b.instrument=&instruments[0];
 
 	while(1) {
 		result=fgets(string,BUFSIZ,in_file);
@@ -616,12 +728,20 @@ int main(int argc, char **argv) {
 					frame[1]=(a.freq>>8)&0xf;
 				}
 				frame[7]=0x38;
-				//frame[8]=0x0f;	// amp A
+
+				if (a.instrument->noise) {
+					frame[6]=calculate_noise(&a);
+					frame[7]&=~enable_noise(&a,0);
+				}
+
+
+
 				frame[8]=calculate_amplitude(&a);
 			}
 			else {
 				frame[0]=0x0;
 				frame[1]=0x0;
+				frame[7]|=0x8;
 				frame[8]=0x0;
 			}
 
@@ -646,10 +766,16 @@ int main(int argc, char **argv) {
 				}
 				frame[7]=0x38;
 				frame[9]=calculate_amplitude(&b);
+
+				if (b.instrument->noise) {
+					frame[6]=calculate_noise(&b);
+					frame[7]&=~enable_noise(&b,1);
+				}
 			}
 			else {
 				frame[2]=0x0;
 				frame[3]=0x0;
+				frame[7]|=0x10;
 				frame[9]=0x0;
 			}
 
@@ -674,12 +800,19 @@ int main(int argc, char **argv) {
 				}
 				frame[7]=0x38;
 				frame[10]=calculate_amplitude(&c);
+
+				if (c.instrument->noise) {
+					frame[6]=calculate_noise(&c);
+					frame[7]&=~enable_noise(&c,2);
+				}
 			}
 			else {
 				frame[4]=0x0;
 				frame[5]=0x0;
+				frame[7]|=0x20;
 				frame[10]=0x0;
 			}
+
 
 			/* NOWRITE */
 			frame[13]=0xff;
@@ -697,14 +830,20 @@ int main(int argc, char **argv) {
 			}
 			frames++;
 
-			if (a.left) a.left--;
-			if (a.left<0) a.enabled=0;
+			if (a.enabled) {
+				a.left--;
+				if (a.left<0) a.enabled=0;
+			}
 
-			if (b.left) b.left--;
-			if (b.left<0) b.enabled=0;
+			if (b.enabled) {
+				b.left--;
+				if (b.left<0) b.enabled=0;
+			}
 
-			if (c.left) c.left--;
-			if (c.left<0) c.enabled=0;
+			if (c.enabled) {
+				c.left--;
+				if (c.left<0) c.enabled=0;
+			}
 
 		}
 		a.effect_param=0;

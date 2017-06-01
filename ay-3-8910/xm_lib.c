@@ -20,98 +20,6 @@
 static char letters[12]={'C','C','D','D','E','F','F','G','G','A','A','B'};
 static int sharps[12]={   0 , 1 , 0 , 1 , 0 , 0 , 1 , 0 , 1 , 0 , 1 , 0};
 
-static void note_to_string(int note) {
-
-
-	int letter,sharp,octave;
-
-	if (note==0) printf("...");
-	else if (note==97) printf("OFF");
-	else if (note>97) printf("???");
-	else {
-		letter=letters[(note-1)%12];
-		octave=(note-1)/12;
-		sharp=sharps[(note-1)%12];
-		printf("%c%c%d",letter,sharp?'#':'-',octave);
-	}
-}
-
-
-int dump_xm_file(struct xm_info_struct *xm) {
-
-	int i,j,c;
-	int pattern_break;
-
-	printf("NAME: %s\n",xm->module_name);
-	printf("TRACKER: %s\n",xm->tracker_name);
-	printf("VERSION %d.%d\n",xm->version_high,xm->version_low);
-	printf("SONG LEN: %d patterns\n",xm->song_length);
-	printf("LOOP: %d\n",xm->restart_position);
-	printf("CHANNELS: %d\n",xm->number_of_channels);
-	printf("PATTERNS: %d\n",xm->number_of_patterns);
-	printf("INSTRUMENTS: %d\n",xm->number_of_instruments);
-	printf("FLAGS: %x (%s)\n",xm->flags,
-			xm->flags==0?"Amiga Freq":"Linear Freq");
-	printf("TEMPO: %d\n",xm->default_tempo);
-	printf("BPM: %d\n",xm->default_bpm);
-
-	printf("Pattern order:\n");
-	for(i=0;i < xm->song_length;i++) {
-		printf("%x ",xm->pattern_order[i]);
-	}
-	printf("\n");
-
-	for(i=0;i < xm->number_of_patterns;i++) {
-
-		printf("Pattern %x, ",i);
-		printf("Num_Rows: %d\n",xm->pattern[i].num_rows);
-
-		pattern_break=0;
-
-		for(j=0; j < xm->pattern[i].num_rows;j++) {
-			printf("%02X ",j);
-			for(c=0;c<4;c++) {
-
-				note_to_string(xm->pattern[i].p[j][c].note);
-
-				printf(".");
-
-				if (xm->pattern[i].p[j][c].instrument) {
-					printf("%X",xm->pattern[i].p[j][c].instrument);
-				}
-				else {
-					printf(".");
-				}
-
-				if (xm->pattern[i].p[j][c].volume) {
-					printf("%02X",xm->pattern[i].p[j][c].volume-0x10);
-				}
-				else {
-					printf("..");
-				}
-
-				if ((xm->pattern[i].p[j][c].effect) ||
-					(xm->pattern[i].p[j][c].param)) {
-						printf("%X%02X",
-							xm->pattern[i].p[j][c].effect,
-							xm->pattern[i].p[j][c].param);
-				}
-				else {
-					printf("...");
-				}
-
-				printf(" ");
-
-				if (xm->pattern[i].p[j][c].effect==0xd) pattern_break=1;
-			}
-			printf("\n");
-			if (pattern_break) break;
-		}
-	}
-
-	return 0;
-}
-
 
 static void note_to_ym_string(FILE *fff,int note) {
 
@@ -246,14 +154,20 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
 
 			instrument=p->p[j][c].instrument;
 
+			/* Hardcoded match for stillalive */
 			if (instrument) {
-
+					/* 1 = sine */
 				if (instrument==1) instrument=0;
-				else if (instrument==2) instrument=2;
+					/* 2 = muted */
+				else if (instrument==2) instrument=6;
+					/* 3 = triangle wave */
 				else if (instrument==3) instrument=0;
-				else if (instrument==4) instrument=1;
-				else if (instrument==5) instrument=1;
-				else if (instrument==6) instrument=1;
+					/* 4 = bass drum */
+				else if (instrument==4) instrument=7;
+					/* 5 = snare drum */
+				else if (instrument==5) instrument=8;
+					/* 6 = cymbal */
+				else if (instrument==6) instrument=9;
 
 				fprintf(fff,"* %c I %d\n",
 					channel_to_channel(c),
@@ -373,6 +287,107 @@ int xm_to_text(FILE *fff,struct xm_info_struct *xm) {
 
 	return 0;
 }
+
+/**************************************/
+/* DUMP FILE                          */
+/**************************************/
+
+static void note_to_string(int note) {
+
+
+	int letter,sharp,octave;
+
+	if (note==0) printf("...");
+	else if (note==97) printf("OFF");
+	else if (note>97) printf("???");
+	else {
+		letter=letters[(note-1)%12];
+		octave=(note-1)/12;
+		sharp=sharps[(note-1)%12];
+		printf("%c%c%d",letter,sharp?'#':'-',octave);
+	}
+}
+
+int dump_xm_file(struct xm_info_struct *xm) {
+
+	int i,j,c;
+	int pattern_break;
+
+	printf("NAME: %s\n",xm->module_name);
+	printf("TRACKER: %s\n",xm->tracker_name);
+	printf("VERSION %d.%d\n",xm->version_high,xm->version_low);
+	printf("SONG LEN: %d patterns\n",xm->song_length);
+	printf("LOOP: %d\n",xm->restart_position);
+	printf("CHANNELS: %d\n",xm->number_of_channels);
+	printf("PATTERNS: %d\n",xm->number_of_patterns);
+	printf("INSTRUMENTS: %d\n",xm->number_of_instruments);
+	printf("FLAGS: %x (%s)\n",xm->flags,
+			xm->flags==0?"Amiga Freq":"Linear Freq");
+	printf("TEMPO: %d\n",xm->default_tempo);
+	printf("BPM: %d\n",xm->default_bpm);
+
+	printf("Pattern order:\n");
+	for(i=0;i < xm->song_length;i++) {
+		printf("%x ",xm->pattern_order[i]);
+	}
+	printf("\n");
+
+	for(i=0;i < xm->number_of_patterns;i++) {
+
+		printf("Pattern %x, ",i);
+		printf("Num_Rows: %d\n",xm->pattern[i].num_rows);
+
+		pattern_break=0;
+
+		for(j=0; j < xm->pattern[i].num_rows;j++) {
+			printf("%02X ",j);
+			for(c=0;c<4;c++) {
+
+				note_to_string(xm->pattern[i].p[j][c].note);
+
+				printf(".");
+
+				if (xm->pattern[i].p[j][c].instrument) {
+					printf("%X",xm->pattern[i].p[j][c].instrument);
+				}
+				else {
+					printf(".");
+				}
+
+				if (xm->pattern[i].p[j][c].volume) {
+					printf("%02X",xm->pattern[i].p[j][c].volume-0x10);
+				}
+				else {
+					printf("..");
+				}
+
+				if ((xm->pattern[i].p[j][c].effect) ||
+					(xm->pattern[i].p[j][c].param)) {
+						printf("%X%02X",
+							xm->pattern[i].p[j][c].effect,
+							xm->pattern[i].p[j][c].param);
+				}
+				else {
+					printf("...");
+				}
+
+				printf(" ");
+
+				if (xm->pattern[i].p[j][c].effect==0xd) pattern_break=1;
+			}
+			printf("\n");
+			if (pattern_break) break;
+		}
+	}
+
+	return 0;
+}
+
+
+
+/****************************************/
+/* LOAD FILE				*/
+/****************************************/
 
 int load_xm_file(char *filename, struct xm_info_struct *xm) {
 
