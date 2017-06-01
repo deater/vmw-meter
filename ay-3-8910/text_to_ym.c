@@ -158,6 +158,11 @@ struct note_type {
 
 	int loud;
 	int instrument;
+
+	int effect;
+	int effect_param;
+	int freq2;
+	int freq3;
 };
 
 static struct note_type a,b,c;
@@ -165,7 +170,7 @@ static struct note_type a,b,c;
 
 static int get_note(char *string, int sp, struct note_type *n, int line) {
 
-	double freq;
+	double freq,freq2,freq3;
 	int ch;
 
 	/* Skip white space */
@@ -196,10 +201,18 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 	n->len=string[sp]-'0';
 	sp++;
 
+	int note1_adjust=0,note2_adjust=0;
+
+	if ((n->effect==0) && (n->effect_param)) {
+		note1_adjust=((n->effect_param)>>4)&0xf;
+		note2_adjust=(n->effect_param)&0xf;
+	}
 
 	if (n->note!='-') {
 
 		freq=note_to_freq(n->note,n->sharp,n->flat,n->octave);
+		freq2=note_to_freq(n->note,n->sharp+note1_adjust,n->flat,n->octave);
+		freq3=note_to_freq(n->note,n->sharp+note2_adjust,n->flat,n->octave);
 
 		if (debug) printf("(%c) %c%c L=%d O=%d f=%lf\n",
 				n->which,
@@ -210,6 +223,9 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 				freq);
 
 		n->freq=external_frequency/(16.0*freq);
+		n->freq2=external_frequency/(16.0*freq2);
+		n->freq3=external_frequency/(16.0*freq3);
+
 		n->enabled=1;
 		n->length=note_to_length(n->len);
 		n->left=n->length-1;
@@ -292,6 +308,19 @@ static struct note_type *find_note(char which) {
 	return NULL;
 }
 
+static int get_effect(struct note_type *n,char *string) {
+
+	n->effect=atoi(string);
+
+	if (debug) printf("Found effect %x\n",n->effect);
+
+	n->effect_param=atoi(string+2);
+
+	if (debug) printf("Found effect_param %x\n",n->effect_param);
+
+	return 0;
+}
+
 static int get_instrument(struct note_type *n,char *string) {
 
 	n->instrument=atoi(string);
@@ -361,6 +390,8 @@ static int get_directive(char *string) {
 	type=*pointer;
 
 	switch(type) {
+		case 'E':	get_effect(n,pointer+2);
+				break;
 		case 'L':	get_loudness(n,pointer+2);
 				break;
 		case 'I':	get_instrument(n,pointer+2);
@@ -524,9 +555,11 @@ int main(int argc, char **argv) {
 
 	fseek(ym_file, header_length, SEEK_SET);
 
-	a.which='A';	b.which='B';	c.which='C';
-	a.loud=15;	b.loud=15;	c.loud=15;
-	a.instrument=0;	b.instrument=0;	c.instrument=0;
+	a.which='A';		b.which='B';		c.which='C';
+	a.loud=15;		b.loud=15;		c.loud=15;
+	a.instrument=0;		b.instrument=0;		c.instrument=0;
+	a.effect=0;		b.effect=0;		c.effect=0;
+	a.effect_param=0;	b.effect_param=0;	c.effect_param=0;
 
 	while(1) {
 		result=fgets(string,BUFSIZ,in_file);
@@ -564,8 +597,24 @@ int main(int argc, char **argv) {
 		for(j=0;j<frames_per_line;j++) {
 
 			if (a.enabled) {
-				frame[0]=a.freq&0xff;
-				frame[1]=(a.freq>>8)&0xf;
+				if ((a.effect==0) && (a.effect_param!=0)) {
+					if (j==0) {
+						frame[0]=a.freq&0xff;
+						frame[1]=(a.freq>>8)&0xf;
+					}
+					if (j==1) {
+						frame[0]=a.freq2&0xff;
+						frame[1]=(a.freq2>>8)&0xf;
+					}
+					if (j==2) {
+						frame[0]=a.freq3&0xff;
+						frame[1]=(a.freq3>>8)&0xf;
+					}
+				}
+				else {
+					frame[0]=a.freq&0xff;
+					frame[1]=(a.freq>>8)&0xf;
+				}
 				frame[7]=0x38;
 				//frame[8]=0x0f;	// amp A
 				frame[8]=calculate_amplitude(&a);
@@ -577,8 +626,24 @@ int main(int argc, char **argv) {
 			}
 
 			if (b.enabled) {
-				frame[2]=b.freq&0xff;
-				frame[3]=(b.freq>>8)&0xf;
+				if ((b.effect==0) && (b.effect_param!=0)) {
+					if (j==0) {
+						frame[2]=b.freq&0xff;
+						frame[3]=(b.freq>>8)&0xf;
+					}
+					if (j==1) {
+						frame[2]=b.freq2&0xff;
+						frame[3]=(b.freq2>>8)&0xf;
+					}
+					if (j==2) {
+						frame[2]=b.freq3&0xff;
+						frame[3]=(b.freq3>>8)&0xf;
+					}
+				}
+				else {
+					frame[2]=b.freq&0xff;
+					frame[3]=(b.freq>>8)&0xf;
+				}
 				frame[7]=0x38;
 				frame[9]=calculate_amplitude(&b);
 			}
@@ -589,8 +654,24 @@ int main(int argc, char **argv) {
 			}
 
 			if (c.enabled) {
-				frame[4]=c.freq&0xff;
-				frame[5]=(c.freq>>8)&0xf;
+				if ((c.effect==0) && (c.effect_param!=0)) {
+					if (j==0) {
+						frame[4]=c.freq&0xff;
+						frame[5]=(c.freq>>8)&0xf;
+					}
+					if (j==1) {
+						frame[4]=c.freq2&0xff;
+						frame[5]=(c.freq2>>8)&0xf;
+					}
+					if (j==2) {
+						frame[4]=c.freq3&0xff;
+						frame[5]=(c.freq3>>8)&0xf;
+					}
+				}
+				else {
+					frame[4]=c.freq&0xff;
+					frame[5]=(c.freq>>8)&0xf;
+				}
 				frame[7]=0x38;
 				frame[10]=calculate_amplitude(&c);
 			}
@@ -626,6 +707,10 @@ int main(int argc, char **argv) {
 			if (c.left<0) c.enabled=0;
 
 		}
+		a.effect_param=0;
+		b.effect_param=0;
+		c.effect_param=0;
+
 	}
 
 	fgetpos(ym_file,&save);
@@ -657,4 +742,3 @@ int main(int argc, char **argv) {
 
 	return 0;
 }
-

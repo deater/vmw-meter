@@ -9,6 +9,7 @@
 #include "xm_lib.h"
 
 /* ftp://ftp.modland.com/pub/documents/format_documentation/FastTracker%202%20v2.04%20(.xm).html */
+/* http://lclevy.free.fr/mo3/mod.txt */
 
 #define FIRST_HEADER_LENGTH	64
 
@@ -195,7 +196,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
 			switch(effect) {
 				case 0:	/* arpeggio */
 					if (param==0) break;
-					fprintf(fff,"* %c E %x %02x\n",
+					fprintf(fff,"* %c E %d %d\n",
 						channel_to_channel(c),
 						effect,param);
 					break;
@@ -270,7 +271,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
 
 
 			if (p->p[j][c].note) {
-				if (p->p[j][c].note==97) volume=0x11;
+				if (p->p[j][c].note==97) volume=0x10;
 				else volume=0x50;
 			}
 
@@ -286,7 +287,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
 
 
 				//volume=(volume-0x11)/4;
-				volume=convert_volume(volume);
+				volume=convert_volume(volume-0x10);
 
 				fprintf(fff,"* %c L %d\n",
 					channel_to_channel(c),

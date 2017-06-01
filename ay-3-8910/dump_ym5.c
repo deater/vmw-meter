@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
 
 	char filename[BUFSIZ]="intro2.ym";
 
-	int c,dump_info;
+	int c,debug=0;
 	int first_song;
 
 	/* Parse command line arguments */
@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
 			case 'd':
 				/* Debug messages */
 				printf("Debug enabled\n");
-				dump_info=1;
+				debug=1;
 				break;
 			case 'h':
 				/* help */
@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* Dump the song */
-	dump_song(filename,dump_info);
+	dump_song(filename,debug);
 
 	return 0;
 }
