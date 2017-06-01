@@ -223,6 +223,8 @@ static int note_to_length(int length) {
 struct note_type {
 	unsigned char which;
 	unsigned char note;
+	int sub_adjust;
+
 	int sharp,flat;
 	int octave;
 	int len;
@@ -241,6 +243,7 @@ struct note_type {
 
 	int portamento;
 	int port_speed;
+
 };
 
 static struct note_type a,b,c;
@@ -248,7 +251,6 @@ static struct note_type a,b,c;
 
 static int get_note(char *string, int sp, struct note_type *n, int line) {
 
-	double freq,freq2,freq3;
 	int ch;
 
 	/* Skip white space */
@@ -279,20 +281,53 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 	n->len=string[sp]-'0';
 	sp++;
 
-	int note1_adjust=0,note2_adjust=0;
+	n->enabled=1;
 
-	if (n->arpeggio) {
-		note1_adjust=n->arpeggio2;
-		note2_adjust=n->arpeggio3;
+	n->sub_adjust=0;
+
+	if (n->instrument->once) {
+		n->length=n->instrument->length;
+	}
+	else {
+		n->length=note_to_length(n->len);
+	}
+	n->left=n->length-1;
+
+
+	if (n->length<=0) {
+		printf("Error line %d\n",line);
+		exit(-1);
 	}
 
-	if (n->note!='-') {
+	return sp;
+}
 
-		freq=note_to_freq(n->note,n->sharp,n->flat,n->octave,0);
-		freq2=note_to_freq(n->note,n->sharp+note1_adjust,n->flat,n->octave,0);
-		freq3=note_to_freq(n->note,n->sharp+note2_adjust,n->flat,n->octave,0);
 
-		if (debug) printf("(%c) %c%c L=%d O=%d f=%lf\n",
+static int update_note(struct note_type *n) {
+
+	double freq,freq2,freq3;
+	int note2_adjust=0,note3_adjust=0;
+	int sub2_adjust=0,sub3_adjust=0;
+
+	if (n->arpeggio) {
+		note2_adjust=n->arpeggio2;
+		note3_adjust=n->arpeggio3;
+	}
+
+	if (n->portamento) {
+		sub2_adjust=n->sub_adjust+n->port_speed;
+		sub3_adjust=n->sub_adjust+n->port_speed*2;
+		n->sub_adjust+=3*n->port_speed;
+		printf("Setting port sub: %d ps: %d\n",
+			n->sub_adjust,n->port_speed);
+
+	}
+
+	freq=note_to_freq(n->note,n->sharp,n->flat,n->octave,0);
+	freq2=note_to_freq(n->note,n->sharp+note2_adjust,n->flat,n->octave,sub2_adjust);
+	freq3=note_to_freq(n->note,n->sharp+note3_adjust,n->flat,n->octave,sub3_adjust);
+
+	if (debug) printf("(%c) %c%c L=%d O=%d f=%lf\n",
 				n->which,
 				n->note,
 				n->sharp?'#':' ',
@@ -300,32 +335,14 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 				n->octave,
 				freq);
 
-		n->freq=external_frequency/(16.0*freq);
-		n->freq2=external_frequency/(16.0*freq2);
-		n->freq3=external_frequency/(16.0*freq3);
+	n->freq=external_frequency/(16.0*freq);
+	n->freq2=external_frequency/(16.0*freq2);
+	n->freq3=external_frequency/(16.0*freq3);
 
-		n->enabled=1;
-
-		if (n->instrument->once) {
-			n->length=n->instrument->length;
-		}
-		else {
-			n->length=note_to_length(n->len);
-		}
-		n->left=n->length-1;
-
-
-		if (n->length<=0) {
-			printf("Error line %d\n",line);
-			exit(-1);
-		}
-	}
-	else {
-		n->freq=0;
-	}
-
-	return sp;
+	return 0;
 }
+
+
 
 static int calculate_noise(struct note_type *n) {
 
@@ -436,8 +453,20 @@ static int get_effect(struct note_type *n,char *string) {
 				n->arpeggio3=(param)&0xf;
 			}
 			break;
+		case 0x1:	// Portamento Up
+			n->portamento=1;
+			if (param!=0) {
+				n->port_speed=-param;
+			}
+			break;
+		case 0x2:	// Portamento Down
+			n->portamento=1;
+			if (param!=0) {
+				n->port_speed=param;
+			}
+			break;
 		default:
-			fprintf(stderr,"Unknown effect %X%2X\n",effect,param);
+			fprintf(stderr,"Unknown effect %X%02X\n",effect,param);
 	}
 
 	return 0;
@@ -686,6 +715,8 @@ int main(int argc, char **argv) {
 	a.which='A';		b.which='B';		c.which='C';
 	a.loud=15;		b.loud=15;		c.loud=15;
 	a.arpeggio=0;		b.arpeggio=0;		c.arpeggio=0;
+	a.portamento=0;		b.portamento=0;		c.portamento=0;
+	a.sub_adjust=0;		b.sub_adjust=0;		c.sub_adjust=0;
 	a.instrument=&instruments[0];			c.instrument=&instruments[0];
 				b.instrument=&instruments[0];
 
@@ -725,8 +756,9 @@ int main(int argc, char **argv) {
 		for(j=0;j<frames_per_line;j++) {
 
 			if (a.enabled) {
+				update_note(&a);
 
-				if (a.arpeggio) {
+				if ((a.arpeggio) || (a.portamento)) {
 					if (j==0) {
 						frame[0]=a.freq&0xff;
 						frame[1]=(a.freq>>8)&0xf;
@@ -763,7 +795,9 @@ int main(int argc, char **argv) {
 			}
 
 			if (b.enabled) {
-				if (b.arpeggio) {
+				update_note(&b);
+
+				if ((b.arpeggio) || (b.portamento)) {
 					if (j==0) {
 						frame[2]=b.freq&0xff;
 						frame[3]=(b.freq>>8)&0xf;
@@ -797,7 +831,9 @@ int main(int argc, char **argv) {
 			}
 
 			if (c.enabled) {
-				if (c.arpeggio) {
+				update_note(&c);
+
+				if ((c.arpeggio) || (c.portamento)) {
 					if (j==0) {
 						frame[4]=c.freq&0xff;
 						frame[5]=(c.freq>>8)&0xf;
@@ -863,9 +899,8 @@ int main(int argc, char **argv) {
 			}
 
 		}
-		a.arpeggio=0;
-		b.arpeggio=0;
-		c.arpeggio=0;
+		a.arpeggio=0;	b.arpeggio=0;	c.arpeggio=0;
+		a.portamento=0;	b.portamento=0;	c.portamento=0;
 
 	}
 

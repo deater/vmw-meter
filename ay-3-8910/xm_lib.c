@@ -109,15 +109,18 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
 						effect,param);
 					break;
 				case 1: /* portamento up */
-					fprintf(fff,"\'EFFECT port up %x%02x\n",
+					fprintf(fff,"* %c E %d %d\n",
+						channel_to_channel(c),
 						effect,param);
 					break;
 				case 2:	/* portamento down */
-					fprintf(fff,"\'EFFECT port dn %x%02x\n",
+					fprintf(fff,"* %c E %d %d\n",
+						channel_to_channel(c),
 						effect,param);
 					break;
 				case 4: /* Vibrato */
-					fprintf(fff,"\'EFFECT vibrato %x%02x\n",
+					fprintf(fff,"* %c E %d %d\n",
+						channel_to_channel(c),
 						effect,param);
 					break;
 				case 0xd:	/* early exit */
