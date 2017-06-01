@@ -6,10 +6,10 @@
 #define TWELTH_TWO 1.059463094359
 
 // http://www.phy.mtu.edu/~suits/NoteFreqCalcs.html
-double note_to_freq(char note, int flat, int sharp, int octave) {
+double note_to_freq(char note, int flat, int sharp, int octave, int sub) {
 
 	double freq=0.0;
-	int step=0;
+	double step=0;
 
 	switch(note) {
 		case 'B': step=2; break;
@@ -26,6 +26,8 @@ double note_to_freq(char note, int flat, int sharp, int octave) {
 	if (sharp) step-=sharp;
 
 	step-=(4-octave)*12;
+
+	step+=sub/16.0;
 
 	freq=440.0*pow(TWELTH_TWO,step);
 

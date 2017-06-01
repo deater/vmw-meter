@@ -234,10 +234,13 @@ struct note_type {
 	int loud;
 	struct instrument_type *instrument;
 
-	int effect;
-	int effect_param;
-	int freq2;
-	int freq3;
+	int arpeggio;
+	int arpeggio2;
+	int arpeggio3;
+	int freq2,freq3;
+
+	int portamento;
+	int port_speed;
 };
 
 static struct note_type a,b,c;
@@ -278,16 +281,16 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 
 	int note1_adjust=0,note2_adjust=0;
 
-	if ((n->effect==0) && (n->effect_param)) {
-		note1_adjust=((n->effect_param)>>4)&0xf;
-		note2_adjust=(n->effect_param)&0xf;
+	if (n->arpeggio) {
+		note1_adjust=n->arpeggio2;
+		note2_adjust=n->arpeggio3;
 	}
 
 	if (n->note!='-') {
 
-		freq=note_to_freq(n->note,n->sharp,n->flat,n->octave);
-		freq2=note_to_freq(n->note,n->sharp+note1_adjust,n->flat,n->octave);
-		freq3=note_to_freq(n->note,n->sharp+note2_adjust,n->flat,n->octave);
+		freq=note_to_freq(n->note,n->sharp,n->flat,n->octave,0);
+		freq2=note_to_freq(n->note,n->sharp+note1_adjust,n->flat,n->octave,0);
+		freq3=note_to_freq(n->note,n->sharp+note2_adjust,n->flat,n->octave,0);
 
 		if (debug) printf("(%c) %c%c L=%d O=%d f=%lf\n",
 				n->which,
@@ -415,13 +418,27 @@ static struct note_type *find_note(char which) {
 
 static int get_effect(struct note_type *n,char *string) {
 
-	n->effect=atoi(string);
+	int effect,param;
 
-	if (debug) printf("Found effect %x\n",n->effect);
+	effect=atoi(string);
 
-	n->effect_param=atoi(string+2);
+	if (debug) printf("Found effect %x\n",effect);
 
-	if (debug) printf("Found effect_param %x\n",n->effect_param);
+	param=atoi(string+2);
+
+	if (debug) printf("Found effect_param %x\n",param);
+
+	switch(effect) {
+		case 0x0:	// Arpeggio
+			if (param!=0) {
+				n->arpeggio=1;
+				n->arpeggio2=((param)>>4)&0xf;
+				n->arpeggio3=(param)&0xf;
+			}
+			break;
+		default:
+			fprintf(stderr,"Unknown effect %X%2X\n",effect,param);
+	}
 
 	return 0;
 }
@@ -668,8 +685,7 @@ int main(int argc, char **argv) {
 
 	a.which='A';		b.which='B';		c.which='C';
 	a.loud=15;		b.loud=15;		c.loud=15;
-	a.effect=0;		b.effect=0;		c.effect=0;
-	a.effect_param=0;	b.effect_param=0;	c.effect_param=0;
+	a.arpeggio=0;		b.arpeggio=0;		c.arpeggio=0;
 	a.instrument=&instruments[0];			c.instrument=&instruments[0];
 				b.instrument=&instruments[0];
 
@@ -709,7 +725,8 @@ int main(int argc, char **argv) {
 		for(j=0;j<frames_per_line;j++) {
 
 			if (a.enabled) {
-				if ((a.effect==0) && (a.effect_param!=0)) {
+
+				if (a.arpeggio) {
 					if (j==0) {
 						frame[0]=a.freq&0xff;
 						frame[1]=(a.freq>>8)&0xf;
@@ -746,7 +763,7 @@ int main(int argc, char **argv) {
 			}
 
 			if (b.enabled) {
-				if ((b.effect==0) && (b.effect_param!=0)) {
+				if (b.arpeggio) {
 					if (j==0) {
 						frame[2]=b.freq&0xff;
 						frame[3]=(b.freq>>8)&0xf;
@@ -780,7 +797,7 @@ int main(int argc, char **argv) {
 			}
 
 			if (c.enabled) {
-				if ((c.effect==0) && (c.effect_param!=0)) {
+				if (c.arpeggio) {
 					if (j==0) {
 						frame[4]=c.freq&0xff;
 						frame[5]=(c.freq>>8)&0xf;
@@ -846,9 +863,9 @@ int main(int argc, char **argv) {
 			}
 
 		}
-		a.effect_param=0;
-		b.effect_param=0;
-		c.effect_param=0;
+		a.arpeggio=0;
+		b.arpeggio=0;
+		c.arpeggio=0;
 
 	}
 
