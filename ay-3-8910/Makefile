@@ -18,11 +18,14 @@ all:	ym_play organ ym_to_ym5 text_to_ym text_to_ed glados test_font \
 
 ###
 
-dump_xm.o:	dump_xm.c
+xm_lib.o:	xm_lib.c xm_lib.h
+	$(CC) $(CFLAGS) -c xm_lib.c
+
+dump_xm.o:	dump_xm.c xm_lib.h
 	$(CC) $(CFLAGS) -c dump_xm.c
 
-dump_xm:	dump_xm.o
-	$(CC) $(LFLAGS) -o dump_xm dump_xm.o
+dump_xm:	dump_xm.o xm_lib.o
+	$(CC) $(LFLAGS) -o dump_xm dump_xm.o xm_lib.o
 
 ###
 
