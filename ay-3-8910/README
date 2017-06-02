@@ -5,7 +5,7 @@
 Hardware:
 
 	See the full details and build instructions in
-	./hardware/build_instructions
+	./build_instructions
 
 	As a summary, it's two AY-3-8910 chips, with 3 channels each.
 	One is for right, one for left.
@@ -15,7 +15,7 @@ Hardware:
 	In addition there is a MAX 98306 amplifier, which the Pi
 	controls the volume of using GPIO.
 
-	Also a headphone jack with an auto-sense circuit.
+	Also a line-out jack.
 
 	Pi Connections:
 		Pi to 74HC595 (through level converter)
@@ -94,10 +94,6 @@ More info on the YM file format:
 	find are ripped from old Atari/Spectrum games so the copyright
 	situation is a bit complex.
 
-TODO:
-	* Make up some PCBs
-	* Put it in a case/enclosure
-	* Find a tracker and start writing my own YM files. 
 
 Performance:
 	In general, to play 50Hz sound files (typical) need to update

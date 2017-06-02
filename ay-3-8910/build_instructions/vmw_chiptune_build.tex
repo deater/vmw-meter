@@ -192,7 +192,7 @@ As you can see, it could sometimes overflow the 20ms window.
 Displaying a string on the 14seg displays takes especially a long time
 as the 3 subdisplays are each on a separate i2c address.
 
-By moving to SPI it reduced ym\_play\_frame to 5ms, allowing
+By moving to SPI it reduced ym\_play\_frame to 8ms, allowing
 the sound and visualization to happen in the deadline.
 
 There is still some occasional jitter in the output.
@@ -638,6 +638,10 @@ Header connector& Jameco	& 152734	           & 3   & \$0.59   & \$1.77  \\
 \end{figure}
 
 
+\begin{figure}[tph]
+\includegraphics{figs/holes}
+\caption{Holes to make in the case.~\label{figure:holes}}
+\end{figure}
 
 Putting it all together:
 \begin{enumerate}
@@ -693,7 +697,8 @@ Putting it all together:
 
 	\item Prepare the Case
 		\begin{enumerate}
-		\item	Drill the holes and openings as indicated.
+		\item	Drill the holes and openings as indicated in
+			Figure~\ref{figure:holes}.
 			I used a hand drill and coping saw to do this, but you
 			probably have better tools at your disposal.
 		\item Place the assembly inside and be sure it fits.
