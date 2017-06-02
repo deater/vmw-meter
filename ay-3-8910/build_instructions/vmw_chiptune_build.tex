@@ -624,6 +624,21 @@ Header connector& Jameco	& 152734	           & 3   & \$0.59   & \$1.77  \\
 \end{tabular}
 \end{table}
 
+
+\begin{figure}[tph]
+\centering
+\includegraphics{figs/0369_wiring.jpg}
+\caption{Assembled i2c and speaker wires~\label{figs:wires}}
+\end{figure}
+
+\begin{figure}[tph]
+\centering
+\includegraphics[width=2in]{figs/power_crimp}
+\caption{Not very helpful crimping diagram.~\label{figure:crimping}}
+\end{figure}
+
+
+
 Putting it all together:
 \begin{enumerate}
 
@@ -658,6 +673,7 @@ Putting it all together:
 			ends.  Four wires, each around 7".  2" with a right angle bend.
 			Order is Vdd, SDA, GND, SCL (note this is not marked on
 			the display board).
+			Figure~\ref{figs:wires} shows the assembled cables.
 
 		\item Put five of the 3/4" standoffs through the bottom of the sound board
 			(with the AY-3-8910 pointing down).
@@ -698,14 +714,17 @@ Putting it all together:
 %%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%
 
-the standoff behind the slider is too close to various components
-the standoff on the bottom left completely blocks the memory card slot
-
-mk1 board:
-the capacitors should be at least 300 mil not 100 mil
-oscillator too close to the chip
-use curves not so many right angles
-standoffs in bad places.
+There are various things to fix if designing a new version of the
+hardware:
+\begin{enumerate}
+\item The top mounting hole on the display is too close to the buttons.
+\item The standoff behind the slider is too close to various components
+\item The standoff on the bottom left completely blocks the Pi
+	memory card slot
+\item The capacitors should be at least 300 mil not 100 mil
+\item The oscillator too close to the chip
+\item Use curves not so many right angles on PCB layout
+\end{enumerate}
 
 
 \bibliographystyle{abbrv}
