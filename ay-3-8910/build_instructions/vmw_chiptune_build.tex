@@ -1,61 +1,104 @@
+\documentclass[11pt]{article}
+
+\usepackage{url}
+\usepackage{hyperref}
+
+\begin{document}
+
+\begin{center}
+{\Large \bf Building the VMW Raspberry Pi / AY-3-8910 Chiptune Player}\\
+\url{http://deater.net/weave/vmwprod/hardware/ay-3-8910/}\\
+by Vincent M. Weaver\\
+2 June 2017
+\end{center}
+
+
+\section{Introduction}
+
+This is a work in progress.  I will update it as I complete more
+of the project.
 
 
 
-Parts:
+\section{Building}
 
-Display 
+\subsection{The Display}
 
-	NAME		WHERE		PART#		QTY	PRICE	TOTAL
-	PCB		OSH-PARK	VMW-DISPLAY	1	$40.00	$40.00
-	i2c-14seg	AdaFruit	?		3
-	i2c-8x16	AdaFruit	?		1
-	ht16k33 breaout	AdaFruit	?		1
-	Buttons		AdaFruit	?		8
-	OWO Resistors	?				8
-	Diode		?		?		1
-	RGY 10-seg LED	Jameco		?		6
-	1/8" spacers	Mouser		?		?
-	#2 Screws	Mouser		?		?
-	4-pin header	?		?		?
-	20-pin sockets	?		?		6
+\begin{table}
 
-	i2c cable:
-	header, 4 pins, wire
+\caption{Display Parts.~\label{table:display_parts}}
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+NAME		& WHERE		& PART\#	& QTY	& PRICE		& TOTAL \\
+\hline
+\hline
+PCB		& OSH-PARK	& VMW-DISPLAY	& 1	& \$40.00	& \$40.00 \\
+\hline
+i2c-14seg	& AdaFruit	& ?		& 3	&		&	\\
+\hline
+i2c-8x16	& AdaFruit	& ?		& 1	&		&	\\
+\hline
+ht16k33 breaout	& AdaFruit	& ?		& 1	&		&	\\
+\hline
+Buttons		& AdaFruit	& ?		& 8	&		&	\\
+\hline
+OWO Resistors	& ?		& 		& 8	& 		&	\\
+\hline
+Diode		& ?		& ?		& 1	& 		&	\\
+\hline
+RGY 10-seg LED	& Jameco	& ?		& 6	& 		&	\\
+\hline
+1/8" spacers	& Mouser	& ?		& ?	& 		&	\\
+\hline
+\#2 Screws	& Mouser	& ?		& ?	& 		&	\\
+\hline
+4-pin header	& ?		& ?		& ?	& 		&	\\
+\hline
+20-pin sockets	& ?		& ?		& 6	& 		&	\\
+\hline
+header		& Jameco	& 152734	& 2	& 		&	\\
+.1" 4pin HSG	& 		&		&	&		&	\\
+\hline
+pins		& Jameco	& ????		& 8	&		&	\\
+\hline
+\hline
+		&		&		&	&		&	\\
+\hline
+\end{tabular}
+\end{table}
 
-	header		Jameco	152734			2
-		.1" 4pin HSG
-	pins		Jameco	????			8
+Build instructions for the i2c display board.
 
-
-
-1. Get the purple PCBs from OSH Park
-2. File down the little nubs around the edges, especially in the speaker
+\begin{enumerate}
+\item	Get the purple PCBs from OSH Park
+\item	File down the little nubs around the edges, especially in the speaker
 	areas
-3. Make an i2c cable.  see the pi cluster directions.
+\item	Make an i2c cable.  see the pi cluster directions.
 	not labeled on Mark1 PCB
 	square is VDD, then it's SDA, GND, SCL
 
-3. First solder on the things on the back.  First the 4 pin socket.
+\item	First solder on the things on the back.  First the 4 pin socket.
 
-4. Next to the ht16k33 breakout.  (Build it first, putting the pin
+\item	Next to the ht16k33 breakout.  (Build it first, putting the pin
 	headers on each side)  We leave it at default i2c address (0x70)
 
-5.  Now might be a good time to hook things up and test with i2c-scan
+\item	Now might be a good time to hook things up and test with i2c-scan
 	to see if it is detecting properly.
 
-6.  Next the diode (band direction is indicated)
+\item	Next the diode (band direction is indicated)
 	and 8 39k  resistors (orange white orange)
 
-7.  Next solder in the 20-pin sockets
+\item	Next solder in the 20-pin sockets
 
-8.  Next the 8 switches.  There are bumps on the bottom of the
+\item	Next the 8 switches.  There are bumps on the bottom of the
 	switches that slot into holes on the board, which should
 	ensure correct orientation.
 
-9. Now it's time for the adafruit 14-segment LED boards.
+\item	Now it's time for the adafruit 14-segment LED boards.
 	First solder the headers onto them.
 
-	Next, assuming you are using #2 screws, we need to enlarge the
+	Next, assuming you are using \#2 screws, we need to enlarge the
 	drill holes on the Adafruit boards as they are just slightly too
 	small.  I used a file, a drill can maybe be used.
 
@@ -80,24 +123,24 @@ Display
 	The bottom holes on the middle display are too close to the ones
 	on either side, so leave those off.
 
-10.	Now put on the Adafruit 8x16 LED display.  Attach the header.
+\item	Now put on the Adafruit 8x16 LED display.  Attach the header.
 	Configure for i2c address ???? (check on that)
 	Expand all four holes on the board.
 	The holes all work for this one, so put the screw from the bottom,
 	with a spacer and nut on top.
 
-11.	Put the 10-segment bargraph displays into the sockets.
+\item	Put the 10-segment bargraph displays into the sockets.
 	On the left side of the board the lettering on the displays should
 	face down, on the right side they should face up.
 
-12.	Put the five 0.5" standoffs into the board from the bottom, with
+\item	Put the five 0.5" standoffs into the board from the bottom, with
 	a washer and nut on top.  The top center nut won't fit w/o shorting
 	the switch, so leave it out for now.
 
-13.	Put button tops onto the buttons (colors are up to you)
+\item	Put button tops onto the buttons (colors are up to you)
 
-14.	Plug in the i2c wire and test (if you haven't been testing all along)
-
+\item	Plug in the i2c wire and test (if you haven't been testing all along)
+\end{enumerate}
 
 Sound Board
 
@@ -107,7 +150,7 @@ Sound Board
 	1MHz Osc	?		?		1
 	Osc Socket					1
 	74HC595N	?		?		2
-	PCB		OSHPARK		VMW-SOUND	1	$40.00
+	PCB		OSHPARK		VMW-SOUND	1	\$40.00
 	40-pin header	AdaFruit
 	Level Shifter	AdaFruit	?		2
 	MAX98306 Break	AdaFruit	987		1
@@ -199,7 +242,7 @@ Overall:
 	Case		?		?		?
 	XA Power Supply	?		?		?
 	Mounting Screws
-	Raspberry Pi2	?		?		?	$35.00
+	Raspberry Pi2	?		?		?	\$35.00
 	SD-Card		?		?		?
 
 
@@ -230,4 +273,7 @@ the capacitors should be at least 300 mil not 100 mil
 oscillator too close to the chip
 use curves not so many right angles
 standoffs in bad places.
+
+
+\end{document}
 
