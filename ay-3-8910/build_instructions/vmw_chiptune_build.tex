@@ -1,5 +1,6 @@
 \documentclass[11pt]{article}
 
+\usepackage{graphicx}
 \usepackage{url}
 \usepackage{hyperref}
 
@@ -12,16 +13,232 @@ by Vincent M. Weaver\\
 2 June 2017
 \end{center}
 
+\begin{center}
+\includegraphics[width=1in]{figs/vmw}\\
+A VMW Hardware Production
+\end{center}
 
 \section{Introduction}
 
 This is a work in progress.  I will update it as I complete more
 of the project.
 
-
-
+%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%
 \section{Building}
+%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{The Primary Sound Board ``hat''}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{table}
+\caption{Sound Board Parts.~\label{table:sound_parts}}
+\centering
+\begin{tabular}{|c|c|c|c|r|r|}
+\hline
+NAME		& WHERE		& PART\#                  & QTY	& PRICE	   & TOTAL \\
+\hline
+\hline
+PCB		& OSH Park	& VMW-CHIPTUNE-SOUND-MK1  & 1	& \$45.08  & \$45.08 \\
+\hline
+PCB		& OSH Park	& VMW-CHIPTUNE-SLIDER-MK1 & 1   &  \$2.80  &  \$2.80 \\
+\hline
+AY-3-8910	& eBay		& AY-3-8910		  & 2	&  \$3.00  &  \$6.00 \\
+\hline
+40-pin sockets	& Jameco	& 112311		  & 2	&  \$0.49  &  \$0.98 \\
+		&		& 40-pin 0.60" wide       &     &	   &         \\
+\hline
+16 pin socket	& Jameco	& 37402                   & 2	&  \$0.75  &  \$1.50 \\
+		&		& 16-pin 0.3"		  &     &          &         \\
+\hline
+14-pin osc sock	& Jameco	& 133006	          & 1	&  \$0.65  &  \$0.65 \\
+		&		& 4-pin oscillator socket &     &	   &	     \\
+\hline
+14-pin socket	& Jameco	& 37197			  & 3	&  \$0.65  &  \$1.95 \\
+		&		& 14-pin 0.3"		  &     &          &         \\
+\hline
+8 pin socket	& Jameco	& 51626                   & 1	&  \$0.45  &  \$0.45 \\
+		&		& 8-pin 0.3"              &     &          &         \\
+\hline
+10k resistors	& Jameco	& 691104		  & 5   &  \$0.10  &  \$0.50 \\
+		&		& 10k, 1/4 Watt, 5\%	  &     &          &         \\
+\hline
+3.9k resistors	& Jameco	& 691008		  & 2   &  \$0.10  &  \$0.20 \\
+		&		& 3.9k, 1/4 Watt, 5\%	  &     &          &         \\
+\hline
+1k resistors	& Jameco	& 690865		  & 4   &  \$0.10  &  \$0.40 \\
+		&		& 1k, 1/4 Watt, 5\%	  &     &          &         \\
+\hline
+0.1uF capacitors& Jameco	& 544921		  & 8   &  \$0.15  &  \$1.20 \\
+		&		& ceramic 0.1uF, 50V, 10\%&     &          &         \\
+\hline
+100uF capacitors& Jameco	& 1946228		  & 2   &  \$0.25  &  \$0.50 \\
+		&		& radial 100uF, 10V, 20\% &     &          &         \\
+\hline
+SPDT Switch	& Jameco	& 588220		  & 1	&  \$0.49  &  \$0.49 \\
+		&		& SPDT 12V		  &	&	   &	     \\
+\hline
+Slider pot	& Jameco	& 2237757		  & 2	&  \$1.89  &  \$3.78 \\
+		&		& SPDT 12V		  &	&	   &	     \\
+\hline
+4-pin header	& Jameco	& 152726		  & 2	&  \$0.49  &  \$0.98 \\
+		&		& rt-angle 4-pin shroud	  &	&          &         \\
+\hline
+Rt-angle Bracket& Jameco	& 1581530		  & 2	&  \$0.35  &  \$0.70 \\
+		&		& Key 621, 0.25" 4-40	  &	&          &         \\
+\hline
+4-40 screws	& Jameco	& 2094389		  & 4	&  \$0.06  &  \$0.24 \\
+		&		& 0.25" 4-40	  	  &	&          &         \\
+\hline
+1MHz Oscillator	& Jameco	& 27861			  & 1	& \$1.95   &  \$1.95 \\
+\hline
+Audio Jack	& DigiKey	& CP1-3525NG-ND	          & 1	&  \$0.82  &  \$0.82 \\
+		&		& 3.5mm stereo		  &	&	   &	     \\
+\hline
+i2c EEPROM	& Digikey 	& CAT24C32LI-G-ND         & 1 	& \$0.37   &  \$0.37 \\
+\hline
+Standoffs 18mm	& Mouser	& 534-24426		  & 4   &  \$0.52  &  \$2.08 \\
+		&		& Hex 2.5mm/4.5mm/18mm	  &	&	   &	     \\
+\hline
+Screws 2.5mm	& Mouser	& 534-29300		  & 4   &  \$0.34  &  \$1.36 \\
+		&		& 2.5mm x 4mm             &	&	   &	     \\
+\hline
+40-pin header	& AdaFruit	& 2223                    & 1	&  \$2.50  &  \$2.50 \\
+		&		& 40-pin 10mm stacking	  &     &          &         \\
+\hline
+1-wire DS18B20	& AdaFruit	& 374			  & 1	&  \$3.95  &  \$3.95 \\
+		&		& DS18B20 temp sensor	  &	&	   &         \\
+\hline
+DS1307 Breakout	& AdaFruit	& 3296			  & 1	&  \$7.50  &  \$7.50 \\
+		&		& DS1307 i2c RTC 	  &	&	   &         \\
+\hline
+MAX98306 Break	& AdaFruit	& 987		          & 1	&  \$8.95  &  \$8.95 \\
+		&		& 3.7W Class D		  &	&	   &	\\
+\hline
+74HCT125N	& Adafruit	& 1787			  & 3	&  \$1.50  &  \$4.50 \\
+\hline
+74HC595		& Adafruit	& 450			  & 2	&  ---     &  \$2.75 \\
+\hline
+\hline
+		&		&		&	&		& \$61.13 \\
+\hline
+\end{tabular}
+\end{table}
+
+Note that you can build just the sound board, you don't need to have the i2c display.
+Also the sound board has lots of extras that you do not need to populate if you don't want to.
+
+Optional parts:
+\begin{enumerate}
+	\item The ``hat'' circuitry (the EEPROM and resistors)
+	\item The 1-wire temp sensor
+	\item The real-time clock
+	\item One half of the sound circuitry (AY-3-8910, etc) if you only want
+		a mono board.
+\end{enumerate}
+
+
+Sound Board Assembly Directions:
+\begin{enumerate}
+\item	Order the Printed Circuit Boards (PCBs).
+	They are shared at OSH Park, but I provide the gerber files under
+	{\tt hardware} if you want to get them somewhere else.
+	Often you are forced to buy three of each even if you only want one.
+\item	Solder parts on the AY side (the one with the picture of a man on it) first.
+	\begin{enumerate}
+		\item Solder the two 40-pin sockets.
+		\item Solder on the oscillator socket
+		\item Solder on the three 14-pin sockets.
+			Annoyingly the ones I had were taller than the 40-pin.
+		\item Solder on the audio jack
+		\item Solder on the two 1k resistors (brown black red)
+		\item Solder on the two 10k resistors (brown black orange)
+	\end{enumerate}
+\item	Flip the board over to the spaceship side.
+	\begin{enumerate}
+		\item Solder on the two 16-pin sockets
+		\item Solder on the 8-pin socket
+		\item Solder on three 10k resistors (black brown orange)
+		\item Solder on two 1k resistors (black brown red)
+		\item Solder on two 3.9k resistors (orange white red)
+	\end{enumerate}
+\item	Flip back to the man side.
+	\begin{enumerate}
+		\item Solder on the 40-pin PI header.
+			To get it the right size, first push the header onto the Pi's pins.
+			Then attach the 18mm standoffs and push the header through the holes.
+			Then solder, which ensures the pins are the right distance.
+		\item Solder on five 0.1uF bypass capacitors.
+			The board only has 0.1" spacing which makes this hard.
+		\item Solder on two 100uF capacitors.
+			 Be sure the minus pin goes in the minus hole.
+		\item	Solder on the spdt switch
+			(we do this later to make soldering the resistors easier).
+	\end{enumerate}
+\item	Flip back to the rocket side
+	\begin{enumerate}
+		\item Solder on three more 0.1uF bypass caps
+		\item Solder on the DS18B20 1-wire temperature sensor (looks like
+			a transitor).
+                      Be sure to line the pins up properly.
+		\item Solder on the two 4-pin connectors, one for i2c out, one for
+			speaker out.
+		\item Solder on a 2-pin piece of 0.1" header for the eeprom write
+			protect.
+			You probably have some extra from the various adafruit parts.
+		\item Put together the adafruit DS1307 RTC board.  Solder it in place.
+			Note, you'll have to put a watch battery in or it won't appear
+			on i2c scans.
+	\end{enumerate}
+\item Flip back to the man side.
+	\begin{enumerate}
+		\item Attach the MAX98306 amplifier breakout.
+			First put it together separately BUT NOTE don't put it all the
+			way together.
+			Place the 9-pin header into the board and put 4 leftover pins
+			into the speaker outputs.  Put the MAX board on top and solder these on.
+			Then flip and solder this to the board.  You don't need to solder on
+			the screw terminals or the gain jumper blocks.
+	\end{enumerate}
+	
+\item Slide potentiometer sub-assembly
+	\begin{enumerate}
+		\item Get the slider PCB
+		\item Solder the two slider potentiometers in place.
+		\item Screw in place with the right-angle hardware and four screws.
+		\item Cut small 1/2" or so pieces of wire and solder in place
+			The two toward top side of main board are ground, 
+			bottom two are signal
+	\end{enumerate}
+
+\item Testing
+	\begin{enumerate}
+		\item Check 5V, 3.3V, and GND continuity
+		\item Hook up a pi.  Check for smoke.
+		\item Run {\tt i2cdetect -y 1} and see if RTC found at {\tt 0x68}
+			(note a battery must be on the RTC or this won't work)
+		\item Check that the 1-wire DS1820 shows up under /sys
+	\end{enumerate}
+			
+\item Populate the sockets
+	\begin{enumerate}
+		\item Put the AY-3-8910 in place (might only want to do one first
+			to make sure you don't fry both)
+		\item Put in the 74HCT125N chips
+		\item Put in the 74HC595
+		\item Put in the 1MHz oscillator.  It's a tight fit next to the AY-3-8910,
+			you might need to snip off the 1-pin indicator tag so it will fit.
+		\item Put in the EEPROM
+	\end{enumerate}
+\end{enumerate}
+
+
+		
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{The Display}
 
 \begin{table}
@@ -30,10 +247,10 @@ of the project.
 \centering
 \begin{tabular}{|c|c|c|c|c|c|}
 \hline
-NAME		& WHERE		& PART\#	& QTY	& PRICE		& TOTAL \\
+NAME		& WHERE		& PART\#	           & QTY & PRICE    & TOTAL \\
 \hline
 \hline
-PCB		& OSH-PARK	& VMW-DISPLAY	& 1	& \$40.00	& \$40.00 \\
+PCB		& OSH Park	& VMW-CHIPTUNE-DISPLAY-MK1 & 1	 & \$45.00  & \$45.00 \\
 \hline
 i2c-14seg	& AdaFruit	& ?		& 3	&		&	\\
 \hline
@@ -63,7 +280,7 @@ header		& Jameco	& 152734	& 2	& 		&	\\
 pins		& Jameco	& ????		& 8	&		&	\\
 \hline
 \hline
-		&		&		&	&		&	\\
+		&		&		&	&		& \$45.00 \\
 \hline
 \end{tabular}
 \end{table}
@@ -142,101 +359,9 @@ Build instructions for the i2c display board.
 \item	Plug in the i2c wire and test (if you haven't been testing all along)
 \end{enumerate}
 
-Sound Board
 
-	AY-3-8910	E-bay		?		2
-	3.5mm Audio	DigiKey		CP1-3525NG-ND	1
-		Stereo
-	1MHz Osc	?		?		1
-	Osc Socket					1
-	74HC595N	?		?		2
-	PCB		OSHPARK		VMW-SOUND	1	\$40.00
-	40-pin header	AdaFruit
-	Level Shifter	AdaFruit	?		2
-	MAX98306 Break	AdaFruit	987		1
-		3.7W Class D
-	Resistors
-	Capacitors
-	1-wire DS1280	AdaFruit	?		1
-	4-pin header
-	40-pin sockets	Jameco		112311		2
-	14-pin sockets	Jameco		37197		3
-	14-pin osc	Jameco		133006		1
-		socket
-	16 pin socket	Jameco		37402		2
-	8 pin socket					1
-	0.1uF caps
-	4 Ohm Speakers	AdaFruit	?		1
-	spdt switch	Jameco		588220		1
-
-	Optional:
-
-	i2c EEPROM
-	8-pin socket
-	i2c-RTC
-
-Directions
-
-	1. Get the PCB
-	2. Put the sockets on the AY side first?
-		two 40-pin sockets
-		oscillator socket
-		the 14-pins which seem to be higher than 40-pin
-	3. Solder on the audio jack
-	5. solder on the two 1k and 10k resistors
-	Flip sides
-	solder on 2 16-pin sockets
-	solder on 8-pin socket
-	solder on 3 10k resistors, 2 1-k resistors, 2 3.9k
-
-
-
-	flip back
-	solder on the pi header.  attach to pi, then screw in place
-		with standoffs. then solder
-	solder on five 0.1uF caps
-	solder on two 100uF caps make sure minus pin in minus hole
-	4. Solder on the spdt switch (this is later, makes resistors
-	on other side easier)
-
-
-	flip back
-
-	solder on 3 bypass caps
-	DS18B20 (be sure to line up)
-	two 4-pin connectors
-	write protect 2-pin header
-	RTC (if desired)
-
-	flip back
-
-	MAX
-		easiest to start with fresh board.
-		Only do the 9 wide header and take 4 extra pins
-		and put then in the output holes.
-		solder the board to these, then solder the whole thing
-		to the board
-	
-	slide switch
-		screw in place
-		cut small 1/2" or so pieces of wire and solder in place
-		two toward top side of main board are ground, 
-		bottom two are signal
-
-	Testing:
-		5V+3.3V+GND continuity
-		Hook up a pi.  Check for smoke.
-		Run i2cdetect -y 1 and see if RTC found at 0x68
-		Check that the 1-wire DS1820 shows up
-			
-
-	pput in chips
-
-	snip the 1-pin indicator of the oscillator otherwise it's
-	a tight fit
-
-	wrap the standoff in electrical tape
-		
+\subsection{Building the Enclosure / Final Assembly}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Overall:
 	Case		?		?		?
@@ -245,25 +370,33 @@ Overall:
 	Raspberry Pi2	?		?		?	\$35.00
 	SD-Card		?		?		?
 
+%4 Ohm Speakers	& AdaFruit	& ?		& 1	&		&	\\
+%\hline
+
+
 
 Building the case:
+\begin{enumerate}
+\item	Drill the holes and openings as indicated.
 
-	Drill the holes and openings as indicated.
+\item	Screw holes drilled with 7/64th bit
 
-	Screw holes drilled with 7/64th bit
-
-	On the pi, put two extra washers on the one side so that it lays
+\item	On the pi, put two extra washers on the one side so that it lays
 	flat.
 
-	put electrical tape around the standofs for close clearance
+\item	put electrical tape around the standofs for close clearance
 	
-	quarter inch holes and used coping saw to cut out openings
+\item	quarter inch holes and used coping saw to cut out openings
+\end{enumerate}
 
 
+	wrap the standoff in electrical tape
 
-
-
-ERRATA!
+%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%
+\section{ERRATA!}
+%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%
 
 the standoff behind the slider is too close to various components
 the standoff on the bottom left completely blocks the memory card slot
