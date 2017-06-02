@@ -240,6 +240,10 @@ Sound Board Assembly Directions:
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{The Display}
+%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 
 \begin{table}
 
@@ -252,32 +256,38 @@ NAME		& WHERE		& PART\#	           & QTY & PRICE    & TOTAL \\
 \hline
 PCB		& OSH Park	& VMW-CHIPTUNE-DISPLAY-MK1 & 1	 & \$45.00  & \$45.00 \\
 \hline
-i2c-14seg	& AdaFruit	& ?		& 3	&		&	\\
+4-pin header	& Jameco	& 152726		   & 1	 & \$0.49   &  \$0.49 \\
+		&		& rt-angle 4-pin shroud	   &	 &          &         \\
 \hline
-i2c-8x16	& AdaFruit	& ?		& 1	&		&	\\
+Diode 1N4148	& Jameco	& 36038		           & 1	 & \$0.04   &  \$0.04 \\
 \hline
-ht16k33 breaout	& AdaFruit	& ?		& 1	&		&	\\
+39k resistors	& Jameco	& 691243		   & 8   &  \$0.10  &  \$0.80 \\
+		&		& 39k, 1/4 Watt, 5\%	   &     &          &         \\
 \hline
-Buttons		& AdaFruit	& ?		& 8	&		&	\\
+20-pin sockets	& Jameco	& 112248		   & 6	 &  \$0.17  &  \$1.02 \\
+		&		& 20-pin 0.3"		   &     &          &         \\
 \hline
-OWO Resistors	& ?		& 		& 8	& 		&	\\
+RGY 10-seg LED	& Jameco	& 2217596		   & 6	 &  \$1.49  &  \$8.94 \\
 \hline
-Diode		& ?		& ?		& 1	& 		&	\\
+ht16k33 breaout	& AdaFruit	& 1427		           & 1	 & \$5.95   &  \$5.95 \\
 \hline
-RGY 10-seg LED	& Jameco	& ?		& 6	& 		&	\\
+Buttons		& AdaFruit	& 1010			   & 8	 & ---	    &  \$5.95 \\
+		&		& Omron b3f with tops	   &     &          &         \\
 \hline
-1/8" spacers	& Mouser	& ?		& ?	& 		&	\\
+14seg display	& AdaFruit	& 1911			   & 3	 & \$9.95   & \$29.85 \\
+		&		& red, i2c		   &	 &          &	      \\  
 \hline
-\#2 Screws	& Mouser	& ?		& ?	& 		&	\\
+8x16 LED matrix	& AdaFruit	& 2041			   & 1	 & \$15.95  & \$15.95 \\
 \hline
-4-pin header	& ?		& ?		& ?	& 		&	\\
+
+1/8" spacers	& Mouser	& 749-908-125		   & 50  & \$0.04   & \$2.00  \\
+		& 		& 0.125" nylon		   &     &          &         \\
 \hline
-20-pin sockets	& ?		& ?		& 6	& 		&	\\
+\#2 Screws	& Mouser	& 5721-256-2/8-SS	   & 100 & --- 	    & \$8.26  \\
+		&		& 2-56 0.375"		   &     &          &         \\
 \hline
-header		& Jameco	& 152734	& 2	& 		&	\\
-.1" 4pin HSG	& 		&		&	&		&	\\
-\hline
-pins		& Jameco	& ????		& 8	&		&	\\
+\#2 nuts	& Mouser	& 5721-256-SS	   	   & 100 & --- 	    & \$5.83  \\
+		&		& 2-56		   	   &     &          &         \\
 \hline
 \hline
 		&		&		&	&		& \$45.00 \\
@@ -286,77 +296,98 @@ pins		& Jameco	& ????		& 8	&		&	\\
 \end{table}
 
 Build instructions for the i2c display board.
+This is optional, but looks nice.
+
 
 \begin{enumerate}
-\item	Get the purple PCBs from OSH Park
-\item	File down the little nubs around the edges, especially in the speaker
-	areas
-\item	Make an i2c cable.  see the pi cluster directions.
-	not labeled on Mark1 PCB
-	square is VDD, then it's SDA, GND, SCL
+\item	Get the purple PCB from OSH Park or your preferred PCB provider.
+	You may need to file down the little nubs around the edges, especially in the 
+	speaker areas, for it to fit into the case.
 
-\item	First solder on the things on the back.  First the 4 pin socket.
+\item Solder things on the back
+	\begin{enumerate}
+		\item	Solder on the 4-pin i2c connector.
+		\item	Next the ht16k33 breakout.  (Build it first, putting the pin
+			headers on each side)  We leave it at the default i2c address (0x70)
+		\item	If you already have an i2c cable, now might be a good time to hook 
+			things up and test with i2c-scan to see if it is detecting properly.
+	\end{enumerate}
 
-\item	Next to the ht16k33 breakout.  (Build it first, putting the pin
-	headers on each side)  We leave it at default i2c address (0x70)
+\item Solder things on the front
+	\begin{enumerate}
+	\item	Solder on the diode (band direction is indicated, be sure to get it in
+		the right way)
+	\item	Solder on the eight 39k resistors (orange white orange)
+	\item	Next solder in the six 20-pin sockets
+	\item	Next the 8 buttons.
+		There are bumps on the bottom of the
+		switches that slot into holes on the board, which should
+		ensure correct orientation.
+	\end{enumerate}
 
-\item	Now might be a good time to hook things up and test with i2c-scan
-	to see if it is detecting properly.
+\item 14-segment LED boards
 
-\item	Next the diode (band direction is indicated)
-	and 8 39k  resistors (orange white orange)
+	\begin{enumerate}
 
-\item	Next solder in the 20-pin sockets
+		\item	We will be using three of these.
+			First solder the headers onto them
 
-\item	Next the 8 switches.  There are bumps on the bottom of the
-	switches that slot into holes on the board, which should
-	ensure correct orientation.
+		\item  Next, assuming you are using \#2 screws, we need to enlarge the
+			drill holes on the Adafruit boards as they are just slightly too
+			small.  I used a file, a drill can maybe be used.
 
-\item	Now it's time for the adafruit 14-segment LED boards.
-	First solder the headers onto them.
+		\item Solder the three boards to have different i2c addresses.
+			Left is 101, middle 110, right 111.
 
-	Next, assuming you are using \#2 screws, we need to enlarge the
-	drill holes on the Adafruit boards as they are just slightly too
-	small.  I used a file, a drill can maybe be used.
+		\item Now set up the spacers and screws.  
+			This didn't really go according
+			to plan (mostly due to nut size and the lower holes being in the
+			wrong place on the Mark1 board).
+			Used 3 screws per display due to nut clearance issues?
+			Should make a diagram (TODO).
 
-	Solder the three boards to have different i2c addresses.
-	Left is 101, middle 110, right 111.
+		\item Each board will be floating a bit in the air to avoid shorting out
+			against component leads from the other side.
+			The height is equal to one 1/8" spacer plus a nut length.  
 
-	Now set up the spacers and screws.  This didn't really go according
-	to plan (mostly due to nut size and the lower holes being in the
-	wrong place on the Mark1 board).
+		\item On the top row, put the screw from the bottom, with a spacer and a nut.
+			The board should slip onto this.
+			There is not enough clearance to put an additiona nut on top.
+			On the lower ones, put the screw in from *the top* going through 
+			a spacer with a nut on the other side.
+			The bottom holes on the middle display are too close to the ones
+			on either side, so leave those off.
 
-	TODO: diagram
+	\end{enumerate}
 
-	Each board will be floating a bit in the air to avoid shorting out
-	against component leads from the other side.  The height is equal
-	to one 1/8" spacer plus a nut length.  
+\item 8x16 LED matrix board
+	\begin{enumerate}
 
-	On the top row, put the screw from the bottom, with a spacer and a nut.
-	The board should slip onto this.  There is not enough clearance
-	to put an additiona nut on top.
-	On the lower ones, put the screw in from *the top* going through 
-	a spacer with a nut on the other side.
-	The bottom holes on the middle display are too close to the ones
-	on either side, so leave those off.
+	\item	Attach the header.
+	\item   Configure solderpads for i2c address 001.
+	\item   Expand all four holes on the board with a file
+	\item   The holes all work for this one, so put the screw from the bottom,
+		with a spacer and nut on top.
+	\end{enumerate}
 
-\item	Now put on the Adafruit 8x16 LED display.  Attach the header.
-	Configure for i2c address ???? (check on that)
-	Expand all four holes on the board.
-	The holes all work for this one, so put the screw from the bottom,
-	with a spacer and nut on top.
 
-\item	Put the 10-segment bargraph displays into the sockets.
-	On the left side of the board the lettering on the displays should
-	face down, on the right side they should face up.
+\item Bargraph displays
+	\begin{enumerate}
 
-\item	Put the five 0.5" standoffs into the board from the bottom, with
-	a washer and nut on top.  The top center nut won't fit w/o shorting
-	the switch, so leave it out for now.
+	\item	Put the 10-segment bargraph displays into the sockets.
+		On the left side of the board the lettering on the displays should
+		face down, on the right side they should face up.
+	\end{enumerate}
 
-\item	Put button tops onto the buttons (colors are up to you)
+\item Finishing
+	\begin{enumerate}
 
-\item	Plug in the i2c wire and test (if you haven't been testing all along)
+	\item	Put button tops onto the buttons (colors are up to you)
+
+	\item	Plug in the i2c wire and test (if you haven't been testing all along)
+	\end{enumerate}
+
+
 \end{enumerate}
 
 
@@ -370,6 +401,10 @@ Overall:
 	Raspberry Pi2	?		?		?	\$35.00
 	SD-Card		?		?		?
 
+%header		& Jameco	& 152734	& 2	& 		&	\\
+%.1" 4pin HSG	& 		&		&	&		&	\\
+%\hline
+%pins		& Jameco	& ????		& 8	&		&	\\
 %4 Ohm Speakers	& AdaFruit	& ?		& 1	&		&	\\
 %\hline
 
@@ -387,6 +422,15 @@ Building the case:
 \item	put electrical tape around the standofs for close clearance
 	
 \item	quarter inch holes and used coping saw to cut out openings
+\item	Make an i2c cable.  see the pi cluster directions.
+	not labeled on Mark1 PCB
+	square is VDD, then it's SDA, GND, SCL
+
+
+	\item	Put the five 0.5" standoffs into the board from the bottom, with
+		a washer and nut on top.  The top center nut won't fit w/o shorting
+		the switch, so leave it out for now.
+
 \end{enumerate}
 
 
