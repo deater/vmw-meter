@@ -391,50 +391,124 @@ This is optional, but looks nice.
 \end{enumerate}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Building the Enclosure / Final Assembly}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Overall:
-	Case		?		?		?
-	XA Power Supply	?		?		?
-	Mounting Screws
-	Raspberry Pi2	?		?		?	\$35.00
-	SD-Card		?		?		?
 
-%header		& Jameco	& 152734	& 2	& 		&	\\
-%.1" 4pin HSG	& 		&		&	&		&	\\
-%\hline
-%pins		& Jameco	& ????		& 8	&		&	\\
-%4 Ohm Speakers	& AdaFruit	& ?		& 1	&		&	\\
-%\hline
+\begin{table}
 
+\caption{Case Parts.~\label{table:case_parts}}
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+NAME		& WHERE		& PART\#	           & QTY & PRICE    & TOTAL \\
+\hline
+\hline
+Case		& Allied	& 1591ETCL		   & 1   & \$15.71   & \$15.71 \\
+		&		& Hammond clear 7.5x4.3x2.2&     &           &         \\
+\hline
+Raspberry Pi2	&		&		?	   & 1   & \$35.00   & \$35.00 \\
+\hline
+8GB SD-Card	& Adafruit	& 2767			   & 1   & \$11.95   & \$11.95 \\
+\hline
+Power Supply	& Adafruit	& 1995			   & 1   & \$7.50    & \$7.50  \\
+		&		& 5V 2.4A microUSB	   &     &           &         \\
+\hline
+4 Ohm Speakers	& AdaFruit	& 1669			   & 1	 & \$7.50    & \$7.50  \\ 
+		&		& rectangle, 4 Ohm, 3Watt  &     &           &         \\
+\hline
+\#4 Screws	& Jameco	& 2094397	  	   & 20  & \$0.06   & \$1.20  \\
+		&		& \#4 0.375"		   &     &          &         \\
+\hline
+\#4 nuts	& Jameco	& 40943	   	           & 20  & \$0.06   & \$1.20  \\
+\hline
+\#4 washers	& Jameco	& 106826	   	   & 20  & \$0.06   & \$1.20  \\
+\hline
+Header pins	& Jameco	& 181673	           & 100 & \$0.07   & \$7.00  \\
+\hline
+Header connector& Jameco	& 152734	           & 3   & \$0.59   & \$1.77  \\
+		&		& 2.54mm connector	   &     &          &         \\
+\hline
+3/4" standoff	& Mouser	& 534-8403	           & 5   & \$0.67   & \$3.35   \\
+		&		& 4-40			   &     &          &          \\
+\hline
+7/8" standoff	& Mouser	& 534-8404		   & 5   & \$1.00   & \$5.00   \\
+		&		& 4-40			   &     &          &          \\
+\hline
+\hline
+		&		&		&	&		& \$45.00 \\
+\hline
+\end{tabular}
+\end{table}
 
-
-Building the case:
+Putting it all together:
 \begin{enumerate}
-\item	Drill the holes and openings as indicated.
 
-\item	Screw holes drilled with 7/64th bit
+	\item If you haven't already, attach the Pi to the sound board using the 
+		18mm standoffs, 2.5mm screws, and washers.
+		I use a pi2.
+		A pi-B+ fits but unfortunately goes a bit too slow with Linux running.
+		A pi-3 probably will work, but not sure about the heat situation.
 
-\item	On the pi, put two extra washers on the one side so that it lays
-	flat.
+	\item	On the pi, put two extra washers on the one standoff so that it lays
+			flat.
 
-\item	put electrical tape around the standofs for close clearance
-	
-\item	quarter inch holes and used coping saw to cut out openings
-\item	Make an i2c cable.  see the pi cluster directions.
-	not labeled on Mark1 PCB
-	square is VDD, then it's SDA, GND, SCL
+	\item Attach the Display board to the Sound board
 
+		\begin{enumerate}
+		
+		\item Connect the speakers to the display board.
+			They should fit into the cutout space.
+			Use three screws and nuts to attach each to board.
+			You will need to cut the outer (unscrewed) mouting holes
+			off of the outside corners of the speakers so they fit into
+			the case.
 
-	\item	Put the five 0.5" standoffs into the board from the bottom, with
-		a washer and nut on top.  The top center nut won't fit w/o shorting
-		the switch, so leave it out for now.
+		\item Create the proper connector for the speaker, which is the 4-pin CDROM
+			connector.  Trim the wires to about 7"
+			Crimp the connectors to the four wires (this is tricky, see
+			Figure~\ref{figure:crimping} with a crimping tool.
+			Insert the wires into the connector. L-,L+,R-,R+
+
+		\item Create the proper i2c connector.
+			Use the same crimper as for the speaker, but this time on both
+			ends.  Four wires, each around 7".  2" with a right angle bend.
+			Order is Vdd, SDA, GND, SCL (note this is not marked on
+			the display board).
+
+		\item Put five of the 3/4" standoffs through the bottom of the sound board
+			(with the AY-3-8910 pointing down).
+
+		\item Screw 5 of 7/8" standoffs on top.
+			Put electrical tape around the standoffs with close clearance
+			to avoid shorts
+
+		\item Attach the i2c and speaker connectors (now would be a good time to test)
+
+		\item Place the display board on top.
+			Use a washer and nut to attach.
+			The center top one, a nut won't fit due to clearance issues with
+			the switches, so leave that one without a nut on.
+
+		\end{enumerate}
+
+	\item Prepare the Case
+		\begin{enumerate}
+		\item	Drill the holes and openings as indicated.
+			I used a hand drill and coping saw to do this, but you
+			probably have better tools at your disposal.
+		\item Place the assembly inside and be sure it fits.
+			You might need to put the sliding pots through the hole first.
+		\item Mark on the bottom where to drill mounting holes.
+		\item Drill then with 7/64th bit.
+		\item Attach screws through the bottom.
+		\end{enumerate}
+
+	\item In theory you are all done!  Try it out!
 
 \end{enumerate}
 
-
-	wrap the standoff in electrical tape
 
 %%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%
