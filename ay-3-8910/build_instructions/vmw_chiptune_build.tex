@@ -7,21 +7,219 @@
 \begin{document}
 
 \begin{center}
-{\Large \bf Building the VMW Raspberry Pi / AY-3-8910 Chiptune Player}\\
-\url{http://deater.net/weave/vmwprod/hardware/ay-3-8910/}\\
-by Vincent M. Weaver\\
+{\Large \bf Building the VMW Raspberry Pi / AY-3-8910 Chiptune Player}\\[2ex]
+by Vincent M. Weaver\\[3ex]
+\url{http://deater.net/weave/vmwprod/hardware/ay-3-8910/}\\[3ex]
 2 June 2017
 \end{center}
 
+\begin{center}
+\includegraphics[width=3in]{figs/0377_front_view.jpg}
+\includegraphics[width=3in]{figs/0378_back_view.jpg}
+\end{center}
+\vspace{3ex}
 \begin{center}
 \includegraphics[width=1in]{figs/vmw}\\
 A VMW Hardware Production
 \end{center}
 
+\pagebreak
+
 \section{Introduction}
 
-This is a work in progress.  I will update it as I complete more
-of the project.
+This document describes a custom Raspberry-Pi Chiptune Player with
+LED visualization.
+The design contains an EEPROM and can be considered a Pi ``hat'', although
+I have not gotten around to testing or programming the EEPROM interface.
+
+The sound board contains two AY-3-8910~\cite{ay38910} sound chips, a design
+dating to the 1980s.
+These were popular chips, found in the ZX Spectrum and Atari ST.
+I know of them from their appearance on the Apple II Mockingboard soundcard.
+
+Features found on the device:
+\begin{itemize}
+\item Dual AY-3-8910 for 6-channel stereo sound
+\item i2c display including 8x16 display, 6 bargraphs, 12 characters, and 8 buttons
+\item i2c real-time-clock so it can be used as an alarm clock
+\item 1-wire temperature sensor
+\item Dual 4W speakers, can also output to stereo 3.5mm jack
+\item ``hat'' EEPROM 
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\section{Pi Interface}
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%$
+
+%%%%%%%%%%%%%%%%%%%%%%
+\subsection{AY-3-8910}
+%%%%%%%%%%%%%%%%%%%%%%
+
+The AY-3-8910 circuit is more or less the one found as a reference
+implementation in the manual.
+
+To limit the number of GPIOs needed, two 74HC595 shift registers are used
+to provide the parallel inputs to the AY-3-8910.
+The Pi drives these via the SPI interface (level shifted up to 5V
+by 74AHCT125N chips).
+
+To actually drive the bus signals, three GPIOs are used, hooekd to
+!RESET, BDIR1 and BC1 on the AY-3-8910s.
+
+The clocks on the AY-3-8910s are driven by a 1MHz crystal, which seems
+to do a reasonable job.
+The various 1980s computers used different clock crystals ranging from
+1MHz to 2MHz, but with proper scaling of the audio files 1MHz seems
+to suffice.
+
+There is a rough hand-drawn schematic shown in Figure~\ref{figure:schematic}.
+
+\begin{figure}[tph]
+\includegraphics{figs/0380_schematic.jpg}
+\caption{Schematic for the sound board.~\label{figure:schematic}}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%
+\subsection{Display}
+%%%%%%%%%%%%%%%%%%%%
+
+The LED displays are driven by the i2c bus.
+The 14-segment displays and the 8x16 display are standard breakout boards
+from Adafruit.  They have been configured so each has its own 
+i2c address.
+
+The bargraphs are hooked up manually to a ht16k33 breakout board, which
+is an i2c LED adapter.
+
+The buttons are connected to the ht16k33 breakout via the interface
+described in the datasheet~\cite{ht16k33}.
+
+No schematic is available for the Display board, I more or less took the
+breadboard design directly into geda/pcb with a long hand-written
+netlist.
+
+%%%%%%%%%%%%%%%%%%
+\subsection{Audio}
+%%%%%%%%%%%%%%%%%%
+
+The audio output from the AY-3-8910 is fed into both a 3.5" stereo
+jack, as well as a MAX98306 class-D amplifier breakout board.
+The MAX98306 feeds into dual 4 Ohm 3.7W speakers.
+
+The MAX98306 gain can be controlled via input pins, which are hooked to
+GPIO pins on the raspberry pi (through a 74AHCT125 for 3.3V to 5V
+level shifting).
+
+This works, but the output on the speakers is often
+too loud even with the lowest
+gain setting.
+Because of this two 10k sliding potentiometers were used to act as analog
+volume controls.
+
+There is a SPDT slide switch to indicate to the Pi that you want to disable
+the speakers.
+This is all in software; it is up to the Pi to monitor the GPIO and turn
+off the speakers in hardware.
+
+I spent a lot of time trying to design a circuit that could detect the
+impedeance of the jack and automatically cut off the speakers when a
+plug is inserted.
+I could not get this to work.
+
+The Pi can shutdown the amplifier using a GPIO line connected to the
+!SHDN signal.
+A pull-down resistor is in place to make sure this signal is pulled low
+until the Pi gets around to driving it.
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Peripherals}
+%%%%%%%%%%%%%%%%%%%%%%%%
+
+While designing the board, various extra features were added.
+
+A DS18B20 1-wire temperature sensor was added to monitor for overheating.
+It is unclear if extra ventilation holes will be needed in the case.
+
+An EEPROM was connected to the Pi i2c-configuration bus.
+This could be used to autoconfigure the device as a ``hat'' although
+I have not tested this functionality.
+
+A DS1307 i2c Real Time Clock was added, so that the Pi can remember
+the time when disconnected from the internet.
+This could allow use in alarm-clock type situations.
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\section{Performance}
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%$
+
+The device functions more or less well when being run by a 
+Raspberry Pi-2B.
+
+I tried using a Pi-B+ but it was not able to run things smoothly.
+Likely Linux was interrupting and messing up the real time handling
+(especially when I am logged in over the ethernet at the same
+time doing debugging).
+
+To play a ym5 file you need to update the 14 registers every 50Hz
+(20ms).
+
+The traditional /sys GPIO interface for Linux is much too slow for this.
+Instead I use the bcm2835 library~\cite{bcm2835}.
+
+The original implementation did not use SPI, but bitbanged the GPIOs.
+
+\begin{tabular}{|c|c|}
+\hline
+Routine	& Time (ms) \\
+\hline
+\hline
+ym\_play\_frame (gpio) & 14ms \\
+\hline
+display\_update (i2c) & 1-3ms \\
+\hline
+display\_keypad\_read: & 0.5ms \\
+\hline
+display\_string       & 5ms \\
+\hline
+\end{tabular}
+
+As you can see, it could sometimes overflow the 20ms window.
+Displaying a string on the 14seg displays takes especially a long time
+as the 3 subdisplays are each on a separate i2c address.
+
+By moving to SPI it reduced ym\_play\_frame to 5ms, allowing
+the sound and visualization to happen in the deadline.
+
+There is still some occasional jitter in the output.
+The solution might be to move to bare-metal coding (or a real time operating
+system) as Linux by default is not configured for real-time use.
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%
+\section{Software}
+%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%
+
+I provide software that can drive this board on github:\\
+\url{https://github.com/deater/vmw-meter.git}
+
+You can download it with:
+{\tt git clone https://github.com/deater/vmw-meter.git}
+and look in the ay-3-8910 directory.
+
+Software includes a YM5 player, conversion software, a rough tracker
+for creating your own chiptunes, and more.
+
+
 
 %%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%
@@ -33,9 +231,10 @@ of the project.
 \subsection{The Primary Sound Board ``hat''}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{table}
+\begin{table}[thp]
 \caption{Sound Board Parts.~\label{table:sound_parts}}
 \centering
+\sf
 \begin{tabular}{|c|c|c|c|r|r|}
 \hline
 NAME		& WHERE		& PART\#                  & QTY	& PRICE	   & TOTAL \\
@@ -229,10 +428,11 @@ Sound Board Assembly Directions:
 
 
 
-\begin{table}
+\begin{table}[thp]
 
 \caption{Display Parts.~\label{table:display_parts}}
 \centering
+\sf
 \begin{tabular}{|c|c|c|c|c|c|}
 \hline
 NAME		& WHERE		& PART\#	           & QTY & PRICE    & TOTAL \\
@@ -380,10 +580,11 @@ This is optional, but looks nice.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\begin{table}
+\begin{table}[thp]
 
 \caption{Case Parts.~\label{table:case_parts}}
 \centering
+\sf
 \begin{tabular}{|c|c|c|c|c|c|}
 \hline
 NAME		& WHERE		& PART\#	           & QTY & PRICE    & TOTAL \\
@@ -505,6 +706,10 @@ the capacitors should be at least 300 mil not 100 mil
 oscillator too close to the chip
 use curves not so many right angles
 standoffs in bad places.
+
+
+\bibliographystyle{abbrv}
+\bibliography{vmw_chiptune_build}
 
 
 \end{document}
