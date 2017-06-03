@@ -1,8 +1,8 @@
 %!PS-Adobe-3.0 EPSF-3.0
 %%Title: holes.fig
 %%Creator: fig2dev Version 3.2.6a
-%%CreationDate: 2017-06-02 16:38:32
-%%BoundingBox: 0 0 60 11
+%%CreationDate: 2017-06-02 20:43:53
+%%BoundingBox: 0 0 502 270
 %Magnification: 1.0000
 %%EndComments
 %%BeginProlog
@@ -46,13 +46,26 @@ end
   bind def
 /shd {dup dup currentrgbcolor 4 -2 roll mul 4 -2 roll mul
   4 -2 roll mul srgb} bind def
+ /DrawEllipse {
+	/endangle exch def
+	/startangle exch def
+	/yrad exch def
+	/xrad exch def
+	/y exch def
+	/x exch def
+	/savematrix mtrx currentmatrix def
+	x y tr xrad yrad sc 0 0 1 startangle endangle arc
+	closepath
+	savematrix setmatrix
+	} def
+
 /$F2psBegin {$F2psDict begin /$F2psEnteredState save def} def
 /$F2psEnd {$F2psEnteredState restore end} def
 
 /pageheader {
 save
-newpath 0 11 moveto 0 0 lineto 60 0 lineto 60 11 lineto closepath clip newpath
--64.3 43.5 translate
+newpath 0 270 moveto 0 0 lineto 502 0 lineto 502 270 lineto closepath clip newpath
+-69.9 290.1 translate
 1 -1 scale
 $F2psBegin
 10 setmiterlimit
@@ -70,9 +83,296 @@ pageheader
 %
 % 
 % here starts figure with depth 50
-/Times-Roman ff 190.50 scf sf
-1035 675 m
-gs 1 -1 sc (Drill Holes) col0 sh gr
+% Ellipse
+15.000 slw
+n 5175 1125 64 64 0 360 DrawEllipse gs col0 s gr
+
+% Ellipse
+n 3735 1215 101 101 0 360 DrawEllipse gs col0 s gr
+
+% Polyline
+0 slj
+0 slc
+7.500 slw
+n 3375 2250 m 6750 2250 l 6750 4275 l 3375 4275 l
+ cp gs col0 s gr 
+% Polyline
+15.000 slw
+n 2025 1800 m 2925 1800 l 2925 3825 l 2025 3825 l
+ cp gs col0 s gr 
+% Polyline
+n 7200 1800 m 8100 1800 l 8100 3825 l 7200 3825 l
+ cp gs col0 s gr 
+% Polyline
+n 3375 900 m 6750 900 l 6750 1800 l 3375 1800 l
+ cp gs col0 s gr 
+% Polyline
+n 2700 2475 m 2340 2475 l 2340 3600 l 2700 3600 l
+ cp gs col0 s gr 
+% Polyline
+gs  clippath
+1586 2486 m 1565 2486 l 1515 2303 l 1575 2453 l 1635 2303 l cp
+1565 1790 m 1586 1790 l 1635 1972 l 1575 1822 l 1515 1972 l cp
+eoclip
+n 1575 1800 m
+ 1575 2475 l gs col0 s gr gr
+
+% arrowhead
+n 1515 1972 m 1575 1822 l 1635 1972 l  col0 s
+% arrowhead
+n 1635 2303 m 1575 2453 l 1515 2303 l  col0 s
+% Polyline
+gs  clippath
+1586 3611 m 1565 3611 l 1515 3428 l 1575 3578 l 1635 3428 l cp
+1565 2465 m 1586 2465 l 1635 2647 l 1575 2497 l 1515 2647 l cp
+eoclip
+n 1575 2475 m
+ 1575 3600 l gs col0 s gr gr
+
+% arrowhead
+n 1515 2647 m 1575 2497 l 1635 2647 l  col0 s
+% arrowhead
+n 1635 3428 m 1575 3578 l 1515 3428 l  col0 s
+% Polyline
+gs  clippath
+2981 4040 m 2981 4061 l 2798 4110 l 2948 4050 l 2798 3990 l cp
+2645 4061 m 2645 4040 l 2827 3990 l 2677 4050 l 2827 4110 l cp
+eoclip
+n 2655 4050 m
+ 2970 4050 l gs col0 s gr gr
+
+% arrowhead
+n 2827 4110 m 2677 4050 l 2827 3990 l  col0 s
+% arrowhead
+n 2798 3990 m 2948 4050 l 2798 4110 l  col0 s
+% Polyline
+gs  clippath
+2711 4040 m 2711 4061 l 2528 4110 l 2678 4050 l 2528 3990 l cp
+2330 4061 m 2330 4040 l 2512 3990 l 2362 4050 l 2512 4110 l cp
+eoclip
+n 2340 4050 m
+ 2700 4050 l gs col0 s gr gr
+
+% arrowhead
+n 2512 4110 m 2362 4050 l 2512 3990 l  col0 s
+% arrowhead
+n 2528 3990 m 2678 4050 l 2528 4110 l  col0 s
+% Polyline
+gs  clippath
+8561 2711 m 8540 2711 l 8490 2528 l 8550 2678 l 8610 2528 l cp
+8540 1790 m 8561 1790 l 8610 1972 l 8550 1822 l 8490 1972 l cp
+eoclip
+n 8550 1800 m
+ 8550 2700 l gs col0 s gr gr
+
+% arrowhead
+n 8490 1972 m 8550 1822 l 8610 1972 l  col0 s
+% arrowhead
+n 8610 2528 m 8550 2678 l 8490 2528 l  col0 s
+% Polyline
+gs  clippath
+8561 3431 m 8540 3431 l 8490 3248 l 8550 3398 l 8610 3248 l cp
+8540 2690 m 8561 2690 l 8610 2872 l 8550 2722 l 8490 2872 l cp
+eoclip
+n 8550 2700 m
+ 8550 3420 l gs col0 s gr gr
+
+% arrowhead
+n 8490 2872 m 8550 2722 l 8610 2872 l  col0 s
+% arrowhead
+n 8610 3248 m 8550 3398 l 8490 3248 l  col0 s
+% Polyline
+gs  clippath
+8156 4040 m 8156 4061 l 7973 4110 l 8123 4050 l 7973 3990 l cp
+7820 4061 m 7820 4040 l 8002 3990 l 7852 4050 l 8002 4110 l cp
+eoclip
+n 7830 4050 m
+ 8145 4050 l gs col0 s gr gr
+
+% arrowhead
+n 8002 4110 m 7852 4050 l 8002 3990 l  col0 s
+% arrowhead
+n 7973 3990 m 8123 4050 l 7973 4110 l  col0 s
+% Polyline
+n 5850 945 m 6525 945 l 6525 1260 l 5850 1260 l
+ cp gs col0 s gr 
+% Polyline
+n 7830 2700 m 8055 2700 l 8055 3375 l 7830 3375 l
+ cp gs col0 s gr 
+% Polyline
+gs  clippath
+3881 665 m 3881 686 l 3698 735 l 3848 675 l 3698 615 l cp
+3365 686 m 3365 665 l 3547 615 l 3397 675 l 3547 735 l cp
+eoclip
+n 3375 675 m
+ 3870 675 l gs col0 s gr gr
+
+% arrowhead
+n 3547 735 m 3397 675 l 3547 615 l  col0 s
+% arrowhead
+n 3698 615 m 3848 675 l 3698 735 l  col0 s
+% Polyline
+gs  clippath
+5231 665 m 5231 686 l 5048 735 l 5198 675 l 5048 615 l cp
+3770 686 m 3770 665 l 3952 615 l 3802 675 l 3952 735 l cp
+eoclip
+n 3780 675 m
+ 5220 675 l gs col0 s gr gr
+
+% arrowhead
+n 3952 735 m 3802 675 l 3952 615 l  col0 s
+% arrowhead
+n 5048 615 m 5198 675 l 5048 735 l  col0 s
+% Polyline
+gs  clippath
+6806 665 m 6806 686 l 6623 735 l 6773 675 l 6623 615 l cp
+6515 686 m 6515 665 l 6697 615 l 6547 675 l 6697 735 l cp
+eoclip
+n 6525 675 m
+ 6795 675 l gs col0 s gr gr
+
+% arrowhead
+n 6697 735 m 6547 675 l 6697 615 l  col0 s
+% arrowhead
+n 6623 615 m 6773 675 l 6623 735 l  col0 s
+% Polyline
+gs  clippath
+5885 686 m 5885 665 l 6067 615 l 5917 675 l 6067 735 l cp
+6536 665 m 6536 686 l 6353 735 l 6503 675 l 6353 615 l cp
+eoclip
+n 6525 675 m
+ 5895 675 l gs col0 s gr gr
+
+% arrowhead
+n 6353 615 m 6503 675 l 6353 735 l  col0 s
+% arrowhead
+n 6067 735 m 5917 675 l 6067 615 l  col0 s
+% Polyline
+gs  clippath
+3140 1115 m 3161 1115 l 3210 1297 l 3150 1147 l 3090 1297 l cp
+3161 1361 m 3140 1361 l 3090 1178 l 3150 1328 l 3210 1178 l cp
+eoclip
+n 3150 1350 m
+ 3150 1125 l gs col0 s gr gr
+
+% arrowhead
+n 3210 1178 m 3150 1328 l 3090 1178 l  col0 s
+% arrowhead
+n 3090 1297 m 3150 1147 l 3210 1297 l  col0 s
+% Polyline
+gs  clippath
+5006 1226 m 4985 1226 l 4935 1043 l 4995 1193 l 5055 1043 l cp
+4985 1070 m 5006 1070 l 5055 1252 l 4995 1102 l 4935 1252 l cp
+eoclip
+n 4995 1080 m
+ 4995 1215 l gs col0 s gr gr
+
+% arrowhead
+n 4935 1252 m 4995 1102 l 5055 1252 l  col0 s
+% arrowhead
+n 5055 1043 m 4995 1193 l 4935 1043 l  col0 s
+% Polyline
+gs  clippath
+6896 1271 m 6875 1271 l 6825 1088 l 6885 1238 l 6945 1088 l cp
+6875 935 m 6896 935 l 6945 1117 l 6885 967 l 6825 1117 l cp
+eoclip
+n 6885 945 m
+ 6885 1260 l gs col0 s gr gr
+
+% arrowhead
+n 6825 1117 m 6885 967 l 6945 1117 l  col0 s
+% arrowhead
+n 6945 1088 m 6885 1238 l 6825 1088 l  col0 s
+% Polyline
+ [15 68] 68 sd
+n 2925 3825 m
+ 3375 4275 l gs col0 s gr  [] 0 sd
+% Polyline
+ [15 68] 68 sd
+n 2925 1800 m
+ 3375 2250 l gs col0 s gr  [] 0 sd
+% Polyline
+ [15 68] 68 sd
+n 6750 2250 m
+ 7200 1800 l gs col0 s gr  [] 0 sd
+% Polyline
+ [15 68] 68 sd
+n 6750 4275 m
+ 7200 3915 l gs col0 s gr  [] 0 sd
+% Polyline
+ [15 68] 68 sd
+n 6750 1800 m
+ 6750 2250 l gs col0 s gr  [] 0 sd
+% Polyline
+ [15 68] 68 sd
+n 3375 1845 m
+ 3375 2250 l gs col0 s gr  [] 0 sd
+/Helvetica-Bold ff 190.50 scf sf
+1350 3060 m
+gs 1 -1 sc (2") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+1125 2205 m
+gs 1 -1 sc (1.5") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+2250 4365 m
+gs 1 -1 sc (3/4") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+2745 4320 m
+gs 1 -1 sc (3/8") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+4680 3240 m
+gs 1 -1 sc (Front) col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+4680 1620 m
+gs 1 -1 sc (Top) col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+7335 1665 m
+gs 1 -1 sc (Right) col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+2385 1755 m
+gs 1 -1 sc (Left) col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+7920 4365 m
+gs 1 -1 sc (.5") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+3600 495 m
+gs 1 -1 sc (1") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+4275 540 m
+gs 1 -1 sc (3.25") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+6075 540 m
+gs 1 -1 sc (1.5") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+6525 540 m
+gs 1 -1 sc (0.5") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+6930 945 m
+gs 1 -1 sc (1/8") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+6975 1170 m
+gs 1 -1 sc (3/4") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+8685 3105 m
+gs 1 -1 sc (1.5") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+8685 2340 m
+gs 1 -1 sc (2") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+8055 4590 m
+gs 1 -1 sc (1/8") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+4590 1260 m
+gs 1 -1 sc (1/4") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+4590 1080 m
+gs 1 -1 sc (7/8") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+2925 1080 m
+gs 1 -1 sc (3/4") col0 sh gr
+/Helvetica-Bold ff 190.50 scf sf
+2655 1260 m
+gs 1 -1 sc (0.5") col0 sh gr
 % here ends figure;
 pagefooter
 showpage

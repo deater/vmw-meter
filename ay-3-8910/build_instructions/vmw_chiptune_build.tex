@@ -10,7 +10,7 @@
 {\Large \bf Building the VMW Raspberry Pi / AY-3-8910 Chiptune Player}\\[2ex]
 by Vincent M. Weaver\\[3ex]
 \url{http://deater.net/weave/vmwprod/hardware/ay-3-8910/}\\[3ex]
-2 June 2017
+3 June 2017
 \end{center}
 
 \begin{center}
@@ -32,18 +32,19 @@ LED visualization.
 The design contains an EEPROM and can be considered a Pi ``hat'', although
 I have not gotten around to testing or programming the EEPROM interface.
 
-The sound board contains two AY-3-8910~\cite{ay38910} sound chips, a design
-dating to the 1980s.
+The sound board contains two AY-3-8910~\cite{ay38910} sound chips which
+were common in the 1980s.
 These were popular chips, found in the ZX Spectrum and Atari ST.
-I know of them from their appearance on the Apple II Mockingboard soundcard.
+I know of them from their appearance in the Apple II Mockingboard soundcard.
 
 Features found on the device:
 \begin{itemize}
 \item Dual AY-3-8910 for 6-channel stereo sound
-\item i2c display including 8x16 display, 6 bargraphs, 12 characters, and 8 buttons
+\item i2c display with 8x16 matrix, 6 bargraphs, 12 characters, 
+	and 8 buttons
 \item i2c real-time-clock so it can be used as an alarm clock
-\item 1-wire temperature sensor
-\item Dual 4W speakers, can also output to stereo 3.5mm jack
+\item 1-wire DS18B20 temperature sensor
+\item Dual 4 Ohm / 3.7W speakers, can also output to stereo 3.5mm jack
 \item ``hat'' EEPROM 
 \end{itemize}
 
@@ -52,6 +53,44 @@ Features found on the device:
 \section{Pi Interface}
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%$
+
+The Pi plugs directly into the board and a large number of GPIOs are
+used to control things, as seen in Table~\ref{table:gpio}.
+The AY-3-8910 side runs at 5V so those GPIOs have to be level converted.
+
+\begin{table}[tbh]
+\caption{Raspberry Pi GPIO assignments.\label{table:gpio}}
+\centering
+\begin{tabular}{|l|l|}
+\hline
+Signal	&	Pi GPIO \\
+\hline
+\hline
+74HC595 Shift Register $DS$	&	SPI MOSI \\
+74HC595 Shift Register $SHCP$	&	SPI CLK\\
+74HC595 Shift Register $STCP$	& 	SPI CE0\\
+\hline
+AY-3-8910 $BC1$			&	GPIO18 \\
+AY-3-8910 $BDIR$		&	GPIO23 \\
+AY-3-8910 $\overline{RESET}$	&	GPIO24 \\
+\hline
+DS18B20 1-Wire			&	GPIO4\\
+\hline
+Display i2c $SDA$		&	SDA1	\\
+Display i2c $SCL$		&	SCL1	\\
+\hline
+EEPROM i2c $SDA$		&	ID\_SD	\\
+EEPROM i2c $SCL$		&	ID\_SC	\\
+\hline
+MAX98306 $GAIN$			&	GPIO19 \\
+MAX98306 $GAIN$ tristate	&	GPIO26 \\
+MAX98306 $GAIN'$		&	GPIO16 \\
+MAX98306 $GAIN'$ tristate	&	GPIO20 \\
+MAX98306 $\overline{SHDN}$	&	GPIO21 \\
+Speaker Disable Switch		&	GPIO13 \\
+\hline
+\end{tabular}
+\end{table}
 
 %%%%%%%%%%%%%%%%%%%%%%
 \subsection{AY-3-8910}
@@ -65,7 +104,7 @@ to provide the parallel inputs to the AY-3-8910.
 The Pi drives these via the SPI interface (level shifted up to 5V
 by 74AHCT125N chips).
 
-To actually drive the bus signals, three GPIOs are used, hooekd to
+To actually drive the bus signals, three GPIOs are used, hooked to
 !RESET, BDIR1 and BC1 on the AY-3-8910s.
 
 The clocks on the AY-3-8910s are driven by a 1MHz crystal, which seems
@@ -77,7 +116,8 @@ to suffice.
 There is a rough hand-drawn schematic shown in Figure~\ref{figure:schematic}.
 
 \begin{figure}[tph]
-\includegraphics{figs/0380_schematic.jpg}
+\centering
+\includegraphics[angle=90,width=\columnwidth]{figs/0380_schematic.jpg}
 \caption{Schematic for the sound board.~\label{figure:schematic}}
 \end{figure}
 
@@ -124,14 +164,14 @@ This is all in software; it is up to the Pi to monitor the GPIO and turn
 off the speakers in hardware.
 
 I spent a lot of time trying to design a circuit that could detect the
-impedeance of the jack and automatically cut off the speakers when a
+impedance of the jack and automatically cut off the speakers when a
 plug is inserted.
 I could not get this to work.
 
 The Pi can shutdown the amplifier using a GPIO line connected to the
 !SHDN signal.
 A pull-down resistor is in place to make sure this signal is pulled low
-until the Pi gets around to driving it.
+until the Pi gets around to driving it at boot.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Peripherals}
@@ -140,7 +180,8 @@ until the Pi gets around to driving it.
 While designing the board, various extra features were added.
 
 A DS18B20 1-wire temperature sensor was added to monitor for overheating.
-It is unclear if extra ventilation holes will be needed in the case.
+If thermal issues become a problem then
+extra ventilation holes can be drilled in the case.
 
 An EEPROM was connected to the Pi i2c-configuration bus.
 This could be used to autoconfigure the device as a ``hat'' although
@@ -157,22 +198,34 @@ This could allow use in alarm-clock type situations.
 %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%$
 
-The device functions more or less well when being run by a 
+The device functions relatively well when being driven by a 
 Raspberry Pi-2B.
-
 I tried using a Pi-B+ but it was not able to run things smoothly.
-Likely Linux was interrupting and messing up the real time handling
-(especially when I am logged in over the ethernet at the same
-time doing debugging).
+It is likely Linux was interrupting and messing up the real time handling
+(especially when I am printing debug messages over Ethernet while playing
+music).
 
 To play a ym5 file you need to update the 14 registers every 50Hz
 (20ms).
-
 The traditional /sys GPIO interface for Linux is much too slow for this.
 Instead I use the bcm2835 library~\cite{bcm2835}.
 
-The original implementation did not use SPI, but bitbanged the GPIOs.
+My original implementation did not use SPI, but bitbanged the 
+shift register GPIOs.
+As you can see in Table~\ref{table:timings} playing music with
+visualizations could sometimes overflow the 20ms window.
+Displaying a string on the 14seg displays takes an especially long time
+as the 3 subdisplays are each on a separate i2c address.
+By moving to SPI the ym\_play\_frame time reduced to 8ms, allowing
+full audio and LED effects at 50Hz.
 
+\begin{table}[tbh]
+\caption{Original bitbang GPIO timing results.
+This could not reliably meet the 20ms deadline.
+Moving to SPI dropped the ym\_play\_frame delay to 8ms
+which allowed full 50Hz operation.
+\label{table:timings}}
+\centering
 \begin{tabular}{|c|c|}
 \hline
 Routine	& Time (ms) \\
@@ -187,13 +240,10 @@ display\_keypad\_read: & 0.5ms \\
 display\_string       & 5ms \\
 \hline
 \end{tabular}
+\end{table}
 
-As you can see, it could sometimes overflow the 20ms window.
-Displaying a string on the 14seg displays takes especially a long time
-as the 3 subdisplays are each on a separate i2c address.
 
-By moving to SPI it reduced ym\_play\_frame to 8ms, allowing
-the sound and visualization to happen in the deadline.
+
 
 There is still some occasional jitter in the output.
 The solution might be to move to bare-metal coding (or a real time operating
@@ -209,14 +259,19 @@ system) as Linux by default is not configured for real-time use.
 %%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%
 
-I provide software that can drive this board on github:\\
+I provide software that can drive this board on github:
+
 \url{https://github.com/deater/vmw-meter.git}
 
+\noindent
 You can download it with:
+
 {\tt git clone https://github.com/deater/vmw-meter.git}
+
+\noindent
 and look in the ay-3-8910 directory.
 
-Software includes a YM5 player, conversion software, a rough tracker
+The software includes a YM5 player, conversion software, a rough tracker
 for creating your own chiptunes, and more.
 
 
@@ -227,9 +282,25 @@ for creating your own chiptunes, and more.
 %%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%
 
+Note that you can build just the sound board, you don't need to have the i2c display.
+Also the sound board has lots of extras that you do not need to populate if you don't want to.
+
+Optional parts:
+\begin{enumerate}
+	\item The ``hat'' circuitry (the EEPROM and resistors)
+	\item The 1-wire temp sensor
+	\item The real-time clock
+	\item One half of the sound circuitry (AY-3-8910, etc) if you only want
+		a mono board.
+\end{enumerate}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{The Primary Sound Board ``hat''}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Build directions for the sound board.
+Full list of parts can be found in Table~\ref{table:sound_parts}.
 
 \begin{table}[thp]
 \caption{Sound Board Parts.~\label{table:sound_parts}}
@@ -292,17 +363,17 @@ Standoffs 18mm	& Mouser	& 534-24426		  & 4   &  \$0.52  &  \$2.08 \\
 \hline
 Screws 2.5mm	& Mouser	& 534-29300, 2.5mm x 4mm  & 4   &  \$0.34  &  \$1.36 \\
 \hline
-40-pin header	& AdaFruit	& 2223, 40-pin 10mm stacking & 1	&  \$2.50  &  \$2.50 \\
+40-pin header	& Adafruit	& 2223, 40-pin 10mm stacking & 1	&  \$2.50  &  \$2.50 \\
 \hline
-1-wire DS18B20	& AdaFruit	& 374, DS18B20 temp sensor& 1	&  \$3.95  &  \$3.95 \\
+1-wire DS18B20	& Adafruit	& 374, DS18B20 temp sensor& 1	&  \$3.95  &  \$3.95 \\
 \hline
-DS1307 Breakout	& AdaFruit	& 3296, DS1307 i2c RTC	  & 1	&  \$7.50  &  \$7.50 \\
+DS1307 Breakout	& Adafruit	& 3296, DS1307 i2c RTC	  & 1	&  \$7.50  &  \$7.50 \\
 \hline
-MAX98306 Break	& AdaFruit	& 987, 3.7W Class D Amp   & 1	&  \$8.95  &  \$8.95 \\
+MAX98306 Break	& Adafruit	& 987, 3.7W Class D Amp   & 1	&  \$8.95  &  \$8.95 \\
 \hline
-74HCT125N	& AdaFruit	& 1787			  & 3	&  \$1.50  &  \$4.50 \\
+74HCT125N	& Adafruit	& 1787			  & 3	&  \$1.50  &  \$4.50 \\
 \hline
-74HC595		& AdaFruit	& 450			  & 2	&  ---     &  \$2.75 \\
+74HC595		& Adafruit	& 450			  & 2	&  ---     &  \$2.75 \\
 \hline
 \hline
 		&		&		&	&		& \$105.13 \\
@@ -310,20 +381,7 @@ MAX98306 Break	& AdaFruit	& 987, 3.7W Class D Amp   & 1	&  \$8.95  &  \$8.95 \\
 \end{tabular}
 \end{table}
 
-Note that you can build just the sound board, you don't need to have the i2c display.
-Also the sound board has lots of extras that you do not need to populate if you don't want to.
 
-Optional parts:
-\begin{enumerate}
-	\item The ``hat'' circuitry (the EEPROM and resistors)
-	\item The 1-wire temp sensor
-	\item The real-time clock
-	\item One half of the sound circuitry (AY-3-8910, etc) if you only want
-		a mono board.
-\end{enumerate}
-
-
-Sound Board Assembly Directions:
 \begin{enumerate}
 \item	Order the Printed Circuit Boards (PCBs).
 	They are shared at OSH Park, but I provide the gerber files under
@@ -343,8 +401,8 @@ Sound Board Assembly Directions:
 	\begin{enumerate}
 		\item Solder on the two 16-pin sockets
 		\item Solder on the 8-pin socket
-		\item Solder on three 10k resistors (black brown orange)
-		\item Solder on two 1k resistors (black brown red)
+		\item Solder on three 10k resistors (brown black orange)
+		\item Solder on two 1k resistors (brown black red)
 		\item Solder on two 3.9k resistors (orange white red)
 	\end{enumerate}
 \item	Flip back to the man side.
@@ -357,8 +415,9 @@ Sound Board Assembly Directions:
 			The board only has 0.1" spacing which makes this hard.
 		\item Solder on two 100uF capacitors.
 			 Be sure the minus pin goes in the minus hole.
-		\item	Solder on the spdt switch
-			(we do this later to make soldering the resistors easier).
+		\item	Solder on the SPDT switch
+			(if we did this earlier it would made
+				soldering the resistors harder).
 	\end{enumerate}
 \item	Flip back to the rocket side
 	\begin{enumerate}
@@ -370,16 +429,16 @@ Sound Board Assembly Directions:
 			speaker out.
 		\item Solder on a 2-pin piece of 0.1" header for the EEPROM write
 			protect.
-			You probably have some extra from the various AdaFruit parts.
-		\item Put together the AdaFruit DS1307 RTC board.  Solder it in place.
+			You probably have some extra from the various Adafruit parts.
+		\item Put together the Adafruit DS1307 RTC board.  Solder it in place.
 			Note, you'll have to put a watch battery in or it won't appear
 			on i2c scans.
 	\end{enumerate}
 \item Flip back to the man side.
 	\begin{enumerate}
 		\item Attach the MAX98306 amplifier breakout.
-			First put it together separately BUT NOTE don't put it all the
-			way together.
+%			First put it together separately BUT NOTE don't put it all the
+%			way together.
 			Place the 9-pin header into the board and put 4 leftover pins
 			into the speaker outputs.  Put the MAX board on top and solder these on.
 			Then flip and solder this to the board.  You don't need to solder on
@@ -393,7 +452,8 @@ Sound Board Assembly Directions:
 		\item Screw in place with the right-angle hardware and four screws.
 		\item Cut small 1/2" or so pieces of wire and solder in place
 			The two toward top side of main board are ground, 
-			bottom two are signal
+			bottom two are signal.
+			This can be a tricky bit of soldering.
 	\end{enumerate}
 
 \item Testing
@@ -407,7 +467,8 @@ Sound Board Assembly Directions:
 			
 \item Populate the sockets
 	\begin{enumerate}
-		\item Put the AY-3-8910 in place (might only want to do one first
+		\item Put the AY-3-8910 chips in place 
+			(you might only want to do one first
 			to make sure you don't fry both)
 		\item Put in the 74HCT125N chips
 		\item Put in the 74HC595
@@ -428,7 +489,7 @@ Sound Board Assembly Directions:
 
 
 
-\begin{table}[thp]
+\begin{table}[th]
 
 \caption{Display Parts.~\label{table:display_parts}}
 \centering
@@ -453,15 +514,15 @@ Diode 1N4148	& Jameco	& 36038		           & 1	 & \$0.04   &  \$0.04 \\
 \hline
 RGY 10-seg LED	& Jameco	& 2217596		   & 6	 &  \$1.49  &  \$8.94 \\
 \hline
-ht16k33 breakout	& AdaFruit	& 1427		           & 1	 & \$5.95   &  \$5.95 \\
+ht16k33 breakout	& Adafruit	& 1427		           & 1	 & \$5.95   &  \$5.95 \\
 \hline
-Buttons		& AdaFruit	& 1010			   & 8	 & ---	    &  \$5.95 \\
+Buttons		& Adafruit	& 1010			   & 8	 & ---	    &  \$5.95 \\
 		&		& Omron b3f with tops	   &     &          &         \\
 \hline
-14seg display	& AdaFruit	& 1911			   & 3	 & \$9.95   & \$29.85 \\
+14seg display	& Adafruit	& 1911			   & 3	 & \$9.95   & \$29.85 \\
 		&		& red, i2c		   &	 &          &	      \\  
 \hline
-8x16 LED matrix	& AdaFruit	& 2041			   & 1	 & \$15.95  & \$15.95 \\
+8x16 LED matrix	& Adafruit	& 2041			   & 1	 & \$15.95  & \$15.95 \\
 \hline
 
 1/8" spacers	& Mouser	& 749-908-125		   & 50  & \$0.04   & \$2.00  \\
@@ -481,7 +542,7 @@ Buttons		& AdaFruit	& 1010			   & 8	 & ---	    &  \$5.95 \\
 
 Build instructions for the i2c display board.
 This is optional, but looks nice.
-
+Full list of parts can be found in Table~\ref{table:display_parts}.
 
 \begin{enumerate}
 \item	Get the purple PCB from OSH Park or your preferred PCB provider.
@@ -517,7 +578,7 @@ This is optional, but looks nice.
 			First solder the headers onto them
 
 		\item  Next, assuming you are using \#2 screws, we need to enlarge the
-			drill holes on the AdaFruit boards as they are just slightly too
+			drill holes on the Adafruit boards as they are just slightly too
 			small.  I used a file, a drill can maybe be used.
 
 		\item Solder the three boards to have different i2c addresses.
@@ -595,12 +656,12 @@ Case		& Allied	& 1591ETCL		   & 1   & \$15.71   & \$15.71 \\
 \hline
 Raspberry Pi2	&		&		?	   & 1   & \$35.00   & \$35.00 \\
 \hline
-8GB SD-Card	& AdaFruit	& 2767			   & 1   & \$11.95   & \$11.95 \\
+8GB SD-Card	& Adafruit	& 2767			   & 1   & \$11.95   & \$11.95 \\
 \hline
-Power Supply	& AdaFruit	& 1995			   & 1   & \$7.50    & \$7.50  \\
+Power Supply	& Adafruit	& 1995			   & 1   & \$7.50    & \$7.50  \\
 		&		& 5V 2.4A microUSB	   &     &           &         \\
 \hline
-4 Ohm Speakers	& AdaFruit	& 1669			   & 1	 & \$7.50    & \$7.50  \\ 
+4 Ohm Speakers	& Adafruit	& 1669			   & 1	 & \$7.50    & \$7.50  \\ 
 		&		& rectangle, 4 Ohm, 3Watt  &     &           &         \\
 \hline
 \#4 Screws	& Jameco	& 2094397	  	   & 20  & \$0.06   & \$1.20  \\
@@ -634,16 +695,16 @@ Header connector& Jameco	& 152734	           & 3   & \$0.59   & \$1.77  \\
 \begin{figure}[tph]
 \centering
 \includegraphics[width=2in]{figs/power_crimp}
-\caption{Not very helpful crimping diagram.~\label{figure:crimping}}
+\caption{Not very helpful crimping example.~\label{figure:crimping}}
 \end{figure}
 
 
-\begin{figure}[tph]
-\includegraphics{figs/holes}
+\begin{figure}[th]
+\includegraphics[width=\columnwidth]{figs/holes}
 \caption{Holes to make in the case.~\label{figure:holes}}
 \end{figure}
 
-Putting it all together:
+Putting it all together, list of parts in Table~\ref{table:case_parts}.
 \begin{enumerate}
 
 	\item If you haven't already, attach the Pi to the sound board using the 
@@ -661,28 +722,30 @@ Putting it all together:
 		
 		\item Connect the speakers to the display board.
 			They should fit into the cutout space.
+			The wires should come in toward the center of the board,
+			not the edges.
 			Use three screws and nuts to attach each to board.
 			You will need to cut the outer (unscrewed) mounting holes
 			off of the outside corners of the speakers so they fit into
 			the case.
 
 		\item Create the proper connector for the speaker, which is the 4-pin CDROM
-			connector.  Trim the wires to about 7"
+			connector.  Trim the wires to about 6"
 			Crimp the connectors to the four wires (this is tricky, see
 			Figure~\ref{figure:crimping} with a crimping tool.
 			Insert the wires into the connector. L-,L+,R-,R+
 
 		\item Create the proper i2c connector.
 			Use the same crimper as for the speaker, but this time on both
-			ends.  Four wires, each around 7".  2" with a right angle bend.
+			ends.  Four wires, each around 6".  Make a right angle bend at 2".
 			Order is Vdd, SDA, GND, SCL (note this is not marked on
 			the display board).
 			Figure~\ref{figs:wires} shows the assembled cables.
 
-		\item Put five of the 3/4" standoffs through the bottom of the sound board
+		\item Put five of the 7/8" standoffs through the bottom of the sound board
 			(with the AY-3-8910 pointing down).
 
-		\item Screw 5 of 7/8" standoffs on top.
+		\item Screw five of the 7/8" standoffs on top.
 			Put electrical tape around the standoffs with close clearance
 			to avoid shorts
 
@@ -727,7 +790,7 @@ hardware:
 \item The standoff on the bottom left completely blocks the Pi
 	memory card slot
 \item The capacitors should be at least 300 mil not 100 mil
-\item The oscillator too close to the chip
+\item The oscillator socket is too close to the 40-pin sockets
 \item Use curves not so many right angles on PCB layout
 \end{enumerate}
 
