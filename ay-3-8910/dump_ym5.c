@@ -87,7 +87,7 @@ static int dump_song(char *filename, int debug) {
 
 	frame_num=0;
 	while(1) {
-		s=frame_num/60;
+		s=frame_num/50;
 		m=s/60;
 		s=s%60;
 
