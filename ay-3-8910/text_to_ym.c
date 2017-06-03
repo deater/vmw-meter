@@ -244,6 +244,11 @@ struct note_type {
 	int portamento;
 	int port_speed;
 
+	int vibrato;
+	int vibrato_type;
+	int vibrato_lookup[64];
+	int vibrato_count;
+	int vibrato_max;
 };
 
 static struct note_type a,b,c;
@@ -319,20 +324,32 @@ static int update_note(struct note_type *n) {
 		sub2_adjust=n->sub_adjust+n->port_speed;
 		sub3_adjust=n->sub_adjust+n->port_speed*2;
 		n->sub_adjust+=3*n->port_speed;
-		printf("Setting port sub: %d ps: %d\n",
-			n->sub_adjust,n->port_speed);
+//		printf("Setting port sub: %d ps: %d\n",
+//			n->sub_adjust,n->port_speed);
 	}
 	else {
 		sub1_adjust=n->sub_adjust;
+	}
+
+	if (n->vibrato) {
+		sub1_adjust+=n->vibrato_lookup[n->vibrato_count];
+		n->vibrato_count++;
+		if (n->vibrato_count>n->vibrato_max) n->vibrato_count=0;
+		sub1_adjust+=n->vibrato_lookup[n->vibrato_count%n->vibrato_max];
+		n->vibrato_count++;
+		if (n->vibrato_count>n->vibrato_max) n->vibrato_count=0;
+		sub2_adjust+=n->vibrato_lookup[n->vibrato_count%n->vibrato_max];
+		n->vibrato_count++;
+		if (n->vibrato_count>n->vibrato_max) n->vibrato_count=0;
 	}
 
 	freq=note_to_freq(n->note,n->sharp,n->flat,n->octave,sub1_adjust);
 	freq2=note_to_freq(n->note,n->sharp+note2_adjust,n->flat,n->octave,sub2_adjust);
 	freq3=note_to_freq(n->note,n->sharp+note3_adjust,n->flat,n->octave,sub3_adjust);
 
-	if (n->portamento) {
-		printf("Freqs: %lf %lf %lf\n",freq,freq2,freq3);
-	}
+//	if (n->portamento) {
+//		printf("Freqs: %lf %lf %lf\n",freq,freq2,freq3);
+//	}
 
 	if (debug) printf("(%c) %c%c L=%d O=%d f=%lf\n",
 				n->which,
@@ -351,7 +368,7 @@ static int update_note(struct note_type *n) {
 	n->freq3=external_frequency/(16.0*freq3);
 	if ((n->freq3>0xfff)||(n->freq3<0)) n->freq3=0xfff;
 
-	if (n->portamento) printf("VMW %d %d %d\n",n->freq,n->freq2,n->freq3);
+//	if (n->portamento) printf("VMW %d %d %d\n",n->freq,n->freq2,n->freq3);
 
 	return 0;
 }
@@ -450,6 +467,8 @@ static struct note_type *find_note(char which) {
 static int get_effect(struct note_type *n,char *string) {
 
 	int effect,param;
+	int speed,depth=0;
+	int i;
 
 	effect=atoi(string);
 
@@ -478,6 +497,33 @@ static int get_effect(struct note_type *n,char *string) {
 			if (param!=0) {
 				n->port_speed=-param;
 			}
+			break;
+		case 0x4:	// Vibrato
+
+			n->vibrato=1;
+			if ((param>>4)!=0) {
+				speed=param>>4;
+				n->vibrato_max=64/speed/2;
+				n->vibrato_count=0;
+			}
+			if ((param&0xf)!=0) {
+				depth=param&0xf;
+			}
+
+//			printf("VMW %X%02X max=%d: ",effect,param,n->vibrato_max);
+			for(i=0;i<n->vibrato_max;i++) {
+				n->vibrato_lookup[i]=16*(
+				sin(i*(2.0*3.14159/n->vibrato_max))*
+				(depth/8.0));
+//				printf("%d (%.2lf,%2lf) ",
+//					n->vibrato_lookup[i],depth/8.0,
+//					i*(2.0*3.14159/n->vibrato_max));
+			}
+//			printf("\n");
+			/* period is 64 / (vibrato speed) / (song speed - 1) */
+			// min of 2, max of 32?
+			/* peak-to-peak amplitude is (vibrato depth) / 4 half-steps */
+			// min of 1/8 max of 2
 			break;
 		default:
 			fprintf(stderr,"Unknown effect %X%02X\n",effect,param);
@@ -730,6 +776,8 @@ int main(int argc, char **argv) {
 	a.loud=15;		b.loud=15;		c.loud=15;
 	a.arpeggio=0;		b.arpeggio=0;		c.arpeggio=0;
 	a.portamento=0;		b.portamento=0;		c.portamento=0;
+	a.vibrato=0;		b.vibrato=0;		c.vibrato=0;
+	a.vibrato_count=0;	b.vibrato_count=0;	c.vibrato_count=0;
 	a.sub_adjust=0;		b.sub_adjust=0;		c.sub_adjust=0;
 	a.instrument=&instruments[0];			c.instrument=&instruments[0];
 				b.instrument=&instruments[0];
@@ -914,7 +962,7 @@ int main(int argc, char **argv) {
 		}
 		a.arpeggio=0;	b.arpeggio=0;	c.arpeggio=0;
 		a.portamento=0;	b.portamento=0;	c.portamento=0;
-
+		a.vibrato=0;	b.vibrato=0;	c.vibrato=0;
 	}
 
 	fgetpos(ym_file,&save);
