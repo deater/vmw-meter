@@ -56,7 +56,8 @@ int display_update(int display_type,
 			break;
 		case MODE_VISUAL:
 			display_8x16_freq(display_type,
-				ds->left_a_freq, ds->left_b_freq, ds->left_c_freq);
+				ds->left_a_freq, ds->left_b_freq, ds->left_c_freq,
+				ds->right_a_freq,ds->right_b_freq,ds->right_c_freq);
 			break;
 		case MODE_NAME:
 			display_8x16_scroll_text(display_type, filename, new_filename);

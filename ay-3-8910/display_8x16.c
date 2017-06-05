@@ -201,35 +201,57 @@ static int freq_8x16display(int display_type, int refresh_i2c) {
 
 static int divider=0;
 
-int display_8x16_freq(int display_type, int a, int b, int c) {
+int display_8x16_freq(int display_type,
+		int la, int lb, int lc,
+		int ra, int rb, int rc) {
 
 	int x,y;
 
-	if (a>=0) {
-		if (a>15) {
-//			printf("A too big %d\n",a);
-			a=15;
+	if (ra>=0) {
+		if (ra>15) {
+			ra=15;
 		}
-		freq_max[a]=1;
-		for(y=0;y<8;y++) freq_matrix[a][y]=1;
+		freq_max[ra]=1;
+		for(y=0;y<8;y++) freq_matrix[ra][y]=1;
+	}
+	if (la>=0) {
+		if (la>15) {
+			la=15;
+		}
+		freq_max[la]=1;
+		for(y=0;y<8;y++) freq_matrix[la][y]=1;
 	}
 
-	if (b>=0) {
-		if (b>15) {
-//			printf("B too big %d\n",b);
-			b=15;
+
+	if (rb>=0) {
+		if (rb>15) {
+			rb=15;
 		}
-		freq_max[b]=1;
-		for(y=0;y<8;y++) freq_matrix[b][y]=1;
+		freq_max[rb]=1;
+		for(y=0;y<8;y++) freq_matrix[rb][y]=1;
+	}
+	if (lb>=0) {
+		if (lb>15) {
+			lb=15;
+		}
+		freq_max[lb]=1;
+		for(y=0;y<8;y++) freq_matrix[lb][y]=1;
 	}
 
-	if (c>=0) {
-		if (c>15) {
-//			printf("C too big %d\n",c);
-			c=15;
+
+	if (rc>=0) {
+		if (rc>15) {
+			rc=15;
 		}
-		freq_max[c]=1;
-		for(y=0;y<8;y++) freq_matrix[c][y]=1;
+		freq_max[rc]=1;
+		for(y=0;y<8;y++) freq_matrix[rc][y]=1;
+	}
+	if (lc>=0) {
+		if (lc>15) {
+			lc=15;
+		}
+		freq_max[lc]=1;
+		for(y=0;y<8;y++) freq_matrix[lc][y]=1;
 	}
 
 

@@ -70,7 +70,8 @@ int close_8x16_display(int display_type);
 int display_8x16_led_art(int display_type,
                 short led_art[10][8],
                 int which);
-int display_8x16_freq(int display_type, int a, int b, int c);
+int display_8x16_freq(int display_type, int la, int lb, int lc,
+					int ra, int rb, int rc);
 
 int display_8x16_time(int display_type, int current_frame, int total_frames);
 int display_8x16_title(int display_type);
