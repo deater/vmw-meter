@@ -40,11 +40,11 @@ static void note_to_ym_string(FILE *fff,int note) {
 }
 
 
-static char channel_to_channel(int c) {
+static char channel_to_channel(int c,int ch0,int ch1,int ch2) {
 
-	if (c==0) return 'A';
-	if (c==2) return 'B';
-	if (c==3) return 'C';
+	if (c==ch0) return 'A';
+	if (c==ch1) return 'B';
+	if (c==ch2) return 'C';
 
 	return '?';
 }
@@ -80,7 +80,8 @@ static int convert_volume(int v) {
 	return (int)nv;
 }
 
-static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
+static int dump_pattern(FILE *fff, int which, struct pattern_struct *p,
+	int ch0, int ch1, int ch2) {
 
 	int j,c;
 	int pattern_break=0;
@@ -94,9 +95,17 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
 			int effect;
 			int param;
 
-			// FIXME: make configurable
+			/* Check early in case we aren't outputting the */
+			/* channel with the break */
+			/* Technically some effects should go in effect */
+			/* globally so we should handle this better */
+
 			if (p->p[j][c].effect==0xd) pattern_break=1;
-			if (c==1) continue;
+
+// 0,1,9
+// 0N 1N 2C 3C 
+
+			if ((c!=ch0) && (c!=ch1) && (c!=ch2)) continue;
 
 			effect=p->p[j][c].effect;
 			param=p->p[j][c].param;
@@ -105,22 +114,22 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
 				case 0:	/* arpeggio */
 					if (param==0) break;
 					fprintf(fff,"* %c E %d %d\n",
-						channel_to_channel(c),
+						channel_to_channel(c,ch0,ch1,ch2),
 						effect,param);
 					break;
 				case 1: /* portamento up */
 					fprintf(fff,"* %c E %d %d\n",
-						channel_to_channel(c),
+						channel_to_channel(c,ch0,ch1,ch2),
 						effect,param);
 					break;
 				case 2:	/* portamento down */
 					fprintf(fff,"* %c E %d %d\n",
-						channel_to_channel(c),
+						channel_to_channel(c,ch0,ch1,ch2),
 						effect,param);
 					break;
 				case 4: /* Vibrato */
 					fprintf(fff,"* %c E %d %d\n",
-						channel_to_channel(c),
+						channel_to_channel(c,ch0,ch1,ch2),
 						effect,param);
 					break;
 				case 0xd:	/* early exit */
@@ -140,7 +149,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
 				case 0xc:
 				case 0xe:
 				default:
-					printf("Unhandled effect %x\n",
+					fprintf(stderr,"Unhandled effect %x\n",
 						effect);
 			}
 
@@ -153,7 +162,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
 		for(c=0;c<4;c++) {
 			int instrument=0;
 
-			if (c==1) continue;
+			if ((c!=ch0) && (c!=ch1) && (c!=ch2)) continue;
 
 			instrument=p->p[j][c].instrument;
 
@@ -173,7 +182,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
 				else if (instrument==6) instrument=9;
 
 				fprintf(fff,"* %c I %d\n",
-					channel_to_channel(c),
+					channel_to_channel(c,ch0,ch1,ch2),
 					instrument);
 			}
 
@@ -184,8 +193,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
 		for(c=0;c<4;c++) {
 			int volume=0;
 
-			if (c==1) continue;
-
+			if ((c!=ch0) && (c!=ch1) && (c!=ch2)) continue;
 
 			if (p->p[j][c].note) {
 				if (p->p[j][c].note==97) volume=0x10;
@@ -207,7 +215,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
 				volume=convert_volume(volume-0x10);
 
 				fprintf(fff,"* %c L %d\n",
-					channel_to_channel(c),
+					channel_to_channel(c,ch0,ch1,ch2),
 					volume);
 			}
 
@@ -217,7 +225,8 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
 
 		/* Handle Notes */
 		for(c=0;c<4;c++) {
-			if (c==1) continue;
+
+			if ((c!=ch0) && (c!=ch1) && (c!=ch2)) continue;
 
 			note_to_ym_string(fff,p->p[j][c].note);
 
@@ -267,7 +276,8 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p) {
 }
 
 
-int xm_to_text(FILE *fff,struct xm_info_struct *xm) {
+int xm_to_text(FILE *fff,struct xm_info_struct *xm,
+		int which1, int which2, int which3) {
 
 	int i;
 
@@ -285,7 +295,8 @@ int xm_to_text(FILE *fff,struct xm_info_struct *xm) {
 
 	for(i=0;i < xm->song_length;i++) {
 		dump_pattern( fff, xm->pattern_order[i],
-				&(xm->pattern[xm->pattern_order[i]]));
+				&(xm->pattern[xm->pattern_order[i]]),
+				which1,which2,which3);
 	}
 
 	return 0;

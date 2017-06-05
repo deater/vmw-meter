@@ -13,16 +13,34 @@ int main(int argc, char **argv) {
 	char *filename;
 	char *outname;
 	FILE *outfile;
+	int c;
+	int ch0=0,ch1=1,ch2=2;
 
-	if (argc>1) {
-		filename=argv[1];
+	while ((c = getopt(argc, argv, "hvc:"))!=-1) {
+		switch(c) {
+			case 'c':
+				/* Lazy Hack */
+				ch0=optarg[0]-'0';
+				ch1=optarg[2]-'0';
+				ch2=optarg[4]-'0';
+				printf("Using channels %d,%d,%d\n",ch0,ch1,ch2);
+				break;
+			default:
+				printf("Unknown argument %c\n",c);
+		}
+	}
+
+	if (optind<argc) {
+		filename=argv[optind];
 	}
 	else {
 		filename=strdup("stillalive.xm");
 	}
 
-	if (argc>2) {
-		outname=argv[2];
+	optind++;
+
+	if (optind<argc) {
+		outname=argv[optind];
 	}
 	else {
 		outname=strdup("stillalive.txt");
@@ -46,7 +64,7 @@ int main(int argc, char **argv) {
 
 	}
 	else {
-		xm_to_text(outfile,&xm);
+		xm_to_text(outfile,&xm,ch0,ch1,ch2);
 	}
 
 	fclose(outfile);

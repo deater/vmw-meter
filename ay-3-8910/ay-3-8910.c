@@ -48,14 +48,13 @@ static int use_gpio=1;
 
 #define AY38910_CLOCK	1000000	/* 1MHz on our board */
 
-static int gpio_shift_74hc595(int value, int size) {
-
+static int gpio_shift_74hc595(int value1, int value2, int size) {
 
 	int i,shifted_val;
 
 	/* Shift first 8 bits */
 
-	shifted_val=value;
+	shifted_val=value1;
 
 	for(i=0;i<8;i++) {
 		/* Set clock low */
@@ -82,7 +81,7 @@ static int gpio_shift_74hc595(int value, int size) {
 
 	/* Shift next 8 bits */
 	if (size==16) {
-	shifted_val=value;
+	shifted_val=value2;
 
 	for(i=0;i<8;i++) {
 		/* Set clock low */
@@ -118,34 +117,35 @@ static int gpio_shift_74hc595(int value, int size) {
 	return 0;
 }
 
-static int spi_shift_74hc595(int value, int size) {
+static int spi_shift_74hc595(int value1, int value2, int size) {
 
 	int result=0;
 	unsigned char data_out[2];
 
 	/* Reverse bits */
 	/* On pi SPI it is MSB first only */
-	unsigned char b = value;
-	b = ((b * 0x0802LU & 0x22110LU) | (b * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16; 
+	unsigned char b1 = value1, b2=value2;
+	b1 = ((b1 * 0x0802LU & 0x22110LU) | (b1 * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16;
+	b2 = ((b1 * 0x0802LU & 0x22110LU) | (b2 * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16;
 
-	/* For now just duplicate */
-	data_out[0]=b;
-	data_out[1]=b;
+	/* left/right */
+	data_out[0]=b1;
+	data_out[1]=b2;
 
 	bcm2835_spi_writenb((char *)data_out,2);
 
 	return result;
 }
 
-int write_ay_3_8910(int addr, int value, int shift_size) {
+int write_ay_3_8910(int addr, int value, int value2, int shift_size) {
 
 	/* Be sure BDIR and BC1 are low */
 	bcm2835_gpio_write(RPI_GPIO_P1_16, LOW);
 	bcm2835_gpio_write(RPI_GPIO_P1_12, LOW);
 
 	/* Set address on bus */
-	if (use_gpio) gpio_shift_74hc595(addr,shift_size);
-	else spi_shift_74hc595(addr,shift_size);
+	if (use_gpio) gpio_shift_74hc595(addr,addr,shift_size);
+	else spi_shift_74hc595(addr,addr,shift_size);
 
 	/* Set BDIR and BC1 high */
 	bcm2835_gpio_write(RPI_GPIO_P1_16, HIGH);
@@ -162,8 +162,8 @@ int write_ay_3_8910(int addr, int value, int shift_size) {
 
 	/* Be sure BDIR and BC1 are low */
 	/* Put value on bus */
-	if (use_gpio) gpio_shift_74hc595(value,shift_size);
-	else spi_shift_74hc595(value,shift_size);
+	if (use_gpio) gpio_shift_74hc595(value,value2,shift_size);
+	else spi_shift_74hc595(value,value2,shift_size);
 
 	/* Put BDIR high */
 	bcm2835_gpio_write(RPI_GPIO_P1_16, HIGH);
@@ -184,7 +184,7 @@ void quiet_ay_3_8910(int shift_size) {
 	int j;
 
 	for(j=0;j<14;j++) {
-		write_ay_3_8910(j,0,shift_size);
+		write_ay_3_8910(j,0,0,shift_size);
 	}
 }
 

@@ -456,6 +456,7 @@ length=17
 	}
 
 	/* scale by loudness */
+	/* FIXME: log/nolog */
 
 	result=(result * n->loud)/15;
 

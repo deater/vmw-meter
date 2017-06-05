@@ -259,43 +259,43 @@ static int play_organ(void) {
 			case 'q': quit=1; break;
 
 			case 'a':
-				freq=note_to_freq('C',0,0,octave);
+				freq=note_to_freq('C',0,0,octave,0);
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
 			case 's':
-				freq=note_to_freq('D',0,0,octave);
+				freq=note_to_freq('D',0,0,octave,0);
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
 			case 'd':
-				freq=note_to_freq('E',0,0,octave);
+				freq=note_to_freq('E',0,0,octave,0);
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
 			case 'f':
-				freq=note_to_freq('F',0,0,octave);
+				freq=note_to_freq('F',0,0,octave,0);
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
 			case 'g':
-				freq=note_to_freq('G',0,0,octave);
+				freq=note_to_freq('G',0,0,octave,0);
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
 			case 'h':
-				freq=note_to_freq('A',0,0,octave);
+				freq=note_to_freq('A',0,0,octave,0);
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
 			case 'j':
-				freq=note_to_freq('B',0,0,octave);
+				freq=note_to_freq('B',0,0,octave,0);
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
@@ -399,13 +399,13 @@ static int play_organ(void) {
 
 		if (play_music) {
 			for(j=0;j<13;j++) {
-				write_ay_3_8910(j,frame[j],shift_size);
+				write_ay_3_8910(j,frame[j],frame[j],shift_size);
 			}
 
 			/* Special case.  Writing r13 resets it,	*/
 			/* so special 0xff marker means do not write	*/
 			if (frame[13]!=0xff) {
-				write_ay_3_8910(13,frame[13],shift_size);
+				write_ay_3_8910(13,frame[13],frame[13],shift_size);
 			}
 		}
 

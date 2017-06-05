@@ -4,18 +4,49 @@ LFLAGS = -lm
 
 all:	sa.ym5 korobeiniki.ym5 fighting.ym5 highwind.ym5 \
 	highwind.ed fighting.ed sa.ed sa_chiptune.ym5 \
-	saxm.ym5
+	saxm1.ym5 saxm2.ym5 saxm3.ym5 \
+	saxm.vmw5
 
 ###
 
-saxm.txt:	../xm_to_text ../stillalive.xm
-	../xm_to_text ../stillalive.xm ./saxm.txt
+saxm.vmw5:	saxm1.ym5 saxm3.ym5
+	cp saxm1.ym5 saxm.vmw5
+	cat saxm3.ym5 >> saxm.vmw5
 
-saxm.ym:	../text_to_ym saxm.txt
-	../text_to_ym saxm.txt saxm
+###
 
-saxm.ym5:	saxm.ym
-	../ym_to_ym5 saxm
+
+saxm1.txt:	../xm_to_text ../stillalive.xm
+	../xm_to_text -c 0,2,3 ../stillalive.xm ./saxm1.txt
+
+saxm1.ym:	../text_to_ym saxm1.txt
+	../text_to_ym saxm1.txt saxm1
+
+saxm1.ym5:	saxm1.ym
+	../ym_to_ym5 saxm1
+
+###
+
+saxm2.txt:	../xm_to_text ../stillalive.xm
+	../xm_to_text -c 0,1,2 ../stillalive.xm ./saxm2.txt
+
+saxm2.ym:	../text_to_ym saxm2.txt
+	../text_to_ym saxm2.txt saxm2
+
+saxm2.ym5:	saxm2.ym
+	../ym_to_ym5 saxm2
+
+###
+
+saxm3.txt:	../xm_to_text ../stillalive.xm
+	../xm_to_text -c 0,1,3 ../stillalive.xm ./saxm3.txt
+
+saxm3.ym:	../text_to_ym saxm3.txt
+	../text_to_ym saxm3.txt saxm3
+
+saxm3.ym5:	saxm3.ym
+	../ym_to_ym5 saxm3
+
 ###
 
 

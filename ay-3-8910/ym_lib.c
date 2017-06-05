@@ -195,6 +195,8 @@ int load_ym_song(
 		return -1;
 	}
 
+	ym_song->channels=3;
+
 	ym_song->file_data=data;
 
 	/*****************/
@@ -434,6 +436,7 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	int j;
 
 	unsigned char frame[YM5_FRAME_SIZE];
+	unsigned char frame2[YM5_FRAME_SIZE];
 
 	int a_period,b_period,c_period,n_period,e_period;
 	double a_freq=0.0, b_freq=0.0, c_freq=0.0,n_freq=0.0,e_freq=0.0;
@@ -589,15 +592,23 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	if (mute_channel&0x10) frame[7]|=0x10;
 	if (mute_channel&0x20) frame[7]|=0x20;
 
+	if (ym_song->channels==3) {
+		memcpy(frame2,frame,sizeof(frame));
+	}
+
 	if (play_music) {
 		for(j=0;j<13;j++) {
-			write_ay_3_8910(j,frame[j],shift_size);
+			write_ay_3_8910(j,frame[j],frame2[j],shift_size);
 		}
 
 		/* Special case.  Writing r13 resets it,	*/
 		/* so special 0xff marker means do not write	*/
-		if (frame[13]!=0xff) {
-			write_ay_3_8910(13,frame[13],shift_size);
+
+		/* FIXME: so what do we do if 2 channels have */
+		/* different values? */
+
+		if ((frame[13]!=0xff) || (frame2[13]!=0xff)) {
+			write_ay_3_8910(13,frame[13],frame2[13],shift_size);
 		}
 	}
 

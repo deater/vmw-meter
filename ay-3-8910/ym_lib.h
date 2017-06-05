@@ -6,6 +6,7 @@
 #define MAX_YM_STRING	256
 
 struct ym_song_t {
+	int channels;
 	int type;
 	int file_size;
 	int num_frames;
