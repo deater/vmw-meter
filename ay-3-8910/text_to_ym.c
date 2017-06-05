@@ -411,11 +411,38 @@ static int enable_noise(struct note_type *n, int which) {
 	return mask;
 }
 
+#if 0
+
+/* In 1-15, out 0-127 */
+static double amp_log_to_linear(double log_amp) {
+
+	double linear;
+
+	linear = 127.0*pow(2.718281828,(log_amp-15.0)*(log(sqrt(2.0))));
+
+	return linear;
+}
+
+/* In 1-128, out 1-15 */
+static double amp_linear_to_log(double linear_amp) {
+
+	double log_amp;
+
+	if (linear_amp==0) return 0;
+
+	log_amp = 15.0 - ( (log(127.0/linear_amp)) / (log(sqrt(2))) );
+
+	return log_amp;
+
+}
+#endif
 
 static int calculate_amplitude(struct note_type *n) {
 
 	int result=0;
 	struct instrument_type *i;
+
+	double log_amp,linear_amp;
 
 	i=n->instrument;
 
@@ -455,10 +482,19 @@ length=17
 		}
 	}
 
+#if 1
+	result=(result * n->loud)/15;
+#else
 	/* scale by loudness */
 	/* FIXME: log/nolog */
-
-	result=(result * n->loud)/15;
+	printf("Trying to scale %d by %d.  Linear=%d\n",
+		result,n->loud,(result * n->loud)/15);
+	linear_amp=amp_log_to_linear(result);
+	log_amp=amp_linear_to_log( (linear_amp * n->loud)/15.0);
+	printf("\tlinear=%lf scaled=%lf log=%lf\n",
+		linear_amp,(linear_amp * n->loud)/15.0,log_amp);
+	result=log_amp;
+#endif
 
 	if (debug) printf("%d %d %d (%d)\n",n->length,n->left,result,
 		n->loud);
