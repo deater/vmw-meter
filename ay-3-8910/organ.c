@@ -35,15 +35,15 @@ static int current_instrument=0;
 #define MAX_SOUNDS	2
 
 struct instrument_type {
-	int envelope[10];
+	int envelope[128];
 	int length;
 	char *name;
 };
 
 struct drum_type {
-	int envelope[14];
-	int period[14];
-	int period2[14];
+	int envelope[32];
+	int period[32];
+	int period2[32];
 	int length;
 	char *name;
 };
@@ -83,24 +83,26 @@ struct drum_type drum[MAX_DRUMS] = {
 	.length=5,
 	},
 	{
-	.name="boom",// 1
-	.envelope={13,11, 9, 7, 5, 3, 12, 10, 8, 6, 4, 2, 14},
-	.period=  { 6, 6, 6, 6, 6, 6,  6,  6, 6, 6, 6, 1,  1},
-	.period2= { 668,668,668,668,668,668,668,668,668,668,668,668,668},
-	.length=13,
+	.name="bass",// 1
+//	.envelope={15,15,15, 9, 9, 9, },
+//	.period=  { 8, 8, 8, 8, 8, 8 },
+	.envelope={13,13,11, 11, 8, 8, },
+	.period=  { 10, 10, 10, 10, 10, 10 },
+	.period2= { 668,668,668,668,668,668},
+	.length=6,
 	},
 	{
-	.name="tish",// 2
-	.envelope={12,12,10,10, 9, 9, 8, 8, 6, 6, 4, 3, },
-	.period=  { 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, },
-	.period2= { 668,668,668,668,668,668,668,668,668,668,668,668},
-	.length=12,
+	.name="snare",// 2
+	.envelope={14,15,15,13, 12, 9 },
+	.period=  { 4, 5, 6, 7, 8, 8 },
+	.period2= { 668,668,668,668,668},
+	.length=6,
 	},
 	{
-	.name="snare",// 3
-	.envelope={15,15,14,13, 12, 12},
-	.period=  { 4, 6, 7, 9, 12, 17 },
-	.period2= { 0xef,0x11f,0x14f,0x175,0x1af,0x1df},
+	.name="cymbal",// 3
+	.envelope={12,12,10,10, 9, 9},
+	.period=  { 1, 1, 1, 1, 1, 0},
+	.period2= { 668,668,668,668,668,668},
 	.length=6,
 	},
 	{
@@ -137,16 +139,26 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	.envelope={14,15,15,15,15,15,13,11,9,7},
 	.length=10,
 	},
+//	{
+//	.name="triangle",
+//	.envelope={7,9,11,13,15,15,13,11,9,7},
+//	.length=10,
+//	},
 	{
 	.name="triangle",
-	.envelope={7,9,11,13,15,15,13,11,9,7},
-	.length=10,
+	.envelope={13,14,15,14,13,12,9,12},
+	.length=8,
 	},
 	{
 	.name="trill",
 	.envelope={9,15,9,15,9,15,9,15,9,15},
 	.length=10,
 	},
+//	{
+//	.name="sine",
+//	.envelope={8,10,15,15,10,8,6,1,1,6},
+//	.length=10,
+//	},
 	{
 	.name="sine",
 	.envelope={8,10,15,15,10,8,6,1,1,6},
@@ -301,7 +313,7 @@ static int play_organ(void) {
 				a_length=instruments[current_instrument].length;
 				break;
 			case ',':
-				n_type=6;
+				n_type=1;
 				n_enabled=1;
 				n_count=0;
 
@@ -310,7 +322,7 @@ static int play_organ(void) {
 				break;
 
 			case '.':
-				n_type=1;
+				n_type=2;
 				n_enabled=1;
 				n_count=0;
 
@@ -320,7 +332,7 @@ static int play_organ(void) {
 				break;
 
 			case '/':
-				n_type=2;
+				n_type=3;
 				n_enabled=1;
 				n_count=0;
 

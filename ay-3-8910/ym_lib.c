@@ -528,8 +528,11 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	unsigned char frame[YM5_FRAME_SIZE];
 	unsigned char frame2[YM5_FRAME_SIZE];
 
+	int left_a_period,left_b_period,left_c_period;
+	int right_a_period,right_b_period,right_c_period;
 
-	double a_freq=0.0, b_freq=0.0, c_freq=0.0;
+	double left_a_freq=0.0, left_b_freq=0.0, left_c_freq=0.0;
+	double right_a_freq=0.0, right_b_freq=0.0, right_c_freq=0.0;
 
 	ym_make_frame(ym_song,ym_song->frame_data,frame_num,frame);
 
@@ -538,6 +541,22 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	} else {
 		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,frame2);
 	}
+
+	left_a_period=((frame[1]&0xf)<<8)|frame[0];
+	left_b_period=((frame[3]&0xf)<<8)|frame[2];
+	left_c_period=((frame[5]&0xf)<<8)|frame[4];
+
+	right_a_period=((frame2[1]&0xf)<<8)|frame2[0];
+	right_b_period=((frame2[3]&0xf)<<8)|frame2[2];
+	right_c_period=((frame2[5]&0xf)<<8)|frame2[4];
+
+	if (left_a_period>0) left_a_freq=ym_song->master_clock/(16.0*(double)left_a_period);
+	if (left_b_period>0) left_b_freq=ym_song->master_clock/(16.0*(double)left_b_period);
+	if (left_c_period>0) left_c_freq=ym_song->master_clock/(16.0*(double)left_c_period);
+
+	if (right_a_period>0) right_a_freq=ym_song->master_clock/(16.0*(double)right_a_period);
+	if (right_b_period>0) right_b_freq=ym_song->master_clock/(16.0*(double)right_b_period);
+	if (right_c_period>0) right_c_freq=ym_song->master_clock/(16.0*(double)right_c_period);
 
 	if (mute_channel&0x1) frame[8]=0;
 	if (mute_channel&0x2) frame[9]=0;
@@ -570,16 +589,16 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 		ds->left_a_bar=(frame[8]*11)/16;
 		ds->left_b_bar=(frame[9]*11)/16;
 		ds->left_c_bar=(frame[10]*11)/16;
-		ds->left_a_freq=(a_freq)/150;
-		ds->left_b_freq=(b_freq)/150;
-		ds->left_c_freq=(c_freq)/150;
+		ds->left_a_freq=(left_a_freq)/150;
+		ds->left_b_freq=(left_b_freq)/150;
+		ds->left_c_freq=(left_c_freq)/150;
 
-		ds->right_a_bar=(frame[8]*11)/16;
-		ds->right_b_bar=(frame[9]*11)/16;
-		ds->right_c_bar=(frame[10]*11)/16;
-		ds->right_a_freq=(a_freq)/150;
-		ds->right_b_freq=(b_freq)/150;
-		ds->right_c_freq=(c_freq)/150;
+		ds->right_a_bar=(frame2[8]*11)/16;
+		ds->right_b_bar=(frame2[9]*11)/16;
+		ds->right_c_bar=(frame2[10]*11)/16;
+		ds->right_a_freq=(right_a_freq)/150;
+		ds->right_b_freq=(right_b_freq)/150;
+		ds->right_c_freq=(right_c_freq)/150;
 	}
 
 	return 0;
