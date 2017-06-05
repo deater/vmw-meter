@@ -102,7 +102,7 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	.once=0,
 	},
 	{
-	.name="quiet raw",		// 6
+	.name="quieter raw",		// 6
 	.adsr=1,
 	.noise=0,
 	.attack_size=0,
@@ -155,11 +155,11 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	.name="sine",		// 10
 	.adsr=1,
 	.noise=0,
-	.attack={13,14},
+	.attack={14,14},
 	.attack_size=2,
-	.decay={14,13},
+	.decay={14,14},
 	.decay_size=2,
-	.sustain=14,
+	.sustain=15,
 	.release={14},
 	.release_size=1,
 	.once=0,

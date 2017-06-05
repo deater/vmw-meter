@@ -86,10 +86,12 @@ struct drum_type drum[MAX_DRUMS] = {
 	.name="bass",// 1
 //	.envelope={15,15,15, 9, 9, 9, },
 //	.period=  { 8, 8, 8, 8, 8, 8 },
-	.envelope={13,13,11, 11, 8, 8, },
-	.period=  { 10, 10, 10, 10, 10, 10 },
+//	.envelope={13,13,11, 11, 8, 8, },
+//	.period=  { 10, 10, 10, 10, 10, 10 },
+	.envelope={13,13,13, 0,0,0, },
+	.period=  { 30, 20, 20, 0, 0, 0 },
 	.period2= { 668,668,668,668,668,668},
-	.length=6,
+	.length=3,
 	},
 	{
 	.name="snare",// 2
@@ -159,9 +161,14 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 //	.envelope={8,10,15,15,10,8,6,1,1,6},
 //	.length=10,
 //	},
+//	{
+//	.name="sine",
+//	.envelope={8,10,15,15,10,8,6,1,1,6},
+//	.length=10,
+//	},
 	{
 	.name="sine",
-	.envelope={8,10,15,15,10,8,6,1,1,6},
+	.envelope={11,12,13,14,14,14,14,13,12,11},
 	.length=10,
 	},
 	{
