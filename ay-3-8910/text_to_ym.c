@@ -207,7 +207,7 @@ struct ym_header {
 	uint16_t additional_data;		// 32 -> 34
 }  __attribute__((packed)) our_header;
 
-static int note_to_length(int length) {
+static int note_to_length(int length, int line) {
 
 	int len=1;
 
@@ -228,7 +228,8 @@ static int note_to_length(int length) {
 		case 14: len=(baselen/3); break;	// > = 1/3   triple note
 		case 15: len=99999;	break;		// ? = forever
 		default:
-			fprintf(stderr,"Unknown length %d\n",length);
+			fprintf(stderr,"Unknown length %d line %d\n",
+				length,line);
 	}
 
 	return len;
@@ -309,7 +310,7 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 		n->length=n->instrument->length;
 	}
 	else {
-		n->length=note_to_length(n->len);
+		n->length=note_to_length(n->len,line);
 	}
 	n->left=n->length-1;
 

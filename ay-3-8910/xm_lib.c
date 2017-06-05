@@ -35,7 +35,7 @@ static void note_to_ym_string(FILE *fff,int note) {
 		letter=letters[(note-1)%12];
 		octave=(note-1)/12;
 		sharp=sharps[(note-1)%12];
-		fprintf(fff,"%c%c%d",letter,sharp?'#':' ',octave);
+		fprintf(fff,"%c%c%X",letter,sharp?'#':' ',octave);
 	}
 }
 
@@ -232,6 +232,11 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p,
 		for(c=0;c<4;c++) {
 
 			if ((c!=ch0) && (c!=ch1) && (c!=ch2)) continue;
+
+			if (c==0) {
+				if ((p->p[j][c].note))
+					p->p[j][c].note+=24;
+			}
 
 			note_to_ym_string(fff,p->p[j][c].note);
 
