@@ -92,7 +92,7 @@ static int dump_song(char *filename, int debug) {
 		s=s%60;
 
 		if (frame_num%96==0) {
-			printf("%02d:%02d  ----- A     B     C     N     E -------------------------------\n",m,s);
+			printf("%02d:%02d  ---- A     B     C      N     E -------------------------------\n",m,s);
 		}
 
 		ym_dump_frame(&ym_song,frame_num,debug,0);
