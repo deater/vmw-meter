@@ -139,6 +139,13 @@ static int parse_lyric(struct lyric_type *l, int lnum, char *string) {
 				length++;
 				if (length>MAX_LYRIC_LEN) break;
 			}
+
+			/* \v means clear 14-seg display */
+			if (ch=='v') {
+				string[length]='\v';
+				length++;
+				if (length>MAX_LYRIC_LEN) break;
+			}
 		}
 
 		else {
@@ -227,7 +234,8 @@ static int lyrics_play(struct lyric_type *l) {
 			else if (ch=='\f') {
 				clear_things(0);
 				y_line=2;
-
+			}
+			else if (ch=='\v') {
 				for(i=0;i<NUM_ALPHANUM;i++) {
 					led_string[i]=' ';
 				}
@@ -341,7 +349,7 @@ int main(int argc, char **argv) {
 
 //	display_led_art(6);
 
-	load_lyrics("sa/sa.lyrics",&l);
+	load_lyrics("sa/saxm1.lyrics",&l);
 
 	lyrics_play(&l);
 
