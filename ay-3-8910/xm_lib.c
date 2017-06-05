@@ -173,7 +173,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p,
 					/* 2 = muted */
 				else if (instrument==2) instrument=6;
 					/* 3 = triangle wave */
-				else if (instrument==3) instrument=0;
+				else if (instrument==3) instrument=10;
 					/* 4 = bass drum */
 				else if (instrument==4) instrument=7;
 					/* 5 = snare drum */

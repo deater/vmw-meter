@@ -117,13 +117,13 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	.adsr=1,
 	.noise=1,
 	.attack_size=6,
-	.attack={14,14,13, 13, 9, 9, },
+	.attack={14,14,13, },
 	.release_size=1,
-	.release={0},
+	.release={13},
 	.noise_size=6,
-	.noise_period =  { 10, 10, 10, 10, 10, 10 },
+	.noise_period =  { 30, 30, 20, 0, 0, 0 },
 	.once=1,
-	.length=7,
+	.length=4,
 	},
 	{
 	.name="snare",			// 8
@@ -151,6 +151,20 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	.once=1,
 	.length=6,
 	},
+	{
+	.name="sine",		// 10
+	.adsr=1,
+	.noise=0,
+	.attack={13,14},
+	.attack_size=2,
+	.decay={14,13},
+	.decay_size=2,
+	.sustain=14,
+	.release={14},
+	.release_size=1,
+	.once=0,
+	},
+
 };
 
 #define MAX_LOUDS	8
@@ -404,6 +418,7 @@ static int calculate_noise(struct note_type *n) {
 }
 
 static int enable_noise(struct note_type *n, int which) {
+
 	int mask;
 
 	mask=1<<(3+which);
@@ -441,8 +456,6 @@ static int calculate_amplitude(struct note_type *n) {
 
 	int result=0;
 	struct instrument_type *i;
-
-	double log_amp,linear_amp;
 
 	i=n->instrument;
 
@@ -485,6 +498,9 @@ length=17
 #if 1
 	result=(result * n->loud)/15;
 #else
+
+	double log_amp,linear_amp;
+
 	/* scale by loudness */
 	/* FIXME: log/nolog */
 	printf("Trying to scale %d by %d.  Linear=%d\n",
@@ -851,6 +867,8 @@ int main(int argc, char **argv) {
 
 		for(j=0;j<frames_per_line;j++) {
 
+			frame[7]=0x38;
+
 			if (a.enabled) {
 				update_note(&a);
 
@@ -873,14 +891,14 @@ int main(int argc, char **argv) {
 					frame[1]=(a.freq>>8)&0xf;
 				}
 
-				frame[7]=0x38;
+				frame[8]=calculate_amplitude(&a);
 
 				if (a.instrument->noise) {
 					frame[6]=calculate_noise(&a);
 					frame[7]&=~enable_noise(&a,0);
 				}
 
-				frame[8]=calculate_amplitude(&a);
+
 			}
 			else {
 				frame[0]=0x0;
@@ -910,7 +928,6 @@ int main(int argc, char **argv) {
 					frame[2]=b.freq&0xff;
 					frame[3]=(b.freq>>8)&0xf;
 				}
-				frame[7]=0x38;
 				frame[9]=calculate_amplitude(&b);
 
 				if (b.instrument->noise) {
@@ -946,7 +963,7 @@ int main(int argc, char **argv) {
 					frame[4]=c.freq&0xff;
 					frame[5]=(c.freq>>8)&0xf;
 				}
-				frame[7]=0x38;
+
 				frame[10]=calculate_amplitude(&c);
 
 				if (c.instrument->noise) {
