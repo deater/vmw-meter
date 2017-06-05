@@ -197,6 +197,11 @@ int load_ym_song(
 
 	ym_song->channels=3;
 
+	/* HACK! */
+	if (!strcmp(filename+(strlen(filename)-4),"vmw5")) {
+		ym_song->channels=6;
+	}
+
 	ym_song->file_data=data;
 
 	/*****************/
@@ -340,6 +345,15 @@ int load_ym_song(
 
 	ym_song->file_data=data;
 	ym_song->frame_data=(data+file_offset);
+	if (ym_song->channels==6) {
+		ym_song->file_data2=data+ym_song->file_size/2;
+		ym_song->frame_data2=(ym_song->file_data2+file_offset);
+		printf("Trying offset %ld\n",file_offset+ym_song->file_size/2);
+	}
+	else {
+		ym_song->file_data2=data;
+		ym_song->frame_data2=(data+file_offset);
+	}
 
 	return 0;
 }
@@ -425,6 +439,7 @@ void print_diff(int frame_num) {
 }
 
 static int ym_make_frame(struct ym_song_t *ym_song,
+			unsigned char *frame_data,
 			int frame_num,
 			unsigned char *frame) {
 
@@ -436,13 +451,12 @@ static int ym_make_frame(struct ym_song_t *ym_song,
 
 	if (ym_song->interleaved) {
 		for(j=0;j<ym_song->frame_size;j++) {
-			frame[j]=ym_song->frame_data[frame_num+
-							j*ym_song->num_frames];
+			frame[j]=frame_data[frame_num+j*ym_song->num_frames];
 		}
 	}
 	else {
 		memcpy(frame,
-			&ym_song->frame_data[frame_num*ym_song->frame_size],
+			&frame_data[frame_num*ym_song->frame_size],
 			ym_song->frame_size);
 	}
 
@@ -517,12 +531,12 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 
 	double a_freq=0.0, b_freq=0.0, c_freq=0.0;
 
-	ym_make_frame(ym_song,frame_num,frame);
+	ym_make_frame(ym_song,ym_song->frame_data,frame_num,frame);
 
 	if (ym_song->channels==3) {
 		memcpy(frame2,frame,sizeof(frame));
 	} else {
-		ym_make_frame(ym_song,frame_num,frame2);
+		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,frame2);
 	}
 
 	if (mute_channel&0x1) frame[8]=0;
@@ -763,7 +777,7 @@ static int ym_dump_frame_triplet(struct ym_song_t *ym_song,
 
 
 	if (which==0) printf("%05d:\t",frame_num);
-	else printf("\t\t");
+	else printf("\t");
 	prettyprint_freq(a_freq);
 	prettyprint_freq(b_freq);
 	prettyprint_freq(c_freq);
@@ -807,11 +821,11 @@ int ym_dump_frame(struct ym_song_t *ym_song, int frame_num, int raw,
 	unsigned char frame[YM5_FRAME_SIZE];
 	unsigned char frame2[YM5_FRAME_SIZE];
 
-	ym_make_frame(ym_song,frame_num,frame);
+	ym_make_frame(ym_song,ym_song->frame_data,frame_num,frame);
 	ym_dump_frame_triplet(ym_song,frame,frame_num, raw, 0);
 
 	if (ym_song->channels==6) {
-		ym_make_frame(ym_song,frame_num,frame2);
+		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,frame2);
 		ym_dump_frame_triplet(ym_song,frame2,frame_num, raw, 1);
 	}
 
