@@ -168,7 +168,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p,
 			instrument=p->p[j][c].instrument;
 
 			/* Hardcoded match for stillalive */
-			if (instrument!=last_instrument[c]) {
+			if ((instrument) && (instrument!=last_instrument[c])) {
 
 				last_instrument[c]=instrument;
 
