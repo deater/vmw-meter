@@ -85,6 +85,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p,
 
 	int j,c;
 	int pattern_break=0;
+	int last_instrument[16]={0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, };
 
 	fprintf(fff,"\' Pattern %x\n",which);
 
@@ -167,7 +168,10 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p,
 			instrument=p->p[j][c].instrument;
 
 			/* Hardcoded match for stillalive */
-			if (instrument) {
+			if (instrument!=last_instrument[c]) {
+
+				last_instrument[c]=instrument;
+
 					/* 1 = sine */
 				if (instrument==1) instrument=0;
 					/* 2 = muted */
@@ -184,6 +188,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p,
 				fprintf(fff,"* %c I %d\n",
 					channel_to_channel(c,ch0,ch1,ch2),
 					instrument);
+
 			}
 
 		}
