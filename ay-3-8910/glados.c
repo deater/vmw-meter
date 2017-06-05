@@ -180,7 +180,7 @@ static int lyrics_play(struct lyric_type *l) {
 	char current_lyric[MAX_LYRIC_LEN+1];
 	struct frame_stats ds;
 
-	result=load_ym_song("sa/sa.ym5",&ym_song);
+	result=load_ym_song("sa/saxm.vmw5",&ym_song);
 	if (result<0) {
 		return -1;
 	}

@@ -291,7 +291,8 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 	else if (string[sp]=='-') n->flat=1;
 	else if (string[sp]=='=') n->flat=2;
 	else {
-		fprintf(stderr,"Unknown note modifier %c\n",string[sp]);
+		fprintf(stderr,"Unknown note modifier %c line %d\n",
+			string[sp],line);
 	}
 	sp++;
 	n->octave=string[sp]-'0';
