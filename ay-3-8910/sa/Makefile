@@ -27,4 +27,4 @@ saxm3.ym5:	saxm3.ym
 	../ym_to_ym5 saxm3
 
 clean:	
-	rm -f *~  rm *.ym5 *.ym *.lyrics *.ed saxm.txt
+	rm -f *~  rm *.ym5 *.ym *.ed saxm.vmw5
