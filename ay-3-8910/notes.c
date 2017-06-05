@@ -6,14 +6,14 @@
 #define TWELTH_TWO 1.059463094359
 
 // http://www.phy.mtu.edu/~suits/NoteFreqCalcs.html
-double note_to_freq(char note, int flat, int sharp, int octave, int sub) {
+double note_to_freq(char note, int flat, int sharp, int octave, double sub) {
 
 	double freq=0.0;
 	double step=0;
 
 	switch(note) {
-		case 'B': step=2; break;
-		case 'A': step=0; break;
+		case 'B': step= 2; break;
+		case 'A': step= 0; break;
 		case 'G': step=-2; break;
 		case 'F': step=-4; break;
 		case 'E': step=-5; break;

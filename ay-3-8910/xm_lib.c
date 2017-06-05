@@ -21,7 +21,7 @@ static char letters[12]={'C','C','D','D','E','F','F','G','G','A','A','B'};
 static int sharps[12]={   0 , 1 , 0 , 1 , 0 , 0 , 1 , 0 , 1 , 0 , 1 , 0};
 
 
-static void note_to_ym_string(FILE *fff,int note) {
+static void note_to_ym_string(FILE *fff,int note,int shiftup) {
 
 	/* 1 = C0 ? */
 	/* C,C#,D,D#,E,F,F#,G,G#,A,A#,B */
@@ -32,6 +32,7 @@ static void note_to_ym_string(FILE *fff,int note) {
 	else if (note==97) fprintf(fff,"---");
 //	else if (note>97) fprintf(fff,"???");
 	else {
+		if (shiftup) note+=24;
 		letter=letters[(note-1)%12];
 		octave=(note-1)/12;
 		sharp=sharps[(note-1)%12];
@@ -233,12 +234,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p,
 
 			if ((c!=ch0) && (c!=ch1) && (c!=ch2)) continue;
 
-			if (c==0) {
-				if ((p->p[j][c].note))
-					p->p[j][c].note+=24;
-			}
-
-			note_to_ym_string(fff,p->p[j][c].note);
+			note_to_ym_string(fff,p->p[j][c].note,c==0);
 
 			if ((p->p[j][c].note<97) &&
 				(p->p[j][c].note!=0)) {

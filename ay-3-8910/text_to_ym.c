@@ -347,10 +347,12 @@ static int update_note(struct note_type *n) {
 	}
 
 	if (n->portamento) {
+		#define FUDGE	16.0
+
 		sub1_adjust=n->sub_adjust;
-		sub2_adjust=n->sub_adjust+n->port_speed;
-		sub3_adjust=n->sub_adjust+n->port_speed*2;
-		n->sub_adjust+=3*n->port_speed;
+		sub2_adjust=n->sub_adjust+((n->port_speed)/FUDGE);
+		sub3_adjust=n->sub_adjust+((n->port_speed*2)/FUDGE);
+		n->sub_adjust+=((3*n->port_speed)/FUDGE);
 //		printf("Setting port sub: %d ps: %d\n",
 //			n->sub_adjust,n->port_speed);
 	}
@@ -558,12 +560,19 @@ static int get_effect(struct note_type *n,char *string) {
 			if (param!=0) {
 				n->port_speed=param;
 			}
+			else {
+				if (n->port_speed<0) n->port_speed=-n->port_speed;
+			}
 			break;
 		case 0x2:	// Portamento Down
 			n->portamento=1;
 			if (param!=0) {
 				n->port_speed=-param;
 			}
+			else {
+				if (n->port_speed>0) n->port_speed=-n->port_speed;
+			}
+
 			break;
 		case 0x4:	// Vibrato
 
@@ -575,7 +584,6 @@ static int get_effect(struct note_type *n,char *string) {
 			if ((param&0xf)!=0) {
 				n->vibrato_depth=param&0xf;
 			}
-
 			break;
 		default:
 			fprintf(stderr,"Unknown effect %X%02X\n",effect,param);
