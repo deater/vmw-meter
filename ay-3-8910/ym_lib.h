@@ -31,8 +31,10 @@ int load_ym_song(
         struct ym_song_t *ym_song );
 
 struct frame_stats {
-	int a_bar,b_bar,c_bar;
-	int a_freq,b_freq,c_freq;
+	int left_a_bar,left_b_bar,left_c_bar;
+	int left_a_freq,left_b_freq,left_c_freq;
+	int right_a_bar,right_b_bar,right_c_bar;
+	int right_a_freq,right_b_freq,right_c_freq;
 };
 
 

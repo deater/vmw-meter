@@ -197,13 +197,7 @@ static int play_song(char *filename) {
 					printf("\033[H\033[2J");
 				}
 
-				ds.a_bar=fs.a_bar;
-				ds.b_bar=fs.b_bar;
-				ds.c_bar=fs.c_bar;
-
-				ds.a_freq=fs.a_freq;
-				ds.b_freq=fs.b_freq;
-				ds.c_freq=fs.c_freq;
+				memcpy(&ds,&fs,sizeof(struct display_stats));
 
 				display_update(display_type,
 							&ds,

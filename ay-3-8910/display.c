@@ -47,15 +47,16 @@ int display_update(int display_type,
 
 
 	bargraph(display_type,
-		ds->a_bar, ds->b_bar, ds->c_bar,
-		ds->a_bar, ds->b_bar, ds->c_bar);
+		ds->left_a_bar, ds->left_b_bar, ds->left_c_bar,
+		ds->right_a_bar, ds->right_b_bar, ds->right_c_bar);
 
 	switch(current_mode) {
 		case MODE_TITLE:
 			display_8x16_title(display_type);
 			break;
 		case MODE_VISUAL:
-			display_8x16_freq(display_type, ds->a_freq, ds->b_freq, ds->c_freq);
+			display_8x16_freq(display_type,
+				ds->left_a_freq, ds->left_b_freq, ds->left_c_freq);
 			break;
 		case MODE_NAME:
 			display_8x16_scroll_text(display_type, filename, new_filename);

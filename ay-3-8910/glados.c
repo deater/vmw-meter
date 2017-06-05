@@ -198,8 +198,8 @@ static int lyrics_play(struct lyric_type *l) {
 
 		/* Update the bargraph */
 		bargraph(display_type,
-			ds.a_bar,ds.b_bar,ds.c_bar,
-			ds.a_bar,ds.b_bar,ds.c_bar);
+			ds.left_a_bar,ds.left_b_bar,ds.left_c_bar,
+			ds.right_a_bar,ds.right_b_bar,ds.right_c_bar);
 
 		/* Parse any lyric updates for this frame */
 

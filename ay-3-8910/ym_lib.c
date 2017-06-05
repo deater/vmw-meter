@@ -427,16 +427,11 @@ void print_diff(int frame_num) {
 	return;
 }
 
-int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
-			struct frame_stats *ds,
-			int diff_mode,
-			int play_music,
-			int mute_channel) {
+static int ym_make_frame(struct ym_song_t *ym_song,
+			int frame_num,
+			unsigned char *frame) {
 
 	int j;
-
-	unsigned char frame[YM5_FRAME_SIZE];
-	unsigned char frame2[YM5_FRAME_SIZE];
 
 	int a_period,b_period,c_period,n_period,e_period;
 	double a_freq=0.0, b_freq=0.0, c_freq=0.0,n_freq=0.0,e_freq=0.0;
@@ -458,89 +453,17 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	/* Write out the music			*/
 	/****************************************/
 
-
 	a_period=((frame[1]&0xf)<<8)|frame[0];
 	b_period=((frame[3]&0xf)<<8)|frame[2];
 	c_period=((frame[5]&0xf)<<8)|frame[4];
 	n_period=frame[6]&0x1f;
 	e_period=((frame[12]&0xff)<<8)|frame[11];
 
-	if (diff_mode) {
-		current_music.a=a_period;
-		current_music.b=b_period;
-		current_music.c=c_period;
-		current_music.n=n_period;
-		current_music.e=e_period;
-		current_music.m=frame[7]&0x3f;
-		current_music.aa=frame[8]&0x3f;
-		current_music.ab=frame[9]&0x3f;
-		current_music.ac=frame[10]&0x3f;
-	}
-
 	if (a_period>0) a_freq=ym_song->master_clock/(16.0*(double)a_period);
 	if (b_period>0) b_freq=ym_song->master_clock/(16.0*(double)b_period);
 	if (c_period>0) c_freq=ym_song->master_clock/(16.0*(double)c_period);
 	if (n_period>0) n_freq=ym_song->master_clock/(16.0*(double)n_period);
 	if (e_period>0) e_freq=ym_song->master_clock/(256.0*(double)e_period);
-
-	if (dump_info) {
-		printf("%05d:\tA:%04x B:%04x C:%04x N:%02x M:%02x ",
-			frame_num,
-			a_period,b_period,c_period,n_period,frame[7]);
-
-		printf("AA:%02x AB:%02x AC:%02x E:%04x,%02x %04x\n",
-			frame[8],frame[9],frame[10],
-			(frame[12]<<8)+frame[11],frame[13],
-			(frame[14]<<8)+frame[15]);
-
-		printf("\t%.1lf %.1lf %.1lf %.1lf %.1lf ",
-			a_freq,b_freq,c_freq,n_freq, e_freq);
-		printf("N:%c%c%c T:%c%c%c ",
-			(frame[7]&0x20)?' ':'C',
-			(frame[7]&0x10)?' ':'B',
-			(frame[7]&0x08)?' ':'A',
-			(frame[7]&0x04)?' ':'C',
-			(frame[7]&0x02)?' ':'B',
-			(frame[7]&0x01)?' ':'A');
-
-		if (frame[8]&0x10) printf("VA: E ");
-		else printf("VA: %d ",frame[8]&0xf);
-		if (frame[9]&0x10) printf("VB: E ");
-		else printf("VB: %d ",frame[9]&0xf);
-		if (frame[10]&0x10) printf("VC: E ");
-		else printf("VC: %d ",frame[10]&0xf);
-
-		if (frame[13]==0xff) {
-			printf("NOWRITE");
-		}
-		else {
-			if (frame[13]&0x1) printf("Hold");
-			if (frame[13]&0x2) printf("Alternate");
-			if (frame[13]&0x4) printf("Attack");
-			if (frame[13]&0x8) printf("Continue");
-		}
-		printf("\n");
-
-//		if (a_freq>max_a) max_a=a_freq;
-//		if (b_freq>max_b) max_b=b_freq;
-//		if (c_freq>max_c) max_c=c_freq;
-	}
-
-	if (diff_mode) {
-		int frames_different=0;
-
-		for(j=0;j<YM5_FRAME_SIZE;j++) {
-			if (frame[j]!=last_frame[j]) {
-				frames_different=1;
-			}
-		}
-
-		if (frames_different) print_diff(frame_num);
-
-		memcpy(last_frame,frame,sizeof(frame));
-		memcpy(&last_music,&current_music,sizeof(current_music));
-
-	}
 
 	/* Scale if needed */
 	if (ym_song->master_clock!=AY38910_CLOCK) {
@@ -577,12 +500,32 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 		frame[4]=new_c&0xff;	frame[5]=(new_c>>8)&0xf;
 		frame[6]=new_n&0x1f;
 		frame[11]=new_e&0xff;	frame[12]=(new_e>>8)&0xff;
+	}
 
-		if (dump_info) {
-			printf("\t%04x %04x %04x %04x %04x\n",
-				new_a,new_b,new_c,new_n,new_e);
-		}
+	return 0;
 
+}
+
+int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
+			struct frame_stats *ds,
+			int diff_mode,
+			int play_music,
+			int mute_channel) {
+
+	int j;
+
+	unsigned char frame[YM5_FRAME_SIZE];
+	unsigned char frame2[YM5_FRAME_SIZE];
+
+
+	double a_freq=0.0, b_freq=0.0, c_freq=0.0;
+
+	ym_make_frame(ym_song,frame_num,frame);
+
+	if (ym_song->channels==3) {
+		memcpy(frame2,frame,sizeof(frame));
+	} else {
+		ym_make_frame(ym_song,frame_num,frame2);
 	}
 
 	if (mute_channel&0x1) frame[8]=0;
@@ -591,10 +534,6 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	if (mute_channel&0x8) frame[7]|=0x8;
 	if (mute_channel&0x10) frame[7]|=0x10;
 	if (mute_channel&0x20) frame[7]|=0x20;
-
-	if (ym_song->channels==3) {
-		memcpy(frame2,frame,sizeof(frame));
-	}
 
 	if (play_music) {
 		for(j=0;j<13;j++) {
@@ -606,6 +545,10 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 
 		/* FIXME: so what do we do if 2 channels have */
 		/* different values? */
+		/* We'll have to special case, and do a dummy write */
+		/* to a non-13 address.  Should be possible but not */
+		/* worth fixing unless it actually becomes a problem. */
+
 
 		if ((frame[13]!=0xff) || (frame2[13]!=0xff)) {
 			write_ay_3_8910(13,frame[13],frame2[13],shift_size);
@@ -613,12 +556,19 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	}
 
 	if (ds!=NULL) {
-		ds->a_bar=(frame[8]*11)/16;
-		ds->b_bar=(frame[9]*11)/16;
-		ds->c_bar=(frame[10]*11)/16;
-		ds->a_freq=(a_freq)/150;
-		ds->b_freq=(b_freq)/150;
-		ds->c_freq=(c_freq)/150;
+		ds->left_a_bar=(frame[8]*11)/16;
+		ds->left_b_bar=(frame[9]*11)/16;
+		ds->left_c_bar=(frame[10]*11)/16;
+		ds->left_a_freq=(a_freq)/150;
+		ds->left_b_freq=(b_freq)/150;
+		ds->left_c_freq=(c_freq)/150;
+
+		ds->right_a_bar=(frame[8]*11)/16;
+		ds->right_b_bar=(frame[9]*11)/16;
+		ds->right_c_bar=(frame[10]*11)/16;
+		ds->right_a_freq=(a_freq)/150;
+		ds->right_b_freq=(b_freq)/150;
+		ds->right_c_freq=(c_freq)/150;
 	}
 
 	return 0;
