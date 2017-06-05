@@ -82,7 +82,7 @@ glados:	glados.o ../lib/i2c_lib.o ay-3-8910.o ym_lib.o lyrics.o \
 			$(DISPLAY) \
 			/usr/local/lib/libbcm2835.a
 
-glados.o:	glados.c display.h ym_lib.h
+glados.o:	glados.c display.h ym_lib.h glados_ascii_art.h
 	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c glados.c
 
 ###
