@@ -126,7 +126,7 @@ static int spi_shift_74hc595(int value1, int value2, int size) {
 	/* On pi SPI it is MSB first only */
 	unsigned char b1 = value1, b2=value2;
 	b1 = ((b1 * 0x0802LU & 0x22110LU) | (b1 * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16;
-	b2 = ((b1 * 0x0802LU & 0x22110LU) | (b2 * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16;
+	b2 = ((b2 * 0x0802LU & 0x22110LU) | (b2 * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16;
 
 	/* left/right */
 	data_out[0]=b1;
