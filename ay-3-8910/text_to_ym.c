@@ -362,15 +362,18 @@ static int update_note(struct note_type *n) {
 
 	if (n->vibrato) {
 		// 256 * 16 = 4096.  Want a max of 32?
-		sub1_adjust+=sine_table[n->vibrato_position]*n->vibrato_depth/32;
+		sub1_adjust+=sine_table[n->vibrato_position]*
+			n->vibrato_depth/128;
 		n->vibrato_position+=n->vibrato_speed;
 		n->vibrato_position=n->vibrato_position%SINE_TABLE_SIZE;
 
-		sub2_adjust+=sine_table[n->vibrato_position]*n->vibrato_depth/32;
+		sub2_adjust+=sine_table[n->vibrato_position]*
+			n->vibrato_depth/128;
 		n->vibrato_position+=n->vibrato_speed;
 		n->vibrato_position=n->vibrato_position%SINE_TABLE_SIZE;
 
-		sub3_adjust+=sine_table[n->vibrato_position]*n->vibrato_depth/32;
+		sub3_adjust+=sine_table[n->vibrato_position]*
+			n->vibrato_depth/128;
 		n->vibrato_position+=n->vibrato_speed;
 		n->vibrato_position=n->vibrato_position%SINE_TABLE_SIZE;
 	}
@@ -575,10 +578,11 @@ static int get_effect(struct note_type *n,char *string) {
 
 			break;
 		case 0x4:	// Vibrato
+			#define V_FUDGE	2
 
 			n->vibrato=1;
 			if ((param>>4)!=0) {
-				n->vibrato_speed=param>>4;
+				n->vibrato_speed=param/V_FUDGE;
 				n->vibrato_position=0;
 			}
 			if ((param&0xf)!=0) {

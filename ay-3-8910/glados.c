@@ -199,8 +199,13 @@ static int lyrics_play(struct lyric_type *l) {
 //	printf("\033[33m\n");
 
 	/* Use 24-bit ansi code? ac8e3f*/
-
+	/* This is the value the game uses, but is a bit dark */
 	printf("\033[38;2;172;142;63m\n");
+
+	/*  Online and Apple II emulator amber values */
+//	printf("\033[38;2;255;129;0m\n");
+//	printf("\033[38;2;254;127;0m\n");
+
 
 	clear_things(1);
 
