@@ -41,6 +41,7 @@ static void quiet_and_exit(int sig) {
 
 	display_shutdown(display_type);
 
+	printf("\033[0m\n");
 	printf("Quieting and exiting\n");
 	_exit(0);
 
@@ -191,6 +192,15 @@ static int lyrics_play(struct lyric_type *l) {
 	if (result<0) {
 		return -1;
 	}
+
+	/* Set amber color */
+	/* 16-color VGA console doesn't really have it */
+
+//	printf("\033[33m\n");
+
+	/* Use 24-bit ansi code? ac8e3f*/
+
+	printf("\033[38;2;172;142;63m\n");
 
 	clear_things(1);
 
@@ -365,6 +375,8 @@ int main(int argc, char **argv) {
 	}
 
 	display_shutdown(display_type);
+
+	printf("\033[0m\n");
 
 	return 0;
 }
