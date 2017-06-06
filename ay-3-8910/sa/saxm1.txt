@@ -1,5 +1,8 @@
 '
-' TITLE:	Still Alive
+' TITLE:        Still Alive (from Portal)
+' AUTHOR:       sacio <odin@djodin.com>
+' COMMENTS:     Words and Music by Jonathan Coulton
+' COMMENTS:     Converted to ym5 by Vince Weaver <vince@deater.net>
 '
 ' LOOP:		0
 ' BPM:		120
