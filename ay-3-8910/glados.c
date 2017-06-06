@@ -349,6 +349,8 @@ int main(int argc, char **argv) {
 			play_music=0;
 		}
 	}
+
+#if 1
 	if (play_music) {
 		result=max98306_init();
 		if (result<0) {
@@ -359,7 +361,7 @@ int main(int argc, char **argv) {
 			result=max98306_enable();
 		}
 	}
-
+#endif
 	result=display_init(display_type);
 
 	if (result<0) {
