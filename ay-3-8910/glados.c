@@ -333,6 +333,8 @@ int main(int argc, char **argv) {
 			printf("Error initializing bcm2835!!\n");
 			play_music=0;
 		}
+	}
+	if (play_music) {
 		result=max98306_init();
 		if (result<0) {
 			printf("Error initializing max98306 amp!!\n");
@@ -345,9 +347,10 @@ int main(int argc, char **argv) {
 
 	result=display_init(display_type);
 
-//	translate_to_adafruit();
+	if (result<0) {
+		display_type=0;
+	}
 
-//	display_led_art(6);
 
 	load_lyrics("sa/saxm1.lyrics",&l);
 
