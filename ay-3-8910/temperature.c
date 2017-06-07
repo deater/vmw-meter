@@ -108,7 +108,12 @@ static double get_temp_pi(void) {
 	return deg_c;
 }
 
-static int display_temp(void) {
+struct temp_type {
+	double pi;
+	double w1;
+};
+
+static int display_temp(struct temp_type *t) {
 
 	char text[13];
         int i;
@@ -119,23 +124,26 @@ static int display_temp(void) {
 	w1_temp=get_temp_w1();
 	pi_temp=get_temp_pi();
 
+	t->pi=pi_temp;
+	t->w1=w1_temp;
+
 	/* 0123456789AB */
 	/* W  79^F 79^C */
 
 	if (display_type&DISPLAY_I2C) {
 		sprintf(text,"TEMPERATURE");
 		display_14seg_string(DISPLAY_I2C,text);
-		sleep(2);
+		sleep(3);
 
 		sprintf(text,"W1%3.0lf%cF %2.0lf%cC",
 			c_to_f(w1_temp),0xb0,w1_temp,0xb0);
 		display_14seg_string(DISPLAY_I2C,text);
-		sleep(2);
+		sleep(3);
 
 		sprintf(text,"PI%3.0lf%cF %2.0lf%cC",
 			c_to_f(pi_temp),0xb0,pi_temp,0xb0);
 		display_14seg_string(DISPLAY_I2C,text);
-		sleep(2);
+		sleep(3);
 
 	}
 	else {
@@ -168,11 +176,20 @@ static void print_help(int just_version, char *exec_name) {
 	exit(0);
 }
 
+#define HISTORY_SIZE 16
+
 int main(int argc, char **argv) {
 
-	int c;
+	int c,i;
 	int result;
+	int current_pointer=0;
+	int count=0;
+	unsigned char buffer[16];
+	int which;
+	double pif,wif;
 
+	struct temp_type history[HISTORY_SIZE];
+	struct temp_type current;
 
 	/* Setup control-C handler to quiet the music	*/
 	/* otherwise if you force quit it keeps playing	*/
@@ -204,11 +221,75 @@ int main(int argc, char **argv) {
 		display_type=DISPLAY_TEXT;
 	}
 
+//	for(i=0;i<16;i++) {
+//		if (i<8) buffer[i]=i%2?0xa5:0xff;
+//		else {
+//			buffer[i]=1<<(i-8);
+//		}
+//	}
+
+//	display_8x16_vertical(display_type,buffer);
+
+
+	/* Make invalid entries invalid */
+	for(i=0;i<HISTORY_SIZE;i++) {
+		history[i].pi=-500.0;
+		history[i].w1=-500.0;
+	}
+
 	while(1) {
 
-		display_temp();
-		sleep(5);
+		/* This should take roughly 15 seconds */
+		display_temp(&current);
+		sleep(6);
 
+		count++;
+
+		if (count==4) {
+			count=0;
+			history[current_pointer].w1=current.w1;
+			history[current_pointer].pi=current.pi;
+
+			/* circular list */
+			current_pointer++;
+			current_pointer=current_pointer%HISTORY_SIZE;
+
+			/* plot the history */
+			for(i=0;i<HISTORY_SIZE;i++) {
+
+				which=(current_pointer+i)%HISTORY_SIZE;
+
+				pif=c_to_f(history[which].pi);
+				wif=c_to_f(history[which].w1);
+
+//				if (history[which].pi>-400.0) {
+//					printf("%d %lf %lf %d %d\n",
+//						i,
+//						c_to_f(history[which].pi),
+//						c_to_f(history[which].w1),
+//						(int)((pif-70.0)/5),
+//						(int)((wif-70.0)/5)
+//						);
+//				}
+
+				buffer[i]=0;
+
+				if ((pif<70.0) || (pif>110)) {
+
+				}
+				else {
+					buffer[i]|=(1<<(int)((pif-70)/5));
+				}
+
+				if ((wif<70.0) || (wif>110)) {
+
+				}
+				else {
+					buffer[i]|=(1<<(int)((wif-70)/5));
+				}
+			}
+			display_8x16_vertical(display_type,buffer);
+		}
 	}
 
 	/* Quiet down the chips */

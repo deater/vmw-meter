@@ -77,6 +77,9 @@ int display_8x16_time(int display_type, int current_frame, int total_frames);
 int display_8x16_title(int display_type);
 int display_8x16_scroll_text(int display_type, char *string, int new_string);
 
+
+int display_8x16_vertical(int display_type, unsigned char *in_buffer);
+
 void display_8x16_vertical_putpixel(unsigned char *buffer,int x,int y);
 int display_8x16_vertical_getpixel(unsigned char *buffer,int x,int y);
 

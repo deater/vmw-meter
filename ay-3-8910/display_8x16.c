@@ -1,11 +1,4 @@
-/* This code assumes you have a VMW-HARDWARE-CHIPTUNES-DISPLAY-MK1        */
-/* This includes five ht16k33 based displays hooked to the first i2c bus: */
-/* + A ht16k33 breakout with six 10-segment GYR bargraphs (0x70)	  */
-/*   also 8 buttons are hooked up to the ht16k33 breakout.		  */
 /* + An adafruit 8x16 led matrix backpack (0x72) 			  */
-/* + Three adafruit 14seg led backpacks (..,..,..)			  */
-
-/* Be sure to modprobe i2c-dev */
 
 #include "display.h"
 
@@ -76,6 +69,51 @@ int display_8x16_raw(int display_type, unsigned char *buffer) {
 			printf("\n");
 		}
 	}
+	return 0;
+}
+
+
+/* Raw format for adafruit 8x16 display */
+/* buffer[0] = 0   (says to start at address 0) */
+/* buffer[1] = upper left, low bit first, 0 - 8 */
+/* buffer[2] = upper right, low bit first, 0 - 8 */
+/* .... */
+/* buffer[15] = lower left  */
+/* buffer[16] = lower right */
+
+int display_8x16_vertical(int display_type, unsigned char *in_buffer) {
+
+	unsigned char buffer[17];
+	int i;
+	int mask;
+
+	memset(buffer,0,17);
+
+	for(i=0;i<8;i++) {
+		mask=(1<<(7-i));
+
+		buffer[(i*2)+1]=(!!(in_buffer[0]&(mask)) << 0) |
+				(!!(in_buffer[1]&(mask)) << 1) |
+				(!!(in_buffer[2]&(mask)) << 2) |
+				(!!(in_buffer[3]&(mask)) << 3) |
+				(!!(in_buffer[4]&(mask)) << 4) |
+				(!!(in_buffer[5]&(mask)) << 5) |
+				(!!(in_buffer[6]&(mask)) << 6) |
+				(!!(in_buffer[7]&(mask)) << 7);
+
+		buffer[(i*2)+2]=(!!(in_buffer[ 8]&(mask)) << 0) |
+				(!!(in_buffer[ 9]&(mask)) << 1) |
+				(!!(in_buffer[10]&(mask)) << 2) |
+				(!!(in_buffer[11]&(mask)) << 3) |
+				(!!(in_buffer[12]&(mask)) << 4) |
+				(!!(in_buffer[13]&(mask)) << 5) |
+				(!!(in_buffer[14]&(mask)) << 6) |
+				(!!(in_buffer[15]&(mask)) << 7);
+
+	}
+
+	display_8x16_raw(display_type, buffer);
+
 	return 0;
 }
 

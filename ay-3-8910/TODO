@@ -3,25 +3,26 @@ Broken:
 
 
 kiosk mode -- wait on title screen for you to hit play
-Playlists?
-menu for picking songs?
-menu for setting loop/repeat?
-confirmation on shutdown
+	Playlists?
+	menu for picking songs?
+	menu for setting loop/repeat?
+	confirmation on shutdown
 
-
-glados:
-Fix 14 seg font (colon and period most notably)
-Make letter timing match video
-Make teaser video
-Finish LED art
+	automount a USB disk full of YM5 files?
 
 Games/Features
-	Pong:	sound effects?
+	Pong/breakout:	sound effects?
 	Tetris:
 		Score/level/next block
 		play music?
 	Ay-3-8910 sound effects?
 	Tengwar
+	organ
+	cpu meter
+	glados kareoke
+	Temperature
+	Alarm Clock
+	Phase of Moon
 
 Options:
 	Games
