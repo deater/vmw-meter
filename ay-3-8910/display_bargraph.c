@@ -40,46 +40,22 @@ static int bargraph_i2c(int left_a, int left_b, int left_c,
 	for(i=0;i<16;i++) buffer[i+1]=0x0;
 
 	/* a */
-	if (left_a>0) {
-		left_a--;
-		/* left */
-		buffer[1]|=(2<<left_a)-1;
-		if (left_a>7) buffer[2]|=(2<<(left_a-8))-1;
-	}
-	if (right_a>0) {
-		right_a--;
-		/* right */
-		buffer[7]|=(2<<right_a)-1;
-		if (right_a>7) buffer[8]|=(2<<(right_a-8))-1;
-	}
+	buffer[1]=left_a&0xff;
+	buffer[2]=(left_a>>8)&0x3;
+	buffer[7]=right_a&0xff;
+	buffer[8]=(right_a>>8)&0x3;
 
 	/* b */
-	if (left_b>0) {
-		left_b--;
-		/* left */
-		buffer[3]|=(2<<left_b)-1;
-		if (left_b>7) buffer[4]|=(2<<(left_b-8))-1;
-	}
-	if (right_b>0) {
-		right_b--;
-		/* right */
-		buffer[9]|=(2<<right_b)-1;
-		if (right_b>7) buffer[10]|=(2<<(right_b-8))-1;
-	}
+	buffer[3]=left_b&0xff;
+	buffer[4]=(left_b>>8)&0x3;
+	buffer[9]=right_b&0xff;
+	buffer[10]=(right_b>>8)&0x3;
 
 	/* c */
-	if (left_c>0) {
-		left_c--;
-		/* left */
-		buffer[5]|=(2<<left_c)-1;
-		if (left_c>7) buffer[6]|=(2<<(left_c-8))-1;
-	}
-	if (right_c>0) {
-		right_c--;
-		/* right */
-		buffer[11]|=(2<<right_c)-1;
-		if (right_c>7) buffer[12]|=(2<<(right_c-8))-1;
-	}
+	buffer[5]=left_c&0xff;
+	buffer[6]=(left_c>>8)&0x3;
+	buffer[11]=right_c&0xff;
+	buffer[13]=(right_c>>8)&0x3;
 
 #if USE_LINUX_I2C==1
 	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS0) < 0) {
@@ -114,15 +90,62 @@ static int bargraph_text(int left_a, int left_b, int left_c,
 		if (value>10) value=10;
 
 		printf("[");
-		for(i=0;i<value;i++) printf("*");
-		for(i=value;i<10;i++) printf(" ");
+		for(i=0;i<10;i++) {
+			if (value&(1<<i)) printf("*");
+			else printf(" ");
+		}
 		printf("]\n");
 	}
 	return 0;
 }
 
 
-int bargraph(int type,
+int bargraph_filled(int type,
+	int left_a, int left_b, int left_c,
+	int right_a, int right_b, int right_c) {
+
+	if (left_a>0) {
+		left_a--;
+		left_a=(2<<left_a)-1;
+	}
+
+	if (left_b>0) {
+		left_b--;
+		left_b=(2<<left_b)-1;
+	}
+
+	if (left_c>0) {
+		left_c--;
+		left_c=(2<<left_c)-1;
+	}
+
+	if (right_a>0) {
+		right_a--;
+		right_a=(2<<right_a)-1;
+	}
+
+	if (right_b>0) {
+		right_b--;
+		right_b=(2<<right_b)-1;
+	}
+
+	if (right_c>0) {
+		right_c--;
+		right_c=(2<<right_c)-1;
+	}
+
+	if (type&DISPLAY_I2C) {
+		bargraph_i2c(left_a,left_b,left_c,right_a,right_b,right_c);
+	}
+
+	if (type&DISPLAY_TEXT) {
+		bargraph_text(left_a,left_b,left_c,right_a,right_b,right_c);
+	}
+
+	return 0;
+}
+
+int bargraph_raw(int type,
 	int left_a, int left_b, int left_c,
 	int right_a, int right_b, int right_c) {
 

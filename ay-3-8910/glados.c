@@ -219,7 +219,7 @@ static int lyrics_play(struct lyric_type *l) {
 				&ds,0,play_music,0);
 
 		/* Update the bargraph */
-		bargraph(display_type,
+		bargraph_filled(display_type,
 			ds.left_a_bar,ds.left_b_bar,ds.left_c_bar,
 			ds.right_a_bar,ds.right_b_bar,ds.right_c_bar);
 

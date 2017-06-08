@@ -12,7 +12,7 @@ DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_1
 
 all:	ym_play organ ym_to_ym5 text_to_ym text_to_ed glados test_font \
 	test_8x16 temperature falling_blocks dump_ym5 dump_xm xm_to_text \
-	pom
+	pom cpu_meter
 
 ../lib/i2c_lib.o:	../lib/i2c_lib.c
 	cd ../lib && make
@@ -104,6 +104,18 @@ temperature:	temperature.o $(DISPLAY) \
 
 temperature.o:	temperature.c display.h
 	$(CC) $(CFLAGS) -c temperature.c
+
+
+###
+
+cpu_meter:	cpu_meter.o $(DISPLAY) \
+		../lib/i2c_lib.o
+	$(CC) $(LFLAGS) -o cpu_meter cpu_meter.o \
+		$(DISPLAY) \
+		../lib/i2c_lib.o
+
+cpu_meter.o:	cpu_meter.c display.h
+	$(CC) $(CFLAGS) -c cpu_meter.c
 
 ###
 
@@ -210,4 +222,4 @@ notes.o:	notes.c notes.h
 clean:	
 	rm -f *~ *.o ym_play organ text_to_ym ym_to_ym5 glados \
 		falling_blocks temperature test_font text_to_ed \
-		dump_ym5 dump_xm test_8x16 xm_to_text pom
+		dump_ym5 dump_xm test_8x16 xm_to_text pom cpu_meter

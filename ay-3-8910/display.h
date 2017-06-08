@@ -49,7 +49,9 @@ struct display_stats {
 };
 
 /********************* display_bargraph.c */
-int bargraph(int type, int left_a, int left_b, int left_c,
+int bargraph_filled(int type, int left_a, int left_b, int left_c,
+			int right_a, int right_b, int right_c);
+int bargraph_raw(int type, int left_a, int left_b, int left_c,
 			int right_a, int right_b, int right_c);
 int close_bargraph(int type);
 

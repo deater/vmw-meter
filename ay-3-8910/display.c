@@ -46,7 +46,7 @@ int display_update(int display_type,
 		char *filename, int new_filename) {
 
 
-	bargraph(display_type,
+	bargraph_filled(display_type,
 		ds->left_a_bar, ds->left_b_bar, ds->left_c_bar,
 		ds->right_a_bar, ds->right_b_bar, ds->right_c_bar);
 

@@ -1,5 +1,5 @@
-Broken:
-	headphone detect not working?
+Set up to generate interrupt and disable speakers if
+	disable switch flipped.
 
 
 kiosk mode -- wait on title screen for you to hit play
@@ -15,7 +15,7 @@ Games/Features
 	Tetris:
 		Score/level/next block
 		play music?
-	Ay-3-8910 sound effects?
+		Ay-3-8910 sound effects?
 	Tengwar
 	organ
 	cpu meter
