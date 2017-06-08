@@ -207,7 +207,7 @@ display_keypad.o:	display_keypad.c display.h
 display_8x16.o:	display_8x16.c display.h
 	$(CC) $(CFLAGS) -c display_8x16.c
 
-display_14seg.o:	display_14seg.c display.h font.h
+display_14seg.o:	display_14seg.c 14seg_font.h display.h font.h
 	$(CC) $(CFLAGS) -c display_14seg.c
 
 

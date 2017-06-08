@@ -254,9 +254,7 @@ static void draw_piece(unsigned char *display_buffer, int which,
 	for(y=0;y<SPRITE_SIZE;y++) {
 		for(x=0;x<SPRITE_SIZE;x++) {
 			if (pieces[which][rotate][y][x]) {
-				display_8x16_vertical_putpixel(display_buffer,
-					x+piece_x,y+piece_y);
-
+				display_buffer[(y+piece_y)]|=1<<(7-(x+piece_x));
 			}
 		}
 	}
@@ -272,7 +270,7 @@ static int bottom_collision(unsigned char *framebuffer,
 		piece_info[which][rotate].y_bottom_edge;
 
 	/* check for floor */
-	if (piece_y+y_offset > 15) return 1;
+	if (piece_y+y_offset > 15 ) return 1;
 
 	/* Check for bottom collision */
 	for(x=piece_info[which][rotate].x_left_edge;
@@ -280,8 +278,10 @@ static int bottom_collision(unsigned char *framebuffer,
 			x++) {
 		for(y=y_offset-1;y>=0;y--) {
 			if (pieces[which][rotate][y][x]) {
-				if (display_8x16_vertical_getpixel(
-					framebuffer,piece_x+x,piece_y+y+1))
+				if (framebuffer[piece_y+y+1]&
+                                        1<<(7-(piece_x+x)))
+//				if (display_8x16_vertical_getpixel(
+//					framebuffer,piece_x+x,piece_y+y+1))
 						return 1;
 //				if (framebuffer[piece_y+y+1]&
 //					1<<(7-(piece_x+x))) return 1;
@@ -321,11 +321,11 @@ static int side_collision(unsigned char *framebuffer,
 			y++) {
 		for(x=x_right_offset-1;x>=0;x--) {
 			if (pieces[which][rotate][y][x])
-				if (display_8x16_vertical_getpixel(
-					framebuffer,piece_x+x,piece_y+y+1))
-						return 1;
-//				if (framebuffer[piece_y+y+1]&
-//					1<<(7-(piece_x+x))) return 1;
+//				if (display_8x16_vertical_getpixel(
+//					framebuffer,piece_x+x,piece_y+y+1))
+//						return 1;
+				if (framebuffer[piece_y+y+1]&
+					1<<(7-(piece_x+x))) return 1;
 		}
 	}
 
@@ -335,11 +335,11 @@ static int side_collision(unsigned char *framebuffer,
 			y++) {
 		for(x=x_left_offset;x<SPRITE_SIZE;x++) {
 			if (pieces[which][rotate][y][x])
-				if (display_8x16_vertical_getpixel(
-					framebuffer,piece_x+x,piece_y+y+1))
-						return 1;
-//				if (framebuffer[piece_y+y+1]&
-//					1<<(7-(piece_x+x))) return 1;
+//				if (display_8x16_vertical_getpixel(
+//					framebuffer,piece_x+x,piece_y+y+1))
+//						return 1;
+				if (framebuffer[piece_y+y+1]&
+					1<<(7-(piece_x+x))) return 1;
 		}
 	}
 
@@ -349,66 +349,39 @@ static int side_collision(unsigned char *framebuffer,
 	return 0;
 }
 
-static int num_to_seg(int num) {
+static void update_aux_display(int next_piece,int lines) {
 
-	switch(num) {
-		case 0:	return 0x3f;
-		case 1: return 0x06;
-		case 2: return 0x5b;
-		case 3: return 0x4f;
-		case 4: return 0x66;
-		case 5: return 0x6d;
-		case 6: return 0x7d;
-		case 7: return 0x07;
-		case 8: return 0x7f;
-		case 9: return 0x67;
-	}
+	char string[13];
 
-	return 0;
-}
-
-static void update_aux_display(unsigned short *aux_display,int next_piece,int lines) {
-
-	int i;
-	int hundreds,tens,ones;
-
-	for(i=0;i<8;i++) {
-		aux_display[i]=0;
-	}
+	sprintf(string,"LINES%3d    ",lines);
 
 	switch(next_piece) {
-		case T_O: aux_display[0]=0x63; break;
-		case T_I: aux_display[0]=0x06; break;
-		case T_T: aux_display[0]=0x46; break;
-		case T_J: aux_display[0]=0x0e; break;
-		case T_L: aux_display[0]=0x38; break;
-		case T_S: aux_display[0]=0x64; break;
-		case T_Z: aux_display[0]=0x52; break;
+		case T_O: string[11]=0xd0; break;
+		case T_I: string[11]=0xd1; break;
+		case T_T: string[11]=0xd2; break;
+		case T_J: string[11]=0xd3; break;
+		case T_L: string[11]=0xd4; break;
+		case T_S: string[11]=0xd5; break;
+		case T_Z: string[11]=0xd6; break;
 	}
 
-	hundreds=lines/100;
-	tens=(lines-(hundreds*100))/10;
-	ones=lines%10;
+	display_14seg_string(display_type,string);
 
-	if (hundreds) aux_display[1]=num_to_seg(hundreds);
-	if ((tens) || ((hundreds) && (!tens))) aux_display[3]=num_to_seg(tens);
-	aux_display[4]=num_to_seg(ones);
 }
 
 
 static void update_our_display(int display_type, unsigned char *framebuffer) {
 
-	unsigned char buffer[17];
+	unsigned char buffer[16];
 	int i;
 
 //		update_8x8_display_rotated(i2c_fd,
 //			HT16K33_ADDRESS1,display_buffer,0,BROKEN);
 
 
-	buffer[0]=0;
-	for(i=0;i<16;i++) buffer[i+1]=framebuffer[i];
+	for(i=0;i<16;i++) buffer[i]=framebuffer[(15-i)];
 
-	display_8x16_raw(display_type,buffer);
+	display_8x16_vertical(display_type,buffer);
 
 }
 
@@ -433,8 +406,6 @@ int main(int arg, char **argv) {
 	unsigned char framebuffer[DISPLAY_SIZE];
 	unsigned char background[DISPLAY_SIZE];
 
-
-	unsigned short aux_buffer[8];
 	int piece_x=3, piece_y=0,piece_rotate=0,new_piece_x=0;
 	int new_rotate;
 	int piece_type,next_piece;
@@ -502,7 +473,7 @@ start:
 	piece_type=Random_Generator();
 	next_piece=Random_Generator();
 
-	update_aux_display(aux_buffer,next_piece,lines);
+	update_aux_display(next_piece,lines);
 
 	for(i=0;i<16;i++) {
 		framebuffer[i]=0;
@@ -678,7 +649,7 @@ start:
 			piece_rotate=0;
 			score+=level;
 
-			// update_aux_display(aux_buffer,next_piece,lines);
+			update_aux_display(next_piece,lines);
 
 		}
 
