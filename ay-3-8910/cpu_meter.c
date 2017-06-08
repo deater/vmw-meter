@@ -43,6 +43,7 @@ int main(int argc, char **argv) {
 	char string[256];
 
 	FILE *stat;
+	FILE *mem;
 	long total_idle,old_total_idle,num_cpus=-1;
 	long idle[MAX_CPUS],idle_ticks[MAX_CPUS];
 	long current_percent;
@@ -58,6 +59,8 @@ int main(int argc, char **argv) {
 	int last_pointer=0;
 	int result;
 	int cylon, cylon_count=0,cylon_dir=1;
+	long long mem_total;
+	long long mem_free;
 
 	unsigned char buffer[16];
 
@@ -109,6 +112,11 @@ int main(int argc, char **argv) {
 	}
 
 	while(1) {
+
+		mem=fopen("/proc/meminfo","r");
+		fscanf(mem,"%*s %lld %*s",&mem_total);
+		fscanf(mem,"%*s %lld %*s",&mem_free);
+		fclose(mem);
 
 		stat=fopen("/proc/stat","r");
 		fgets(temp_string,BUFSIZ,stat);
@@ -175,7 +183,8 @@ int main(int argc, char **argv) {
 
 		/* text area */
 
-		sprintf(string,"CPU%3ldMEM%3ld",total_percent,(long)0);
+		sprintf(string,"CPU%3ldMEM%3lld",total_percent,
+				100*(mem_total-mem_free)/mem_total);
 		//printf("%s\n",string);
 		display_14seg_string(display_type,string);
 
