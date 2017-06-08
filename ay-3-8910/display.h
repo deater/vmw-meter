@@ -63,6 +63,7 @@ int close_14seg(int type);
 
 /********************* display_keypad.c */
 int display_keypad_read(int display_type);
+int display_raw_keypad_read(int display_type);
 int display_keypad_clear(int display_type);
 int display_keypad_repeat_until_keypressed(int display_type);
 

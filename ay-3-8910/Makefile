@@ -89,9 +89,11 @@ glados.o:	glados.c display.h ym_lib.h glados_ascii_art.h
 ###
 
 organ:	organ.o ay-3-8910.o max98306.o notes.o
-	$(CC) $(LFLAGS) -o organ organ.o ay-3-8910.o max98306.o notes.o /usr/local/lib/libbcm2835.a
+	$(CC) $(LFLAGS) -o organ organ.o \
+		ay-3-8910.o max98306.o notes.o \
+		../lib/i2c_lib.o $(DISPLAY) /usr/local/lib/libbcm2835.a
 
-organ.o:	organ.c ay-3-8910.h
+organ.o:	organ.c ay-3-8910.h display.h
 	$(CC) $(CFLAGS) -c organ.c
 
 ###

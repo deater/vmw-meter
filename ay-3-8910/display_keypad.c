@@ -45,17 +45,13 @@
 /*  ,              . */
 
 
-int display_keypad_read(int display_type) {
+int display_raw_keypad_read(int display_type) {
 
-	unsigned char ch;
-	int result;
+	unsigned char ch=0;
 	long long keypad;
 	static int old_keypad=0;
-	static int keypad_skip;
+	static int keypad_skip=0;
 
-	/* Read from Keyboard */
-	result=read(0,&ch,1);
-#if 1
 	/* Read from keypad */
 	if ((display_type&DISPLAY_I2C) && (keypad_skip==2)) {
 		keypad=read_keypad(i2c_fd,HT16K33_ADDRESS0);
@@ -63,21 +59,39 @@ int display_keypad_read(int display_type) {
 			printf("KEY: %lld\n",keypad);
 			old_keypad=keypad;
 			if (keypad!=0) {
-				result=0;
-				if (keypad&32) ch=',';		/* rewind */
-				if (keypad&64) ch='<';		/* back */
-				if (keypad&128) ch='m';		/* menu */
-				if (keypad&256) ch=' ';		/* play */
-				if (keypad&512) ch='s';		/* stop */
-				if (keypad&1024) ch='x';	/* cancel */
-				if (keypad&2048) ch='>';	/* next */
-				if (keypad&4096) ch='.';	/* ffwd */
+				if (keypad&32) ch=CMD_RW;	/* rewind */
+				if (keypad&64) ch=CMD_BACK;	/* back */
+				if (keypad&128) ch=CMD_MENU;	/* menu */
+				if (keypad&256) ch=CMD_PLAY;	/* play */
+				if (keypad&512) ch=CMD_STOP;	/* stop */
+				if (keypad&1024) ch=CMD_CANCEL;	/* cancel */
+				if (keypad&2048) ch=CMD_NEXT;	/* next */
+				if (keypad&4096) ch=CMD_FF;	/* ffwd */
 			}
 		}
 		keypad_skip=0;
 	}
 	keypad_skip++;
-#endif
+
+	return ch;
+
+}
+
+int display_keypad_read(int display_type) {
+
+	unsigned char ch;
+	int result;
+	int keypad_result=0;
+
+	/* read from keypad first */
+	keypad_result=display_raw_keypad_read(display_type);
+	if (keypad_result) {
+		return keypad_result;
+	}
+
+	/* Read from Keyboard, emulate keypad */
+	result=read(0,&ch,1);
+
 	if (result<0) { //printf("Error %s\n",strerror(errno));
 	}
 	else {
@@ -163,8 +177,6 @@ int display_keypad_read(int display_type) {
 
 		}
 	}
-
-
 
 	return 0;
 }

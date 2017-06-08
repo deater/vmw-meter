@@ -18,9 +18,13 @@
 #include "ay-3-8910.h"
 #include "max98306.h"
 
+#include "display.h"
+
 #include "notes.h"
 
 #include "version.h"
+
+static int display_type=DISPLAY_I2C;
 
 #define AY38910_CLOCK	1000000	/* 1MHz on our board */
 
@@ -254,10 +258,16 @@ static int play_organ(void) {
 		/* get time */
 		gettimeofday(&start,NULL);
 
+		/* Read from keypad */
+		ch=display_raw_keypad_read(display_type);
 
-		/* Read from Keyboard */
-		result=read(0,&ch,1);
-		if (result<0) {
+		if (ch==0) {
+			/* Try to read from Keyboard */
+			result=read(0,&ch,1);
+			if (result<0) ch=0;
+		}
+
+		if (ch==0) {
 		}
 		else {
 			switch (ch) {
@@ -277,48 +287,63 @@ static int play_organ(void) {
 
 			case 'q': quit=1; break;
 
+			case CMD_RW:
 			case 'a':
 				freq=note_to_freq('C',0,0,octave,0);
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
+			case CMD_BACK:
 			case 's':
 				freq=note_to_freq('D',0,0,octave,0);
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
+			case CMD_MENU:
 			case 'd':
 				freq=note_to_freq('E',0,0,octave,0);
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
+			case CMD_PLAY:
 			case 'f':
 				freq=note_to_freq('F',0,0,octave,0);
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
+			case CMD_STOP:
 			case 'g':
 				freq=note_to_freq('G',0,0,octave,0);
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
+			case CMD_CANCEL:
 			case 'h':
 				freq=note_to_freq('A',0,0,octave,0);
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
+			case CMD_NEXT:
 			case 'j':
 				freq=note_to_freq('B',0,0,octave,0);
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
 				break;
+			case CMD_FF:
+			case 'k':
+				freq=note_to_freq('C',0,0,octave+1,0);
+				a_period=master_clock/(16.0*freq);
+				a_enabled=1;
+				a_length=instruments[current_instrument].length;
+				break;
+
 			case ',':
 				n_type=1;
 				n_enabled=1;
@@ -538,6 +563,12 @@ int main(int argc, char **argv) {
 	}
 
 
+	result=display_init(DISPLAY_I2C);
+        if (result<0) {
+                display_type=DISPLAY_TEXT;
+        }
+
+
 	/* Initialize the Chip interface */
 	if (play_music) {
 		result=initialize_ay_3_8910(0);
@@ -566,6 +597,8 @@ int main(int argc, char **argv) {
 		close_ay_3_8910();
 		max98306_free();
 	}
+
+	display_shutdown(display_type);
 
 	return 0;
 }
