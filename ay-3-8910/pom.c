@@ -389,10 +389,39 @@ int main(int argc, char **argv) {
 
 	display_8x16_led_art(display_type,led_art,which);
 
+	int scroll=0,scroll_dir=1;
+	char display_string[13];
+
 	while(1) {
-		display_14seg_string(display_type,phase_string);
+
+		if (strlen(phase_string)>12) {
+			snprintf(display_string,13,
+				"%s",phase_string+scroll);
+			display_14seg_string(display_type,display_string);
+
+			scroll=scroll+scroll_dir;
+
+			if (scroll<0) {
+				scroll=0;
+				scroll_dir=-scroll_dir;
+				usleep(200000);
+			}
+
+			if (scroll>(strlen(phase_string)-12)) {
+				scroll=strlen(phase_string)-12;
+				scroll_dir=-scroll_dir;
+				usleep(200000);
+			}
+
+//			printf("%d\n",scroll);
+
+		}
+		else {
+			display_14seg_string(display_type,phase_string);
+		}
+
 //		printf("%s\n",phase_string);
-		usleep(100000);
+		usleep(200000);
 	}
 
 
