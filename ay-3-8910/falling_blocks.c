@@ -10,11 +10,16 @@
 #include <errno.h>
 
 #include <sys/resource.h>
+#include <sys/time.h>
+
+#include <bcm2835.h>
 
 #include "i2c_lib.h"
 #include "display.h"
 #include "ay-3-8910.h"
 #include "max98306.h"
+#include "ym_lib.h"
+
 
 
 static int play_music=1;
@@ -401,10 +406,56 @@ static void quiet_and_exit(int sig) {
 	_exit(0);
 }
 
+struct effects_type {
+	char name[128];
+	int length;
+	int envelope[32];
+	int period[32];
+	int noise;
+	int noise_period[32];
+} effects[4]={
+	{
+	.name="rotate",		// 0
+	.length=6,
+	.envelope={15,14,13},
+	.period={477,425,379},
+	.noise=0,
+	},
+	{
+	.name="bottom",		// 1
+	.length=3,
+	.envelope={15,14,13},
+	.period={29,29,29},
+	.noise=0,
+	},
+	{
+	.name="row",		// 2
+	.length=13,
+	.envelope={ 15,  15,  15,  15,  15,  15,  15,  15,  15,  15,  15,  15,  15},
+	.period={758,379,758,379,379,758,758,379,379,758,758,379,758},
+	.noise=1,
+	.noise_period={10,9,8,7,6,5,4,3,2,1,0,0,0},
+	},
+	{			// 3
+	.name="lose",
+	.length=11,
+	.envelope={15,14,15,14,15,14,15,14,15,14,13},
+	.period={1702,1702,1911,1911,1911,1911,1911,1911,1911,1911,1911},
+	.noise=0,
+	},
+};
+
+
+
 int main(int arg, char **argv) {
 
 	unsigned char framebuffer[DISPLAY_SIZE];
 	unsigned char background[DISPLAY_SIZE];
+
+	struct effects_type *a_effect=NULL,
+			*b_effect=NULL,*c_effect=NULL;
+
+	int a_effect_count=0,b_effect_count=0,c_effect_count=0;
 
 	int piece_x=3, piece_y=0,piece_rotate=0,new_piece_x=0;
 	int new_rotate;
@@ -423,6 +474,13 @@ int main(int arg, char **argv) {
 	int i,ch;
 	char text_string[13];
 	int done=0;
+	struct ym_song_t ym_song;
+	int frame;
+	int shift_size=16;
+
+	struct timeval start,next;
+        double s,n,diff;
+
 
 	/* Setup control-C handler to quiet the music   */
 	/* otherwise if you force quit it keeps playing */
@@ -456,6 +514,11 @@ int main(int arg, char **argv) {
 	}
 
 
+	/* Load music */
+	result=load_ym_song("songs/korobeiniki.ym5",&ym_song);
+        if (result<0) {
+                return -1;
+        }
 
 start:
 
@@ -466,6 +529,10 @@ start:
 	display_14seg_string(display_type,text_string);
 
 	display_keypad_repeat_until_keypressed(display_type);
+
+	/* Actually start */
+	frame=0;
+	gettimeofday(&start,NULL);
 
 	/* Clear Framebuffer */
 	for(i=0;i<DISPLAY_SIZE;i++) framebuffer[i]=0;
@@ -480,7 +547,66 @@ start:
 		background[i]=0;
 	}
 
+	unsigned char frame2[16];
+
+
 	while(1) {
+		/* Handle sound effects */
+		memset(frame2,0,16);
+		frame2[7]=0x38;
+
+		if (a_effect) {
+
+			frame2[0]=a_effect->period[a_effect_count]&0xff;
+			frame2[1]=(a_effect->period[a_effect_count]>>8)&0xf;
+
+			frame2[8]=a_effect->envelope[a_effect_count];
+
+			if (a_effect->noise) {
+				frame2[6]=a_effect->noise_period[a_effect_count];
+				frame2[7]&=~0x08;
+			}
+
+			a_effect_count++;
+			if (a_effect_count>a_effect->length) a_effect=NULL;
+		}
+
+		if (b_effect) {
+
+			frame2[2]=b_effect->period[b_effect_count]&0xff;
+			frame2[3]=(b_effect->period[b_effect_count]>>8)&0xf;
+
+			frame2[9]=b_effect->envelope[b_effect_count];
+
+			if (b_effect->noise) {
+				frame2[6]=b_effect->noise_period[b_effect_count];
+				frame2[7]&=~0x10;
+			}
+
+			b_effect_count++;
+			if (b_effect_count>b_effect->length) b_effect=NULL;
+		}
+
+		if (c_effect) {
+			frame2[4]=c_effect->period[c_effect_count]&0xff;
+			frame2[5]=(c_effect->period[c_effect_count]>>8)&0xf;
+
+			frame2[10]=c_effect->envelope[c_effect_count];
+
+			if (c_effect->noise) {
+				frame2[6]=c_effect->noise_period[c_effect_count];
+				frame2[7]&=~0x20;
+			}
+
+			c_effect_count++;
+			if (c_effect_count>c_effect->length) c_effect=NULL;
+		}
+
+//		ym_play_frame_effects(NULL,frame,shift_size,
+		ym_play_frame_effects(&ym_song,frame,shift_size,
+                                NULL, //stats
+				play_music,
+				frame2); // effects
 
 		new_piece_x=piece_x;
 		new_rotate=piece_rotate;
@@ -488,14 +614,20 @@ start:
 		/* Read Keyboard */
 		ch=display_keypad_read(display_type);
 		if (ch) {
+			if (ch==CMD_BACK) {
+				printf("Trying effect 0\n");
+				a_effect=&effects[0];
+				a_effect_count=0;
+			}
+
 			if (ch==CMD_EXIT_PROGRAM) {
 				done=1;
 				break;
 			}
-			if (ch==CMD_FF) { // '.'
+			if (ch==CMD_RW) { // '.'
 				new_piece_x++;
 			}
-			if (ch==CMD_RW) { // ','
+			if (ch==CMD_BACK) { // ','
 				new_piece_x--;
 			}
 			if (ch==CMD_STOP) { // 's'
@@ -503,9 +635,13 @@ start:
 				score+=level;
 			}
 			if (ch==CMD_PLAY) { // ' '
+				a_effect=&effects[0];
+				a_effect_count=0;
 				new_rotate--;
 			}
 			if (ch==CMD_MENU) { // 'm'
+				a_effect=&effects[0];
+				a_effect_count=0;
 				new_rotate++;
 			}
 		}
@@ -548,14 +684,45 @@ start:
 		if (bottom_collision(background,piece_type,piece_x,
 					piece_y,piece_rotate)) {
 
+			b_effect=&effects[1];
+			b_effect_count=0;
+
 			/* check if off top */
 			if (piece_y==0) {
+				b_effect=NULL;
+				c_effect=NULL;
+
+				a_effect=&effects[3];
+				a_effect_count=0;
+
 				printf("GAME OVER!\n");
 				printf("Score=%d\n",score);
+				memset(frame2,0,16);
 				for(i=0;i<DISPLAY_SIZE;i++) {
+
+		if (a_effect) {
+
+			frame2[0]=a_effect->period[a_effect_count]&0xff;
+			frame2[1]=(a_effect->period[a_effect_count]>>8)&0xf;
+
+			frame2[8]=a_effect->envelope[a_effect_count];
+
+			if (a_effect->noise) {
+				frame2[6]=a_effect->noise_period[a_effect_count];
+				frame2[7]&=~0x08;
+			}
+
+			a_effect_count++;
+			if (a_effect_count>a_effect->length) a_effect=NULL;
+		ym_play_frame_effects(NULL,frame,shift_size,
+                                NULL, //stats
+				play_music,
+				frame2); // effects
+		}
+
 					framebuffer[i]=0xff;
 					update_our_display(display_type,framebuffer);
-					usleep(100000);
+					usleep(20000);
 				}
 				/* Display "Game" */
 				sprintf(text_string,"%s"," GAME OVER  ");
@@ -591,6 +758,8 @@ start:
 			}
 
 			if (cleared_lines) {
+				c_effect=&effects[2];
+				c_effect_count=0;
 
 				/* Blink the lines */
 				for(l=0;l<cleared_lines;l++) {
@@ -653,8 +822,35 @@ start:
 
 		}
 
-		/* 30 frames per second? */
-		usleep(33000);
+		/* Calculate time we were busy this frame */
+                gettimeofday(&next,NULL);
+                s=start.tv_sec+(start.tv_usec/1000000.0);
+                n=next.tv_sec+(next.tv_usec/1000000.0);
+                diff=(n-s)*1000000.0;
+
+		/* Delay until time for next update, 50Hz */
+                if (play_music) {
+                        if (diff>0) bcm2835_delayMicroseconds(20000-diff);
+                        /* often 50Hz = 20000 */
+                        /* TODO: calculate correctly */
+                }
+                else {
+                        if (1) usleep(1000000/ym_song.frame_rate);
+                }
+
+                gettimeofday(&next,NULL);
+                n=next.tv_sec+(next.tv_usec/1000000.0);
+                start.tv_sec=next.tv_sec;
+                start.tv_usec=next.tv_usec;
+
+
+		frame++;
+		if (frame>ym_song.num_frames) {
+			frame=ym_song.loop_frame;
+		}
+
+//		/* 30 frames per second? */
+//		usleep(33000);
 	}
 
 	if (!done) {

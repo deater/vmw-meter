@@ -407,6 +407,12 @@ static int play_organ(void) {
 				c_count=0;
 				break;
 
+			case '-':
+				octave--;
+				break;
+			case '=':
+				octave++;
+				break;
 
 			}
 		}
@@ -429,6 +435,7 @@ static int play_organ(void) {
 		for(i=0;i<15;i++) frame[i]=0;
 
 		if (a_enabled) {
+			printf("period=%d\n",a_period);
 			frame[0]=a_period&0xff;
 			frame[1]=(a_period>>8)&0xf;
 		}

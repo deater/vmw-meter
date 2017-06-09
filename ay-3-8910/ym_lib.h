@@ -47,5 +47,11 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 			int mute_channel);
 
 
+int ym_play_frame_effects(struct ym_song_t *ym_song,
+			int frame_num, int shift_size,
+			struct frame_stats *ds,
+			int play_music,
+			unsigned char *frame2);
+
 int ym_dump_frame(struct ym_song_t *ym_song, int frame_num,
 		int raw, int diff_mode);
