@@ -194,6 +194,8 @@ static void quiet_and_exit(int sig) {
 		max98306_free();
 	}
 
+	display_shutdown(display_type);
+
 	tcsetattr (0, TCSANOW, &saved_tty);
 
 	printf("Quieting and exiting\n");
