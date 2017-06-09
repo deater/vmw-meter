@@ -194,9 +194,9 @@ static void quiet_and_exit(int sig) {
 		max98306_free();
 	}
 
-	display_shutdown(display_type);
-
 	tcsetattr (0, TCSANOW, &saved_tty);
+
+	display_shutdown(display_type);
 
 	printf("Quieting and exiting\n");
 	_exit(0);
@@ -213,6 +213,9 @@ void print_help(int just_version, char *exec_name) {
 
 	exit(0);
 }
+
+static int history[12];
+static int history_pointer=0;
 
 static int play_organ(void) {
 
@@ -239,6 +242,7 @@ static int play_organ(void) {
 	int c_count=0,c_enabled=0,c_type=0;
 
 	struct termios new_tty;
+	char display_string[13];
 
 	/* Save currenty term settings */
 	tcgetattr (0, &saved_tty);
@@ -292,6 +296,8 @@ static int play_organ(void) {
 			case CMD_RW:
 			case 'a':
 				freq=note_to_freq('C',0,0,octave,0);
+				history[history_pointer]='C';
+				history_pointer++;
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
@@ -299,6 +305,8 @@ static int play_organ(void) {
 			case CMD_BACK:
 			case 's':
 				freq=note_to_freq('D',0,0,octave,0);
+				history[history_pointer]='D';
+				history_pointer++;
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
@@ -306,6 +314,8 @@ static int play_organ(void) {
 			case CMD_MENU:
 			case 'd':
 				freq=note_to_freq('E',0,0,octave,0);
+				history[history_pointer]='E';
+				history_pointer++;
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
@@ -313,6 +323,8 @@ static int play_organ(void) {
 			case CMD_PLAY:
 			case 'f':
 				freq=note_to_freq('F',0,0,octave,0);
+				history[history_pointer]='F';
+				history_pointer++;
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
@@ -320,6 +332,8 @@ static int play_organ(void) {
 			case CMD_STOP:
 			case 'g':
 				freq=note_to_freq('G',0,0,octave,0);
+				history[history_pointer]='G';
+				history_pointer++;
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
@@ -327,6 +341,8 @@ static int play_organ(void) {
 			case CMD_CANCEL:
 			case 'h':
 				freq=note_to_freq('A',0,0,octave,0);
+				history[history_pointer]='A';
+				history_pointer++;
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
@@ -334,6 +350,8 @@ static int play_organ(void) {
 			case CMD_NEXT:
 			case 'j':
 				freq=note_to_freq('B',0,0,octave,0);
+				history[history_pointer]='B';
+				history_pointer++;
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
@@ -341,6 +359,8 @@ static int play_organ(void) {
 			case CMD_FF:
 			case 'k':
 				freq=note_to_freq('C',0,0,octave+1,0);
+				history[history_pointer]='C';
+				history_pointer++;
 				a_period=master_clock/(16.0*freq);
 				a_enabled=1;
 				a_length=instruments[current_instrument].length;
@@ -391,6 +411,16 @@ static int play_organ(void) {
 			}
 		}
 		if (quit) break;
+
+
+		if (history_pointer>11) history_pointer=0;
+
+		display_string[12]=0;
+		for(i=0;i<12;i++) {
+			display_string[i]=history[(history_pointer+i)%12];
+		}
+
+		display_14seg_string(display_type,display_string);
 
 		/****************************************/
 		/* Write out the music			*/
