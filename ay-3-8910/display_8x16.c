@@ -117,6 +117,43 @@ int display_8x16_vertical(int display_type, unsigned char *in_buffer) {
 	return 0;
 }
 
+
+int display_8x16_vertical_inverted(int display_type, unsigned char *in_buffer) {
+
+	unsigned char buffer[17];
+	int i;
+	int mask;
+
+	memset(buffer,0,17);
+
+	for(i=0;i<8;i++) {
+		mask=(1<<(7-i));
+
+		buffer[(i*2)+1]=(!!(in_buffer[7]&(mask)) << 0) |
+				(!!(in_buffer[6]&(mask)) << 1) |
+				(!!(in_buffer[5]&(mask)) << 2) |
+				(!!(in_buffer[4]&(mask)) << 3) |
+				(!!(in_buffer[3]&(mask)) << 4) |
+				(!!(in_buffer[2]&(mask)) << 5) |
+				(!!(in_buffer[1]&(mask)) << 6) |
+				(!!(in_buffer[0]&(mask)) << 7);
+
+		buffer[(i*2)+2]=(!!(in_buffer[15]&(mask)) << 0) |
+				(!!(in_buffer[14]&(mask)) << 1) |
+				(!!(in_buffer[13]&(mask)) << 2) |
+				(!!(in_buffer[12]&(mask)) << 3) |
+				(!!(in_buffer[11]&(mask)) << 4) |
+				(!!(in_buffer[10]&(mask)) << 5) |
+				(!!(in_buffer[ 9]&(mask)) << 6) |
+				(!!(in_buffer[ 8]&(mask)) << 7);
+
+	}
+
+	display_8x16_raw(display_type, buffer);
+
+	return 0;
+}
+
 /* Clear the display to black */
 int close_8x16_display(int display_type) {
 

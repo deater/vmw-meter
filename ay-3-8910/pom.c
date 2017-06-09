@@ -417,7 +417,8 @@ int main(int argc, char **argv) {
 
 		}
 		else {
-			display_14seg_string(display_type,phase_string);
+			snprintf(display_string,13,"%s          ",phase_string);
+			display_14seg_string(display_type,display_string);
 		}
 
 //		printf("%s\n",phase_string);
