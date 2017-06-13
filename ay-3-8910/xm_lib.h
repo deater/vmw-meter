@@ -1,4 +1,4 @@
-#define NUM_CHANNELS	4
+#define NUM_CHANNELS	32
 
 struct pattern_element_struct {
 	unsigned char note,instrument,volume,effect,param;

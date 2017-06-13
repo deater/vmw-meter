@@ -6,9 +6,12 @@
 
 #include "xm_lib.h"
 
+/* too big to allocate on stack */
+static struct xm_info_struct xm;
+
 int main(int argc, char **argv) {
 
-	struct xm_info_struct xm;
+
 	int result;
 	char *filename;
 

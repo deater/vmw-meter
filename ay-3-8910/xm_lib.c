@@ -82,6 +82,7 @@ static int convert_volume(int v) {
 }
 
 static int dump_pattern(FILE *fff, int which, struct pattern_struct *p,
+	int num_channels,
 	int ch0, int ch1, int ch2) {
 
 	int j,c;
@@ -93,7 +94,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p,
 	for(j=0; j < p->num_rows;j++) {
 
 		/* Handle effects */
-		for(c=0;c<4;c++) {
+		for(c=0;c<num_channels;c++) {
 			int effect;
 			int param;
 
@@ -161,7 +162,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p,
 
 		/* Handle instrument */
 
-		for(c=0;c<4;c++) {
+		for(c=0;c<num_channels;c++) {
 			int instrument=0;
 
 			if ((c!=ch0) && (c!=ch1) && (c!=ch2)) continue;
@@ -196,7 +197,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p,
 
 		/* Handle volume */
 
-		for(c=0;c<4;c++) {
+		for(c=0;c<num_channels;c++) {
 			int volume=0;
 
 			if ((c!=ch0) && (c!=ch1) && (c!=ch2)) continue;
@@ -230,7 +231,7 @@ static int dump_pattern(FILE *fff, int which, struct pattern_struct *p,
 		fprintf(fff,"%02X ",j);
 
 		/* Handle Notes */
-		for(c=0;c<4;c++) {
+		for(c=0;c<num_channels;c++) {
 
 			if ((c!=ch0) && (c!=ch1) && (c!=ch2)) continue;
 
@@ -302,6 +303,7 @@ int xm_to_text(FILE *fff,struct xm_info_struct *xm,
 	for(i=0;i < xm->song_length;i++) {
 		dump_pattern( fff, xm->pattern_order[i],
 				&(xm->pattern[xm->pattern_order[i]]),
+				xm->number_of_channels,
 				which1,which2,which3);
 	}
 
@@ -361,7 +363,7 @@ int dump_xm_file(struct xm_info_struct *xm) {
 
 		for(j=0; j < xm->pattern[i].num_rows;j++) {
 			printf("%02X ",j);
-			for(c=0;c<4;c++) {
+			for(c=0;c < xm->number_of_channels;c++) {
 
 				note_to_string(xm->pattern[i].p[j][c].note);
 
@@ -409,6 +411,8 @@ int dump_xm_file(struct xm_info_struct *xm) {
 /* LOAD FILE				*/
 /****************************************/
 
+#define MAX_PACKED_PATTERN	8192
+
 int load_xm_file(char *filename, struct xm_info_struct *xm) {
 
 	int fd,result;
@@ -419,7 +423,7 @@ int load_xm_file(char *filename, struct xm_info_struct *xm) {
 	int i,j;
 
 	unsigned char pattern_header[2048];
-	unsigned char packed_pattern[2048];
+	unsigned char packed_pattern[MAX_PACKED_PATTERN];
 
 	int pattern_header_length;
 	int packed_size;
@@ -523,9 +527,10 @@ int load_xm_file(char *filename, struct xm_info_struct *xm) {
 
 	/* Load patterns */
 
-
-
 	for(i=0;i < xm->number_of_patterns;i++) {
+
+		printf("Reading pattern header %d file offset %lx\n",i,
+			lseek(fd,0,SEEK_CUR));
 
 		result=read(fd,pattern_header,9);
 		if (result!=9) {
@@ -554,7 +559,16 @@ int load_xm_file(char *filename, struct xm_info_struct *xm) {
 			pattern_header[5]+(pattern_header[6]<<8);
 
 		packed_size=pattern_header[7]+(pattern_header[8]<<8);
-		//printf("\tPacked Pattern Size: %d\n",packed_size);
+//		printf("\tPacked Pattern Size: %d\n",packed_size);
+
+		if (packed_size>MAX_PACKED_PATTERN) {
+			fprintf(stderr,"Error! pattern size %d too big!\n",
+				packed_size);
+			return -1;
+		}
+
+		printf("Reading pattern %d file offset %lx\n",i,
+			lseek(fd,0,SEEK_CUR));
 
 		result=read(fd,packed_pattern,packed_size);
 		if (result!=packed_size) {
@@ -612,22 +626,36 @@ int load_xm_file(char *filename, struct xm_info_struct *xm) {
 
 				if (xm->pattern[i].p[line][channel].effect==0xd)
 					pattern_break=1;
+			}
 
-				channel++;
-				if (channel>=xm->number_of_channels) {
-//					printf("\n");
-					channel=0;
-					line++;
-					if (pattern_break) break;
-				}
-			}
 			else {
-				printf("\n?%x?\n",packed_pattern[j]);
-				j++;
+				printf("Unpacked: Line %d Val %x\n",
+					line,packed_pattern[j]);
+				xm->pattern[i].p[line][channel].note=
+						packed_pattern[j];
+				xm->pattern[i].p[line][channel].instrument=
+						packed_pattern[j+1];
+				xm->pattern[i].p[line][channel].volume=
+						packed_pattern[j+2];
+				xm->pattern[i].p[line][channel].effect=
+						packed_pattern[j+3];
+				xm->pattern[i].p[line][channel].param=
+						packed_pattern[j+4];
+
+				j+=5;
 			}
+
+			channel++;
+			if (channel>=xm->number_of_channels) {
+				channel=0;
+				line++;
+				if (pattern_break) break;
+			}
+
 
 			if (j>=packed_size) break;
 		}
+
 //		printf("\n");
 
 	}

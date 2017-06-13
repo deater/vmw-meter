@@ -818,6 +818,14 @@ int main(int argc, char **argv) {
 	else if (bpm==136) {
 		baselen=80;	/* 136/min = 440ms, 50Hz=20ms, 22*4 = 88 */
 	}
+	else if (bpm==150) {
+		if (tempo==1) {
+			baselen=80;	/* 150/min = 400ms, 50Hz=20ms, 20*4 = 80 */
+		}
+		else {
+			baselen=32;
+		}
+	}
 	else if (bpm==160) {
 		baselen=48;	/* 160/min = 266ms, 50Hz=20ms, 13*4 = 53 */
 	}

@@ -12,9 +12,12 @@ static int print_usage(char *file) {
 	return 0;
 }
 
+/* too big to be a local variable */
+
+static struct xm_info_struct xm;
+
 int main(int argc, char **argv) {
 
-	struct xm_info_struct xm;
 	int result;
 	char *filename;
 	char *outname;
