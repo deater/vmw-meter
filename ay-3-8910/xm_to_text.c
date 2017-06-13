@@ -6,6 +6,12 @@
 
 #include "xm_lib.h"
 
+static int print_usage(char *file) {
+
+	printf("Usage: %s -h -c X,Y,Z in.xm out.txt\n\n",file);
+	return 0;
+}
+
 int main(int argc, char **argv) {
 
 	struct xm_info_struct xm;
@@ -18,6 +24,10 @@ int main(int argc, char **argv) {
 
 	while ((c = getopt(argc, argv, "hvc:"))!=-1) {
 		switch(c) {
+			case 'h':
+				print_usage(argv[0]);
+				exit(0);
+				break;
 			case 'c':
 				/* Lazy Hack */
 				ch0=optarg[0]-'0';

@@ -1,3 +1,5 @@
+#define NUM_CHANNELS	4
+
 struct pattern_element_struct {
 	unsigned char note,instrument,volume,effect,param;
 };
@@ -5,7 +7,7 @@ struct pattern_element_struct {
 struct pattern_struct {
 	int num_rows;
 	int packing_type;
-	struct pattern_element_struct p[256][4];
+	struct pattern_element_struct p[256][NUM_CHANNELS];
 };
 
 // FIXME: bigger channels, up to 16 or more?

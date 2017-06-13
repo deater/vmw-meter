@@ -495,6 +495,12 @@ int load_xm_file(char *filename, struct xm_info_struct *xm) {
 	/* Channels */
 	xm->number_of_channels=header[8]+(header[9]<<8);
 
+	if (xm->number_of_channels>NUM_CHANNELS) {
+		fprintf(stderr,"Error!  Too many channels %d\n",
+			xm->number_of_channels);
+		return -1;
+	}
+
 	/* Patterns */
 	xm->number_of_patterns=header[10]+(header[11]<<8);
 
