@@ -2,10 +2,12 @@ CC = gcc
 CFLAGS = -O2 -Wall
 LFLAGS = -lm
 
-all:	sa.ym5 korobeiniki.ym5 fighting.ym5 highwind.ym5 \
-	highwind.ed fighting.ed sa.ed sa_chiptune.ym5 \
-	saxm1.ym5 saxm2.ym5 saxm3.ym5 \
-	saxm.vmw5
+all:	sa.ym5 sa.ed \
+	kerbal.ym5 \
+	korobeiniki.ym5 \
+	fighting.ym5 fighting.ed \
+	highwind.ym5 highwind.ed \
+	saxm1.ym5 saxm2.ym5 saxm3.ym5 saxm.vmw5
 
 ###
 
@@ -73,6 +75,14 @@ highwind.ym5:	../ym_to_ym5 highwind.ym
 
 ###
 
+kerbal.ym:	../text_to_ym kerbal.txt
+	../text_to_ym kerbal.txt kerbal
+
+kerbal.ym5:	../ym_to_ym5 kerbal.ym
+	../ym_to_ym5 kerbal
+
+###
+
 korobeiniki.ym:	../text_to_ym korobeiniki.txt
 	../text_to_ym korobeiniki.txt korobeiniki
 
@@ -90,12 +100,6 @@ sa.ym:	../text_to_ym sa.txt
 sa.ym5:	../ym_to_ym5 sa.ym
 	../ym_to_ym5 sa
 
-
-sa_chiptune.ym:	../text_to_ym sa_chiptune.txt
-	../text_to_ym sa_chiptune.txt sa_chiptune
-
-sa_chiptune.ym5:	../ym_to_ym5 sa_chiptune.ym
-	../ym_to_ym5 sa_chiptune
 
 
 clean:	
