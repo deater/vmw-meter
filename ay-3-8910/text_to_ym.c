@@ -710,6 +710,417 @@ static int get_string(char *string, char *key, char *output, int strip_linefeed)
 
 }
 
+static int line=0,frames=0;
+
+static int parse_music_v0(FILE *ym_file,FILE *in_file, FILE *lyrics_file) {
+
+	char string[BUFSIZ];
+	char *result;
+	int sp,i,j;
+	unsigned char frame[16];
+
+	a.which='A';		b.which='B';		c.which='C';
+	a.loud=15;		b.loud=15;		c.loud=15;
+	a.arpeggio=0;		b.arpeggio=0;		c.arpeggio=0;
+	a.portamento=0;		b.portamento=0;		c.portamento=0;
+	a.vibrato=0;		b.vibrato=0;		c.vibrato=0;
+	a.vibrato_position=0;	b.vibrato_position=0;	c.vibrato_position=0;
+	a.sub_adjust=0;		b.sub_adjust=0;		c.sub_adjust=0;
+	a.instrument=&instruments[0];			c.instrument=&instruments[0];
+				b.instrument=&instruments[0];
+
+	while(1) {
+		result=fgets(string,BUFSIZ,in_file);
+		if (result==NULL) break;
+		line++;
+
+		/* skip comments */
+		if (string[0]=='\'') continue;
+		if (string[0]=='-') continue;
+
+		/* loudness */
+		if (string[0]=='*') {
+			get_directive(string);
+			continue;
+		}
+
+		sp=0;
+
+		/* Skip line number */
+		while((string[sp]!=' ' && string[sp]!='\t')) sp++;
+
+		sp=get_note(string,sp,&a,line);
+		if (sp!=-1) sp=get_note(string,sp,&b,line);
+		if (sp!=-1) sp=get_note(string,sp,&c,line);
+
+		/* handle lyrics */
+		if ((sp!=-1) && (lyrics_file)) {
+			while((string[sp]==' ' || string[sp]=='\t')) sp++;
+			if ((string[sp]) && (string[sp]!='\n')) {
+				fprintf(lyrics_file,"%d %s",
+					frames,&string[sp]);
+			}
+		}
+
+		for(j=0;j<frames_per_line;j++) {
+
+			frame[7]=0x38;
+
+			if (a.enabled) {
+				update_note(&a);
+
+				if ((a.arpeggio) || (a.portamento)) {
+					if (j==0) {
+						frame[0]=a.freq&0xff;
+						frame[1]=(a.freq>>8)&0xf;
+					}
+					if (j==1) {
+						frame[0]=a.freq2&0xff;
+						frame[1]=(a.freq2>>8)&0xf;
+					}
+					if (j==2) {
+						frame[0]=a.freq3&0xff;
+						frame[1]=(a.freq3>>8)&0xf;
+					}
+				}
+				else {
+					frame[0]=a.freq&0xff;
+					frame[1]=(a.freq>>8)&0xf;
+				}
+
+				frame[8]=calculate_amplitude(&a);
+
+				if (a.instrument->noise) {
+					frame[6]=calculate_noise(&a);
+					frame[7]&=~enable_noise(&a,0);
+				}
+
+
+			}
+			else {
+				frame[0]=0x0;
+				frame[1]=0x0;
+				frame[7]|=0x8;
+				frame[8]=0x0;
+			}
+
+			if (b.enabled) {
+				update_note(&b);
+
+				if ((b.arpeggio) || (b.portamento)) {
+					if (j==0) {
+						frame[2]=b.freq&0xff;
+						frame[3]=(b.freq>>8)&0xf;
+					}
+					if (j==1) {
+						frame[2]=b.freq2&0xff;
+						frame[3]=(b.freq2>>8)&0xf;
+					}
+					if (j==2) {
+						frame[2]=b.freq3&0xff;
+						frame[3]=(b.freq3>>8)&0xf;
+					}
+				}
+				else {
+					frame[2]=b.freq&0xff;
+					frame[3]=(b.freq>>8)&0xf;
+				}
+				frame[9]=calculate_amplitude(&b);
+
+				if (b.instrument->noise) {
+					frame[6]=calculate_noise(&b);
+					frame[7]&=~enable_noise(&b,1);
+				}
+			}
+			else {
+				frame[2]=0x0;
+				frame[3]=0x0;
+				frame[7]|=0x10;
+				frame[9]=0x0;
+			}
+
+			if (c.enabled) {
+				update_note(&c);
+
+				if ((c.arpeggio) || (c.portamento)) {
+					if (j==0) {
+						frame[4]=c.freq&0xff;
+						frame[5]=(c.freq>>8)&0xf;
+					}
+					if (j==1) {
+						frame[4]=c.freq2&0xff;
+						frame[5]=(c.freq2>>8)&0xf;
+					}
+					if (j==2) {
+						frame[4]=c.freq3&0xff;
+						frame[5]=(c.freq3>>8)&0xf;
+					}
+				}
+				else {
+					frame[4]=c.freq&0xff;
+					frame[5]=(c.freq>>8)&0xf;
+				}
+
+				frame[10]=calculate_amplitude(&c);
+
+				if (c.instrument->noise) {
+					frame[6]=calculate_noise(&c);
+					frame[7]&=~enable_noise(&c,2);
+				}
+			}
+			else {
+				frame[4]=0x0;
+				frame[5]=0x0;
+				frame[7]|=0x20;
+				frame[10]=0x0;
+			}
+
+
+			/* NOWRITE */
+			frame[13]=0xff;
+
+			for(i=0;i<16;i++) {
+				fprintf(ym_file,"%c",frame[i]);
+			}
+
+			if (debug) {
+				printf("%d\t",frames);
+				for(i=0;i<16;i++) {
+					printf("%4d",frame[i]);
+				}
+				printf("\n");
+			}
+			frames++;
+
+			if (a.enabled) {
+				a.left--;
+				if (a.left<0) a.enabled=0;
+			}
+
+			if (b.enabled) {
+				b.left--;
+				if (b.left<0) b.enabled=0;
+			}
+
+			if (c.enabled) {
+				c.left--;
+				if (c.left<0) c.enabled=0;
+			}
+
+		}
+		a.arpeggio=0;	b.arpeggio=0;	c.arpeggio=0;
+		a.portamento=0;	b.portamento=0;	c.portamento=0;
+		a.vibrato=0;	b.vibrato=0;	c.vibrato=0;
+	}
+
+	return 0;
+}
+
+
+static int parse_music_v2(FILE *ym_file,FILE *in_file, FILE *lyrics_file) {
+
+	char string[BUFSIZ];
+	char *result;
+	int sp,i,j;
+	unsigned char frame[16];
+
+	a.which='A';		b.which='B';		c.which='C';
+	a.loud=15;		b.loud=15;		c.loud=15;
+	a.arpeggio=0;		b.arpeggio=0;		c.arpeggio=0;
+	a.portamento=0;		b.portamento=0;		c.portamento=0;
+	a.vibrato=0;		b.vibrato=0;		c.vibrato=0;
+	a.vibrato_position=0;	b.vibrato_position=0;	c.vibrato_position=0;
+	a.sub_adjust=0;		b.sub_adjust=0;		c.sub_adjust=0;
+	a.instrument=&instruments[0];			c.instrument=&instruments[0];
+				b.instrument=&instruments[0];
+
+	while(1) {
+		result=fgets(string,BUFSIZ,in_file);
+		if (result==NULL) break;
+		line++;
+
+		/* skip comments */
+		if (string[0]=='\'') continue;
+		if (string[0]=='-') continue;
+
+		/* loudness */
+		if (string[0]=='*') {
+			get_directive(string);
+			continue;
+		}
+
+		sp=0;
+
+		/* Skip line number */
+		while((string[sp]!=' ' && string[sp]!='\t')) sp++;
+
+		sp=get_note(string,sp,&a,line);
+		if (sp!=-1) sp=get_note(string,sp,&b,line);
+		if (sp!=-1) sp=get_note(string,sp,&c,line);
+
+		/* handle lyrics */
+		if ((sp!=-1) && (lyrics_file)) {
+			while((string[sp]==' ' || string[sp]=='\t')) sp++;
+			if ((string[sp]) && (string[sp]!='\n')) {
+				fprintf(lyrics_file,"%d %s",
+					frames,&string[sp]);
+			}
+		}
+
+		for(j=0;j<frames_per_line;j++) {
+
+			frame[7]=0x38;
+
+			if (a.enabled) {
+				update_note(&a);
+
+				if ((a.arpeggio) || (a.portamento)) {
+					if (j==0) {
+						frame[0]=a.freq&0xff;
+						frame[1]=(a.freq>>8)&0xf;
+					}
+					if (j==1) {
+						frame[0]=a.freq2&0xff;
+						frame[1]=(a.freq2>>8)&0xf;
+					}
+					if (j==2) {
+						frame[0]=a.freq3&0xff;
+						frame[1]=(a.freq3>>8)&0xf;
+					}
+				}
+				else {
+					frame[0]=a.freq&0xff;
+					frame[1]=(a.freq>>8)&0xf;
+				}
+
+				frame[8]=calculate_amplitude(&a);
+
+				if (a.instrument->noise) {
+					frame[6]=calculate_noise(&a);
+					frame[7]&=~enable_noise(&a,0);
+				}
+
+
+			}
+			else {
+				frame[0]=0x0;
+				frame[1]=0x0;
+				frame[7]|=0x8;
+				frame[8]=0x0;
+			}
+
+			if (b.enabled) {
+				update_note(&b);
+
+				if ((b.arpeggio) || (b.portamento)) {
+					if (j==0) {
+						frame[2]=b.freq&0xff;
+						frame[3]=(b.freq>>8)&0xf;
+					}
+					if (j==1) {
+						frame[2]=b.freq2&0xff;
+						frame[3]=(b.freq2>>8)&0xf;
+					}
+					if (j==2) {
+						frame[2]=b.freq3&0xff;
+						frame[3]=(b.freq3>>8)&0xf;
+					}
+				}
+				else {
+					frame[2]=b.freq&0xff;
+					frame[3]=(b.freq>>8)&0xf;
+				}
+				frame[9]=calculate_amplitude(&b);
+
+				if (b.instrument->noise) {
+					frame[6]=calculate_noise(&b);
+					frame[7]&=~enable_noise(&b,1);
+				}
+			}
+			else {
+				frame[2]=0x0;
+				frame[3]=0x0;
+				frame[7]|=0x10;
+				frame[9]=0x0;
+			}
+
+			if (c.enabled) {
+				update_note(&c);
+
+				if ((c.arpeggio) || (c.portamento)) {
+					if (j==0) {
+						frame[4]=c.freq&0xff;
+						frame[5]=(c.freq>>8)&0xf;
+					}
+					if (j==1) {
+						frame[4]=c.freq2&0xff;
+						frame[5]=(c.freq2>>8)&0xf;
+					}
+					if (j==2) {
+						frame[4]=c.freq3&0xff;
+						frame[5]=(c.freq3>>8)&0xf;
+					}
+				}
+				else {
+					frame[4]=c.freq&0xff;
+					frame[5]=(c.freq>>8)&0xf;
+				}
+
+				frame[10]=calculate_amplitude(&c);
+
+				if (c.instrument->noise) {
+					frame[6]=calculate_noise(&c);
+					frame[7]&=~enable_noise(&c,2);
+				}
+			}
+			else {
+				frame[4]=0x0;
+				frame[5]=0x0;
+				frame[7]|=0x20;
+				frame[10]=0x0;
+			}
+
+
+			/* NOWRITE */
+			frame[13]=0xff;
+
+			for(i=0;i<16;i++) {
+				fprintf(ym_file,"%c",frame[i]);
+			}
+
+			if (debug) {
+				printf("%d\t",frames);
+				for(i=0;i<16;i++) {
+					printf("%4d",frame[i]);
+				}
+				printf("\n");
+			}
+			frames++;
+
+			if (a.enabled) {
+				a.left--;
+				if (a.left<0) a.enabled=0;
+			}
+
+			if (b.enabled) {
+				b.left--;
+				if (b.left<0) b.enabled=0;
+			}
+
+			if (c.enabled) {
+				c.left--;
+				if (c.left<0) c.enabled=0;
+			}
+
+		}
+		a.arpeggio=0;	b.arpeggio=0;	c.arpeggio=0;
+		a.portamento=0;	b.portamento=0;	c.portamento=0;
+		a.vibrato=0;	b.vibrato=0;	c.vibrato=0;
+	}
+
+	return 0;
+}
+
 int main(int argc, char **argv) {
 
 	char string[BUFSIZ];
@@ -717,15 +1128,13 @@ int main(int argc, char **argv) {
 	char ym_filename[BUFSIZ],lyrics_filename[BUFSIZ],*in_filename;
 	char temp[BUFSIZ];
 	FILE *ym_file,*lyrics_file=NULL,*in_file;
-	int frames=0,digidrums=0;
+	int digidrums=0;
 	int attributes=0;
 	int irq=50,loop=0;
 	int header_length=0;
-	int sp,i,j;
 	fpos_t save;
-	int line=0;
 	int generate_lyrics=0;
-	int header_version;
+	int header_version=0;
 	int which_instrument;
 
 	char song_name[BUFSIZ];//="Still Alive";
@@ -733,7 +1142,7 @@ int main(int argc, char **argv) {
 	char comments[BUFSIZ];//="from Portal, Words and Music by Jonathan Coulton";
 	char *comments_ptr=comments;
 
-	unsigned char frame[16];
+
 
 	/* Check command line arguments */
 	if (argc<3) {
@@ -920,199 +1329,17 @@ int main(int argc, char **argv) {
 
 	fseek(ym_file, header_length, SEEK_SET);
 
-	a.which='A';		b.which='B';		c.which='C';
-	a.loud=15;		b.loud=15;		c.loud=15;
-	a.arpeggio=0;		b.arpeggio=0;		c.arpeggio=0;
-	a.portamento=0;		b.portamento=0;		c.portamento=0;
-	a.vibrato=0;		b.vibrato=0;		c.vibrato=0;
-	a.vibrato_position=0;	b.vibrato_position=0;	c.vibrato_position=0;
-	a.sub_adjust=0;		b.sub_adjust=0;		c.sub_adjust=0;
-	a.instrument=&instruments[0];			c.instrument=&instruments[0];
-				b.instrument=&instruments[0];
-
-	while(1) {
-		result=fgets(string,BUFSIZ,in_file);
-		if (result==NULL) break;
-		line++;
-
-		/* skip comments */
-		if (string[0]=='\'') continue;
-		if (string[0]=='-') continue;
-
-		/* loudness */
-		if (string[0]=='*') {
-			get_directive(string);
-			continue;
-		}
-
-		sp=0;
-
-		/* Skip line number */
-		while((string[sp]!=' ' && string[sp]!='\t')) sp++;
-
-		sp=get_note(string,sp,&a,line);
-		if (sp!=-1) sp=get_note(string,sp,&b,line);
-		if (sp!=-1) sp=get_note(string,sp,&c,line);
-
-		/* handle lyrics */
-		if ((sp!=-1) && (generate_lyrics)) {
-			while((string[sp]==' ' || string[sp]=='\t')) sp++;
-			if ((string[sp]) && (string[sp]!='\n')) {
-				fprintf(lyrics_file,"%d %s",
-					frames,&string[sp]);
-			}
-		}
-
-		for(j=0;j<frames_per_line;j++) {
-
-			frame[7]=0x38;
-
-			if (a.enabled) {
-				update_note(&a);
-
-				if ((a.arpeggio) || (a.portamento)) {
-					if (j==0) {
-						frame[0]=a.freq&0xff;
-						frame[1]=(a.freq>>8)&0xf;
-					}
-					if (j==1) {
-						frame[0]=a.freq2&0xff;
-						frame[1]=(a.freq2>>8)&0xf;
-					}
-					if (j==2) {
-						frame[0]=a.freq3&0xff;
-						frame[1]=(a.freq3>>8)&0xf;
-					}
-				}
-				else {
-					frame[0]=a.freq&0xff;
-					frame[1]=(a.freq>>8)&0xf;
-				}
-
-				frame[8]=calculate_amplitude(&a);
-
-				if (a.instrument->noise) {
-					frame[6]=calculate_noise(&a);
-					frame[7]&=~enable_noise(&a,0);
-				}
-
-
-			}
-			else {
-				frame[0]=0x0;
-				frame[1]=0x0;
-				frame[7]|=0x8;
-				frame[8]=0x0;
-			}
-
-			if (b.enabled) {
-				update_note(&b);
-
-				if ((b.arpeggio) || (b.portamento)) {
-					if (j==0) {
-						frame[2]=b.freq&0xff;
-						frame[3]=(b.freq>>8)&0xf;
-					}
-					if (j==1) {
-						frame[2]=b.freq2&0xff;
-						frame[3]=(b.freq2>>8)&0xf;
-					}
-					if (j==2) {
-						frame[2]=b.freq3&0xff;
-						frame[3]=(b.freq3>>8)&0xf;
-					}
-				}
-				else {
-					frame[2]=b.freq&0xff;
-					frame[3]=(b.freq>>8)&0xf;
-				}
-				frame[9]=calculate_amplitude(&b);
-
-				if (b.instrument->noise) {
-					frame[6]=calculate_noise(&b);
-					frame[7]&=~enable_noise(&b,1);
-				}
-			}
-			else {
-				frame[2]=0x0;
-				frame[3]=0x0;
-				frame[7]|=0x10;
-				frame[9]=0x0;
-			}
-
-			if (c.enabled) {
-				update_note(&c);
-
-				if ((c.arpeggio) || (c.portamento)) {
-					if (j==0) {
-						frame[4]=c.freq&0xff;
-						frame[5]=(c.freq>>8)&0xf;
-					}
-					if (j==1) {
-						frame[4]=c.freq2&0xff;
-						frame[5]=(c.freq2>>8)&0xf;
-					}
-					if (j==2) {
-						frame[4]=c.freq3&0xff;
-						frame[5]=(c.freq3>>8)&0xf;
-					}
-				}
-				else {
-					frame[4]=c.freq&0xff;
-					frame[5]=(c.freq>>8)&0xf;
-				}
-
-				frame[10]=calculate_amplitude(&c);
-
-				if (c.instrument->noise) {
-					frame[6]=calculate_noise(&c);
-					frame[7]&=~enable_noise(&c,2);
-				}
-			}
-			else {
-				frame[4]=0x0;
-				frame[5]=0x0;
-				frame[7]|=0x20;
-				frame[10]=0x0;
-			}
-
-
-			/* NOWRITE */
-			frame[13]=0xff;
-
-			for(i=0;i<16;i++) {
-				fprintf(ym_file,"%c",frame[i]);
-			}
-
-			if (debug) {
-				printf("%d\t",frames);
-				for(i=0;i<16;i++) {
-					printf("%4d",frame[i]);
-				}
-				printf("\n");
-			}
-			frames++;
-
-			if (a.enabled) {
-				a.left--;
-				if (a.left<0) a.enabled=0;
-			}
-
-			if (b.enabled) {
-				b.left--;
-				if (b.left<0) b.enabled=0;
-			}
-
-			if (c.enabled) {
-				c.left--;
-				if (c.left<0) c.enabled=0;
-			}
-
-		}
-		a.arpeggio=0;	b.arpeggio=0;	c.arpeggio=0;
-		a.portamento=0;	b.portamento=0;	c.portamento=0;
-		a.vibrato=0;	b.vibrato=0;	c.vibrato=0;
+	if (header_version==0) {
+		parse_music_v0(ym_file,in_file,lyrics_file);
 	}
+	else if (header_version==2) {
+		parse_music_v2(ym_file,in_file,lyrics_file);
+	}
+	else {
+		fprintf(stderr,"Unknown header version %d\n",header_version);
+		return -1;
+	}
+
 
 	fgetpos(ym_file,&save);
 
