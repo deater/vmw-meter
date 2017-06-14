@@ -273,6 +273,55 @@ struct note_type {
 static struct note_type a,b,c;
 
 
+static int set_effect(struct note_type *n,int effect, int param) {
+
+	switch(effect) {
+		case 0x0:	// Arpeggio
+			if (param!=0) {
+				n->arpeggio=1;
+				n->arpeggio2=((param)>>4)&0xf;
+				n->arpeggio3=(param)&0xf;
+			}
+			break;
+		case 0x1:	// Portamento Up
+			n->portamento=1;
+			if (param!=0) {
+				n->port_speed=param;
+			}
+			else {
+				if (n->port_speed<0) n->port_speed=-n->port_speed;
+			}
+			break;
+		case 0x2:	// Portamento Down
+			n->portamento=1;
+			if (param!=0) {
+				n->port_speed=-param;
+			}
+			else {
+				if (n->port_speed>0) n->port_speed=-n->port_speed;
+			}
+
+			break;
+		case 0x4:	// Vibrato
+			#define V_FUDGE	2
+
+			n->vibrato=1;
+			if ((param>>4)!=0) {
+				n->vibrato_speed=param/V_FUDGE;
+				n->vibrato_position=0;
+			}
+			if ((param&0xf)!=0) {
+				n->vibrato_depth=param&0xf;
+			}
+			break;
+		default:
+			fprintf(stderr,"Unknown effect %X%02X\n",effect,param);
+	}
+
+	return 0;
+}
+
+
 static int get_note(char *string, int sp, struct note_type *n, int line) {
 
 	int ch;
@@ -327,10 +376,28 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 	return sp;
 }
 
+static int char_to_hex(int value) {
+
+	if ((value>='0') && (value<='9')) {
+		return value-'0';
+	}
+	else if ((value>='a') && (value<='f')) {
+		return (value-'a')+10;
+	}
+	else if ((value>='A') && (value<='F')) {
+		return (value-'A')+10;
+	}
+
+	fprintf(stderr,"Error, unknown hex digit %c\n",value);
+
+	return -1;
+}
+
 static int get_note2(char *string, int sp, struct note_type *n, int line) {
 
 	int ch;
 	int num;
+	char temp_string[8];
 
 	/* Skip white space */
 	while((string[sp]==' ' || string[sp]=='\t')) sp++;
@@ -382,14 +449,8 @@ static int get_note2(char *string, int sp, struct note_type *n, int line) {
 	/* Get loudness */
 	if (string[sp]=='-') {
 	}
-	else if ((string[sp]>='0') && (string[sp]<='9')) {
-		n->loud=string[sp]-'0';
-	}
-	else if ((string[sp]>='a') && (string[sp]<='f')) {
-		n->loud=(string[sp]-'a')+10;
-	}
 	else {
-		fprintf(stderr,"Unknown loudness %c\n",string[sp]);
+		n->loud=char_to_hex(string[sp]);
 	}
 
 	if (n->loud>15) {
@@ -403,33 +464,46 @@ static int get_note2(char *string, int sp, struct note_type *n, int line) {
 	sp++;
 
 	/* Get instrument */
-	char temp_string[8];
-	temp_string[0]=string[sp];
-	temp_string[1]=string[sp+1];
-	temp_string[2]=0;
+	if (string[sp]!='-') {
+		temp_string[0]=string[sp];
+		temp_string[1]=string[sp+1];
+		temp_string[2]=0;
 
-	num=atoi(temp_string);
+		num=atoi(temp_string);
 
-	if (debug) printf("Found instrument %d\n",num);
+		if (debug) printf("Found instrument %d\n",num);
 
-	if (num<0) {
-		fprintf(stderr,"Instrument too small: %d\n",num);
-	}
+		if (num<0) {
+			fprintf(stderr,"Instrument too small: %d\n",num);
+		}
 
-	if (num>=MAX_INSTRUMENTS) {
-		fprintf(stderr,"Instrument too big: %d\n",num);
-	}
+		if (num>=MAX_INSTRUMENTS) {
+			fprintf(stderr,"Instrument too big: %d\n",num);
+		}
 
-	n->instrument=&instruments[num];
+		n->instrument=&instruments[num];
 
-	if (!n->instrument->initialized) {
-		fprintf(stderr,"Instrument %d not initialized!\n",num);
+		if (!n->instrument->initialized) {
+			fprintf(stderr,"Instrument %d not initialized!\n",num);
+		}
 	}
 
 	sp+=2;
 
 	/* get effect */
-	printf("Effect %c%c%c\n",string[sp],string[sp+1],string[sp+2]);
+	if (string[sp]!='-') {
+		int effect,param;
+
+		effect=char_to_hex(string[sp]);
+
+		param=char_to_hex(string[sp+1]);
+		param*=16;
+		param+=char_to_hex(string[sp+2]);
+
+		set_effect(n,effect,param);
+		printf("Effect %x%2x\n",effect,param);
+
+	}
 	sp+=3;
 
 	return sp;
@@ -652,7 +726,7 @@ static struct note_type *find_note(char which) {
 
 static int get_effect(struct note_type *n,char *string) {
 
-	int effect,param;
+	int effect,param,result;
 
 	effect=atoi(string);
 
@@ -662,51 +736,12 @@ static int get_effect(struct note_type *n,char *string) {
 
 	if (debug) printf("Found effect_param %x\n",param);
 
-	switch(effect) {
-		case 0x0:	// Arpeggio
-			if (param!=0) {
-				n->arpeggio=1;
-				n->arpeggio2=((param)>>4)&0xf;
-				n->arpeggio3=(param)&0xf;
-			}
-			break;
-		case 0x1:	// Portamento Up
-			n->portamento=1;
-			if (param!=0) {
-				n->port_speed=param;
-			}
-			else {
-				if (n->port_speed<0) n->port_speed=-n->port_speed;
-			}
-			break;
-		case 0x2:	// Portamento Down
-			n->portamento=1;
-			if (param!=0) {
-				n->port_speed=-param;
-			}
-			else {
-				if (n->port_speed>0) n->port_speed=-n->port_speed;
-			}
+	result=set_effect(n,effect,param);
 
-			break;
-		case 0x4:	// Vibrato
-			#define V_FUDGE	2
-
-			n->vibrato=1;
-			if ((param>>4)!=0) {
-				n->vibrato_speed=param/V_FUDGE;
-				n->vibrato_position=0;
-			}
-			if ((param&0xf)!=0) {
-				n->vibrato_depth=param&0xf;
-			}
-			break;
-		default:
-			fprintf(stderr,"Unknown effect %X%02X\n",effect,param);
-	}
-
-	return 0;
+	return result;
 }
+
+
 
 static int get_instrument(struct note_type *n,char *string) {
 
@@ -1035,6 +1070,47 @@ static int parse_music(FILE *ym_file,FILE *in_file, FILE *lyrics_file, int versi
 	return 0;
 }
 
+static int get_list(char *string, char *key, int *array) {
+
+	int num=0,value;
+	char *found;
+
+	found=strstr(string,key);
+	found=found+strlen(key);
+
+	/* get rid of leading whitespace */
+	while(1) {
+		if ((*found==' ') || (*found=='\t')) found++;
+		else break;
+	}
+
+	value=0;
+	while(1) {
+		if (num>=MAX_ENVELOPE_LENGTH) {
+			fprintf(stderr,"%s too long\n",string);
+			break;
+		}
+		if (*found=='\n') {
+			array[num]=value;
+			num++;
+			break;
+		}
+
+		if (*found==',') {
+			array[num]=value;
+			num++;
+			value=0;
+		}
+		else {
+			value*=10;
+			value+=(*found)-'0';
+		}
+		found++;
+	}
+
+	return num;
+}
+
 int main(int argc, char **argv) {
 
 	char string[BUFSIZ];
@@ -1050,6 +1126,7 @@ int main(int argc, char **argv) {
 	int generate_lyrics=0;
 	int header_version=0;
 	int which_instrument;
+	int len;
 
 	char song_name[BUFSIZ];//="Still Alive";
 	char author_name[BUFSIZ];//"Vince Weaver <vince@deater.net>";
@@ -1141,6 +1218,10 @@ int main(int argc, char **argv) {
 			get_string(string,"INSTRUMENT:",temp,1);
 			which_instrument=atoi(temp);
 
+			printf("Initializing instrument %d\n",which_instrument);
+
+			instruments[which_instrument].initialized=1;
+
 			if (which_instrument>MAX_INSTRUMENTS) {
 				fprintf(stderr,"Instrument %d too big\n",
 					which_instrument);
@@ -1168,9 +1249,33 @@ int main(int argc, char **argv) {
 					get_string(string,"SUSTAIN:",temp,1);
 					instruments[which_instrument].sustain=atoi(temp);
 				}
+				if (strstr(string,"ATTACK:")) {
+					len=get_list(string,"ATTACK:",
+						instruments[which_instrument].attack);
+					instruments[which_instrument].attack_size=len;
+		{
+		int k;
+		for(k=0;k<instruments[which_instrument].attack_size;k++) {
+			printf("%d,",instruments[which_instrument].attack[k]);
+		}
+
+		printf("\n");
+	}
+
+				}
+				if (strstr(string,"DECAY:")) {
+					len=get_list(string,"DECAY:",
+						instruments[which_instrument].decay);
+					instruments[which_instrument].decay_size=len;
+				}
+				if (strstr(string,"RELEASE:")) {
+					len=get_list(string,"RELEASE:",
+						instruments[which_instrument].release);
+					instruments[which_instrument].release_size=len;
+				}
 				if (strstr(string,"NAME:")) {
-					get_string(string,"NAME:",
-						instruments[which_instrument].name,1);
+					get_string(string,"NAME:",temp,1);
+					instruments[which_instrument].name=strdup(temp);
 				}
 			}
 		}
