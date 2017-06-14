@@ -50,8 +50,8 @@ static unsigned char three_by_five[128][3]={
 /*'H'*/ {0xf8,0x20,0xf8},{0x0,0x0,0x0},   {0x0,0x0,0x0}, {0,0,0},
 /*'L'*/ {0,0,0},	 {0xf8,0x40,0xf8},{0x0,0x0,0x0}, {0xf8,0x88,0xf8},
 /*'P'*/ {0,0,0},	 {0x0,0x0,0x0},   {0xf8,0xb0,0xe8}, {0x48,0xa8,0xb0},
-/*'T'*/ {0x80,0xf8,0x80},{0xf8,0x08,0xf8}, {0,0,0}, {0,0,0},
-/*'W'*/ {0xf8,0x10,0xf8},{0x0,0x0,0x0},   {0x0,0x0,0x0}, {0,0,0},
+/*'T'*/ {0x80,0xf8,0x80},{0xf8,0x08,0xf8}, {0,0,0}, {0xf8,0x10,0xf8},
+/*'X'*/ {0x0,0x0,0x0},   {0x0,0x0,0x0}, {0,0,0},{0x0,0x0,0x0},
 };
 
 //  ** * *  * * ***  *** * *  * * ***  *** * *  *** ***   **  *
@@ -142,21 +142,23 @@ int main(int argc, char **argv) {
 	while(1) {
 		seconds=time(NULL);
 
+		breakdown=localtime(&seconds);
+
 		reverse_seconds=reverse_bits32(seconds);
 
 		/* binary clock around eddge */
 		bargraph_raw(display_type,
 			(seconds>>24)&0xff,		// la = 24
 			(seconds>>8)&0xff,		// lb = 8
-			0,				// lc = 0
+			(1<<((breakdown->tm_sec/6)+1))-1, // lc
 			(reverse_seconds>>8)&0xff,	// ra = 16
 			(reverse_seconds>>24)&0xff,	// rb = 0
-			0);				// rc =0
+			(1<<((breakdown->tm_sec/6)+1))-1); // rc
 
 //		display_state[7]=(reverse_seconds>>16)&0xffff;
 //		display_state[6]=(seconds>>16)&0xffff;
 
-		breakdown=localtime(&seconds);
+
 
 		if ((alarm_hour==breakdown->tm_hour) &&
 			(alarm_minute==breakdown->tm_min)) {

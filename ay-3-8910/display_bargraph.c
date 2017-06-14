@@ -55,7 +55,7 @@ static int bargraph_i2c(int left_a, int left_b, int left_c,
 	buffer[5]=left_c&0xff;
 	buffer[6]=(left_c>>8)&0x3;
 	buffer[11]=right_c&0xff;
-	buffer[13]=(right_c>>8)&0x3;
+	buffer[12]=(right_c>>8)&0x3;
 
 #if USE_LINUX_I2C==1
 	if (ioctl(i2c_fd, I2C_SLAVE, HT16K33_ADDRESS0) < 0) {
