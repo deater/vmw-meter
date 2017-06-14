@@ -10,31 +10,34 @@
 
 #define NUM_CHANNELS	3
 
-#define MAX_INSTRUMENTS	25
+#define MAX_INSTRUMENTS		32
+#define MAX_ENVELOPE_LENGTH	32
 
-#define DEFAULT	0
+#define DEFAULT_INSTRUMENT	0
 
 struct instrument_type {
+	int initialized;
 	int length;
 	int adsr;
-	int attack[32];
+	int attack[MAX_ENVELOPE_LENGTH];
 	int attack_size;
-	int decay[32];
+	int decay[MAX_ENVELOPE_LENGTH];
 	int decay_size;
 	int sustain;
-	int release[32];
+	int release[MAX_ENVELOPE_LENGTH];
 	int release_size;
 	int once;
 	int noise;
 	int noise_size;
-	int noise_period[32];
+	int noise_period[MAX_ENVELOPE_LENGTH];
         char *name;
 };
 
 
-struct instrument_type instruments[MAX_INSTRUMENTS] = {
+static struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	{
 	.name="raw",		// 0
+	.initialized=1,
 	.adsr=1,
 	.noise=0,
 	.attack_size=0,
@@ -44,6 +47,7 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	.sustain=15,
 	.once=0,
 	},
+#if 0
 	{
 	.name="silence",	// 1
 	.adsr=1,
@@ -164,7 +168,7 @@ struct instrument_type instruments[MAX_INSTRUMENTS] = {
 	.release_size=1,
 	.once=0,
 	},
-
+#endif
 };
 
 #define MAX_LOUDS	8
@@ -712,7 +716,7 @@ int main(int argc, char **argv) {
 	char *result;
 	char ym_filename[BUFSIZ],lyrics_filename[BUFSIZ],*in_filename;
 	char temp[BUFSIZ];
-	FILE *ym_file,*lyrics_file,*in_file;
+	FILE *ym_file,*lyrics_file=NULL,*in_file;
 	int frames=0,digidrums=0;
 	int attributes=0;
 	int irq=50,loop=0;
@@ -720,6 +724,9 @@ int main(int argc, char **argv) {
 	int sp,i,j;
 	fpos_t save;
 	int line=0;
+	int generate_lyrics=0;
+	int header_version;
+	int which_instrument;
 
 	char song_name[BUFSIZ];//="Still Alive";
 	char author_name[BUFSIZ];//"Vince Weaver <vince@deater.net>";
@@ -750,64 +757,133 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	/* Open the output/lyrics files */
-	sprintf(ym_filename,"%s.ym",argv[2]);
-	sprintf(lyrics_filename,"%s.lyrics",argv[2]);
+	/* Get the info for the header */
+	while(1) {
+		result=fgets(string,BUFSIZ,in_file);
+		if (result==NULL) break;
+		line++;
 
+		if (strstr(string,"ENDHEADER")) break;
+
+		if (strstr(string,"HEADER:")) {
+			get_string(string,"HEADER:",temp,1);
+			header_version=atoi(temp);
+			(void)header_version;
+		}
+
+		if (strstr(string,"TITLE:")) {
+			get_string(string,"TITLE:",song_name,1);
+		}
+
+		if (strstr(string,"AUTHOR:")) {
+			get_string(string,"AUTHOR:",author_name,1);
+		}
+
+		if (strstr(string,"COMMENTS:")) {
+			get_string(string,"COMMENTS:",comments_ptr,0);
+			comments_ptr=&comments[strlen(comments)];
+		}
+
+		if (strstr(string,"BPM:")) {
+			get_string(string,"BPM:",temp,1);
+			bpm=atoi(temp);
+		}
+
+		if (strstr(string,"TEMPO:")) {
+			get_string(string,"TEMPO:",temp,1);
+			tempo=atoi(temp);
+		}
+
+		if (strstr(string,"FREQ:")) {
+			get_string(string,"FREQ:",temp,1);
+			external_frequency=atoi(temp);
+		}
+
+		if (strstr(string,"IRQ:")) {
+			get_string(string,"IRQ:",temp,1);
+			irq=atoi(temp);
+		}
+
+		if (strstr(string,"LOOP:")) {
+			get_string(string,"LOOP:",temp,1);
+			loop=atoi(temp);
+		}
+
+		if (strstr(string,"LYRICS:")) {
+			get_string(string,"LYRICS:",temp,1);
+			generate_lyrics=atoi(temp);
+		}
+
+		if (strstr(string,"INSTRUMENT:")) {
+			get_string(string,"INSTRUMENT:",temp,1);
+			which_instrument=atoi(temp);
+
+			if (which_instrument>MAX_INSTRUMENTS) {
+				fprintf(stderr,"Instrument %d too big\n",
+					which_instrument);
+				return -1;
+			}
+			while(1) {
+				result=fgets(string,BUFSIZ,in_file);
+				if (result==NULL) break;
+				line++;
+				if (strstr(string,"ENDINSTRUMENT")) break;
+
+				if (strstr(string,"ADSR:")) {
+					get_string(string,"ADSR:",temp,1);
+					instruments[which_instrument].adsr=atoi(temp);
+				}
+				if (strstr(string,"NOISE:")) {
+					get_string(string,"NOISE:",temp,1);
+					instruments[which_instrument].noise=atoi(temp);
+				}
+				if (strstr(string,"ONCE:")) {
+					get_string(string,"ONCE:",temp,1);
+					instruments[which_instrument].once=atoi(temp);
+				}
+				if (strstr(string,"SUSTAIN:")) {
+					get_string(string,"SUSTAIN:",temp,1);
+					instruments[which_instrument].sustain=atoi(temp);
+				}
+				if (strstr(string,"NAME:")) {
+					get_string(string,"NAME:",
+						instruments[which_instrument].name,1);
+				}
+			}
+		}
+
+	}
+
+	/* Open the output file */
+	sprintf(ym_filename,"%s.ym",argv[2]);
 	ym_file=fopen(ym_filename,"w");
 	if (ym_file==NULL) {
 		fprintf(stderr,"Couldn't open %s\n",ym_filename);
 		return -1;
 	}
 
-	lyrics_file=fopen(lyrics_filename,"w");
-	if (lyrics_file==NULL) {
-		fprintf(stderr,"Couldn't open %s\n",lyrics_filename);
-		return -1;
+	/* Open the lyrics file */
+	if (generate_lyrics) {
+		sprintf(lyrics_filename,"%s.lyrics",argv[2]);
+
+		lyrics_file=fopen(lyrics_filename,"w");
+		if (lyrics_file==NULL) {
+			fprintf(stderr,"Couldn't open %s\n",lyrics_filename);
+			return -1;
+		}
 	}
 
 
-
-	/* Get the info for the header */
-	while(1) {
-		result=fgets(string,BUFSIZ,in_file);
-		if (result==NULL) break;
-		line++;
-		if (strstr(string,"ENDHEADER")) break;
-		if (strstr(string,"TITLE:")) {
-			get_string(string,"TITLE:",song_name,1);
-		}
-		if (strstr(string,"AUTHOR:")) {
-			get_string(string,"AUTHOR:",author_name,1);
-		}
-		if (strstr(string,"COMMENTS:")) {
-			get_string(string,"COMMENTS:",comments_ptr,0);
-			comments_ptr=&comments[strlen(comments)];
-		}
-		if (strstr(string,"BPM:")) {
-			get_string(string,"BPM:",temp,1);
-			bpm=atoi(temp);
-		}
-		if (strstr(string,"TEMPO:")) {
-			get_string(string,"TEMPO:",temp,1);
-			tempo=atoi(temp);
-		}
-		if (strstr(string,"FREQ:")) {
-			get_string(string,"FREQ:",temp,1);
-			external_frequency=atoi(temp);
-		}
-		if (strstr(string,"IRQ:")) {
-			get_string(string,"IRQ:",temp,1);
-			irq=atoi(temp);
-		}
-		if (strstr(string,"LOOP:")) {
-			get_string(string,"LOOP:",temp,1);
-			loop=atoi(temp);
-		}
-
-	}
-
+	/* Sort out the BPM */
 	if (bpm==120) {
+		if (tempo==1) {
+			baselen=96;	/* 120/min = 500ms, 50Hz=20ms 25*4=100 */
+		}
+		else if (tempo==3) {
+			baselen=48;
+		}
+	}
+	else if (bpm==115) {
 		if (tempo==1) {
 			baselen=96;	/* 120/min = 500ms, 50Hz=20ms 25*4=100 */
 		}
@@ -879,7 +955,7 @@ int main(int argc, char **argv) {
 		if (sp!=-1) sp=get_note(string,sp,&c,line);
 
 		/* handle lyrics */
-		if (sp!=-1) {
+		if ((sp!=-1) && (generate_lyrics)) {
 			while((string[sp]==' ' || string[sp]=='\t')) sp++;
 			if ((string[sp]) && (string[sp]!='\n')) {
 				fprintf(lyrics_file,"%d %s",
@@ -1063,7 +1139,7 @@ int main(int argc, char **argv) {
 	fprintf(ym_file,"End!");
 
 	fclose(ym_file);
-	fclose(lyrics_file);
+	if (lyrics_file) fclose(lyrics_file);
 
 	return 0;
 }
