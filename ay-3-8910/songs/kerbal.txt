@@ -10,7 +10,7 @@
 ' IRQ:		50
 ' LYRICS:	0
 '
-' INSTRUMENT 1
+' INSTRUMENT:	1
 ' NAME:		piano
 ' ADSR:		1
 ' NOISE:	0

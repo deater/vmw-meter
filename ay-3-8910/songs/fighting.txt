@@ -3,11 +3,12 @@
 ' AUTHOR:	(tracked by) Vince Weaver <vince@deater.net>
 ' COMMENTS:	by Nobuo Uematsu, From Final Fantasy VII, Arrangement by Commander6
 '
-' LOOP:	144
+' LOOP:		144
 '
-' BPM: 160
-' FREQ: 1000000
-' IRQ:	50
+' BPM:		160
+' FREQ:		1000000
+' IRQ:		50
+' LYRICS:	0
 '
 ' ENDHEADER
 -------

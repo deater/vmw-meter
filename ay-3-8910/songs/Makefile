@@ -6,8 +6,9 @@ all:	sa.ym5 sa.ed \
 	kerbal.ym5 \
 	korobeiniki.ym5 \
 	fighting.ym5 fighting.ed \
-	highwind.ym5 highwind.ed \
-	saxm1.ym5 saxm2.ym5 saxm3.ym5 saxm.vmw5
+	highwind.ym5 highwind.ed
+
+#	saxm1.ym5 saxm2.ym5 saxm3.ym5 saxm.vmw5
 
 ###
 
@@ -103,4 +104,4 @@ sa.ym5:	../ym_to_ym5 sa.ym
 
 
 clean:	
-	rm -f *~  rm *.ym5 *.ym *.lyrics *.ed saxm.txt
+	rm -f *~  rm *.ym5 *.ym *.lyrics *.ed *.edlyrics saxm.txt

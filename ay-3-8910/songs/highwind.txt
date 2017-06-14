@@ -3,11 +3,14 @@
 ' AUTHOR:	(tracked by) Vince Weaver <vince@deater.net>
 ' COMMENTS:	by Nobuo Uematsu, From Final Fantasy VII, Arranged by Thomas Wilson
 '
-' LOOP:	640
+' LOOP:		640
 '
-' BPM: 136
-' FREQ: 1000000
-' IRQ:	50
+' BPM:		136
+' TEMPO:	1
+' FREQ:		1000000
+' IRQ:		50
+' 
+' LYRICS:	0
 '
 ' ENDHEADER
 -------

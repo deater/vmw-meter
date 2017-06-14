@@ -1,3 +1,4 @@
+' HEADER:	0
 '
 ' TITLE:	Still Alive (from Portal)
 ' AUTHOR:	Vince Weaver <vince@deater.net>
@@ -6,9 +7,21 @@
 '
 ' LOOP: 0
 '
-' BPM: 120
-' FREQ: 1000000
-' IRQ:	50
+' BPM:		120
+' TEMPO:	1
+' FREQ:		1000000
+' IRQ:		50
+'
+' INSTRUMENT:   2
+' NAME:         piano
+' ADSR:         1
+' NOISE:        0
+' ATTACK:       14,15
+' DECAY:        14
+' SUSTAIN:      13
+' RELEASE:      10,5
+' ONCE:         0
+' ENDINSTRUMENT
 '
 ' ENDHEADER
 ----------
