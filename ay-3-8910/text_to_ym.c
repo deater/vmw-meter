@@ -195,9 +195,9 @@ static int debug=0;
 
 static int external_frequency=1000000;
 static int bpm=120;
-static int tempo=1;
-static int baselen=96;  /* 120/minute, 50Hz, should really be 100 */
-static int frames_per_line=6;
+static int tempo=6;
+static int frames_per_line=6;	/* frames per tracker line */
+static int frames_per_whole=96;	/* numer of frames per whole note */
 
 struct ym_header {
 	char id[4];				// 0  -> 4
@@ -216,20 +216,20 @@ static int note_to_length(int length, int line) {
 	int len=1;
 
 	switch(length) {
-		case 0: len=(baselen*5)/2; break;	// 0 = 2.5
-		case 1:	len=baselen; break;		// 1 =   1 whole
-		case 2: len=baselen/2; break;		// 2 = 1/2 half
-		case 3: len=(baselen*3)/8; break;	// 3 = 3/8 dotted quarter
-		case 4: len=baselen/4; break;		// 4 = 1/4 quarter
-		case 5: len=(baselen*5)/8; break;	// 5 = 5/8 ?
-		case 8: len=baselen/8; break;		// 8 = 1/8 eighth
-		case 9: len=(baselen*3)/16; break;	// 9 = 3/16 dotted eighth
-		case 6: len=baselen/16; break;		// 6 = 1/16 sixteenth
-		case 10: len=(baselen*3)/4; break;	// : = 3/4 dotted half
-		case 11: len=(baselen*9)/8; break;	// ; = 9/8 dotted half + dotted quarter
-		case 12: len=(baselen*3)/2; break;	// < = 3/2 dotted whole
-		case 13: len=(baselen*2); break;	// = = 2   double whole
-		case 14: len=(baselen/3); break;	// > = 1/3   triple note
+		case 0: len=(frames_per_whole*5)/2; break;	// 0 = 2.5
+		case 1:	len=frames_per_whole; break;		// 1 =   1 whole
+		case 2: len=frames_per_whole/2; break;		// 2 = 1/2 half
+		case 3: len=(frames_per_whole*3)/8; break;	// 3 = 3/8 dotted quarter
+		case 4: len=frames_per_whole/4; break;		// 4 = 1/4 quarter
+		case 5: len=(frames_per_whole*5)/8; break;	// 5 = 5/8 ?
+		case 8: len=frames_per_whole/8; break;		// 8 = 1/8 eighth
+		case 9: len=(frames_per_whole*3)/16; break;	// 9 = 3/16 dotted eighth
+		case 6: len=(frames_per_whole)/16; break;	// 6 = 1/16 sixteenth
+		case 10: len=(frames_per_whole*3)/4; break;	// : = 3/4 dotted half
+		case 11: len=(frames_per_whole*9)/8; break;	// ; = 9/8 dotted half + dotted quarter
+		case 12: len=(frames_per_whole*3)/2; break;	// < = 3/2 dotted whole
+		case 13: len=(frames_per_whole*2); break;	// = = 2   double whole
+		case 14: len=(frames_per_whole/3); break;	// > = 1/3 triple note
 		case 15: len=99999;	break;		// ? = forever
 		default:
 			fprintf(stderr,"Unknown length %d line %d\n",
@@ -361,15 +361,16 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 
 	if (n->instrument->once) {
 		n->length=n->instrument->length;
+//		printf("I Length=%d\n",n->length);
 	}
 	else {
 		n->length=note_to_length(n->len,line);
+		printf("T Length=%d %c\n",n->length,n->len+'0');
 	}
 	n->left=n->length-1;
 
-
 	if (n->length<=0) {
-		printf("Error line %d\n",line);
+		printf("Error length %d line %d\n",n->length,line);
 		exit(-1);
 	}
 
@@ -397,6 +398,7 @@ static int get_note2(char *string, int sp, struct note_type *n, int line) {
 
 	int ch;
 	int num;
+	int new_note;
 	char temp_string[8];
 
 	/* Skip white space */
@@ -406,44 +408,38 @@ static int get_note2(char *string, int sp, struct note_type *n, int line) {
 
 	/* return early if no change */
 	ch=string[sp];
-	if (ch=='-') return sp+6;
+	//if (ch=='-') return sp+6;
 
-	/* get note info */
-	n->sharp=0;
-	n->flat=0;
-	n->note=ch;
-	sp++;
-	if (string[sp]==' ') ;
-	else if (string[sp]=='#') n->sharp=1;
-	else if (string[sp]=='-') n->flat=1;
-	else if (string[sp]=='=') n->flat=2;
-	else {
-		fprintf(stderr,"Unknown note modifier %c line %d\n",
-			string[sp],line);
-	}
-	sp++;
-	n->octave=string[sp]-'0';
-	sp++;
-	sp++;
-	n->len=string[sp]-'0';
-	sp++;
-
-	n->enabled=1;
-
-	n->sub_adjust=0;
-
-	if (n->instrument->once) {
-		n->length=n->instrument->length;
+	if (ch=='-') {
+		new_note=0;
+		sp+=5;
 	}
 	else {
-		n->length=note_to_length(n->len,line);
-	}
-	n->left=n->length-1;
+		new_note=1;
+		/* get note info */
+		n->sharp=0;
+		n->flat=0;
+		n->note=ch;
+		sp++;
+		if (string[sp]==' ') ;
+		else if (string[sp]=='#') n->sharp=1;
+		else if (string[sp]=='-') n->flat=1;
+		else if (string[sp]=='=') n->flat=2;
+		else {
+			fprintf(stderr,"Unknown note modifier %c line %d\n",
+				string[sp],line);
+		}
+		sp++;
+		n->octave=string[sp]-'0';
+		sp++;
+		sp++;
+		n->len=string[sp]-'0';
+		sp++;
 
+		n->enabled=1;
 
-	if (n->length<=0) {
-		printf("Error with length line %d\n",line);
-		exit(-1);
+		n->sub_adjust=0;
+
 	}
 
 	/* Get loudness */
@@ -505,6 +501,24 @@ static int get_note2(char *string, int sp, struct note_type *n, int line) {
 
 	}
 	sp+=3;
+
+	/* Set length here, as instrument might have changed */
+	/* And we want new instrument not old one */
+	if (new_note) {
+		if (n->instrument->once) {
+			n->length=n->instrument->length;
+		}
+		else {
+			n->length=note_to_length(n->len,line);
+		}
+
+		n->left=n->length-1;
+
+		if (n->length<=0) {
+			printf("Error with length line %d\n",line);
+			exit(-1);
+		}
+	}
 
 	return sp;
 }
@@ -770,13 +784,13 @@ static int get_instrument(struct note_type *n,char *string) {
 
 static int get_loudness(struct note_type *n,char *string) {
 
-	int i,which,found=0;
+	int i,found=0;
 
 	for(i=0;i<MAX_LOUDS;i++) {
 		//printf("looking for %s in %s\n",loudness_values[i].name,pointer);
 		if (!strncmp(loudness_values[i].name,string,
 				strlen(loudness_values[i].name))) {
-			if (debug) printf("Found %d %s\n",which,
+			if (debug) printf("Found %c %s\n",n->which,
 						loudness_values[i].name);
 			n->loud=loudness_values[i].value;
 			found=1;
@@ -1128,11 +1142,10 @@ int main(int argc, char **argv) {
 	int which_instrument;
 	int len;
 
-	char song_name[BUFSIZ];//="Still Alive";
-	char author_name[BUFSIZ];//"Vince Weaver <vince@deater.net>";
-	char comments[BUFSIZ];//="from Portal, Words and Music by Jonathan Coulton";
+	char song_name[BUFSIZ];
+	char author_name[BUFSIZ];
+	char comments[BUFSIZ];
 	char *comments_ptr=comments;
-
 
 
 	/* Check command line arguments */
@@ -1301,44 +1314,55 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	/* Make BPM calculations */
+	/* FIXME: this should happen on the fly */
+	/* 	Also should take into account actual HZ value */
+
+	/*                                              |   120BPM */
+	/* Given the BPM, the time per beat is 60/BPM   |   500ms  */
+	/* Each tick is 50Hz  				|    20ms  */
+	/*   so ticks per beat = tpb/tpt                | 500/20 = 25 */
+	/* Assume 4/4 time, fph is length of whole      | 25*4 = 100 */
+	/* We want something that divides by 16         | choose 96 */
 
 	/* Sort out the BPM */
-	if (bpm==120) {
-		if (tempo==1) {
-			baselen=96;	/* 120/min = 500ms, 50Hz=20ms 25*4=100 */
-		}
-		else if (tempo==3) {
-			baselen=48;
-		}
+	if (bpm==120) {	/* 60/120 = 500ms / 50Hz=20ms = 25,*4=100, 96 is close*/
+		frames_per_whole=96;
 	}
-	else if (bpm==115) {
-		if (tempo==1) {
-			baselen=96;	/* 120/min = 500ms, 50Hz=20ms 25*4=100 */
-		}
-		else if (tempo==3) {
-			baselen=48;
-		}
+	else if (bpm==115) { /* 60/120 = 520ms / 20ms = 26, *4= 104, 112 is close */
+		frames_per_whole=96;
 	}
-	else if (bpm==136) {
-		baselen=80;	/* 136/min = 440ms, 50Hz=20ms, 22*4 = 88 */
+	else if (bpm==136) {	/* 60/136 = 440ms / 20ms, 22*4 = 88 */
+		frames_per_whole=80;
 	}
-	else if (bpm==150) {
-		if (tempo==1) {
-			baselen=80;	/* 150/min = 400ms, 50Hz=20ms, 20*4 = 80 */
-		}
-		else {
-			baselen=32;
-		}
+	else if (bpm==150) {	/* 60/150 = 400ms / 20ms, 20*4 = 80 */
+		frames_per_whole=80;
 	}
 	else if (bpm==160) {
-		baselen=48;	/* 160/min = 266ms, 50Hz=20ms, 13*4 = 53 */
+		frames_per_whole=80;	/* 60/160 = 375ms / 20ms, 18*4 = 75 */
+	}
+	else if (bpm==250) {
+		frames_per_whole=48;	/* 60/250 = 240ms / 20ms, 12*4 = 48 */
 	}
 	else {
 		fprintf(stderr,"Warning!  Unusual BPM of %d\n",bpm);
-		baselen=96;
+		frames_per_whole=96;
 	}
-	/* 16 lines per frame in our text file (smallest note 16th note) */
-	frames_per_line=baselen/16;
+
+	/* default, each line in tracker is a 16th node */
+	if (tempo==6) {
+		/* 96/16 = 6 frames per line */
+		frames_per_line=frames_per_whole/16;
+	}
+	/* for MODs typically each line in tracker is a 32nd note */
+	else if (tempo==3) {
+		/* 96/32 = 3 frames per line */
+		frames_per_line=frames_per_whole/32;
+	}
+	else {
+		fprintf(stderr,"Unknown tempo %d\n",tempo);
+		return -1;
+	}
 
 	/* Skip header, we'll fill in later */
 	header_length=sizeof(struct ym_header)+

@@ -6,7 +6,7 @@
 ' LOOP:		640
 '
 ' BPM:		136
-' TEMPO:	1
+' TEMPO:	6
 ' FREQ:		1000000
 ' IRQ:		50
 ' 

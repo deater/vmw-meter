@@ -5,7 +5,8 @@
 '
 ' LOOP:		144
 '
-' BPM:		160
+' below, bpm is 160 but it's in 12/8 time
+' BPM:		250
 ' FREQ:		1000000
 ' IRQ:		50
 ' LYRICS:	0
