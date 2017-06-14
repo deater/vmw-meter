@@ -327,6 +327,114 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 	return sp;
 }
 
+static int get_note2(char *string, int sp, struct note_type *n, int line) {
+
+	int ch;
+	int num;
+
+	/* Skip white space */
+	while((string[sp]==' ' || string[sp]=='\t')) sp++;
+
+	if (string[sp]=='\n') return -1;
+
+	/* return early if no change */
+	ch=string[sp];
+	if (ch=='-') return sp+6;
+
+	/* get note info */
+	n->sharp=0;
+	n->flat=0;
+	n->note=ch;
+	sp++;
+	if (string[sp]==' ') ;
+	else if (string[sp]=='#') n->sharp=1;
+	else if (string[sp]=='-') n->flat=1;
+	else if (string[sp]=='=') n->flat=2;
+	else {
+		fprintf(stderr,"Unknown note modifier %c line %d\n",
+			string[sp],line);
+	}
+	sp++;
+	n->octave=string[sp]-'0';
+	sp++;
+	sp++;
+	n->len=string[sp]-'0';
+	sp++;
+
+	n->enabled=1;
+
+	n->sub_adjust=0;
+
+	if (n->instrument->once) {
+		n->length=n->instrument->length;
+	}
+	else {
+		n->length=note_to_length(n->len,line);
+	}
+	n->left=n->length-1;
+
+
+	if (n->length<=0) {
+		printf("Error with length line %d\n",line);
+		exit(-1);
+	}
+
+	/* Get loudness */
+	if (string[sp]=='-') {
+	}
+	else if ((string[sp]>='0') && (string[sp]<='9')) {
+		n->loud=string[sp]-'0';
+	}
+	else if ((string[sp]>='a') && (string[sp]<='f')) {
+		n->loud=(string[sp]-'a')+10;
+	}
+	else {
+		fprintf(stderr,"Unknown loudness %c\n",string[sp]);
+	}
+
+	if (n->loud>15) {
+		fprintf(stderr,"Too loud %d\n",n->loud);
+		n->loud=15;
+	}
+	if (n->loud<0) {
+		fprintf(stderr,"Too soft %d\n",n->loud);
+		n->loud=0;
+	}
+	sp++;
+
+	/* Get instrument */
+	char temp_string[8];
+	temp_string[0]=string[sp];
+	temp_string[1]=string[sp+1];
+	temp_string[2]=0;
+
+	num=atoi(temp_string);
+
+	if (debug) printf("Found instrument %d\n",num);
+
+	if (num<0) {
+		fprintf(stderr,"Instrument too small: %d\n",num);
+	}
+
+	if (num>=MAX_INSTRUMENTS) {
+		fprintf(stderr,"Instrument too big: %d\n",num);
+	}
+
+	n->instrument=&instruments[num];
+
+	if (!n->instrument->initialized) {
+		fprintf(stderr,"Instrument %d not initialized!\n",num);
+	}
+
+	sp+=2;
+
+	/* get effect */
+	printf("Effect %c%c%c\n",string[sp],string[sp+1],string[sp+2]);
+	sp+=3;
+
+	return sp;
+}
+
 #define SINE_TABLE_SIZE	64
 static int sine_table[SINE_TABLE_SIZE]={
 			0,24,49,74,97,120,141,161,
@@ -618,6 +726,9 @@ static int get_instrument(struct note_type *n,char *string) {
 
 	n->instrument=&instruments[num];
 
+	if (!n->instrument->initialized) {
+		fprintf(stderr,"Instrument %d not initialized!\n",num);
+	}
 
 	return 0;
 }
@@ -637,6 +748,7 @@ static int get_loudness(struct note_type *n,char *string) {
 			break;
 		}
 	}
+
 	if (!found) {
 		n->loud=atoi(string);
 		if (debug) printf("Found %d\n",n->loud);
@@ -712,7 +824,7 @@ static int get_string(char *string, char *key, char *output, int strip_linefeed)
 
 static int line=0,frames=0;
 
-static int parse_music_v0(FILE *ym_file,FILE *in_file, FILE *lyrics_file) {
+static int parse_music(FILE *ym_file,FILE *in_file, FILE *lyrics_file, int version) {
 
 	char string[BUFSIZ];
 	char *result;
@@ -749,214 +861,16 @@ static int parse_music_v0(FILE *ym_file,FILE *in_file, FILE *lyrics_file) {
 		/* Skip line number */
 		while((string[sp]!=' ' && string[sp]!='\t')) sp++;
 
-		sp=get_note(string,sp,&a,line);
-		if (sp!=-1) sp=get_note(string,sp,&b,line);
-		if (sp!=-1) sp=get_note(string,sp,&c,line);
-
-		/* handle lyrics */
-		if ((sp!=-1) && (lyrics_file)) {
-			while((string[sp]==' ' || string[sp]=='\t')) sp++;
-			if ((string[sp]) && (string[sp]!='\n')) {
-				fprintf(lyrics_file,"%d %s",
-					frames,&string[sp]);
-			}
+		if (version==0) {
+			sp=get_note(string,sp,&a,line);
+			if (sp!=-1) sp=get_note(string,sp,&b,line);
+			if (sp!=-1) sp=get_note(string,sp,&c,line);
 		}
-
-		for(j=0;j<frames_per_line;j++) {
-
-			frame[7]=0x38;
-
-			if (a.enabled) {
-				update_note(&a);
-
-				if ((a.arpeggio) || (a.portamento)) {
-					if (j==0) {
-						frame[0]=a.freq&0xff;
-						frame[1]=(a.freq>>8)&0xf;
-					}
-					if (j==1) {
-						frame[0]=a.freq2&0xff;
-						frame[1]=(a.freq2>>8)&0xf;
-					}
-					if (j==2) {
-						frame[0]=a.freq3&0xff;
-						frame[1]=(a.freq3>>8)&0xf;
-					}
-				}
-				else {
-					frame[0]=a.freq&0xff;
-					frame[1]=(a.freq>>8)&0xf;
-				}
-
-				frame[8]=calculate_amplitude(&a);
-
-				if (a.instrument->noise) {
-					frame[6]=calculate_noise(&a);
-					frame[7]&=~enable_noise(&a,0);
-				}
-
-
-			}
-			else {
-				frame[0]=0x0;
-				frame[1]=0x0;
-				frame[7]|=0x8;
-				frame[8]=0x0;
-			}
-
-			if (b.enabled) {
-				update_note(&b);
-
-				if ((b.arpeggio) || (b.portamento)) {
-					if (j==0) {
-						frame[2]=b.freq&0xff;
-						frame[3]=(b.freq>>8)&0xf;
-					}
-					if (j==1) {
-						frame[2]=b.freq2&0xff;
-						frame[3]=(b.freq2>>8)&0xf;
-					}
-					if (j==2) {
-						frame[2]=b.freq3&0xff;
-						frame[3]=(b.freq3>>8)&0xf;
-					}
-				}
-				else {
-					frame[2]=b.freq&0xff;
-					frame[3]=(b.freq>>8)&0xf;
-				}
-				frame[9]=calculate_amplitude(&b);
-
-				if (b.instrument->noise) {
-					frame[6]=calculate_noise(&b);
-					frame[7]&=~enable_noise(&b,1);
-				}
-			}
-			else {
-				frame[2]=0x0;
-				frame[3]=0x0;
-				frame[7]|=0x10;
-				frame[9]=0x0;
-			}
-
-			if (c.enabled) {
-				update_note(&c);
-
-				if ((c.arpeggio) || (c.portamento)) {
-					if (j==0) {
-						frame[4]=c.freq&0xff;
-						frame[5]=(c.freq>>8)&0xf;
-					}
-					if (j==1) {
-						frame[4]=c.freq2&0xff;
-						frame[5]=(c.freq2>>8)&0xf;
-					}
-					if (j==2) {
-						frame[4]=c.freq3&0xff;
-						frame[5]=(c.freq3>>8)&0xf;
-					}
-				}
-				else {
-					frame[4]=c.freq&0xff;
-					frame[5]=(c.freq>>8)&0xf;
-				}
-
-				frame[10]=calculate_amplitude(&c);
-
-				if (c.instrument->noise) {
-					frame[6]=calculate_noise(&c);
-					frame[7]&=~enable_noise(&c,2);
-				}
-			}
-			else {
-				frame[4]=0x0;
-				frame[5]=0x0;
-				frame[7]|=0x20;
-				frame[10]=0x0;
-			}
-
-
-			/* NOWRITE */
-			frame[13]=0xff;
-
-			for(i=0;i<16;i++) {
-				fprintf(ym_file,"%c",frame[i]);
-			}
-
-			if (debug) {
-				printf("%d\t",frames);
-				for(i=0;i<16;i++) {
-					printf("%4d",frame[i]);
-				}
-				printf("\n");
-			}
-			frames++;
-
-			if (a.enabled) {
-				a.left--;
-				if (a.left<0) a.enabled=0;
-			}
-
-			if (b.enabled) {
-				b.left--;
-				if (b.left<0) b.enabled=0;
-			}
-
-			if (c.enabled) {
-				c.left--;
-				if (c.left<0) c.enabled=0;
-			}
-
+		else {
+			sp=get_note2(string,sp,&a,line);
+			if (sp!=-1) sp=get_note2(string,sp,&b,line);
+			if (sp!=-1) sp=get_note2(string,sp,&c,line);
 		}
-		a.arpeggio=0;	b.arpeggio=0;	c.arpeggio=0;
-		a.portamento=0;	b.portamento=0;	c.portamento=0;
-		a.vibrato=0;	b.vibrato=0;	c.vibrato=0;
-	}
-
-	return 0;
-}
-
-
-static int parse_music_v2(FILE *ym_file,FILE *in_file, FILE *lyrics_file) {
-
-	char string[BUFSIZ];
-	char *result;
-	int sp,i,j;
-	unsigned char frame[16];
-
-	a.which='A';		b.which='B';		c.which='C';
-	a.loud=15;		b.loud=15;		c.loud=15;
-	a.arpeggio=0;		b.arpeggio=0;		c.arpeggio=0;
-	a.portamento=0;		b.portamento=0;		c.portamento=0;
-	a.vibrato=0;		b.vibrato=0;		c.vibrato=0;
-	a.vibrato_position=0;	b.vibrato_position=0;	c.vibrato_position=0;
-	a.sub_adjust=0;		b.sub_adjust=0;		c.sub_adjust=0;
-	a.instrument=&instruments[0];			c.instrument=&instruments[0];
-				b.instrument=&instruments[0];
-
-	while(1) {
-		result=fgets(string,BUFSIZ,in_file);
-		if (result==NULL) break;
-		line++;
-
-		/* skip comments */
-		if (string[0]=='\'') continue;
-		if (string[0]=='-') continue;
-
-		/* loudness */
-		if (string[0]=='*') {
-			get_directive(string);
-			continue;
-		}
-
-		sp=0;
-
-		/* Skip line number */
-		while((string[sp]!=' ' && string[sp]!='\t')) sp++;
-
-		sp=get_note(string,sp,&a,line);
-		if (sp!=-1) sp=get_note(string,sp,&b,line);
-		if (sp!=-1) sp=get_note(string,sp,&c,line);
 
 		/* handle lyrics */
 		if ((sp!=-1) && (lyrics_file)) {
@@ -1330,10 +1244,10 @@ int main(int argc, char **argv) {
 	fseek(ym_file, header_length, SEEK_SET);
 
 	if (header_version==0) {
-		parse_music_v0(ym_file,in_file,lyrics_file);
+		parse_music(ym_file,in_file,lyrics_file,0);
 	}
 	else if (header_version==2) {
-		parse_music_v2(ym_file,in_file,lyrics_file);
+		parse_music(ym_file,in_file,lyrics_file,2);
 	}
 	else {
 		fprintf(stderr,"Unknown header version %d\n",header_version);
