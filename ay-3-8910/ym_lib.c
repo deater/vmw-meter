@@ -589,19 +589,21 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	}
 
 	if (ds!=NULL) {
-		ds->left_amplitude[0]=(frame[8]*11)/16;
-		ds->left_amplitude[1]=(frame[9]*11)/16;
-		ds->left_amplitude[2]=(frame[10]*11)/16;
-		ds->right_amplitude[0]=(frame2[8]*11)/16;
-		ds->right_amplitude[1]=(frame2[9]*11)/16;
-		ds->right_amplitude[2]=(frame2[10]*11)/16;
+		ds->left_amplitude[0]=frame[8];
+		ds->left_amplitude[1]=frame[9];
+		ds->left_amplitude[2]=frame[10];
 
-		ds->left_freq[0]=log2(left_a_freq);
-		ds->left_freq[1]=log2(left_b_freq);
-		ds->left_freq[2]=log2(left_c_freq);
-		ds->right_freq[0]=log2(right_a_freq);
-		ds->right_freq[1]=log2(right_b_freq);
-		ds->right_freq[2]=log2(right_c_freq);
+		ds->right_amplitude[0]=frame2[8];
+		ds->right_amplitude[1]=frame2[9];
+		ds->right_amplitude[2]=frame2[10];
+
+		ds->left_freq[0]=left_a_freq;
+		ds->left_freq[1]=left_b_freq;
+		ds->left_freq[2]=left_c_freq;
+
+		ds->right_freq[0]=right_a_freq;
+		ds->right_freq[1]=right_b_freq;
+		ds->right_freq[2]=right_c_freq;
 	}
 
 	return 0;
@@ -679,19 +681,21 @@ int ym_play_frame_effects(struct ym_song_t *ym_song,
 	}
 
 	if (ds!=NULL) {
-		ds->left_amplitude[0]=(frame[8]*11)/16;
-		ds->left_amplitude[1]=(frame[9]*11)/16;
-		ds->left_amplitude[2]=(frame[10]*11)/16;
-		ds->left_freq[0]=(left_a_freq)/150;
-		ds->left_freq[1]=(left_b_freq)/150;
-		ds->left_freq[2]=(left_c_freq)/150;
+		ds->left_amplitude[0]=frame[8];
+		ds->left_amplitude[1]=frame[9];
+		ds->left_amplitude[2]=frame[10];
 
-		ds->right_amplitude[0]=(frame2[8]*11)/16;
-		ds->right_amplitude[1]=(frame2[9]*11)/16;
-		ds->right_amplitude[2]=(frame2[10]*11)/16;
-		ds->right_freq[0]=(right_a_freq)/150;
-		ds->right_freq[1]=(right_b_freq)/150;
-		ds->right_freq[2]=(right_c_freq)/150;
+		ds->left_freq[0]=left_a_freq;
+		ds->left_freq[1]=left_b_freq;
+		ds->left_freq[2]=left_c_freq;
+
+		ds->right_amplitude[0]=frame2[8];
+		ds->right_amplitude[1]=frame2[9];
+		ds->right_amplitude[2]=frame2[10];
+
+		ds->right_freq[0]=right_a_freq;
+		ds->right_freq[1]=right_b_freq;
+		ds->right_freq[2]=right_c_freq;
 	}
 
 	return 0;

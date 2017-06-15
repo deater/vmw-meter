@@ -254,41 +254,6 @@ int display_8x16_led_art(int display_type,
 	return 0;
 }
 
-
-
-#if 0
-
-static int freq_8x16display(int display_type, int refresh_i2c) {
-
-	unsigned char buffer[17];
-	int i,x;
-
-
-	buffer[0]=0;
-
-	for(i=0;i<16;i++) buffer[i+1]=0x0;
-
-	for(i=0;i<16;i++) {
-		for(x=0;x<8;x++) {
-			buffer[i+1]|=(freq_matrix[x+(8*(i%2))][i/2]<<x);
-		}
-	}
-
-	if ((display_type&DISPLAY_I2C) && (!refresh_i2c)) {
-		/* don't display if not time to refresh */
-	}
-
-	else {
-		display_8x16_raw(display_type, buffer);
-	}
-
-	return 0;
-}
-
-#endif
-
-
-
 #define UPDATE_DIVIDER	5
 
 static int divider=0;
@@ -296,6 +261,16 @@ static int divider=0;
 static int freq_max[16];
 static unsigned char freq_matrix[16];
 
+int intlog2(int value) {
+
+	int logged;
+
+	logged= (32-__builtin_clzl(value))-1;
+
+//	printf("Log2 of %d is %d\n",value,logged);
+
+	return logged;
+}
 
 int display_8x16_freq(int display_type, struct display_stats *ds) {
 
@@ -315,11 +290,14 @@ int display_8x16_freq(int display_type, struct display_stats *ds) {
 
 	/* set the max values, also draw solid line if currently that freq */
 	for(i=0;i<3;i++) {
+		ds->right_freq[i]=intlog2(ds->right_freq[i]);
 		if (ds->right_freq[i]>0) {
 			if (ds->right_freq[i]>15) ds->right_freq[i]=15;
 			freq_max[ds->right_freq[i]]=0x80;
 			freq_matrix[ds->right_freq[i]]=0xff;
 		}
+
+		ds->left_freq[i]=intlog2(ds->left_freq[i]);
 		if (ds->left_freq[i]>0) {
 			if (ds->left_freq[i]>15) ds->left_freq[i]=15;
 			freq_max[ds->left_freq[i]]=0x80;

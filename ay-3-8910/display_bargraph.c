@@ -107,11 +107,15 @@ int bargraph_filled(int type, struct display_stats *ds) {
 	int i;
 
 	for(i=0;i<3;i++) {
+		/* scale to fit 10-segment display */
+		ds->left_amplitude[i]=(ds->left_amplitude[i]*11)/16;
+
 		if (ds->left_amplitude[i]>0) {
 			ds->left_amplitude[i]--;
 			ds->left_amplitude[i]=(2<<ds->left_amplitude[i])-1;
 		}
 
+		ds->right_amplitude[i]=(ds->right_amplitude[i]*11)/16;
 		if (ds->right_amplitude[i]>0) {
 			ds->right_amplitude[i]--;
 			ds->right_amplitude[i]=(2<<ds->right_amplitude[i])-1;
