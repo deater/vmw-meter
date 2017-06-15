@@ -16,6 +16,7 @@
 
 #include <bcm2835.h>
 
+#include "stats.h"
 #include "ay-3-8910.h"
 #include "display.h"
 #include "ym_lib.h"
@@ -110,7 +111,6 @@ static int play_song(char *filename) {
 
 	struct ym_song_t ym_song;
 	struct display_stats ds;
-	struct frame_stats fs;
 
 	int text_mode=TEXT_MODE_BANNER;
 	char display_text[13];
@@ -179,7 +179,7 @@ static int play_song(char *filename) {
 #endif
 
 			ym_play_frame(&ym_song,frame_num,shift_size,
-					&fs,diff_mode,
+					&ds,diff_mode,
 					play_music,
 					mute_channel);
 
@@ -198,8 +198,6 @@ static int play_song(char *filename) {
 				if (display_type&DISPLAY_TEXT) {
 					printf("\033[H\033[2J");
 				}
-
-				memcpy(&ds,&fs,sizeof(struct display_stats));
 
 				display_update(display_type,
 							&ds,

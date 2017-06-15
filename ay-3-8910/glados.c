@@ -12,8 +12,9 @@
 #include <sys/resource.h>
 #include <linux/i2c-dev.h>
 
+#include "stats.h"
 #include "display.h"
-#include "i2c_lib.h"
+//#include "i2c_lib.h"
 
 #include "ay-3-8910.h"
 #include "ym_lib.h"
@@ -186,7 +187,7 @@ static int lyrics_play(struct lyric_type *l) {
 
 	int lyric_active=0;
 	char current_lyric[MAX_LYRIC_LEN+1];
-	struct frame_stats ds;
+	struct display_stats ds;
 
 	result=load_ym_song("sa/saxm.vmw5",&ym_song);
 	if (result<0) {
@@ -219,9 +220,7 @@ static int lyrics_play(struct lyric_type *l) {
 				&ds,0,play_music,0);
 
 		/* Update the bargraph */
-		bargraph_filled(display_type,
-			ds.left_a_bar,ds.left_b_bar,ds.left_c_bar,
-			ds.right_a_bar,ds.right_b_bar,ds.right_c_bar);
+		bargraph_filled(display_type,&ds);
 
 		/* Parse any lyric updates for this frame */
 

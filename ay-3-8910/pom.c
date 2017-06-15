@@ -140,6 +140,7 @@ static short led_art[16][8]={
 #include <unistd.h>
 #include <signal.h>
 
+#include "stats.h"
 #include "display.h"
 
 static int display_type=DISPLAY_I2C;

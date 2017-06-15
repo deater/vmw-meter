@@ -1,8 +1,3 @@
-
-
-
-
-
 /* A simple clock appication.  */
 /* Prints the time on the alphanum segments */
 /* Puts UNIX time along the bargraphs segments */
@@ -23,6 +18,8 @@
 
 #include "ay-3-8910.h"
 #include "max98306.h"
+
+#include "stats.h"
 #include "display.h"
 
 static int display_type=DISPLAY_I2C;

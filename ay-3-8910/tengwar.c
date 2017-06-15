@@ -429,6 +429,7 @@ unsigned char frend[]={
 
 #include <signal.h>
 
+#include "stats.h"
 #include "display.h"
 
 

@@ -15,6 +15,8 @@
 #include <termios.h>
 #include <fcntl.h>
 
+#include "stats.h"
+
 #include "display.h"
 
 #if USE_LINUX_I2C==1
@@ -47,18 +49,14 @@ int display_update(int display_type,
 		int current_mode) {
 
 
-	bargraph_filled(display_type,
-		ds->left_a_bar, ds->left_b_bar, ds->left_c_bar,
-		ds->right_a_bar, ds->right_b_bar, ds->right_c_bar);
+	bargraph_filled(display_type,ds);
 
 	switch(current_mode) {
 		case MODE_TITLE:
 			display_8x16_title(display_type);
 			break;
 		case MODE_VISUAL:
-			display_8x16_freq(display_type,
-				ds->left_a_freq, ds->left_b_freq, ds->left_c_freq,
-				ds->right_a_freq,ds->right_b_freq,ds->right_c_freq);
+			display_8x16_freq(display_type,ds);
 			break;
 		case MODE_NAME:
 			display_8x16_scroll_text(display_type, filename, new_filename);

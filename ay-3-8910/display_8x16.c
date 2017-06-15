@@ -1,7 +1,5 @@
 /* + An adafruit 8x16 led matrix backpack (0x72) */
 
-#include "display.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -9,6 +7,10 @@
 #include <string.h>
 #include <termios.h>
 #include <fcntl.h>
+
+#include "stats.h"
+
+#include "display.h"
 
 #if USE_LINUX_I2C==1
 #include <sys/ioctl.h>
@@ -295,10 +297,9 @@ static int freq_max[16];
 static unsigned char freq_matrix[16];
 
 
-int display_8x16_freq(int display_type,
-		int la, int lb, int lc,
-		int ra, int rb, int rc) {
+int display_8x16_freq(int display_type, struct display_stats *ds) {
 
+	int i;
 	int x;
 
 	static int initialized=0;
@@ -313,35 +314,17 @@ int display_8x16_freq(int display_type,
 	/* so likely in the range 4-14 or so */
 
 	/* set the max values, also draw solid line if currently that freq */
-	if (ra>0) {
-		if (ra>15) ra=15;
-		freq_max[ra]=0x80;
-		freq_matrix[ra]=0xff;
-	}
-	if (la>0) {
-		if (la>15) la=15;
-		freq_max[la]=0x80;
-		freq_matrix[la]=0xff;
-	}
-	if (rb>0) {
-		if (rb>15) rb=15;
-		freq_max[rb]=0x80;
-		freq_matrix[rb]=0xff;
-	}
-	if (lb>0) {
-		if (lb>15) lb=15;
-		freq_max[lb]=0x80;
-		freq_matrix[lb]=0xff;
-	}
-	if (rc>0) {
-		if (rc>15) rc=15;
-		freq_max[rc]=0x80;
-		freq_matrix[rc]=0xff;
-	}
-	if (lc>0) {
-		if (lc>15) lc=15;
-		freq_max[lc]=0x80;
-		freq_matrix[lc]=0xff;
+	for(i=0;i<3;i++) {
+		if (ds->right_freq[i]>0) {
+			if (ds->right_freq[i]>15) ds->right_freq[i]=15;
+			freq_max[ds->right_freq[i]]=0x80;
+			freq_matrix[ds->right_freq[i]]=0xff;
+		}
+		if (ds->left_freq[i]>0) {
+			if (ds->left_freq[i]>15) ds->left_freq[i]=15;
+			freq_max[ds->left_freq[i]]=0x80;
+			freq_matrix[ds->left_freq[i]]=0xff;
+		}
 	}
 
 	/* Set the display to the max values */

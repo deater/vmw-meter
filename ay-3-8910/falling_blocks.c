@@ -14,7 +14,9 @@
 
 #include <bcm2835.h>
 
-#include "i2c_lib.h"
+//#include "i2c_lib.h"
+
+#include "stats.h"
 #include "display.h"
 #include "ay-3-8910.h"
 #include "max98306.h"

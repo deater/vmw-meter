@@ -18,6 +18,7 @@
 #include "ay-3-8910.h"
 #include "max98306.h"
 
+#include "stats.h"
 #include "display.h"
 
 #include "notes.h"

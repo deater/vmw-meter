@@ -11,6 +11,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
+#include "stats.h"
 #include "display.h"
 
 #include "version.h"

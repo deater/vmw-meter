@@ -15,6 +15,8 @@
 #include <termios.h>
 #include <fcntl.h>
 
+#include "stats.h"
+
 #include "display.h"
 
 #if USE_LINUX_I2C==1
@@ -100,46 +102,39 @@ static int bargraph_text(int left_a, int left_b, int left_c,
 }
 
 
-int bargraph_filled(int type,
-	int left_a, int left_b, int left_c,
-	int right_a, int right_b, int right_c) {
+int bargraph_filled(int type, struct display_stats *ds) {
 
-	if (left_a>0) {
-		left_a--;
-		left_a=(2<<left_a)-1;
-	}
+	int i;
 
-	if (left_b>0) {
-		left_b--;
-		left_b=(2<<left_b)-1;
-	}
+	for(i=0;i<3;i++) {
+		if (ds->left_amplitude[i]>0) {
+			ds->left_amplitude[i]--;
+			ds->left_amplitude[i]=(2<<ds->left_amplitude[i])-1;
+		}
 
-	if (left_c>0) {
-		left_c--;
-		left_c=(2<<left_c)-1;
-	}
-
-	if (right_a>0) {
-		right_a--;
-		right_a=(2<<right_a)-1;
-	}
-
-	if (right_b>0) {
-		right_b--;
-		right_b=(2<<right_b)-1;
-	}
-
-	if (right_c>0) {
-		right_c--;
-		right_c=(2<<right_c)-1;
+		if (ds->right_amplitude[i]>0) {
+			ds->right_amplitude[i]--;
+			ds->right_amplitude[i]=(2<<ds->right_amplitude[i])-1;
+		}
 	}
 
 	if (type&DISPLAY_I2C) {
-		bargraph_i2c(left_a,left_b,left_c,right_a,right_b,right_c);
+		bargraph_i2c(	ds->left_amplitude[0],
+				ds->left_amplitude[1],
+				ds->left_amplitude[2],
+				ds->right_amplitude[0],
+				ds->right_amplitude[1],
+				ds->right_amplitude[2]);
 	}
 
 	if (type&DISPLAY_TEXT) {
-		bargraph_text(left_a,left_b,left_c,right_a,right_b,right_c);
+		bargraph_text(	ds->left_amplitude[0],
+				ds->left_amplitude[1],
+				ds->left_amplitude[2],
+				ds->right_amplitude[0],
+				ds->right_amplitude[1],
+				ds->right_amplitude[2]);
+
 	}
 
 	return 0;

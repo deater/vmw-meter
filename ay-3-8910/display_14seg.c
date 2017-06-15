@@ -14,6 +14,8 @@
 #include <string.h>
 #include <termios.h>
 #include <fcntl.h>
+
+#include "stats.h"
 #include "display.h"
 
 #if USE_LINUX_I2C==1

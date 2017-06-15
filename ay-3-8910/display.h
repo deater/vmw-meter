@@ -41,16 +41,8 @@ extern int i2c_fd;
 
 #define NUM_ALPHANUM	12
 
-struct display_stats {
-	int left_a_bar,left_b_bar,left_c_bar;
-	int left_a_freq,left_b_freq,left_c_freq;
-	int right_a_bar,right_b_bar,right_c_bar;
-	int right_a_freq,right_b_freq,right_c_freq;
-};
-
 /********************* display_bargraph.c */
-int bargraph_filled(int type, int left_a, int left_b, int left_c,
-			int right_a, int right_b, int right_c);
+int bargraph_filled(int type, struct display_stats *ds);
 int bargraph_raw(int type, int left_a, int left_b, int left_c,
 			int right_a, int right_b, int right_c);
 int close_bargraph(int type);
@@ -70,12 +62,8 @@ int display_keypad_repeat_until_keypressed(int display_type);
 /********************* display_8x16.c */
 int display_8x16_raw(int display_type, unsigned char *buffer);
 int close_8x16_display(int display_type);
-int display_8x16_led_art(int display_type,
-                short led_art[10][8],
-                int which);
-int display_8x16_freq(int display_type, int la, int lb, int lc,
-					int ra, int rb, int rc);
-
+int display_8x16_led_art(int display_type, short led_art[10][8], int which);
+int display_8x16_freq(int display_type, struct display_stats *ds);
 int display_8x16_time(int display_type, int current_frame, int total_frames);
 int display_8x16_title(int display_type);
 int display_8x16_scroll_text(int display_type, char *string, int new_string);

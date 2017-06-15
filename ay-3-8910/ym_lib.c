@@ -8,6 +8,8 @@
 
 #include <sys/stat.h>
 
+#include "stats.h"
+
 #include "ym_lib.h"
 
 #ifdef USE_LIBLHASA
@@ -519,7 +521,7 @@ static int ym_make_frame(struct ym_song_t *ym_song,
 }
 
 int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
-			struct frame_stats *ds,
+			struct display_stats *ds,
 			int diff_mode,
 			int play_music,
 			int mute_channel) {
@@ -587,30 +589,29 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	}
 
 	if (ds!=NULL) {
-		ds->left_a_bar=(frame[8]*11)/16;
-		ds->left_b_bar=(frame[9]*11)/16;
-		ds->left_c_bar=(frame[10]*11)/16;
-		ds->right_a_bar=(frame2[8]*11)/16;
-		ds->right_b_bar=(frame2[9]*11)/16;
-		ds->right_c_bar=(frame2[10]*11)/16;
+		ds->left_amplitude[0]=(frame[8]*11)/16;
+		ds->left_amplitude[1]=(frame[9]*11)/16;
+		ds->left_amplitude[2]=(frame[10]*11)/16;
+		ds->right_amplitude[0]=(frame2[8]*11)/16;
+		ds->right_amplitude[1]=(frame2[9]*11)/16;
+		ds->right_amplitude[2]=(frame2[10]*11)/16;
 
-		ds->left_a_freq=log2(left_a_freq);
-		ds->left_b_freq=log2(left_b_freq);
-		ds->left_c_freq=log2(left_c_freq);
-
-		ds->right_a_freq=log2(right_a_freq);
-		ds->right_b_freq=log2(right_b_freq);
-		ds->right_c_freq=log2(right_c_freq);
+		ds->left_freq[0]=log2(left_a_freq);
+		ds->left_freq[1]=log2(left_b_freq);
+		ds->left_freq[2]=log2(left_c_freq);
+		ds->right_freq[0]=log2(right_a_freq);
+		ds->right_freq[1]=log2(right_b_freq);
+		ds->right_freq[2]=log2(right_c_freq);
 	}
 
 	return 0;
 
 }
 
-/* Play song on left, effecst on right */
+/* Play song on left, effects on right */
 int ym_play_frame_effects(struct ym_song_t *ym_song,
 			int frame_num, int shift_size,
-			struct frame_stats *ds,
+			struct display_stats *ds,
 			int play_music,
 			unsigned char *frame2) {
 
@@ -678,19 +679,19 @@ int ym_play_frame_effects(struct ym_song_t *ym_song,
 	}
 
 	if (ds!=NULL) {
-		ds->left_a_bar=(frame[8]*11)/16;
-		ds->left_b_bar=(frame[9]*11)/16;
-		ds->left_c_bar=(frame[10]*11)/16;
-		ds->left_a_freq=(left_a_freq)/150;
-		ds->left_b_freq=(left_b_freq)/150;
-		ds->left_c_freq=(left_c_freq)/150;
+		ds->left_amplitude[0]=(frame[8]*11)/16;
+		ds->left_amplitude[1]=(frame[9]*11)/16;
+		ds->left_amplitude[2]=(frame[10]*11)/16;
+		ds->left_freq[0]=(left_a_freq)/150;
+		ds->left_freq[1]=(left_b_freq)/150;
+		ds->left_freq[2]=(left_c_freq)/150;
 
-		ds->right_a_bar=(frame2[8]*11)/16;
-		ds->right_b_bar=(frame2[9]*11)/16;
-		ds->right_c_bar=(frame2[10]*11)/16;
-		ds->right_a_freq=(right_a_freq)/150;
-		ds->right_b_freq=(right_b_freq)/150;
-		ds->right_c_freq=(right_c_freq)/150;
+		ds->right_amplitude[0]=(frame2[8]*11)/16;
+		ds->right_amplitude[1]=(frame2[9]*11)/16;
+		ds->right_amplitude[2]=(frame2[10]*11)/16;
+		ds->right_freq[0]=(right_a_freq)/150;
+		ds->right_freq[1]=(right_b_freq)/150;
+		ds->right_freq[2]=(right_c_freq)/150;
 	}
 
 	return 0;
