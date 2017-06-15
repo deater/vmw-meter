@@ -92,7 +92,8 @@ int display_init(int type);
 int display_update(int type,
 			struct display_stats *ds,
 			int current_frame, int num_frames,
-			char *filename, int new_filename);
+			char *filename, int new_filename,
+			int current_mode);
 int display_shutdown(int type);
 
 

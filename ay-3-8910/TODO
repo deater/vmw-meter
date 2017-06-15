@@ -1,3 +1,11 @@
+Visualization:
+	Waterfall (better scaling to use whole range)
+	Some sort of fire/blob visualization
+	Print the 3 notes being played on alphanum
+	Piano, grid of 12x8 showing which note being played
+	Square wave
+
+
 Set up to generate interrupt and disable speakers if
 	disable switch flipped.
 

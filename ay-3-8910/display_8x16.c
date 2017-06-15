@@ -1,4 +1,4 @@
-/* + An adafruit 8x16 led matrix backpack (0x72) 			  */
+/* + An adafruit 8x16 led matrix backpack (0x72) */
 
 #include "display.h"
 
@@ -206,6 +206,24 @@ static int reverse_bits(int b) {
 	return out&0xff;
 }
 
+int display_8x16_horizontal(int display_type, unsigned char *in_buffer) {
+
+	unsigned char buffer[17];
+	int i;
+
+	memset(buffer,0,17);
+
+	for(i=0;i<8;i++) {
+		buffer[i*2+1]=reverse_bits((in_buffer[i]>>8));
+		buffer[i*2+2]=reverse_bits(in_buffer[i]&0xff);
+	}
+
+	display_8x16_raw(display_type, buffer);
+
+	return 0;
+}
+
+
 /* Display some LED art */
 int display_8x16_led_art(int display_type,
 		short led_art[10][8],
@@ -363,9 +381,9 @@ static int put_number(int which, int x, int y) {
 	int a,b;
 
 	for(a=0;a<3;a++) {
-		freq_matrix[a+x]=0;
+		freq_matrix[a+x]&=~0x1f;
 		for(b=0;b<5;b++) {
-			freq_matrix[a+x]|=number_font[which][b][a];
+			freq_matrix[a+x]|=number_font[which][b][a]<<(4-b);
 		}
 	}
 
@@ -437,15 +455,15 @@ int display_8x16_title(int display_type) {
 		freq_matrix[x]=0;
 	}
 
-	for(x=0;x<16;x++) {
-		for(y=0;y<8;y++) {
-			freq_matrix[x]|=1<<(!!(vmw[y]&(1<<(31-x))));
+	for(y=0;y<3;y++) {
+		for(x=0;x<16;x++) {
+			freq_matrix[x]|=(!!(vmw[y]&(1<<(31-x))))<<(7-y);
 		}
 	}
 
-	for(x=0;x<16;x++) {
-		for(y=0;y<8;y++) {
-			freq_matrix[x]|=16<<(!!(chiptune[y]&(1<<(31-x-offset))));
+	for(y=0;y<3;y++) {
+		for(x=0;x<16;x++) {
+			freq_matrix[x]|=(!!(chiptune[y]&(1<<(31-x-offset))))<<(3-y);
 		}
 	}
 
@@ -519,14 +537,13 @@ int display_8x16_scroll_text(int display_type, char *string, int new_string) {
 		matrix[x][y]=0;
 	}
 
-	for(y=0;y<8;y++) {
-		for(x=0;x<16;x++) {
-			freq_matrix[x]|=matrix[x+scroll][y]<<y;
+	for(x=0;x<16;x++) {
+		freq_matrix[x]=0;
+		for(y=0;y<8;y++) {
+			freq_matrix[x]|=matrix[x+scroll][y]<<(7-y);
 		}
 	}
-
 	display_8x16_vertical(display_type,freq_matrix);
-//	freq_8x16display(display_type,1);
 
 	return 0;
 }

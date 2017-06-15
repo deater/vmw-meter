@@ -96,6 +96,8 @@ static void print_help(int just_version, char *exec_name) {
 /*   display_string:        5ms (slow!  3 i2c addresses            */
 /*				5.02ms (Linux) 4.9ms (libbcm)	   */
 
+static int current_mode=MODE_VISUAL;
+
 static int play_song(char *filename) {
 
 	int length_seconds;
@@ -203,7 +205,8 @@ static int play_song(char *filename) {
 							&ds,
 							frame_num,
 							ym_song.num_frames,
-							filename,0);
+							filename,0,
+							current_mode);
 			}
 		}
 
@@ -308,6 +311,11 @@ static int play_song(char *filename) {
 				max98306_enable();
 			}
 
+
+			if (display_command==CMD_MENU) {
+				current_mode++;
+				if (current_mode>=MODE_MAX) current_mode=0;
+			}
 
 
 			if (display_command==CMD_LOOP) {

@@ -25,7 +25,7 @@
 #include <bcm2835.h>
 #endif
 
-static int current_mode=MODE_VISUAL;
+//static int current_mode=MODE_VISUAL;
 //static int kiosk_mode=0;
 
 
@@ -43,7 +43,8 @@ static unsigned char display_buffer[DISPLAY_LINES];
 int display_update(int display_type,
 		struct display_stats *ds,
 		int current_frame, int num_frames,
-		char *filename, int new_filename) {
+		char *filename, int new_filename,
+		int current_mode) {
 
 
 	bargraph_filled(display_type,
