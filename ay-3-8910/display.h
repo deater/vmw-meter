@@ -10,7 +10,7 @@ extern int i2c_fd;
 #define MODE_VISUAL	0x1	/* Waterfall visualization */
 #define MODE_NAME	0x2	/* Scrolls filename */
 #define MODE_TIME	0x3	/* Shows elapsed time */
-#define MODE_VOLUME	0x4	/* Allows setting the volume */
+#define MODE_PIANO	0x4	/* Shows note as being played */
 #define MODE_MAX	0x5
 
 #define CMD_STOP		0x1
@@ -61,19 +61,21 @@ int display_keypad_repeat_until_keypressed(int display_type);
 
 /********************* display_8x16.c */
 int display_8x16_raw(int display_type, unsigned char *buffer);
-int close_8x16_display(int display_type);
 int display_8x16_led_art(int display_type, short led_art[10][8], int which);
 int display_8x16_freq(int display_type, struct display_stats *ds);
 int display_8x16_time(int display_type, int current_frame, int total_frames);
 int display_8x16_title(int display_type);
 int display_8x16_scroll_text(int display_type, char *string, int new_string);
-
+int display_8x16_piano(int display_type, struct display_stats *ds);
 
 int display_8x16_vertical(int display_type, unsigned char *in_buffer);
 int display_8x16_vertical_inverted(int display_type, unsigned char *in_buffer);
 
 void display_8x16_vertical_putpixel(unsigned char *buffer,int x,int y);
 int display_8x16_vertical_getpixel(unsigned char *buffer,int x,int y);
+
+int close_8x16_display(int display_type);
+
 
 /********************* display.c */
 int display_init(int type);

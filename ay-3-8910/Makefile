@@ -8,7 +8,7 @@ CFLAGS = -O2 -Wall -I../include -g
 LFLAGS = -lm
 
 
-DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_14seg.o
+DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_14seg.o notes.o
 
 all:	ym_play organ ym_to_ym5 text_to_ym text_to_ed glados test_font \
 	test_8x16 temperature falling_blocks dump_ym5 dump_xm xm_to_text \
@@ -88,9 +88,9 @@ glados.o:	glados.c display.h ym_lib.h glados_ascii_art.h
 
 ###
 
-organ:	organ.o ay-3-8910.o max98306.o notes.o
+organ:	organ.o ay-3-8910.o max98306.o $(DISPLAY)
 	$(CC) $(LFLAGS) -o organ organ.o \
-		ay-3-8910.o max98306.o notes.o \
+		ay-3-8910.o max98306.o \
 		../lib/i2c_lib.o $(DISPLAY) /usr/local/lib/libbcm2835.a
 
 organ.o:	organ.c ay-3-8910.h display.h

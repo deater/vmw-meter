@@ -22,6 +22,8 @@
 
 #include "font.h"
 
+#include "notes.h"
+
 /* Raw format for adafruit 8x16 display */
 /* buffer[0] = 0   (says to start at address 0) */
 /* buffer[1] = upper left, low bit first, 0 - 8 */
@@ -258,10 +260,10 @@ int display_8x16_led_art(int display_type,
 
 static int divider=0;
 
-static int freq_max[16];
-static unsigned char freq_matrix[16];
 
-int intlog2(int value) {
+
+
+static int intlog2(int value) {
 
 	int logged;
 
@@ -272,18 +274,21 @@ int intlog2(int value) {
 	return logged;
 }
 
+
+
 int display_8x16_freq(int display_type, struct display_stats *ds) {
 
 	int i;
 	int x;
 
 	static int initialized=0;
+	static int freq_max[16];
+	static unsigned char freq_matrix[16];
 
 	if (!initialized) {
 		for(x=0;x<16;x++) freq_max[x]=0x80;
 		initialized=1;
 	}
-
 
 	/* the incoming values are log2 of the frequency */
 	/* so likely in the range 4-14 or so */
@@ -334,17 +339,45 @@ int display_8x16_freq(int display_type, struct display_stats *ds) {
 }
 
 
+int display_8x16_piano(int display_type, struct display_stats *ds) {
+
+	int i;
+	int x;
+	int note;
+
+	static unsigned char buffer[16];
+	static int count=0;
+
+	if (count==0) {
+		display_8x16_vertical(display_type,buffer);
+		for(x=0;x<16;x++) buffer[x]=0x0;
+	}
+
+	for(i=0;i<3;i++) {
+		note=freq_to_note(ds->right_freq[i]);
+		buffer[(note%12)+2]|=1<<(note/12);
+
+		note=freq_to_note(ds->left_freq[i]);
+		buffer[(note%12)+2]|=1<<(note/12);
+	}
+
+	count++;
+	if (count>3) count=0;
 
 
 
-static int put_number(int which, int x, int y) {
+	return 0;
+}
+
+
+static int put_number(unsigned char *buffer,int which, int x, int y) {
 
 	int a,b;
 
 	for(a=0;a<3;a++) {
-		freq_matrix[a+x]&=~0x1f;
+		buffer[a+x]&=~0x1f;
 		for(b=0;b<5;b++) {
-			freq_matrix[a+x]|=number_font[which][b][a]<<(4-b);
+			buffer[a+x]|=number_font[which][b][a]<<(4-b);
 		}
 	}
 
@@ -356,10 +389,12 @@ int display_8x16_time(int display_type, int current_frame, int total_frames) {
 	int x,y;
 	int total_s,current_s,display_m,display_s,bar_length;
 
+	unsigned char freq_matrix[16];
+
 	/* Only update a few times a second? */
 	/* Should do more for responsiveness? */
 	if (current_frame%16!=0) {
-		display_8x16_vertical(display_type,freq_matrix);
+//		display_8x16_vertical(display_type,freq_matrix);
 		//freq_8x16display(display_type,0);
 		return 0;
 	}
@@ -390,14 +425,14 @@ int display_8x16_time(int display_type, int current_frame, int total_frames) {
 		for(y=0;y<5;y++) freq_matrix[1]|=1<<y;
 	}
 
-	put_number(display_m,3,0);
+	put_number(freq_matrix,display_m,3,0);
 
 	/* Draw Colon */
 	freq_matrix[7]|=1<<1;
 	freq_matrix[7]|=1<<3;
 
-	put_number(display_s/10,9,0);
-	put_number(display_s%10,13,0);
+	put_number(freq_matrix,display_s/10,9,0);
+	put_number(freq_matrix,display_s%10,13,0);
 
 //	freq_8x16display(display_type,1);
 	display_8x16_vertical(display_type,freq_matrix);
@@ -410,6 +445,8 @@ int display_8x16_title(int display_type) {
 	int x,y;
 	static int count=0,offset=0,direction=+1;
 	static int toggles=0;
+
+	unsigned char freq_matrix[16];
 
 	/* clear display */
 	for(x=0;x<16;x++) {
@@ -461,6 +498,8 @@ int display_8x16_title(int display_type) {
 
 
 int display_8x16_scroll_text(int display_type, char *string, int new_string) {
+
+	unsigned char freq_matrix[16];
 
 	/* 5x7 font, really 6x7 if you include space */
 	/* 6*16 = 96 */

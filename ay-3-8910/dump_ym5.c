@@ -16,6 +16,7 @@
 
 //#include "ay-3-8910.h"
 //#include "display.h"
+#include "stats.h"
 #include "ym_lib.h"
 //#include "max98306.h"
 
