@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <math.h>
 
 #include <sys/stat.h>
 
@@ -589,16 +590,17 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 		ds->left_a_bar=(frame[8]*11)/16;
 		ds->left_b_bar=(frame[9]*11)/16;
 		ds->left_c_bar=(frame[10]*11)/16;
-		ds->left_a_freq=(left_a_freq)/150;
-		ds->left_b_freq=(left_b_freq)/150;
-		ds->left_c_freq=(left_c_freq)/150;
-
 		ds->right_a_bar=(frame2[8]*11)/16;
 		ds->right_b_bar=(frame2[9]*11)/16;
 		ds->right_c_bar=(frame2[10]*11)/16;
-		ds->right_a_freq=(right_a_freq)/150;
-		ds->right_b_freq=(right_b_freq)/150;
-		ds->right_c_freq=(right_c_freq)/150;
+
+		ds->left_a_freq=log2(left_a_freq);
+		ds->left_b_freq=log2(left_b_freq);
+		ds->left_c_freq=log2(left_c_freq);
+
+		ds->right_a_freq=log2(right_a_freq);
+		ds->right_b_freq=log2(right_b_freq);
+		ds->right_c_freq=log2(right_c_freq);
 	}
 
 	return 0;

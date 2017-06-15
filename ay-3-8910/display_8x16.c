@@ -235,10 +235,8 @@ int display_8x16_led_art(int display_type,
 }
 
 
-static int freq_max[16];
-static int freq_matrix[16][8];
 
-
+#if 0
 
 static int freq_8x16display(int display_type, int refresh_i2c) {
 
@@ -261,14 +259,13 @@ static int freq_8x16display(int display_type, int refresh_i2c) {
 	}
 
 	else {
-
 		display_8x16_raw(display_type, buffer);
 	}
 
 	return 0;
 }
 
-
+#endif
 
 
 
@@ -276,81 +273,81 @@ static int freq_8x16display(int display_type, int refresh_i2c) {
 
 static int divider=0;
 
+static int freq_max[16];
+static unsigned char freq_matrix[16];
+
+
 int display_8x16_freq(int display_type,
 		int la, int lb, int lc,
 		int ra, int rb, int rc) {
 
-	int x,y;
+	int x;
 
-	if (ra>=0) {
-		if (ra>15) {
-			ra=15;
-		}
-		freq_max[ra]=1;
-		for(y=0;y<8;y++) freq_matrix[ra][y]=1;
-	}
-	if (la>=0) {
-		if (la>15) {
-			la=15;
-		}
-		freq_max[la]=1;
-		for(y=0;y<8;y++) freq_matrix[la][y]=1;
+	static int initialized=0;
+
+	if (!initialized) {
+		for(x=0;x<16;x++) freq_max[x]=0x80;
+		initialized=1;
 	}
 
 
-	if (rb>=0) {
-		if (rb>15) {
-			rb=15;
-		}
-		freq_max[rb]=1;
-		for(y=0;y<8;y++) freq_matrix[rb][y]=1;
+	/* the incoming values are log2 of the frequency */
+	/* so likely in the range 4-14 or so */
+
+	/* set the max values, also draw solid line if currently that freq */
+	if (ra>0) {
+		if (ra>15) ra=15;
+		freq_max[ra]=0x80;
+		freq_matrix[ra]=0xff;
 	}
-	if (lb>=0) {
-		if (lb>15) {
-			lb=15;
-		}
-		freq_max[lb]=1;
-		for(y=0;y<8;y++) freq_matrix[lb][y]=1;
+	if (la>0) {
+		if (la>15) la=15;
+		freq_max[la]=0x80;
+		freq_matrix[la]=0xff;
+	}
+	if (rb>0) {
+		if (rb>15) rb=15;
+		freq_max[rb]=0x80;
+		freq_matrix[rb]=0xff;
+	}
+	if (lb>0) {
+		if (lb>15) lb=15;
+		freq_max[lb]=0x80;
+		freq_matrix[lb]=0xff;
+	}
+	if (rc>0) {
+		if (rc>15) rc=15;
+		freq_max[rc]=0x80;
+		freq_matrix[rc]=0xff;
+	}
+	if (lc>0) {
+		if (lc>15) lc=15;
+		freq_max[lc]=0x80;
+		freq_matrix[lc]=0xff;
 	}
 
-
-	if (rc>=0) {
-		if (rc>15) {
-			rc=15;
-		}
-		freq_max[rc]=1;
-		for(y=0;y<8;y++) freq_matrix[rc][y]=1;
-	}
-	if (lc>=0) {
-		if (lc>15) {
-			lc=15;
-		}
-		freq_max[lc]=1;
-		for(y=0;y<8;y++) freq_matrix[lc][y]=1;
-	}
-
-
+	/* Set the display to the max values */
 	for(x=0;x<16;x++) {
-		freq_matrix[x][freq_max[x]]=7;
-		if (divider==0)
-		if (freq_max[x]<7) freq_max[x]++;
+		freq_matrix[x]|=freq_max[x];
+		if ((divider==0) && (freq_max[x]>1)) freq_max[x]>>=1;
 	}
+
+//	if (divider==0) {
+	//	freq_8x16display(display_type,1);
+//	} else {
+	//	freq_8x16display(display_type,0);
+//	}
 
 	if (divider==0) {
-		freq_8x16display(display_type,1);
-	} else {
-		freq_8x16display(display_type,0);
+		display_8x16_vertical(display_type,freq_matrix);
 	}
 
 	divider++;
 	if (divider>UPDATE_DIVIDER) {
 		divider=0;
 		/* Clear background */
-
-		for(y=0;y<8;y++) {
-			for(x=0;x<16;x++) {
-				freq_matrix[x][y]=0;
-			}
+		for(x=0;x<16;x++) {
+			freq_matrix[x]=0;
 		}
 	}
 
@@ -366,8 +363,9 @@ static int put_number(int which, int x, int y) {
 	int a,b;
 
 	for(a=0;a<3;a++) {
+		freq_matrix[a+x]=0;
 		for(b=0;b<5;b++) {
-			freq_matrix[a+x][b+y]=number_font[which][b][a];
+			freq_matrix[a+x]|=number_font[which][b][a];
 		}
 	}
 
@@ -382,15 +380,14 @@ int display_8x16_time(int display_type, int current_frame, int total_frames) {
 	/* Only update a few times a second? */
 	/* Should do more for responsiveness? */
 	if (current_frame%16!=0) {
-		freq_8x16display(display_type,0);
+		display_8x16_vertical(display_type,freq_matrix);
+		//freq_8x16display(display_type,0);
 		return 0;
 	}
 
 	/* clear display */
 	for(x=0;x<16;x++) {
-		for(y=0;y<8;y++) {
-			freq_matrix[x][y]=0;
-		}
+		freq_matrix[x]=0;
 	}
 
 	total_s=total_frames/50;
@@ -401,7 +398,7 @@ int display_8x16_time(int display_type, int current_frame, int total_frames) {
 //	printf("Bar length=%d/14\n",bar_length);
 
 	for(x=0;x<bar_length;x++) {
-		freq_matrix[x+1][6]=1;
+		freq_matrix[x+1]|=1<<6;
 	}
 
 	display_m=current_s/60;
@@ -411,19 +408,20 @@ int display_8x16_time(int display_type, int current_frame, int total_frames) {
 	/* Print tens char */
 	/* Don't handle files >= 20 minutes well */
 	if (display_m>9) {
-		for(y=0;y<5;y++) freq_matrix[1][y]=1;
+		for(y=0;y<5;y++) freq_matrix[1]|=1<<y;
 	}
 
 	put_number(display_m,3,0);
 
 	/* Draw Colon */
-	freq_matrix[7][1]=1;
-	freq_matrix[7][3]=1;
+	freq_matrix[7]|=1<<1;
+	freq_matrix[7]|=1<<3;
 
 	put_number(display_s/10,9,0);
 	put_number(display_s%10,13,0);
 
-	freq_8x16display(display_type,1);
+//	freq_8x16display(display_type,1);
+	display_8x16_vertical(display_type,freq_matrix);
 
 	return 0;
 }
@@ -436,24 +434,22 @@ int display_8x16_title(int display_type) {
 
 	/* clear display */
 	for(x=0;x<16;x++) {
+		freq_matrix[x]=0;
+	}
+
+	for(x=0;x<16;x++) {
 		for(y=0;y<8;y++) {
-			freq_matrix[x][y]=0;
+			freq_matrix[x]|=1<<(!!(vmw[y]&(1<<(31-x))));
 		}
 	}
 
-	for(y=0;y<3;y++) {
-		for(x=0;x<16;x++) {
-			freq_matrix[x][y]=!!(vmw[y]&(1<<(31-x)));
+	for(x=0;x<16;x++) {
+		for(y=0;y<8;y++) {
+			freq_matrix[x]|=16<<(!!(chiptune[y]&(1<<(31-x-offset))));
 		}
 	}
 
-	for(y=0;y<3;y++) {
-		for(x=0;x<16;x++) {
-			freq_matrix[x][y+4]=!!(chiptune[y]&(1<<(31-x-offset)));
-		}
-	}
-
-	freq_8x16display(display_type,1);
+	display_8x16_vertical(display_type,freq_matrix);
 
 	/* Only scroll at 1/6 of update time */
 	count++;
@@ -525,11 +521,12 @@ int display_8x16_scroll_text(int display_type, char *string, int new_string) {
 
 	for(y=0;y<8;y++) {
 		for(x=0;x<16;x++) {
-			freq_matrix[x][y]=matrix[x+scroll][y];
+			freq_matrix[x]|=matrix[x+scroll][y]<<y;
 		}
 	}
 
-	freq_8x16display(display_type,1);
+	display_8x16_vertical(display_type,freq_matrix);
+//	freq_8x16display(display_type,1);
 
 	return 0;
 }
