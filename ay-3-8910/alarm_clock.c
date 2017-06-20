@@ -111,6 +111,7 @@ int main(int argc, char **argv) {
 	int last_minute=-1;
 	unsigned char big_display[16];
 	int digit;
+	int hour;
 
 #if 0
     struct tm {
@@ -164,15 +165,18 @@ int main(int argc, char **argv) {
 		}
 
 		else {
+		hour=breakdown->tm_hour%12;
+		if (hour==0) hour=12;
+
 		if (seconds&1) {
 			sprintf(out_string,"  %2d:%02d %s  ",
-				breakdown->tm_hour%12,
+				hour,
 				breakdown->tm_min,
 				breakdown->tm_hour>11?"PM":"AM");
 		}
 		else {
 			sprintf(out_string,"  %2d %02d %s  \n",
-				breakdown->tm_hour%12,
+				hour,
 				breakdown->tm_min,
 				breakdown->tm_hour>11?"PM":"AM");
 
