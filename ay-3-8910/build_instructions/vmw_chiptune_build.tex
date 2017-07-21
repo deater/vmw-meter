@@ -10,7 +10,7 @@
 {\Large \bf Building the VMW Raspberry Pi / AY-3-8910 Chiptune Player}\\[2ex]
 by Vincent M. Weaver\\[3ex]
 \url{http://deater.net/weave/vmwprod/hardware/ay-3-8910/}\\[3ex]
-3 June 2017
+21 July 2017
 \end{center}
 
 \begin{center}
@@ -282,9 +282,12 @@ for creating your own chiptunes, and more.
 %%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%
 
-Note that you can build just the sound board, you don't need to have the i2c display.
-Also the sound board has lots of extras that you do not need to populate if you don't want to.
+Note that you can build just the sound board,
+you don't need to have the i2c display.
+Also the sound board has lots of extras that you do not
+need to populate if you don't want to.\\
 
+\noindent
 Optional parts:
 \begin{enumerate}
 	\item The ``hat'' circuitry (the EEPROM and resistors)
@@ -575,14 +578,22 @@ Full list of parts can be found in Table~\ref{table:display_parts}.
 	\begin{enumerate}
 
 		\item	We will be using three of these.
-			First solder the headers onto them
+			Solder the LEDs to the carrier board (follow
+			the instructions from Adafruit, or else by
+			aligning based on the picture on the board).
+			Also solder on the header.
 
-		\item  Next, assuming you are using \#2 screws, we need to enlarge the
-			drill holes on the Adafruit boards as they are just slightly too
+		\item  Next, assuming you are using \#2 screws,
+			we need to enlarge the
+			drill holes on the Adafruit boards as they are
+			just slightly too
 			small.  I used a file, a drill can maybe be used.
 
 		\item Solder the three boards to have different i2c addresses.
-			Left is 101, middle 110, right 111.
+			Left is 101 (A0=1, A1=0,A2=1), 
+			middle 110 (A0=1, A1=1, A2=0),
+			right 111 (A0=1, A1=1, A2=1).
+			
 
 		\item Now set up the spacers and screws.  
 			This didn't really go according
@@ -609,10 +620,11 @@ Full list of parts can be found in Table~\ref{table:display_parts}.
 	\begin{enumerate}
 
 	\item	Attach the header.
-	\item   Configure solderpads for i2c address 001.
+	\item   Configure solderpads for i2c address 010
+		(A0=0 A1=1 A2=0).
 	\item   Expand all four holes on the board with a file
-	\item   The holes all work for this one, so put the screw from the bottom,
-		with a spacer and nut on top.
+	\item   The holes all work for this one, so put the screw
+		from the bottom, with a spacer and nut on top.
 	\end{enumerate}
 
 
