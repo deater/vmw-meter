@@ -103,37 +103,42 @@ int display_init(int type) {
 #if USE_LINUX_I2C==1
 		i2c_fd=init_i2c("/dev/i2c-1");
 		if (i2c_fd < 0) {
-			fprintf(stderr,"Error opening device!\n");
+			fprintf(stderr,"Error opening /dev/i2c-1 device!\n");
 			return -1;
  		}
 
 		/* Init bargraph/keypad */
 		if (init_display(i2c_fd,HT16K33_ADDRESS0,10)) {
-			fprintf(stderr,"Error opening bargraph display\n");
+			fprintf(stderr,"Error opening bargraph display %x\n",
+				HT16K33_ADDRESS0);
 			return -1;
 		}
 
 		/* ALPHANUM #1 */
 		if (init_display(i2c_fd,HT16K33_ADDRESS3,10)) {
-			fprintf(stderr,"Error opening 14seg-1 display\n");
+			fprintf(stderr,"Error opening 14seg-1 display %x\n",
+				HT16K33_ADDRESS3);
 			return -1;
 		}
 
 		/* ALPHANUM #2 */
 		if (init_display(i2c_fd,HT16K33_ADDRESS7,10)) {
-			fprintf(stderr,"Error opening 14seg-2 display\n");
+			fprintf(stderr,"Error opening 14seg-2 display %x\n",
+				HT16K33_ADDRESS7);
 			return -1;
 		}
 
 		/* ALPHANUM #3 */
 		if (init_display(i2c_fd,HT16K33_ADDRESS5,10)) {
-			fprintf(stderr,"Error opening 14seg-3 display\n");
+			fprintf(stderr,"Error opening 14seg-3 display %x\n",
+				HT16K33_ADDRESS5);
 			return -1;
 		}
 
 		/* Init 8x16 display */
 		if (init_display(i2c_fd,HT16K33_ADDRESS2,10)) {
-			fprintf(stderr,"Error opening 8x16 display\n");
+			fprintf(stderr,"Error opening 8x16 display %x\n",
+				HT16K33_ADDRESS2);
 			return -1;
 		}
 
