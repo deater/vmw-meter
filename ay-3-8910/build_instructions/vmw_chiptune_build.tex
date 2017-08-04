@@ -10,7 +10,7 @@
 {\Large \bf Building the VMW Raspberry Pi / AY-3-8910 Chiptune Player}\\[2ex]
 by Vincent M. Weaver\\[3ex]
 \url{http://deater.net/weave/vmwprod/hardware/ay-3-8910/}\\[3ex]
-21 July 2017
+4 August 2017
 \end{center}
 
 \begin{center}
@@ -543,27 +543,47 @@ Buttons		& Adafruit	& 1010			   & 8	 & ---	    &  \$5.95 \\
 \end{tabular}
 \end{table}
 
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=2in]{figs/i2cwire.pdf}
+\caption{Order of wires on the i2c cable~\label{figs:i2ccable}}
+\end{figure}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=3in]{figs/nut_diagram.pdf}
+\caption{Diagram of screw/nut placement.~\label{figs:nut_diagram}}
+\end{figure}
+
+
 Build instructions for the i2c display board.
 This is optional, but looks nice.
 Full list of parts can be found in Table~\ref{table:display_parts}.
 
 \begin{enumerate}
 \item	Get the purple PCB from OSH Park or your preferred PCB provider.
-	You may need to file down the little nubs around the edges, especially in the 
-	speaker areas, for it to fit into the case.
+	You may need to file down the little nubs around the edges, 
+	especially in the speaker areas, for it to fit into the case.
 
 \item Solder things on the back
 	\begin{enumerate}
 		\item	Solder on the 4-pin i2c connector.
-		\item	Next the ht16k33 breakout.  (Build it first, putting the pin
-			headers on each side)  We leave it at the default i2c address (0x70)
-		\item	If you already have an i2c cable, now might be a good time to hook 
-			things up and test with i2c-scan to see if it is detecting properly.
+		\item	Next the ht16k33 breakout.
+			(Build it first, putting the pin headers on each side)
+			We leave it at the default i2c address (0x70)
+		\item	If you already have an i2c cable, now might be a good
+			time to hook  things up and test with i2c-scan to see 
+			if it is detecting properly.
+			The pinout for the cable is shown in
+			Figure~\ref{figs:i2ccable}, the signals are not 
+			marked on the board.
 	\end{enumerate}
 
 \item Solder things on the front
 	\begin{enumerate}
-	\item	Solder on the diode (band direction is indicated, be sure to get it in
+	\item	Solder on the diode 
+		(band direction is indicated, be sure to get it in
 		the right way)
 	\item	Solder on the eight 39k resistors (orange white orange)
 	\item	Next solder in the six 20-pin sockets
@@ -586,8 +606,8 @@ Full list of parts can be found in Table~\ref{table:display_parts}.
 		\item  Next, assuming you are using \#2 screws,
 			we need to enlarge the
 			drill holes on the Adafruit boards as they are
-			just slightly too
-			small.  I used a file, a drill can maybe be used.
+			just slightly too small.
+			I used a file, a drill can maybe be used.
 
 		\item Solder the three boards to have different i2c addresses.
 			Left is 101 (A0=1, A1=0,A2=1), 
@@ -597,21 +617,28 @@ Full list of parts can be found in Table~\ref{table:display_parts}.
 
 		\item Now set up the spacers and screws.  
 			This didn't really go according
-			to plan (mostly due to nut size and the lower holes being in the
-			wrong place on the Mark1 board).
-			Used 3 screws per display due to nut clearance issues?
-			Should make a diagram (TODO).
+			to plan (mostly due to nut size and the lower holes 
+			being misaligned on the Mark1 board).
+			
+			See Figure~\ref{figs:nut_diagram}.
 
-		\item Each board will be floating a bit in the air to avoid shorting out
+
+		\item Each board will be floating a bit in the air to avoid
+			shorting out
 			against component leads from the other side.
-			The height is equal to one 1/8" spacer plus a nut length.  
+			The height is equal to one 1/8" spacer plus a
+			nut length.  
 
-		\item On the top row, put the screw from the bottom, with a spacer and a nut.
+		\item On the top row, put the screw from the bottom, with
+			a spacer and a nut.
 			The board should slip onto this.
-			There is not enough clearance to put an additional nut on top.
-			On the lower ones, put the screw in from *the top* going through 
+			There is not enough clearance to put an additional
+			nut on top.
+			On the lower ones, put the screw in from *the top*
+			going through 
 			a spacer with a nut on the other side.
-			The bottom holes on the middle display are too close to the ones
+			The bottom holes on the middle display are too close
+			to the ones
 			on either side, so leave those off.
 
 	\end{enumerate}
@@ -632,7 +659,8 @@ Full list of parts can be found in Table~\ref{table:display_parts}.
 	\begin{enumerate}
 
 	\item	Put the 10-segment bargraph displays into the sockets.
-		On the left side of the board the lettering on the displays should
+		On the left side of the board the lettering on the
+		displays should
 		face down, on the right side they should face up.
 	\end{enumerate}
 
@@ -641,7 +669,8 @@ Full list of parts can be found in Table~\ref{table:display_parts}.
 
 	\item	Put button tops onto the buttons (colors are up to you)
 
-	\item	Plug in the i2c wire and test (if you haven't been testing all along)
+	\item	Plug in the i2c wire and test 
+		(if you haven't been testing all along)
 	\end{enumerate}
 
 
@@ -797,13 +826,22 @@ Putting it all together, list of parts in Table~\ref{table:case_parts}.
 There are various things to fix if designing a new version of the
 hardware:
 \begin{enumerate}
-\item The top mounting hole on the display is too close to the buttons.
-\item The standoff behind the slider is too close to various components
-\item The standoff on the bottom left completely blocks the Pi
-	memory card slot
-\item The capacitors should be at least 300 mil not 100 mil
-\item The oscillator socket is too close to the 40-pin sockets
-\item Use curves not so many right angles on PCB layout
+\item Display Board
+	\begin{enumerate}
+	\item The top mounting hole on the display is too close to the buttons.
+	\item The i2c signals on the i2c connector are not labeled.
+	\item The bottom screw holes for the Alphanum displays are not in
+		the right place.
+	\end{enumerate}
+\item Music Board
+	\begin{enumerate}
+	\item The standoff behind the slider is too close to various components
+	\item The standoff on the bottom left completely blocks the Pi
+		memory card slot
+	\item The capacitors should be at least 300 mil not 100 mil
+	\item The oscillator socket is too close to the 40-pin sockets
+	\item Use curves not so many right angles on PCB layout
+	\end{enumerate}
 \end{enumerate}
 
 
