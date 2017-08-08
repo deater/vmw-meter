@@ -64,6 +64,9 @@ int display_update(int display_type,
 		case MODE_TIME:
 			display_8x16_time(display_type, current_frame, num_frames);
 			break;
+		case MODE_NOTEMATRIX:
+			display_8x16_notematrix(display_type,ds);
+			break;
 		case MODE_PIANO:
 			display_8x16_piano(display_type,ds);
 			break;

@@ -339,7 +339,7 @@ int display_8x16_freq(int display_type, struct display_stats *ds) {
 }
 
 
-int display_8x16_piano(int display_type, struct display_stats *ds) {
+int display_8x16_notematrix(int display_type, struct display_stats *ds) {
 
 	int i;
 	int x;
@@ -368,6 +368,99 @@ int display_8x16_piano(int display_type, struct display_stats *ds) {
 
 	return 0;
 }
+
+static void piano_halfkey(int note, unsigned char *buffer) {
+
+	int offset;
+
+	offset=2+note*2;
+
+	buffer[offset]|=0xff;
+	buffer[offset+1]|=0x0f;
+
+}
+
+static void piano_sharpkey(int note, unsigned char *buffer) {
+
+	int offset;
+
+	offset=2+note*2;
+
+	buffer[offset+1]|=0xf0;
+
+}
+
+
+static void piano_fullkey(int note, unsigned char *buffer) {
+
+	int offset;
+
+	offset=2+note*2;
+
+	buffer[offset]|=0xff;
+	buffer[offset+1]|=0xff;
+
+}
+
+
+int display_8x16_piano(int display_type, struct display_stats *ds) {
+
+	int i;
+	int x;
+	int note;
+
+	static unsigned char buffer[16];
+	static int count=0;
+
+	if (count==0) {
+		display_8x16_vertical(display_type,buffer);
+		for(x=0;x<16;x++) buffer[x]=0x0;
+	}
+
+	for(i=0;i<3;i++) {
+		note=freq_to_note(ds->right_freq[i]);
+		note=note%12;
+
+		switch(note) {
+			case 0:	// C
+				piano_halfkey(0,buffer);	break;
+			case 1:	// C#
+				piano_sharpkey(0,buffer);	break;
+			case 2:	// D
+				piano_halfkey(1,buffer);	break;
+			case 3:	// D#
+				piano_sharpkey(1,buffer);	break;
+			case 4:	// E
+				piano_fullkey(2,buffer);	break;
+			case 5:	// F
+				piano_halfkey(3,buffer);	break;
+			case 6:	// F#
+				piano_sharpkey(3,buffer);	break;
+			case 7:	// G
+				piano_halfkey(4,buffer);	break;
+			case 8:	// G#
+				piano_sharpkey(4,buffer);	break;
+			case 9:	// A
+				piano_halfkey(5,buffer);	break;
+			case 10:// A#
+				piano_sharpkey(5,buffer);	break;
+			case 11:// B#
+				piano_fullkey(6,buffer);	break;
+			default:
+				printf("Unknown note %d\n",note);
+		}
+
+
+	}
+
+	count++;
+	if (count>3) count=0;
+
+
+
+	return 0;
+}
+
 
 
 static int put_number(unsigned char *buffer,int which, int x, int y) {
