@@ -373,7 +373,7 @@ static void piano_halfkey(int note, unsigned char *buffer) {
 
 	int offset;
 
-	offset=2+note*2;
+	offset=1+note*2;
 
 	buffer[offset]|=0xff;
 	buffer[offset+1]|=0x0f;
@@ -384,7 +384,7 @@ static void piano_sharpkey(int note, unsigned char *buffer) {
 
 	int offset;
 
-	offset=2+note*2;
+	offset=1+note*2;
 
 	buffer[offset+1]|=0xf0;
 
@@ -395,7 +395,7 @@ static void piano_fullkey(int note, unsigned char *buffer) {
 
 	int offset;
 
-	offset=2+note*2;
+	offset=1+note*2;
 
 	buffer[offset]|=0xff;
 	buffer[offset+1]|=0xff;
