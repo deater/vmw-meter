@@ -71,6 +71,11 @@ dump_ym5.o:	dump_ym5.c display.h ay-3-8910.h
 
 ###
 
+lib_lib.o:	lib_lib.c lib_lib.h
+	$(CC) $(CFLAGS) -c lib_lib.c
+
+###
+
 lyrics.o:	lyrics.c lyrics.h
 	$(CC) $(CFLAGS) -c lyrics.c
 
@@ -135,9 +140,12 @@ cpu_meter.o:	cpu_meter.c display.h
 
 ###
 
-pom:	pom.o $(DISPLAY) \
+lib_pom.o:	lib_pom.c
+	$(CC) $(CFLAGS) -c lib_pom.c
+
+pom:	pom.o lib_lib.o lib_pom.o $(DISPLAY) \
 		../lib/i2c_lib.o
-	$(CC) $(LFLAGS) -o pom pom.o \
+	$(CC) $(LFLAGS) -o pom pom.o lib_lib.o lib_pom.o \
 		$(DISPLAY) \
 		../lib/i2c_lib.o
 
