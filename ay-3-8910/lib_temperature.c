@@ -1,3 +1,7 @@
+/* TODO:
+	Skip through entries with < and >
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -12,6 +16,8 @@
 #include "display.h"
 
 #include "lib_lib.h"
+
+#define HISTORY_SIZE 16
 
 static double c_to_f(double temp) {
 
@@ -109,81 +115,63 @@ struct temp_type {
 	double w1;
 };
 
-static int display_temp(struct temp_type *t) {
+static int display_temp(struct temp_type *t, int which) {
 
 	char text[13];
         int i;
-	double w1_temp,pi_temp;
 
         for(i=0;i<13;i++) text[i]=0;
-
-	w1_temp=get_temp_w1();
-	pi_temp=get_temp_pi();
-
-	t->pi=pi_temp;
-	t->w1=w1_temp;
 
 	/* 0123456789AB */
 	/* W  79^F 79^C */
 
 	if (display_type&DISPLAY_I2C) {
-		sprintf(text,"TEMPERATURE");
+		if (which==0) {
+			sprintf(text,"TEMPERATURE");
+		}
+		else if (which==1) {
+			sprintf(text,"W1%3.0lf%cF %2.0lf%cC",
+				c_to_f(t->w1),0xb0,t->w1,0xb0);
+		}
+		else if (which==2) {
+			sprintf(text,"PI%3.0lf%cF %2.0lf%cC",
+				c_to_f(t->pi),0xb0,t->pi,0xb0);
+		}
 		display_14seg_string(DISPLAY_I2C,text);
-		sleep(3);
-
-		sprintf(text,"W1%3.0lf%cF %2.0lf%cC",
-			c_to_f(w1_temp),0xb0,w1_temp,0xb0);
-		display_14seg_string(DISPLAY_I2C,text);
-		sleep(3);
-
-		sprintf(text,"PI%3.0lf%cF %2.0lf%cC",
-			c_to_f(pi_temp),0xb0,pi_temp,0xb0);
-		display_14seg_string(DISPLAY_I2C,text);
-		sleep(3);
-
 	}
 	else {
-		printf("Temperature\n");
-		sleep(1);
-		printf("W1: %.1lf%cC %.0lf%cF\n",w1_temp,0xb0,c_to_f(w1_temp),0xb0);
-		sleep(1);
-		printf("Pi: %.1lf%cC %.0lf%cF\n",pi_temp,0xb0,c_to_f(pi_temp),0xb0);
-		sleep(1);
+		if (which==0) {
+			printf("Temperature\n");
+		}
+		else if (which==1) {
+			printf("W1: %.1lf%cC %.0lf%cF\n",
+				t->w1,0xb0,c_to_f(t->w1),0xb0);
+		}
+		else if (which==2) {
+			printf("Pi: %.1lf%cC %.0lf%cF\n",
+				t->pi,0xb0,c_to_f(t->pi),0xb0);
+		}
 	}
 
 	return 0;
 
 }
 
-#define HISTORY_SIZE 16
+
 
 int lib_temperature(void) {
 
-	int i;
-	int result;
+	int i,state=0;
 	int current_pointer=0;
 	int count=0;
 	unsigned char buffer[16];
-	int which;
+	int which,ch;
 	double pif,wif;
 
 	struct temp_type history[HISTORY_SIZE];
 	struct temp_type current;
 
-	result=display_init(DISPLAY_I2C);
-	if (result<0) {
-		display_type=DISPLAY_TEXT;
-	}
-
-//	for(i=0;i<16;i++) {
-//		if (i<8) buffer[i]=i%2?0xa5:0xff;
-//		else {
-//			buffer[i]=1<<(i-8);
-//		}
-//	}
-
-//	display_8x16_vertical(display_type,buffer);
-
+	double w1_temp,pi_temp;
 
 	/* Make invalid entries invalid */
 	for(i=0;i<HISTORY_SIZE;i++) {
@@ -194,8 +182,41 @@ int lib_temperature(void) {
 	while(1) {
 
 		/* This should take roughly 15 seconds */
-		display_temp(&current);
-		sleep(6);
+
+		state=0;
+		display_temp(&current,state);
+
+		w1_temp=get_temp_w1();
+		pi_temp=get_temp_pi();
+
+		current.pi=pi_temp;
+		current.w1=w1_temp;
+		ch=sleep_unless_keypress(3);
+		if ((ch==CMD_EXIT_PROGRAM) || (ch==CMD_CANCEL)) {
+			break;
+		}
+
+		state++;
+		display_temp(&current,state);
+		ch=sleep_unless_keypress(3);
+		if ((ch==CMD_EXIT_PROGRAM) || (ch==CMD_CANCEL)) {
+			break;
+		}
+
+		state++;
+		display_temp(&current,state);
+
+		ch=sleep_unless_keypress(3);
+		if ((ch==CMD_EXIT_PROGRAM) || (ch==CMD_CANCEL)) {
+			break;
+		}
+
+		state=0;
+
+		ch=sleep_unless_keypress(6);
+		if ((ch==CMD_EXIT_PROGRAM) || (ch==CMD_CANCEL)) {
+			break;
+		}
 
 		count++;
 
@@ -245,9 +266,6 @@ int lib_temperature(void) {
 			display_8x16_vertical(display_type,buffer);
 		}
 	}
-
-	/* Quiet down the chips */
-	display_shutdown(display_type);
 
 	return 0;
 }

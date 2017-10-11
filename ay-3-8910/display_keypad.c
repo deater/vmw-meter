@@ -55,10 +55,10 @@ int display_raw_keypad_read(int display_type) {
 	static int keypad_skip=0;
 
 	/* Read from keypad */
-	if ((display_type&DISPLAY_I2C) && (keypad_skip==2)) {
+	if ((display_type&DISPLAY_I2C) && (keypad_skip==0)) {
 		keypad=read_keypad(i2c_fd,HT16K33_ADDRESS0);
 		if (keypad!=old_keypad) {
-			printf("KEY: %lld\n",keypad);
+			//printf("KEY: %lld\n",keypad);
 			old_keypad=keypad;
 			if (keypad!=0) {
 				if (keypad&32) ch=CMD_RW;	/* rewind */
@@ -71,9 +71,9 @@ int display_raw_keypad_read(int display_type) {
 				if (keypad&4096) ch=CMD_FF;	/* ffwd */
 			}
 		}
-		keypad_skip=0;
 	}
 	keypad_skip++;
+	if (keypad_skip>2) keypad_skip=0;
 
 	return ch;
 
@@ -187,7 +187,14 @@ int display_keypad_read(int display_type) {
 
 int display_keypad_clear(int display_type) {
 
-	while(display_keypad_read(display_type));
+	int ch;
+
+	while(1) {
+
+		ch=display_keypad_read(display_type);
+		if (ch==0) break;
+//		printf("Read %d\n",ch);
+	}
 
 	return 0;
 }

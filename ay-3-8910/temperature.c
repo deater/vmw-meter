@@ -23,7 +23,7 @@ static void print_help(int just_version, char *exec_name) {
 
 int main(int argc, char **argv) {
 
-	int c;
+	int c,result;
 
 	/* Setup control-C handler to quiet the music	*/
 	/* otherwise if you force quit it keeps playing	*/
@@ -48,6 +48,11 @@ int main(int argc, char **argv) {
 				print_help(0,argv[0]);
 				break;
 		}
+	}
+
+	result=display_init(DISPLAY_I2C);
+	if (result<0) {
+		display_type=DISPLAY_TEXT;
 	}
 
 	lib_temperature();
