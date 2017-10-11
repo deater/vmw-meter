@@ -103,9 +103,12 @@ organ.o:	organ.c ay-3-8910.h display.h
 
 ###
 
-temperature:	temperature.o $(DISPLAY) \
+lib_temperature.o:	lib_temperature.c
+	$(CC) $(CFLAGS) -c lib_temperature.c
+
+temperature:	temperature.o lib_lib.o lib_temperature.o $(DISPLAY) \
 		../lib/i2c_lib.o
-	$(CC) $(LFLAGS) -o temperature temperature.o \
+	$(CC) $(LFLAGS) -o temperature lib_lib.o lib_temperature.o temperature.o \
 		$(DISPLAY) \
 		../lib/i2c_lib.o
 
