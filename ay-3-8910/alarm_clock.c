@@ -97,13 +97,12 @@ static void quiet_and_exit(int sig) {
 
 
 
-int main(int argc, char **argv) {
+int lib_clock(void) {
 
 	int i;
 
 	time_t seconds;  /* Y2038 problem! */
 	unsigned int reverse_seconds;
-	int result;
 
 	struct tm *breakdown;
 	char out_string[13];
@@ -127,15 +126,6 @@ int main(int argc, char **argv) {
     };
 #endif
 
-	/* Setup control-C handler to quiet the music   */
-	/* otherwise if you force quit it keeps playing */
-	/* the last tones */
-	signal(SIGINT, quiet_and_exit);
-
-	result=display_init(DISPLAY_I2C);
-	if (result<0) {
-		display_type=DISPLAY_TEXT;
-	}
 
 	while(1) {
 		seconds=time(NULL);
@@ -217,9 +207,29 @@ int main(int argc, char **argv) {
 		usleep(200000);
 	}
 
-	display_shutdown(display_type);
 
 	return 0;
 }
 
 
+int main(int argc, char **argv) {
+
+
+	int result;
+
+	/* Setup control-C handler to quiet the music   */
+	/* otherwise if you force quit it keeps playing */
+	/* the last tones */
+	signal(SIGINT, quiet_and_exit);
+
+	result=display_init(DISPLAY_I2C);
+	if (result<0) {
+		display_type=DISPLAY_TEXT;
+	}
+
+	lib_clock();
+
+	display_shutdown(display_type);
+
+	return 0;
+}
