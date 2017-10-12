@@ -118,9 +118,12 @@ temperature.o:	temperature.c display.h
 
 ###
 
-alarm_clock:	alarm_clock.o $(DISPLAY) \
+lib_clock.o:	lib_clock.c lib_lib.h
+	$(CC) $(CFLAGS) -c lib_clock.c
+
+alarm_clock:	alarm_clock.o lib_lib.o lib_clock.o $(DISPLAY) \
 		../lib/i2c_lib.o ay-3-8910.o max98306.o 
-	$(CC) $(LFLAGS) -o alarm_clock alarm_clock.o \
+	$(CC) $(LFLAGS) -o alarm_clock alarm_clock.o lib_lib.o lib_clock.o \
 		$(DISPLAY) \
 		ay-3-8910.o max98306.o \
 		/usr/local/lib/libbcm2835.a \
