@@ -213,7 +213,30 @@ int initialize_ay_3_8910(int output_use_gpio) {
 	}
 	else {
 		bcm2835_spi_begin();
-		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_4096 );
+
+//		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_2 );
+		// 2 doesn't work (125MHz)
+//		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_4 );
+		// 4 does seem to work, 62.5MHz 
+//		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_8 );
+		// 8 does too (31.2MHz)
+
+
+		// Datasheet for 74HC595 sounds like they recommend
+		// no faster than 25MHz at 5V
+		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_16 );
+		// Divider of 16, roughly 15.6MHz
+
+
+//		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32 );
+		// 32 works (7MHz)
+//		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_1024 );
+		// 1024 works fine (240kHz)
+		//bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_2048 );
+		// 2048 works fine (120kHz)
+	// Needs to be at least 4096 to hit 50Hz
+//		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_4096 );
+//		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_8192 );
 //		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_16384 );
 //		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32768 );
 		bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
