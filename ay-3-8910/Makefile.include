@@ -1,6 +1,10 @@
 CC = gcc
-CFLAGS = -O2 -Wall -I../include -g
+AR = ar
+CFLAGS = -O2 -Wall -g
 LFLAGS = -lm
+
+# Change this if installed elsewhere
+LIBBCM2835 = /usr/local/lib/libbcm2835.a
 
 # Comment these out if you don't want LHA decompression
 USE_LIBLHASA=-DUSE_LIBLHASA

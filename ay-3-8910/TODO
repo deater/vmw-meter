@@ -1,5 +1,10 @@
+Split the visualizations out from 8x16, then remove notes.o linkage
+
 Glados:
 	Quit if quit pressed
+
+Temperature:
+	spawn pthread to measure temperature
 
 Visualization:
 	Waterfall (better scaling to use whole range)

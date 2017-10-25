@@ -8,8 +8,7 @@
 #include <termios.h>
 #include <fcntl.h>
 
-#include "ymlib/stats.h"
-
+#include "stats.h"
 #include "display.h"
 
 #if USE_LINUX_I2C==1
@@ -22,7 +21,7 @@
 
 #include "font.h"
 
-#include "noteslib/notes.h"
+#include "../noteslib/notes.h"
 
 /* Raw format for adafruit 8x16 display */
 /* buffer[0] = 0   (says to start at address 0) */

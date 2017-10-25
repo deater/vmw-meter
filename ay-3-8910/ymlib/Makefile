@@ -1,6 +1,6 @@
 include ../Makefile.include
 
-AY_INCLUDE = -I../chiptune_board/
+AY_INCLUDE = -I../chiptune_audio/
 
 CC = gcc
 CFLAGS = -O2 -Wall -I../include -g
@@ -17,10 +17,10 @@ all:	ym_lib.o ym_play.o
 
 ###
 
-ym_lib.o:	ym_lib.c ym_lib.h ../chiptune_board/ay-3-8910.h
+ym_lib.o:	ym_lib.c ym_lib.h ../chiptune_audio/ay-3-8910.h
 	$(CC) $(CFLAGS) $(AY_INCLUDE) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c ym_lib.c
 
-ym_play.o:	ym_play.c ym_lib.h ../chiptune_board/ay-3-8910.h
+ym_play.o:	ym_play.c ym_lib.h ../chiptune_audio/ay-3-8910.h
 	$(CC) $(CFLAGS) $(AY_INCLUDE) -c ym_play.c
 
 

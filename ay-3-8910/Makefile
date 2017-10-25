@@ -1,18 +1,13 @@
 include Makefile.include
 
-AY_INCLUDE = -I./chiptune_board/
+DISPLAY_INCLUDE = -I./chiptune_display/
+AUDIO_INCLUDE = -I./chiptune_audio/
 YM_INCLUDE = -I./ymlib/
 
-DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_14seg.o ./noteslib/notes.o
 
 all:	play_ym organ glados temperature falling_blocks \
 	pom cpu_meter alarm_clock tengwar
 	cd conversion_tools && make
-
-###
-
-../lib/i2c_lib.o:	../lib/i2c_lib.c
-	cd ../lib && make
 
 ###
 
@@ -25,195 +20,147 @@ noteslib/notes.o:	./noteslib/notes.c
 ./ymlib/ym_play.o:	./ymlib/ym_play.c
 	cd ymlib && make
 
-###
+chiptune_display/display.a:	
+	cd chiptune_display && make
 
-play_ym:	play_ym.o ./chiptune_board/ay-3-8910.o max98306.o \
-			ymlib/ym_lib.o ymlib/ym_play.o \
-			$(DISPLAY) \
-			../lib/i2c_lib.o
-	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o play_ym play_ym.o ./chiptune_board/ay-3-8910.o \
-			max98306.o \
-			$(DISPLAY) ymlib/ym_lib.o ymlib/ym_play.o \
-			../lib/i2c_lib.o /usr/local/lib/libbcm2835.a
-
-play_ym.o:	play_ym.c display.h ./chiptune_board/ay-3-8910.h
-	$(CC) $(CFLAGS) $(AY_INCLUDE) $(YM_INCLUDE) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c play_ym.c
-
+chiptune_audio/audio.a:	
+	cd chiptune_audio && make
 
 ###
 
 lib_lib.o:	lib_lib.c lib_lib.h
-	$(CC) $(CFLAGS) -c lib_lib.c
+	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c lib_lib.c
+
+###
+
+play_ym:	play_ym.o ./chiptune_audio/audio.a \
+			ymlib/ym_lib.o ymlib/ym_play.o \
+			./chiptune_display/display.a \
+			./noteslib/notes.o
+	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o play_ym play_ym.o \
+			./chiptune_audio/audio.a \
+			ymlib/ym_lib.o ymlib/ym_play.o \
+			./chiptune_display/display.a \
+			./noteslib/notes.o \
+			$(LIBBCM2835)
+
+play_ym.o:	play_ym.c ./chiptune_display/display.h ./chiptune_audio/ay-3-8910.h
+	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) $(AUDIO_INCLUDE) $(YM_INCLUDE) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c play_ym.c
+
 
 ###
 
 lyrics.o:	lyrics.c lyrics.h
 	$(CC) $(CFLAGS) -c lyrics.c
 
-glados:	glados.o ../lib/i2c_lib.o ./chiptune_board/ay-3-8910.o \
+glados:	glados.o chiptune_audio/audio.a \
 		./ymlib/ym_lib.o ./ymlib/ym_play.o lyrics.o \
-		max98306.o \
-		$(DISPLAY)
+		chiptune_display/display.a noteslib/notes.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o glados glados.o \
-			lyrics.o ./chiptune_board/ay-3-8910.o \
-			./ymlib/ym_lib.o ./ymlib/ym_play.o max98306.o \
-			../lib/i2c_lib.o \
-			$(DISPLAY) \
-			/usr/local/lib/libbcm2835.a
+			lyrics.o noteslib/notes.o \
+			./ymlib/ym_lib.o ./ymlib/ym_play.o \
+			chiptune_audio/audio.a \
+			chiptune_display/display.a \
+			$(LIBBCM2835)
 
-glados.o:	glados.c display.h ./ymlib/ym_lib.h glados_ascii_art.h
-	$(CC) $(CFLAGS) $(AY_INCLUDE) $(YM_INCLUDE) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c glados.c
+glados.o:	glados.c chiptune_display/display.h ymlib/ym_lib.h glados_ascii_art.h
+	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) $(DISPLAY_INCLUDE) $(YM_INCLUDE) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c glados.c
 
 ###
 
-organ:	organ.o ./chiptune_board/ay-3-8910.o max98306.o $(DISPLAY)
+organ:	organ.o chiptune_audio/audio.a chiptune_display/display.a noteslib/notes.o
 	$(CC) $(LFLAGS) -o organ organ.o \
-		./chiptune_board/ay-3-8910.o max98306.o \
-		../lib/i2c_lib.o $(DISPLAY) /usr/local/lib/libbcm2835.a
+		chiptune_audio/audio.a \
+		chiptune_display/display.a \
+		noteslib/notes.o \
+		$(LIBBCM2835)
 
-organ.o:	organ.c ./chiptune_board/ay-3-8910.h display.h
-	$(CC) $(CFLAGS) $(AY_INCLUDE) -c organ.c
+organ.o:	organ.c chiptune_audio/ay-3-8910.h chiptune_display/display.h
+	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) $(DISPLAY_INCLUDE) -c organ.c
 
 ###
 
 lib_temperature.o:	lib_temperature.c
-	$(CC) $(CFLAGS) -c lib_temperature.c
+	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c lib_temperature.c
 
-temperature:	temperature.o lib_lib.o lib_temperature.o $(DISPLAY) \
-		../lib/i2c_lib.o
+temperature:	temperature.o lib_lib.o lib_temperature.o \
+		chiptune_display/display.a  noteslib/notes.o
 	$(CC) $(LFLAGS) -o temperature lib_lib.o lib_temperature.o temperature.o \
-		$(DISPLAY) \
-		../lib/i2c_lib.o
+		chiptune_display/display.a noteslib/notes.o
 
-temperature.o:	temperature.c display.h
-	$(CC) $(CFLAGS) -c temperature.c
+temperature.o:	temperature.c chiptune_display/display.h
+	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c temperature.c
 
 
 ###
 
 lib_clock.o:	lib_clock.c lib_lib.h
-	$(CC) $(CFLAGS) $(AY_INCLUDE) -c lib_clock.c
+	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) $(DISPLAY_INCLUDE) -c lib_clock.c
 
-alarm_clock:	alarm_clock.o lib_lib.o lib_clock.o $(DISPLAY) \
-		../lib/i2c_lib.o chiptune_board/ay-3-8910.o max98306.o 
+alarm_clock:	alarm_clock.o lib_lib.o lib_clock.o \
+		chiptune_display/display.a \
+		chiptune_audio/audio.a noteslib/notes.o
 	$(CC) $(LFLAGS) -o alarm_clock alarm_clock.o lib_lib.o lib_clock.o \
-		$(DISPLAY) \
-		chiptune_board/ay-3-8910.o max98306.o \
-		/usr/local/lib/libbcm2835.a \
-		../lib/i2c_lib.o
+		chiptune_display/display.a noteslib/notes.o \
+		chiptune_audio/audio.a \
+		$(LIBBCM2835)
 
-
-alarm_clock.o:	alarm_clock.c display.h
-	$(CC) $(CFLAGS) $(AY_INCLUDE) -c alarm_clock.c
+alarm_clock.o:	alarm_clock.c chiptune_display/display.h
+	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) $(DISPLAY_INCLUDE) -c alarm_clock.c
 
 ###
 
-cpu_meter:	cpu_meter.o $(DISPLAY) \
-		../lib/i2c_lib.o
+cpu_meter:	cpu_meter.o chiptune_display/display.a noteslib/notes.o
 	$(CC) $(LFLAGS) -o cpu_meter cpu_meter.o \
-		$(DISPLAY) \
-		../lib/i2c_lib.o
+		chiptune_display/display.a  noteslib/notes.o
 
-cpu_meter.o:	cpu_meter.c display.h
-	$(CC) $(CFLAGS) -c cpu_meter.c
+cpu_meter.o:	cpu_meter.c chiptune_display/display.h
+	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c cpu_meter.c
 
 ###
 
 lib_pom.o:	lib_pom.c
-	$(CC) $(CFLAGS) -c lib_pom.c
+	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c lib_pom.c
 
-pom:	pom.o lib_lib.o lib_pom.o $(DISPLAY) \
-		../lib/i2c_lib.o
+pom:	pom.o lib_lib.o lib_pom.o chiptune_display/display.a noteslib/notes.o
 	$(CC) $(LFLAGS) -o pom pom.o lib_lib.o lib_pom.o \
-		$(DISPLAY) \
-		../lib/i2c_lib.o
+		chiptune_display/display.a noteslib/notes.o
 
-pom.o:	pom.c display.h
-	$(CC) $(CFLAGS) -c pom.c
+pom.o:	pom.c chiptune_display/display.h
+	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c pom.c
 
 ###
 
-tengwar:	tengwar.o $(DISPLAY) \
-		../lib/i2c_lib.o
-	$(CC) $(LFLAGS) -o tengwar tengwar.o \
-		$(DISPLAY) \
-		../lib/i2c_lib.o
+tengwar:	tengwar.o chiptune_display/display.a noteslib/notes.o
+	$(CC) $(LFLAGS) -o tengwar tengwar.o chiptune_display/display.a noteslib/notes.o
 
-tengwar.o:	tengwar.c display.h
-	$(CC) $(CFLAGS) -c tengwar.c
+tengwar.o:	tengwar.c chiptune_display/display.h
+	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c tengwar.c
 
 
 ###
 
 falling_blocks:	falling_blocks.o \
-		$(DISPLAY) \
-		../lib/i2c_lib.o ./chiptune_board/ay-3-8910.o \
-		./ymlib/ym_lib.o ./ymlib/ym_play.o lyrics.o \
-		max98306.o display.o display_bargraph.o
+		chiptune_display/display.a \
+		chiptune_audio/audio.a noteslib/notes.o \
+		ymlib/ym_lib.o ./ymlib/ym_play.o lyrics.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o falling_blocks falling_blocks.o \
-		../lib/i2c_lib.o ./chiptune_board/ay-3-8910.o \
+		chiptune_audio/audio.a \
 		ymlib/ym_lib.o ymlib/ym_play.o lyrics.o \
-		max98306.o \
-		$(DISPLAY) \
-		/usr/local/lib/libbcm2835.a
+		chiptune_display/display.a noteslib/notes.o \
+		$(LIBBCM2835)
 
-falling_blocks.o:	falling_blocks.c display.h
-	$(CC) $(CFLAGS) $(AY_INCLUDE) $(YM_INCLUDE) -c falling_blocks.c
-
-
+falling_blocks.o:	falling_blocks.c chiptune_display/display.h
+	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) $(DISPLAY_INCLUDE) $(YM_INCLUDE) -c falling_blocks.c
 
 ###
-
-test_font:	test_font.o $(DISPLAY) ../lib/i2c_lib.o
-	$(CC) $(LFLAGS) -o test_font test_font.o $(DISPLAY) ../lib/i2c_lib.o
-
-test_font.o:	test_font.c display.h
-	$(CC) $(CFLAGS) -c test_font.c
-
-####
-
-test_8x16:	test_8x16.o $(DISPLAY) ../lib/i2c_lib.o
-	$(CC) $(LFLAGS) -o test_8x16 test_8x16.o $(DISPLAY) \
-		../lib/i2c_lib.o
-
-test_8x16.o:	test_8x16.c display.h
-	$(CC) $(CFLAGS) -c test_8x16.c
-
-
-###
-
-ay-3-8910.o:	ay-3-8910.c ay-3-8910.h
-	$(CC) $(CFLAGS) -c ay-3-8910.c
-
-display.o:	display.c display.h font.h
-	$(CC) $(CFLAGS) -c display.c
-
-display_bargraph.o:	display_bargraph.c display.h
-	$(CC) $(CFLAGS) -c display_bargraph.c
-
-display_keypad.o:	display_keypad.c display.h
-	$(CC) $(CFLAGS) -c display_keypad.c
-
-display_8x16.o:	display_8x16.c display.h
-	$(CC) $(CFLAGS) -c display_8x16.c
-
-display_14seg.o:	display_14seg.c 14seg_font.h display.h font.h
-	$(CC) $(CFLAGS) -c display_14seg.c
-
-
-
-max98306.o:	max98306.c max98306.h
-	$(CC) $(CFLAGS) -c max98306.c
-
-notes.o:	notes.c notes.h
-	$(CC) $(CFLAGS) -c notes.c
-
 
 clean:	
 	rm -f *~ *.o play_ym organ glados \
 		falling_blocks temperature pom cpu_meter \
 		alarm_clock tengwar
-	cd chiptune_board && make clean
+	cd chiptune_audio && make clean
+	cd chiptune_display && make clean
 	cd conversion_tools && make clean
 	cd noteslib && make clean
 	cd tests && make clean
