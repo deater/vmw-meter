@@ -3,7 +3,7 @@ include Makefile.include
 DISPLAY_INCLUDE = -I./chiptune_display/
 AUDIO_INCLUDE = -I./chiptune_audio/
 YM_INCLUDE = -I./ymlib/
-
+VISUAL_INCLUDE = -I./visualizations/
 
 all:	play_ym organ glados temperature falling_blocks \
 	pom cpu_meter alarm_clock tengwar
@@ -14,10 +14,10 @@ all:	play_ym organ glados temperature falling_blocks \
 noteslib/notes.o:	./noteslib/notes.c
 	cd noteslib && make
 
-./ymlib/ym_lib.o:	./ymlib/ym_lib.c
+ymlib/ym_lib.o:	ymlib/ym_lib.c
 	cd ymlib && make
 
-./ymlib/ym_play.o:	./ymlib/ym_play.c
+ymlib/ym_play.o:	ymlib/ym_play.c
 	cd ymlib && make
 
 chiptune_display/display.a:	
@@ -25,6 +25,9 @@ chiptune_display/display.a:
 
 chiptune_audio/audio.a:	
 	cd chiptune_audio && make
+
+visualizations/visual.a:
+	cd visualizations && make
 
 ###
 
@@ -35,17 +38,21 @@ lib_lib.o:	lib_lib.c lib_lib.h
 
 play_ym:	play_ym.o ./chiptune_audio/audio.a \
 			ymlib/ym_lib.o ymlib/ym_play.o \
-			./chiptune_display/display.a \
-			./noteslib/notes.o
+			chiptune_display/display.a \
+			visualizations/visual.a \
+			noteslib/notes.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o play_ym play_ym.o \
 			./chiptune_audio/audio.a \
 			ymlib/ym_lib.o ymlib/ym_play.o \
-			./chiptune_display/display.a \
-			./noteslib/notes.o \
+			chiptune_display/display.a \
+			visualizations/visual.a \
+			noteslib/notes.o \
 			$(LIBBCM2835)
 
 play_ym.o:	play_ym.c ./chiptune_display/display.h ./chiptune_audio/ay-3-8910.h
-	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) $(AUDIO_INCLUDE) $(YM_INCLUDE) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c play_ym.c
+	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) $(AUDIO_INCLUDE) \
+		$(VISUAL_INCLUDE) $(YM_INCLUDE) \
+		$(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c play_ym.c
 
 
 ###
@@ -55,9 +62,9 @@ lyrics.o:	lyrics.c lyrics.h
 
 glados:	glados.o chiptune_audio/audio.a \
 		./ymlib/ym_lib.o ./ymlib/ym_play.o lyrics.o \
-		chiptune_display/display.a noteslib/notes.o
+		chiptune_display/display.a
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o glados glados.o \
-			lyrics.o noteslib/notes.o \
+			lyrics.o \
 			./ymlib/ym_lib.o ./ymlib/ym_play.o \
 			chiptune_audio/audio.a \
 			chiptune_display/display.a \
@@ -84,9 +91,9 @@ lib_temperature.o:	lib_temperature.c
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c lib_temperature.c
 
 temperature:	temperature.o lib_lib.o lib_temperature.o \
-		chiptune_display/display.a  noteslib/notes.o
+		chiptune_display/display.a
 	$(CC) $(LFLAGS) -o temperature lib_lib.o lib_temperature.o temperature.o \
-		chiptune_display/display.a noteslib/notes.o
+		chiptune_display/display.a
 
 temperature.o:	temperature.c chiptune_display/display.h
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c temperature.c
@@ -99,9 +106,9 @@ lib_clock.o:	lib_clock.c lib_lib.h
 
 alarm_clock:	alarm_clock.o lib_lib.o lib_clock.o \
 		chiptune_display/display.a \
-		chiptune_audio/audio.a noteslib/notes.o
+		chiptune_audio/audio.a
 	$(CC) $(LFLAGS) -o alarm_clock alarm_clock.o lib_lib.o lib_clock.o \
-		chiptune_display/display.a noteslib/notes.o \
+		chiptune_display/display.a \
 		chiptune_audio/audio.a \
 		$(LIBBCM2835)
 
@@ -110,9 +117,9 @@ alarm_clock.o:	alarm_clock.c chiptune_display/display.h
 
 ###
 
-cpu_meter:	cpu_meter.o chiptune_display/display.a noteslib/notes.o
+cpu_meter:	cpu_meter.o chiptune_display/display.a
 	$(CC) $(LFLAGS) -o cpu_meter cpu_meter.o \
-		chiptune_display/display.a  noteslib/notes.o
+		chiptune_display/display.a
 
 cpu_meter.o:	cpu_meter.c chiptune_display/display.h
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c cpu_meter.c
@@ -122,17 +129,17 @@ cpu_meter.o:	cpu_meter.c chiptune_display/display.h
 lib_pom.o:	lib_pom.c
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c lib_pom.c
 
-pom:	pom.o lib_lib.o lib_pom.o chiptune_display/display.a noteslib/notes.o
+pom:	pom.o lib_lib.o lib_pom.o chiptune_display/display.a
 	$(CC) $(LFLAGS) -o pom pom.o lib_lib.o lib_pom.o \
-		chiptune_display/display.a noteslib/notes.o
+		chiptune_display/display.a
 
 pom.o:	pom.c chiptune_display/display.h
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c pom.c
 
 ###
 
-tengwar:	tengwar.o chiptune_display/display.a noteslib/notes.o
-	$(CC) $(LFLAGS) -o tengwar tengwar.o chiptune_display/display.a noteslib/notes.o
+tengwar:	tengwar.o chiptune_display/display.a
+	$(CC) $(LFLAGS) -o tengwar tengwar.o chiptune_display/display.a
 
 tengwar.o:	tengwar.c chiptune_display/display.h
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c tengwar.c
@@ -142,12 +149,12 @@ tengwar.o:	tengwar.c chiptune_display/display.h
 
 falling_blocks:	falling_blocks.o \
 		chiptune_display/display.a \
-		chiptune_audio/audio.a noteslib/notes.o \
+		chiptune_audio/audio.a \
 		ymlib/ym_lib.o ./ymlib/ym_play.o lyrics.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o falling_blocks falling_blocks.o \
 		chiptune_audio/audio.a \
 		ymlib/ym_lib.o ymlib/ym_play.o lyrics.o \
-		chiptune_display/display.a noteslib/notes.o \
+		chiptune_display/display.a \
 		$(LIBBCM2835)
 
 falling_blocks.o:	falling_blocks.c chiptune_display/display.h
@@ -164,4 +171,5 @@ clean:
 	cd conversion_tools && make clean
 	cd noteslib && make clean
 	cd tests && make clean
+	cd visualizations && make clean
 	cd ymlib && make clean

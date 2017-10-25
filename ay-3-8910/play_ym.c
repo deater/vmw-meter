@@ -21,6 +21,7 @@
 #include "display.h"
 #include "ym_lib.h"
 #include "max98306.h"
+#include "visualizations.h"
 
 #include "version.h"
 

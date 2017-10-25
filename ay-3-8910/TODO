@@ -1,22 +1,6 @@
-Split the visualizations out from 8x16, then remove notes.o linkage
-
-Glados:
-	Quit if quit pressed
-
-Temperature:
-	spawn pthread to measure temperature
-
-Visualization:
-	Waterfall (better scaling to use whole range)
-	Some sort of fire/blob visualization
-	Print the 3 notes being played on alphanum
-	Piano, grid of 12x8 showing which note being played
-	Square wave
-
-
-Set up to generate interrupt and disable speakers if
+Kiosk:
+* Set up to generate interrupt and disable speakers if
 	disable switch flipped.
-
 
 kiosk mode -- wait on title screen for you to hit play
 	Playlists?
@@ -26,20 +10,6 @@ kiosk mode -- wait on title screen for you to hit play
 	way to set alarm
 	automount a USB disk full of YM5 files?
 
-Games/Features
-	Pong/breakout:	sound effects?
-	Tetris:
-		Score/level/next block
-		play music?
-		Ay-3-8910 sound effects?
-	Tengwar
-	organ
-	cpu meter
-	glados kareoke
-	Temperature
-	Alarm Clock
-	Phase of Moon
-
 Options:
 	Games
 	Music
@@ -47,3 +17,25 @@ Options:
 	Weather station?
 	Phase of Moon?
 	Alarm Clock
+
+
+Build:
+* Split the visualizations out from 8x16, then remove notes.o linkage
+
+Glados:
+* Quit if quit pressed
+
+Temperature:
+* spawn pthread to measure temperature
+
+Visualization:
+* Waterfall (better scaling to use whole range)
+* Some sort of fire/blob visualization
+* Print the 3 notes being played on alphanum
+* Square wave
+
+New Games/Features
+* Pong/breakout:	sound effects?
+
+
+

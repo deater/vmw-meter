@@ -32,7 +32,7 @@ display.a:	$(DISPLAY)
 
 ###
 
-display.o:	display.c display.h font.h
+display.o:	display.c display.h 
 	$(CC) $(CFLAGS) $(YM_INCLUDE) $(I2C_INCLUDE) -c display.c
 
 display_bargraph.o:	display_bargraph.c display.h
@@ -44,17 +44,8 @@ display_keypad.o:	display_keypad.c display.h
 display_8x16.o:	display_8x16.c display.h
 	$(CC) $(CFLAGS) $(YM_INCLUDE) $(I2C_INCLUDE) -c display_8x16.c
 
-display_14seg.o:	display_14seg.c 14seg_font.h display.h font.h
+display_14seg.o:	display_14seg.c 14seg_font.h display.h 
 	$(CC) $(CFLAGS) $(YM_INCLUDE) $(I2C_INCLUDE) -c display_14seg.c
-
-
-
-max98306.o:	max98306.c max98306.h
-	$(CC) $(CFLAGS) -c max98306.c
-
-notes.o:	notes.c notes.h
-	$(CC) $(CFLAGS) -c notes.c
-
 
 clean:	
 	rm -f *~ *.o *.a

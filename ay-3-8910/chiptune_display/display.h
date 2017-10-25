@@ -63,12 +63,6 @@ int display_keypad_repeat_until_keypressed(int display_type);
 /********************* display_8x16.c */
 int display_8x16_raw(int display_type, unsigned char *buffer);
 int display_8x16_led_art(int display_type, short led_art[10][8], int which);
-int display_8x16_freq(int display_type, struct display_stats *ds);
-int display_8x16_time(int display_type, int current_frame, int total_frames);
-int display_8x16_title(int display_type);
-int display_8x16_scroll_text(int display_type, char *string, int new_string);
-int display_8x16_piano(int display_type, struct display_stats *ds);
-int display_8x16_notematrix(int display_type, struct display_stats *ds);
 
 int display_8x16_vertical(int display_type, unsigned char *in_buffer);
 int display_8x16_vertical_inverted(int display_type, unsigned char *in_buffer);
@@ -81,11 +75,6 @@ int close_8x16_display(int display_type);
 
 /********************* display.c */
 int display_init(int type);
-int display_update(int type,
-			struct display_stats *ds,
-			int current_frame, int num_frames,
-			char *filename, int new_filename,
-			int current_mode);
 int display_shutdown(int type);
 
 

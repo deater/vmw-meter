@@ -41,42 +41,6 @@ int i2c_fd=-1;
 static unsigned char display_buffer[DISPLAY_LINES];
 
 
-int display_update(int display_type,
-		struct display_stats *ds,
-		int current_frame, int num_frames,
-		char *filename, int new_filename,
-		int current_mode) {
-
-
-	bargraph_filled(display_type,ds);
-
-	switch(current_mode) {
-		case MODE_TITLE:
-			display_8x16_title(display_type);
-			break;
-		case MODE_VISUAL:
-			display_8x16_freq(display_type,ds);
-			break;
-		case MODE_NAME:
-			display_8x16_scroll_text(display_type, filename, new_filename);
-			break;
-		case MODE_TIME:
-			display_8x16_time(display_type, current_frame, num_frames);
-			break;
-		case MODE_NOTEMATRIX:
-			display_8x16_notematrix(display_type,ds);
-			break;
-		case MODE_PIANO:
-			display_8x16_piano(display_type,ds);
-			break;
-		default:
-			printf("Unknown visual mode!\n");
-			break;
-	}
-
-	return 0;
-}
-
 static struct termios saved_tty;
 
 
