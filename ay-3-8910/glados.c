@@ -12,9 +12,8 @@
 #include <sys/resource.h>
 #include <linux/i2c-dev.h>
 
-#include "stats.h"
+#include "ymlib/stats.h"
 #include "display.h"
-//#include "i2c_lib.h"
 
 #include "ay-3-8910.h"
 #include "ym_lib.h"

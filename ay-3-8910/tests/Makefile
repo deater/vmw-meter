@@ -1,13 +1,12 @@
-include Makefile.include
+include ../Makefile.include
 
 AY_INCLUDE = -I./chiptune_board/
 YM_INCLUDE = -I./ymlib/
 
 DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_14seg.o ./noteslib/notes.o
 
-all:	play_ym organ glados temperature falling_blocks \
-	pom cpu_meter alarm_clock tengwar
-	cd conversion_tools && make
+all:	test_font test_8x16
+
 
 ###
 
@@ -25,7 +24,8 @@ noteslib/notes.o:	./noteslib/notes.c
 ./ymlib/ym_play.o:	./ymlib/ym_play.c
 	cd ymlib && make
 
-###
+
+
 
 play_ym:	play_ym.o ./chiptune_board/ay-3-8910.o max98306.o \
 			ymlib/ym_lib.o ymlib/ym_play.o \
@@ -50,29 +50,27 @@ lib_lib.o:	lib_lib.c lib_lib.h
 lyrics.o:	lyrics.c lyrics.h
 	$(CC) $(CFLAGS) -c lyrics.c
 
-glados:	glados.o ../lib/i2c_lib.o ./chiptune_board/ay-3-8910.o \
-		./ymlib/ym_lib.o ./ymlib/ym_play.o lyrics.o \
+glados:	glados.o ../lib/i2c_lib.o ay-3-8910.o ym_lib.o lyrics.o \
 		max98306.o \
 		$(DISPLAY)
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o glados glados.o \
-			lyrics.o ./chiptune_board/ay-3-8910.o \
-			./ymlib/ym_lib.o ./ymlib/ym_play.o max98306.o \
+			lyrics.o ay-3-8910.o ym_lib.o max98306.o \
 			../lib/i2c_lib.o \
 			$(DISPLAY) \
 			/usr/local/lib/libbcm2835.a
 
-glados.o:	glados.c display.h ./ymlib/ym_lib.h glados_ascii_art.h
-	$(CC) $(CFLAGS) $(AY_INCLUDE) $(YM_INCLUDE) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c glados.c
+glados.o:	glados.c display.h ym_lib.h glados_ascii_art.h
+	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c glados.c
 
 ###
 
-organ:	organ.o ./chiptune_board/ay-3-8910.o max98306.o $(DISPLAY)
+organ:	organ.o ay-3-8910.o max98306.o $(DISPLAY)
 	$(CC) $(LFLAGS) -o organ organ.o \
-		./chiptune_board/ay-3-8910.o max98306.o \
+		ay-3-8910.o max98306.o \
 		../lib/i2c_lib.o $(DISPLAY) /usr/local/lib/libbcm2835.a
 
-organ.o:	organ.c ./chiptune_board/ay-3-8910.h display.h
-	$(CC) $(CFLAGS) $(AY_INCLUDE) -c organ.c
+organ.o:	organ.c ay-3-8910.h display.h
+	$(CC) $(CFLAGS) -c organ.c
 
 ###
 
@@ -92,19 +90,19 @@ temperature.o:	temperature.c display.h
 ###
 
 lib_clock.o:	lib_clock.c lib_lib.h
-	$(CC) $(CFLAGS) $(AY_INCLUDE) -c lib_clock.c
+	$(CC) $(CFLAGS) -c lib_clock.c
 
 alarm_clock:	alarm_clock.o lib_lib.o lib_clock.o $(DISPLAY) \
-		../lib/i2c_lib.o chiptune_board/ay-3-8910.o max98306.o 
+		../lib/i2c_lib.o ay-3-8910.o max98306.o 
 	$(CC) $(LFLAGS) -o alarm_clock alarm_clock.o lib_lib.o lib_clock.o \
 		$(DISPLAY) \
-		chiptune_board/ay-3-8910.o max98306.o \
+		ay-3-8910.o max98306.o \
 		/usr/local/lib/libbcm2835.a \
 		../lib/i2c_lib.o
 
 
 alarm_clock.o:	alarm_clock.c display.h
-	$(CC) $(CFLAGS) $(AY_INCLUDE) -c alarm_clock.c
+	$(CC) $(CFLAGS) -c alarm_clock.c
 
 ###
 
@@ -147,18 +145,17 @@ tengwar.o:	tengwar.c display.h
 
 falling_blocks:	falling_blocks.o \
 		$(DISPLAY) \
-		../lib/i2c_lib.o ./chiptune_board/ay-3-8910.o \
-		./ymlib/ym_lib.o ./ymlib/ym_play.o lyrics.o \
+		../lib/i2c_lib.o ay-3-8910.o \
+		ym_lib.o lyrics.o \
 		max98306.o display.o display_bargraph.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o falling_blocks falling_blocks.o \
-		../lib/i2c_lib.o ./chiptune_board/ay-3-8910.o \
-		ymlib/ym_lib.o ymlib/ym_play.o lyrics.o \
+		../lib/i2c_lib.o ay-3-8910.o ym_lib.o lyrics.o \
 		max98306.o \
 		$(DISPLAY) \
 		/usr/local/lib/libbcm2835.a
 
 falling_blocks.o:	falling_blocks.c display.h
-	$(CC) $(CFLAGS) $(AY_INCLUDE) $(YM_INCLUDE) -c falling_blocks.c
+	$(CC) $(CFLAGS) -c falling_blocks.c
 
 
 
@@ -210,11 +207,4 @@ notes.o:	notes.c notes.h
 
 
 clean:	
-	rm -f *~ *.o play_ym organ glados \
-		falling_blocks temperature pom cpu_meter \
-		alarm_clock tengwar
-	cd chiptune_board && make clean
-	cd conversion_tools && make clean
-	cd noteslib && make clean
-	cd tests && make clean
-	cd ymlib && make clean
+	rm -f *~ *.o test_font test_8x16

@@ -15,7 +15,7 @@
 #include <termios.h>
 #include <fcntl.h>
 
-#include "stats.h"
+#include "ymlib/stats.h"
 
 #include "display.h"
 

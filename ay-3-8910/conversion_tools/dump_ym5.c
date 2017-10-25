@@ -16,11 +16,12 @@
 
 //#include "ay-3-8910.h"
 //#include "display.h"
+
 #include "stats.h"
 #include "ym_lib.h"
 //#include "max98306.h"
 
-#include "version.h"
+#define VERSION "0.6"
 
 static void print_help(int just_version, char *exec_name) {
 

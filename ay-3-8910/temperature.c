@@ -6,7 +6,7 @@
 
 #include <sys/resource.h>
 
-#include "stats.h"
+#include "ymlib/stats.h"
 #include "display.h"
 
 #include "lib_lib.h"

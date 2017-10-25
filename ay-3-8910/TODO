@@ -1,3 +1,6 @@
+Glados:
+	Quit if quit pressed
+
 Visualization:
 	Waterfall (better scaling to use whole range)
 	Some sort of fire/blob visualization
@@ -15,7 +18,7 @@ kiosk mode -- wait on title screen for you to hit play
 	menu for picking songs?
 	menu for setting loop/repeat?
 	confirmation on shutdown
-
+	way to set alarm
 	automount a USB disk full of YM5 files?
 
 Games/Features

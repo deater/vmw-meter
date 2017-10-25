@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "stats.h"
+#include "ymlib/stats.h"
 #include "display.h"
 
 int display_type=DISPLAY_I2C;

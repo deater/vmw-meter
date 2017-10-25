@@ -140,7 +140,7 @@ static short led_art[16][8]={
 #include <unistd.h>
 #include <signal.h>
 
-#include "stats.h"
+#include "ymlib/stats.h"
 #include "display.h"
 
 #include "lib_lib.h"
