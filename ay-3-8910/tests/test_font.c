@@ -111,8 +111,9 @@ int main(int argc, char **argv) {
 
 	display_init(DISPLAY_I2C);
 
+	printf("Type the text you want to display...\n");
 
-	/* Play the song */
+	/* Print the text */
 	text_input();
 
 	/* Quiet down the chips */

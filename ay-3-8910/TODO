@@ -18,10 +18,6 @@ Options:
 	Phase of Moon?
 	Alarm Clock
 
-
-Build:
-* Split the visualizations out from 8x16, then remove notes.o linkage
-
 Glados:
 * Quit if quit pressed
 
