@@ -20,11 +20,11 @@
 
 int max98306_init(void) {
 
-	/* Initialize the GPIOs */
+	/**********************************/
+	/* Initialize the GPIO directions */
+	/**********************************/
 
-	/************/
-	/* SHUTDOWN */
-	/************/
+	/* Shutdown/Headphone GPIO */
 	bcm2835_gpio_fsel(SHUTDOWN_GPIO,  BCM2835_GPIO_FSEL_OUTP);
 	bcm2835_gpio_fsel(HEADPHONE_GPIO, BCM2835_GPIO_FSEL_INPT);
 

@@ -194,14 +194,17 @@ int initialize_ay_3_8910(int output_use_gpio) {
 
 	use_gpio=output_use_gpio;
 
-	printf("Initializing AY-3-8910, using %s\n",use_gpio?"GPIO":"SPI");
-
 	result=bcm2835_init();
 	/* 1 means success, 0 means failure.  Who does that? */
 	if (result==0) {
 		fprintf(stderr,"Error init libBCM2835!\n");
 		return -1;
 	}
+
+	printf("Initialized libBCM2835 version %d\n",
+		bcm2835_version());
+
+	printf("Initializing AY-3-8910, using %s\n",use_gpio?"GPIO":"SPI");
 
 	if (use_gpio) {
 		/* Enable GPIO17 */
