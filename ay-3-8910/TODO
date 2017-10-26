@@ -10,6 +10,9 @@ kiosk mode -- wait on title screen for you to hit play
 	way to set alarm
 	automount a USB disk full of YM5 files?
 
+Clock:
+* ability to set time
+
 Options:
 	Games
 	Music
@@ -32,6 +35,3 @@ Visualization:
 
 New Games/Features
 * Pong/breakout:	sound effects?
-
-
-
