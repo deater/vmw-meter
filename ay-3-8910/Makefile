@@ -5,7 +5,7 @@ AUDIO_INCLUDE = -I./chiptune_audio/
 YM_INCLUDE = -I./ymlib/
 VISUAL_INCLUDE = -I./visualizations/
 
-all:	play_ym organ glados temperature falling_blocks \
+all:	kiosk play_ym organ glados temperature falling_blocks \
 	pom cpu_meter alarm_clock tengwar
 	cd conversion_tools && make
 
@@ -162,10 +162,25 @@ falling_blocks.o:	falling_blocks.c chiptune_display/display.h
 
 ###
 
+
+kiosk:	kiosk.o lib_lib.o lib_clock.o \
+		chiptune_display/display.a \
+		chiptune_audio/audio.a
+	$(CC) $(LFLAGS) -o kiosk kiosk.o lib_lib.o lib_clock.o \
+		chiptune_display/display.a \
+		chiptune_audio/audio.a \
+		$(LIBBCM2835)
+
+kiosk.o:	kiosk.c chiptune_display/display.h
+	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) $(DISPLAY_INCLUDE) -c kiosk.c
+
+####
+
+
 clean:	
 	rm -f *~ *.o play_ym organ glados \
 		falling_blocks temperature pom cpu_meter \
-		alarm_clock tengwar
+		alarm_clock tengwar kiosk
 	cd chiptune_audio && make clean
 	cd chiptune_display && make clean
 	cd conversion_tools && make clean

@@ -1,3 +1,8 @@
+Overall:
+	+ Set real-time priority
+	+ Make a bare-metal version?
+	+ Try on pre-empt enabled kernel?
+
 Kiosk:
 * Set up to generate interrupt and disable speakers if
 	disable switch flipped.

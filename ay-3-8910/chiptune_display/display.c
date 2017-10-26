@@ -26,11 +26,6 @@
 #include <bcm2835.h>
 #endif
 
-//static int current_mode=MODE_VISUAL;
-//static int kiosk_mode=0;
-
-
-
 #if USE_LINUX_I2C==1
 int i2c_fd=-1;
 #else
@@ -130,9 +125,7 @@ int display_shutdown(int display_type) {
 
 	/* read any lingering keypad presses */
 	if (display_type&DISPLAY_I2C) {
-#if 1
 		read_keypad(i2c_fd,HT16K33_ADDRESS0);
-#endif
 	}
 
 	if (display_type) {
@@ -146,5 +139,3 @@ int display_shutdown(int display_type) {
 
 	return 0;
 }
-
-

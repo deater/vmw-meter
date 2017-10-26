@@ -1,12 +1,6 @@
-/* A simple clock appication.  */
-/* Prints the time on the alphanum segments */
-/* Puts UNIX time along the bargraphs segments */
-/* Day of the week on the colored LEDs */
-/* Occasionally the month/day/year is also displayed */
-
-// Day/date on 8x16
-// Unix time on green bargraphs
-// Time/ AM/PM on Alphanum
+/* vmw-chiptune-player kiosk mode */
+/* Designed for when using the player in standalone mode */
+/* Everything should be possible to control with the buttons alone */
 
 #include <stdio.h>
 #include <string.h>
@@ -23,30 +17,7 @@
 
 #include "lib_lib.h"
 
-static int alarm_hour=10;
-static int alarm_minute=00;
-
-#if 0
-
-static void quiet_and_exit(int sig) {
-
-	if (play_music) {
-		quiet_ay_3_8910(16);
-		close_ay_3_8910();
-		max98306_free();
-	}
-
-	display_shutdown(display_type);
-
-	printf("Quieting and exiting\n");
-	_exit(0);
-
-}
-
-#endif
-
 int main(int argc, char **argv) {
-
 
 	int result;
 
@@ -60,7 +31,7 @@ int main(int argc, char **argv) {
 		display_type=DISPLAY_TEXT;
 	}
 
-	lib_clock(alarm_hour,alarm_minute);
+	lib_clock(10,00);
 
 	display_shutdown(display_type);
 
