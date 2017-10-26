@@ -78,3 +78,5 @@ int display_init(int type);
 int display_shutdown(int type);
 
 
+/******************** display_helper.c */
+int display_enable_realtime(void);

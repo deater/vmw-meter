@@ -4,7 +4,7 @@ AY_INCLUDE = -I../chiptune_audio/
 YM_INCLUDE = -I../ymlib/
 I2C_INCLUDE = -I../../include
 
-DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_14seg.o
+DISPLAY = display.o display_bargraph.o display_helper.o display_keypad.o display_8x16.o display_14seg.o
 I2C = ../../lib/i2c_lib.o
 
 all:	display.a
@@ -37,6 +37,9 @@ display.o:	display.c display.h
 
 display_bargraph.o:	display_bargraph.c display.h
 	$(CC) $(CFLAGS) $(YM_INCLUDE) $(I2C_INCLUDE) -c display_bargraph.c
+
+display_helper.o:	display_helper.c display.h
+	$(CC) $(CFLAGS) $(YM_INCLUDE) -c display_helper.c
 
 display_keypad.o:	display_keypad.c display.h
 	$(CC) $(CFLAGS) $(YM_INCLUDE) $(I2C_INCLUDE) -c display_keypad.c

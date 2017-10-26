@@ -490,7 +490,7 @@ int main(int arg, char **argv) {
 	signal(SIGINT, quiet_and_exit);
 
 	/* Set to have highest possible priority */
-	setpriority(PRIO_PROCESS, 0, -20);
+	display_enable_realtime();
 
         /* Initialize the Chiptune interface */
 	if (play_music) {

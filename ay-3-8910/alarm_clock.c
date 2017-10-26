@@ -26,25 +26,6 @@
 static int alarm_hour=10;
 static int alarm_minute=00;
 
-#if 0
-
-static void quiet_and_exit(int sig) {
-
-	if (play_music) {
-		quiet_ay_3_8910(16);
-		close_ay_3_8910();
-		max98306_free();
-	}
-
-	display_shutdown(display_type);
-
-	printf("Quieting and exiting\n");
-	_exit(0);
-
-}
-
-#endif
-
 int main(int argc, char **argv) {
 
 

@@ -566,7 +566,7 @@ int main(int argc, char **argv) {
 	signal(SIGINT, quiet_and_exit);
 
 	/* Set to have highest possible priority */
-	setpriority(PRIO_PROCESS, 0, -20);
+	display_enable_realtime();
 
 	/* Parse command line arguments */
 	while ((c = getopt(argc, argv, "dmhvmsnitr"))!=-1) {
