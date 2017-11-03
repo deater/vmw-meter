@@ -19,34 +19,16 @@
 #include "ym_lib.h"
 #include "max98306.h"
 
+#include "display.h"
+#include "audio.h"
+#include "lib_lib.h"
+
 #include <bcm2835.h>
 
 #include "lyrics.h"
 #include "glados_ascii_art.h"
 
-static int display_type=DISPLAY_I2C;
-static int play_music=1;
-static int shift_size=16;
-
 static int y_line=0;
-
-
-static void quiet_and_exit(int sig) {
-
-	if (play_music) {
-		quiet_ay_3_8910(shift_size);
-		close_ay_3_8910();
-		max98306_free();
-	}
-
-	display_shutdown(display_type);
-
-	printf("\033[0m\n");
-	printf("Quieting and exiting\n");
-	_exit(0);
-
-}
-
 
 static int clear_things(int side_too) {
 
@@ -292,8 +274,6 @@ static int lyrics_play(struct lyric_type *l) {
 			sub++;
 		}
 
-
-
 		/* Calculate time we were busy this frame */
 		gettimeofday(&next,NULL);
 		s=start.tv_sec+(start.tv_usec/1000000.0);
@@ -326,11 +306,25 @@ static int lyrics_play(struct lyric_type *l) {
 
 }
 
+int lib_glados(void) {
+
+	struct lyric_type l;
+
+	load_lyrics("sa/saxm1.lyrics",&l);
+
+	lyrics_play(&l);
+
+	destroy_lyrics(&l);
+
+	printf("\033[0m\n");
+
+	return 0;
+}
+
+
 int main(int argc, char **argv) {
 
 	int result;
-
-	struct lyric_type l;
 
 	/* Setup control-C handler to quiet the music   */
 	/* otherwise if you force quit it keeps playing */
@@ -340,48 +334,18 @@ int main(int argc, char **argv) {
 	/* Set to have highest possible priority */
 	display_enable_realtime();
 
-	if (play_music) {
-		result=initialize_ay_3_8910(0);
-		if (result<0) {
-			printf("Error initializing bcm2835!!\n");
-			play_music=0;
-		}
-	}
+	audio_setup();
 
-#if 1
-	if (play_music) {
-		result=max98306_init();
-		if (result<0) {
-			printf("Error initializing max98306 amp!!\n");
-			play_music=0;
-		}
-		else {
-			result=max98306_enable();
-		}
-	}
-#endif
 	result=display_init(display_type);
-
 	if (result<0) {
 		display_type=0;
 	}
 
+	lib_glados();
 
-	load_lyrics("sa/saxm1.lyrics",&l);
-
-	lyrics_play(&l);
-
-	destroy_lyrics(&l);
-
-	if (play_music) {
-		quiet_ay_3_8910(shift_size);
-		close_ay_3_8910();
-		max98306_free();
-	}
+	audio_shutdown();
 
 	display_shutdown(display_type);
-
-	printf("\033[0m\n");
 
 	return 0;
 }

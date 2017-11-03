@@ -5,6 +5,8 @@ AUDIO_INCLUDE = -I./chiptune_audio/
 YM_INCLUDE = -I./ymlib/
 VISUAL_INCLUDE = -I./visualizations/
 
+AUDIO_LIB = ./chiptune_audio/audio.a $(LIBBCM2835)
+
 all:	kiosk play_ym organ glados temperature falling_blocks \
 	pom cpu_meter alarm_clock tengwar
 	cd conversion_tools && make
@@ -32,7 +34,7 @@ visualizations/visual.a:
 ###
 
 lib_lib.o:	lib_lib.c lib_lib.h
-	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c lib_lib.c
+	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) $(DISPLAY_INCLUDE) -c lib_lib.c
 
 ###
 
@@ -62,13 +64,13 @@ lyrics.o:	lyrics.c lyrics.h
 
 glados:	glados.o chiptune_audio/audio.a \
 		./ymlib/ym_lib.o ./ymlib/ym_play.o lyrics.o \
-		chiptune_display/display.a
+		chiptune_display/display.a lib_lib.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o glados glados.o \
-			lyrics.o \
+			lyrics.o lib_lib.o \
 			./ymlib/ym_lib.o ./ymlib/ym_play.o \
-			chiptune_audio/audio.a \
-			chiptune_display/display.a \
-			$(LIBBCM2835)
+			$(AUDIO_LIB) \
+			chiptune_display/display.a
+
 
 glados.o:	glados.c chiptune_display/display.h ymlib/ym_lib.h glados_ascii_art.h
 	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) $(DISPLAY_INCLUDE) $(YM_INCLUDE) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c glados.c
@@ -91,9 +93,9 @@ lib_temperature.o:	lib_temperature.c
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c lib_temperature.c
 
 temperature:	temperature.o lib_lib.o lib_temperature.o \
-		chiptune_display/display.a
+		chiptune_display/display.a chiptune_audio/audio.a
 	$(CC) $(LFLAGS) -o temperature lib_lib.o lib_temperature.o temperature.o \
-		chiptune_display/display.a
+		chiptune_display/display.a $(AUDIO_LIB)
 
 temperature.o:	temperature.c chiptune_display/display.h
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c temperature.c
@@ -131,7 +133,7 @@ lib_pom.o:	lib_pom.c
 
 pom:	pom.o lib_lib.o lib_pom.o chiptune_display/display.a
 	$(CC) $(LFLAGS) -o pom pom.o lib_lib.o lib_pom.o \
-		chiptune_display/display.a
+		chiptune_display/display.a $(AUDIO_LIB)
 
 pom.o:	pom.c chiptune_display/display.h
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c pom.c

@@ -60,6 +60,17 @@ int main(int argc, char **argv) {
 	/* on GPIO status change */
 	/* In libbcm2835 you can't, though you can set level-change events */
 
+	/* can be asynchronous or synchronous */
+	/* In the end though, if polling, should just poll the device */
+	/* People shouldn't be flipping the switch back and forth */
+	/* And maybe 1s latency is OK on it */
+
+	uint8_t bcm2835_gpio_eds(); // see if event has happened
+	void bcm2835_gpio_fen (pin);    // falling edge detect
+	void bcm2835_gpio_ren (pin);	// rising edge detect
+	void bcm2835_gpio_clr_ren(); // clear rising edge detect
+	void bcm2835_gpio_set_eds(pin); // clear event status
+
 #endif
 
 	max98306_free();

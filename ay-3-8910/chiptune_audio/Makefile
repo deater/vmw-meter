@@ -2,8 +2,11 @@ include ../Makefile.include
 
 all:	audio.a
 
-audio.a:	ay-3-8910.o max98306.o
-	$(AR) crus audio.a ay-3-8910.o max98306.o
+audio.a:	audio.o ay-3-8910.o max98306.o
+	$(AR) crus audio.a audio.o ay-3-8910.o max98306.o
+
+audio.o:	audio.c audio.h
+	$(CC) $(CFLAGS) -c audio.c
 
 ay-3-8910.o:	ay-3-8910.c ay-3-8910.h
 	$(CC) $(CFLAGS) -c ay-3-8910.c
