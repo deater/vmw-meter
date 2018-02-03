@@ -54,3 +54,5 @@ int ym_make_frame(struct ym_song_t *ym_song,
 			int frame_num,
 			unsigned char *frame);
 
+int ym_dump_frame_raw(struct ym_song_t *ym_song, int frame_num);
+

@@ -765,3 +765,108 @@ int ym_dump_frame(struct ym_song_t *ym_song, int frame_num, int raw,
 
 	return 0;
 }
+
+
+static int ym_dump_frame_really_raw(struct ym_song_t *ym_song,
+		unsigned char *frame, int frame_num, int which) {
+
+//	if (which==0) printf("%05d:\t",frame_num);
+//	else printf("\t");
+
+	printf(".byte\t");
+
+	printf("$%02X,",frame[0]);
+	printf("$%02X,",frame[1]);
+	printf("$%02X,",frame[2]);
+	printf("$%02X,",frame[3]);
+	printf("$%02X,",frame[4]);
+	printf("$%02X,",frame[5]);
+	printf("$%02X,",frame[6]);
+	printf("$%02X,",frame[7]);
+	printf("$%02X,",frame[8]);
+	printf("$%02X,",frame[9]);
+	printf("$%02X,",frame[10]);
+	printf("$%02X,",frame[11]);
+	printf("$%02X,",frame[12]);
+	printf("$%02X",frame[13]);
+
+	printf("\t; %05d\n",frame_num);
+
+#if 0
+	int a_period,b_period,c_period,n_period,e_period;
+	double a_freq=0.0, b_freq=0.0, c_freq=0.0,n_freq=0.0,e_freq=0.0;
+
+	a_period=((frame[1]&0xf)<<8)|frame[0];
+	b_period=((frame[3]&0xf)<<8)|frame[2];
+	c_period=((frame[5]&0xf)<<8)|frame[4];
+	n_period=frame[6]&0x1f;
+	e_period=((frame[12]&0xff)<<8)|frame[11];
+
+	if (a_period>0) a_freq=ym_song->master_clock/(16.0*(double)a_period);
+	if (b_period>0) b_freq=ym_song->master_clock/(16.0*(double)b_period);
+	if (c_period>0) c_freq=ym_song->master_clock/(16.0*(double)c_period);
+	if (n_period>0) n_freq=ym_song->master_clock/(16.0*(double)n_period);
+	if (e_period>0) e_freq=ym_song->master_clock/(256.0*(double)e_period);
+
+	printf("%05d:\tA:%04x B:%04x C:%04x N:%02x E:%02x M:%02x ",
+			frame_num,
+			a_period,b_period,c_period,n_period,e_period,
+			frame[7]);
+
+
+
+	if (which==0) printf("%05d:\t",frame_num);
+	else printf("\t");
+
+	prettyprint_freq(a_freq);
+	prettyprint_freq(b_freq);
+	prettyprint_freq(c_freq);
+	//prettyprint_freq(n_freq);
+	printf("%6.0lf ",n_freq);
+	prettyprint_freq(e_freq);
+
+	printf("N:%c%c%c T:%c%c%c ",
+			(frame[7]&0x20)?' ':'C',
+			(frame[7]&0x10)?' ':'B',
+			(frame[7]&0x08)?' ':'A',
+			(frame[7]&0x04)?' ':'C',
+			(frame[7]&0x02)?' ':'B',
+			(frame[7]&0x01)?' ':'A');
+
+	if (frame[8]&0x10) printf("VA:  E ");
+	else printf("VA: %2d ",frame[8]&0xf);
+	if (frame[9]&0x10) printf("VB:  E ");
+	else printf("VB: %2d ",frame[9]&0xf);
+	if (frame[10]&0x10) printf("VC:  E ");
+	else printf("VC: %2d ",frame[10]&0xf);
+
+	if (frame[13]==0xff) {
+		printf("NOWRITE");
+	}
+	else {
+		if (frame[13]&0x1) printf("Hold");
+		if (frame[13]&0x2) printf("Alternate");
+		if (frame[13]&0x4) printf("Attack");
+		if (frame[13]&0x8) printf("Continue");
+	}
+#endif
+
+	return 0;
+
+}
+
+int ym_dump_frame_raw(struct ym_song_t *ym_song, int frame_num) {
+
+	unsigned char frame[YM5_FRAME_SIZE];
+	unsigned char frame2[YM5_FRAME_SIZE];
+
+	ym_make_frame(ym_song,ym_song->frame_data,frame_num,frame);
+	ym_dump_frame_really_raw(ym_song,frame,frame_num, 0);
+
+	if (ym_song->channels==6) {
+		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,frame2);
+		ym_dump_frame_really_raw(ym_song,frame2,frame_num, 1);
+	}
+
+	return 0;
+}

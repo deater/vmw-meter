@@ -5,7 +5,7 @@ NOTES_INC = -I../noteslib/
 
 DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_14seg.o notes.o
 
-all:	dump_xm dump_ym5 text_to_ed text_to_ym ym_to_ym5
+all:	dump_xm dump_ym5 text_to_ed text_to_ym ym_to_ym5 ym5_to_mockingboard
 
 ../lib/i2c_lib.o:	../lib/i2c_lib.c
 	cd ../lib && make
@@ -61,6 +61,16 @@ dump_ym5.o:	dump_ym5.c
 
 ###
 
+ym5_to_mockingboard:	ym5_to_mockingboard.o ../ymlib/ym_lib.o
+	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym5_to_mockingboard ym5_to_mockingboard.o ../ymlib/ym_lib.o
+
+ym5_to_mockingboard.o:	ym5_to_mockingboard.c
+	$(CC) $(CFLAGS) $(YMLIB_INCLUDE) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c ym5_to_mockingboard.c
+
+
+
+###
+
 text_to_ym:	text_to_ym.o ../noteslib/notes.o
 	$(CC) $(LFLAGS) -o text_to_ym text_to_ym.o ../noteslib/notes.o
 
@@ -86,4 +96,4 @@ ym_to_ym5.o:	ym_to_ym5.c
 
 clean:	
 	rm -f *~ *.o text_to_ym ym_to_ym5 text_to_ed \
-		dump_ym5 dump_xm xm_to_text
+		dump_ym5 dump_xm xm_to_text ym5_to_mockingboard

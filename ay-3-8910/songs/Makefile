@@ -6,7 +6,8 @@ all:	sa.ym5 sa.ed \
 	kerbal.ym5 \
 	korobeiniki.ym5 \
 	fighting.ym5 fighting.ed \
-	highwind.ym5 highwind.ed
+	highwind.ym5 highwind.ed \
+	test.ed
 
 #	saxm1.ym5 saxm2.ym5 saxm3.ym5 saxm.vmw5
 
@@ -73,6 +74,11 @@ highwind.ym:	../text_to_ym highwind.txt
 highwind.ym5:	../ym_to_ym5 highwind.ym
 	../ym_to_ym5 highwind
 
+
+###
+
+test.ed:	../text_to_ed test.txt
+	../text_to_ed test.txt test
 
 ###
 
