@@ -1249,46 +1249,67 @@ int main(int argc, char **argv) {
 				if (strstr(string,"ADSR:")) {
 					get_string(string,"ADSR:",temp,1);
 					instruments[which_instrument].adsr=atoi(temp);
+					printf("\tADSR=%x\n",instruments[which_instrument].adsr);
 				}
 				if (strstr(string,"NOISE:")) {
 					get_string(string,"NOISE:",temp,1);
 					instruments[which_instrument].noise=atoi(temp);
+					printf("\tNOISE=%x\n",instruments[which_instrument].noise);
 				}
 				if (strstr(string,"ONCE:")) {
 					get_string(string,"ONCE:",temp,1);
 					instruments[which_instrument].once=atoi(temp);
+					printf("\tONCE=%x\n",instruments[which_instrument].once);
 				}
 				if (strstr(string,"SUSTAIN:")) {
 					get_string(string,"SUSTAIN:",temp,1);
 					instruments[which_instrument].sustain=atoi(temp);
+					printf("\tSUSTAIN=%x\n",instruments[which_instrument].sustain);
 				}
 				if (strstr(string,"ATTACK:")) {
 					len=get_list(string,"ATTACK:",
 						instruments[which_instrument].attack);
 					instruments[which_instrument].attack_size=len;
-		{
-		int k;
-		for(k=0;k<instruments[which_instrument].attack_size;k++) {
-			printf("%d,",instruments[which_instrument].attack[k]);
-		}
-
-		printf("\n");
-	}
-
+					printf("\tATTACK=");
+					{
+					int k;
+					for(k=0;k<instruments[which_instrument].attack_size;k++) {
+					printf("%d,",instruments[which_instrument].attack[k]);
+					}
+					printf("\n");
+					}
 				}
 				if (strstr(string,"DECAY:")) {
 					len=get_list(string,"DECAY:",
 						instruments[which_instrument].decay);
 					instruments[which_instrument].decay_size=len;
+					printf("\tDECAY=");
+					{
+					int k;
+					for(k=0;k<instruments[which_instrument].decay_size;k++) {
+					printf("%d,",instruments[which_instrument].decay[k]);
+					}
+					printf("\n");
+					}
 				}
 				if (strstr(string,"RELEASE:")) {
 					len=get_list(string,"RELEASE:",
 						instruments[which_instrument].release);
 					instruments[which_instrument].release_size=len;
+					printf("\tRELEASE=");
+					{
+					int k;
+					for(k=0;k<instruments[which_instrument].release_size;k++) {
+					printf("%d,",instruments[which_instrument].release[k]);
+					}
+					printf("\n");
+					}
+
 				}
 				if (strstr(string,"NAME:")) {
 					get_string(string,"NAME:",temp,1);
 					instruments[which_instrument].name=strdup(temp);
+					printf("Name=%s\n",instruments[which_instrument].name);
 				}
 			}
 		}
