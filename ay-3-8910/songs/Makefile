@@ -2,6 +2,10 @@ CC = gcc
 CFLAGS = -O2 -Wall
 LFLAGS = -lm
 
+TEXT_TO_YM = ../conversion_tools/text_to_ym
+YM_TO_YM5 = ../conversion_tools/ym_to_ym5
+TEXT_TO_ED = ../conversion_tools/text_to_ed
+
 all:	sa.ym5 sa.ed \
 	kerbal.ym5 \
 	korobeiniki.ym5 \
@@ -23,89 +27,89 @@ saxm.vmw5:	saxm1.ym5 saxm3.ym5
 saxm1.txt:	../xm_to_text ../stillalive.xm
 	../xm_to_text -c 0,2,3 ../stillalive.xm ./saxm1.txt
 
-saxm1.ym:	../text_to_ym saxm1.txt
-	../text_to_ym saxm1.txt saxm1
+saxm1.ym:	$(TEXT_TO_YM) saxm1.txt
+	$(TEXT_TO_YM) saxm1.txt saxm1
 
 saxm1.ym5:	saxm1.ym
-	../ym_to_ym5 saxm1
+	$(YM_TO_YM5) saxm1
 
 ###
 
 saxm2.txt:	../xm_to_text ../stillalive.xm
 	../xm_to_text -c 0,1,2 ../stillalive.xm ./saxm2.txt
 
-saxm2.ym:	../text_to_ym saxm2.txt
-	../text_to_ym saxm2.txt saxm2
+saxm2.ym:	$(TEXT_TO_YM) saxm2.txt
+	$(TEXT_TO_YM) saxm2.txt saxm2
 
 saxm2.ym5:	saxm2.ym
-	../ym_to_ym5 saxm2
+	$(YM_TO_YM5) saxm2
 
 ###
 
 saxm3.txt:	../xm_to_text ../stillalive.xm
 	../xm_to_text -c 0,1,3 ../stillalive.xm ./saxm3.txt
 
-saxm3.ym:	../text_to_ym saxm3.txt
-	../text_to_ym saxm3.txt saxm3
+saxm3.ym:	$(TEXT_TO_YM) saxm3.txt
+	$(TEXT_TO_YM) saxm3.txt saxm3
 
 saxm3.ym5:	saxm3.ym
-	../ym_to_ym5 saxm3
+	$(YM_TO_YM5) saxm3
 
 ###
 
 
-fighting.ed:	../text_to_ed fighting.txt
-	../text_to_ed fighting.txt fighting
+fighting.ed:	$(TEXT_TO_ED) fighting.txt
+	$(TEXT_TO_ED) fighting.txt fighting
 
-fighting.ym:	../text_to_ym fighting.txt
-	../text_to_ym fighting.txt fighting
+fighting.ym:	$(TEXT_TO_YM) fighting.txt
+	$(TEXT_TO_YM) fighting.txt fighting
 
-fighting.ym5:	../ym_to_ym5 fighting.ym
-	../ym_to_ym5 fighting
-
-###
-
-highwind.ed:	../text_to_ed highwind.txt
-	../text_to_ed highwind.txt highwind
-
-highwind.ym:	../text_to_ym highwind.txt
-	../text_to_ym highwind.txt highwind
-
-highwind.ym5:	../ym_to_ym5 highwind.ym
-	../ym_to_ym5 highwind
-
+fighting.ym5:	$(YM_TO_YM5) fighting.ym
+	$(YM_TO_YM5) fighting
 
 ###
 
-test.ed:	../text_to_ed test.txt
-	../text_to_ed test.txt test
+highwind.ed:	$(TEXT_TO_ED) highwind.txt
+	$(TEXT_TO_ED) highwind.txt highwind
+
+highwind.ym:	$(TEXT_TO_YM) highwind.txt
+	$(TEXT_TO_YM) highwind.txt highwind
+
+highwind.ym5:	$(YM_TO_YM5) highwind.ym
+	$(YM_TO_YM5) highwind
+
 
 ###
 
-kerbal.ym:	../text_to_ym kerbal.txt
-	../text_to_ym kerbal.txt kerbal
-
-kerbal.ym5:	../ym_to_ym5 kerbal.ym
-	../ym_to_ym5 kerbal
+test.ed:	$(TEXT_TO_ED) test.txt
+	$(TEXT_TO_ED) test.txt test
 
 ###
 
-korobeiniki.ym:	../text_to_ym korobeiniki.txt
-	../text_to_ym korobeiniki.txt korobeiniki
+kerbal.ym:	$(TEXT_TO_YM) kerbal.txt
+	$(TEXT_TO_YM) kerbal.txt kerbal
 
-korobeiniki.ym5:	../ym_to_ym5 korobeiniki.ym
-	../ym_to_ym5 korobeiniki
+kerbal.ym5:	$(YM_TO_YM5) kerbal.ym
+	$(YM_TO_YM5) kerbal
 
 ###
 
-sa.ed:	../text_to_ed sa.txt
-	../text_to_ed sa.txt sa
+korobeiniki.ym:	$(TEXT_TO_YM) korobeiniki.txt
+	$(TEXT_TO_YM) korobeiniki.txt korobeiniki
 
-sa.ym:	../text_to_ym sa.txt
-	../text_to_ym sa.txt sa
+korobeiniki.ym5:	$(YM_TO_YM5) korobeiniki.ym
+	$(YM_TO_YM5) korobeiniki
 
-sa.ym5:	../ym_to_ym5 sa.ym
-	../ym_to_ym5 sa
+###
+
+sa.ed:	$(TEXT_TO_ED) sa.txt
+	$(TEXT_TO_ED) sa.txt sa
+
+sa.ym:	$(TEXT_TO_YM) sa.txt
+	$(TEXT_TO_YM) sa.txt sa
+
+sa.ym5:	$(YM_TO_YM5) sa.ym
+	$(YM_TO_YM5) sa
 
 
 
