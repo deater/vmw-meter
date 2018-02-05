@@ -29,7 +29,7 @@ saxm.vmw5:	saxm1.ym5 saxm3.ym5
 
 kerbal.vmw5:	kerbal.ym5 kerbal2.ym5
 	cp kerbal.ym5 kerbal.vmw5
-	cat kerbal2.ym5 >> kernal.vmw5
+	cat kerbal2.ym5 >> kerbal.vmw5
 
 ###
 
