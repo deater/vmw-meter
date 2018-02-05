@@ -51,7 +51,7 @@ static int dump_song(char *filename, int debug) {
 	struct ym_song_t ym_song;
 
 	static unsigned char oldframe[YM5_FRAME_SIZE];
-	static int lastframe=0;
+	static int lastframe=-1;
 
 	unsigned char frame[YM5_FRAME_SIZE];
 
