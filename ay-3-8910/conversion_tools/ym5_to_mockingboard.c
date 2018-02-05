@@ -40,14 +40,23 @@ static void print_help(int just_version, char *exec_name) {
 static int dump_song(char *filename, int debug) {
 
 	int result;
-	int length_seconds;
+	int length_seconds,total;
 
 	int frame_num=0;
-	int m,s;
+	int i;
+	int byte_count=0;
+	int frame_different;
+	int which1,which2;
 
 	struct ym_song_t ym_song;
 
-	printf("\nDumping song %s\n",filename);
+	static unsigned char oldframe[YM5_FRAME_SIZE];
+	static int lastframe=0;
+
+	unsigned char frame[YM5_FRAME_SIZE];
+
+
+	printf("\n; Using ym5_to_mockingboard to convert song %s\n",filename);
 
 	result=load_ym_song(filename,&ym_song);
 	if (result<0) {
@@ -58,13 +67,13 @@ static int dump_song(char *filename, int debug) {
 	/* Print song summary */
 	/**********************/
 
-	printf("\tYM%d",ym_song.type);
+	printf(";\tYM%d",ym_song.type);
 	printf("\tSong attributes (%d) : ",ym_song.attributes);
 	printf("Interleaved=%s\n",ym_song.interleaved?"yes":"no");
 	if (ym_song.num_digidrum>0) {
-		printf("Num digidrum samples: %d\n",ym_song.num_digidrum);
+		printf("; Num digidrum samples: %d\n",ym_song.num_digidrum);
 	}
-	printf("\tFrames: %d, ",ym_song.num_frames);
+	printf(";\tFrames: %d, ",ym_song.num_frames);
 	printf("Chip clock: %d Hz, ",ym_song.master_clock);
 	printf("Frame rate: %d Hz, ",ym_song.frame_rate);
 	if (ym_song.frame_rate!=50) {
@@ -73,31 +82,66 @@ static int dump_song(char *filename, int debug) {
 	}
 	length_seconds=ym_song.num_frames/ym_song.frame_rate;
 	printf("Length=%d:%02d\n",length_seconds/60,length_seconds%60);
-	printf("\tLoop frame: %d, ",ym_song.loop_frame);
+	printf(";\tLoop frame: %d, ",ym_song.loop_frame);
 	printf("Extra data size: %d\n",ym_song.extra_data);
-	printf("\tSong name: %s\n",ym_song.song_name);
-	printf("\tAuthor name: %s\n",ym_song.author);
-	printf("\tComment: %s\n",ym_song.comment);
-
-	/******************/
-	/* Play the song! */
-	/******************/
+	printf(";\tSong name: %s\n",ym_song.song_name);
+	printf(";\tAuthor name: %s\n",ym_song.author);
+	printf(";\tComment: %s\n",ym_song.comment);
 
 	frame_num=0;
 	while(1) {
-		s=frame_num/ym_song.frame_rate;
-		m=s/60;
-		s=s%60;
 
-		if (frame_num%96==0) {
-			//        0   1   2   3   4   5   6   7
-			//        8   9  10  11  12  13
-			printf("; %02d:%02d "
-				"AL  AH  BL  BH  CL  CH   N  NT  "
-				"VA  VB  VC  EL  EH  ET\n",m,s);
+		ym_return_frame(&ym_song,frame_num,frame,NULL);
+
+		frame_different=0;
+		which1=0; which2=0;
+		total=0;
+
+		for(i=0;i<14;i++) {
+			if ((i==13) && (frame[i]==0xff)) {
+			}
+			else {
+				if (frame[i]!=oldframe[i]) {
+					if (i<8) {
+						which1|=1<<i;
+					}
+					else {
+						which2|=1<<(i-8);
+					}
+					frame_different++;
+				}
+			}
 		}
 
-		ym_dump_frame_raw(&ym_song,frame_num);
+		if (frame_different) {
+			printf(".byte\t$%02X,$%02X,",
+				frame_num-lastframe,which1);
+			byte_count+=3;
+			for(i=0;i<14;i++) {
+				if (i==8) {
+					if (which2) printf("$%02X,",which2);
+					else printf(",$%02X",which2);
+				}
+				if ((i==13)&&(frame[i]==0xff)) {
+
+				}
+				else {
+					if (frame[i]!=oldframe[i]) {
+						printf("$%02X",frame[i]);
+						byte_count+=1;
+						total++;
+						if (total!=frame_different) {
+							printf(",");
+						}
+					}
+				}
+			}
+			for(i=0;i<5-(frame_different*4)/8;i++) printf("\t");
+			printf("; %05d\n",frame_num);
+			lastframe=frame_num;
+		}
+
+		memcpy(oldframe,frame,YM5_FRAME_SIZE);
 
 		frame_num++;
 
@@ -107,7 +151,8 @@ static int dump_song(char *filename, int debug) {
 		}
 	}
 
-	printf("; Total size = %d bytes\n",frame_num*12);
+	printf("; Raw size = %d bytes\n",frame_num*14);
+	printf("; Updated size = %d bytes\n",byte_count);
 
 	/* Free the ym file */
 	free(ym_song.file_data);
@@ -185,7 +230,7 @@ static int dump_song_raw(char *filename, int debug) {
 		}
 	}
 
-	printf("; Total size = %d bytes\n",frame_num*12);
+	printf("; Total size = %d bytes\n",frame_num*14);
 
 	/* Free the ym file */
 	free(ym_song.file_data);
