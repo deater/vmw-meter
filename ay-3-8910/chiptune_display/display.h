@@ -32,8 +32,8 @@ extern int i2c_fd;
 #define CMD_MUTE_NB		0xE
 #define CMD_MUTE_NC		0xF
 
-#define CMD_HEADPHONE_IN	0x10
-#define CMD_HEADPHONE_OUT	0x11
+#define CMD_AMP_ON		0x10
+#define CMD_AMP_OFF		0x11
 
 #define CMD_PLAY		0x12
 #define CMD_MENU		0x13

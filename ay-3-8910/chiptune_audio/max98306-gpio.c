@@ -117,12 +117,9 @@ int max98306_check_headphone(void) {
 		printf("Error opening value %s\n",strerror(errno));
 		return -1;
 	}
-
 	read(fd,buffer,1);
 	close(fd);
-
 	value=buffer[0];
-
 	return (value-'0');
 
 }

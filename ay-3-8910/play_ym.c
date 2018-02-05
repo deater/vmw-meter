@@ -302,11 +302,11 @@ static int play_song(char *filename) {
 				max98306_set_volume(volume);
 			}
 
-			if (display_command==CMD_HEADPHONE_IN) {
+			if (display_command==CMD_AMP_OFF) {
 				max98306_disable();
 			}
 
-			if (display_command==CMD_HEADPHONE_OUT) {
+			if (display_command==CMD_AMP_ON) {
 				max98306_enable();
 			}
 

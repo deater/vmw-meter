@@ -78,6 +78,32 @@ int display_raw_keypad_read(int display_type) {
 
 }
 
+/* Should be set in a keypad init function */
+static int amp_switch_state=1;
+static int amp_switch_count=0;
+
+#define HEADPHONE_GPIO	20
+
+static int read_amp_switch(void) {
+
+        int fd;
+        char buffer[BUFSIZ];
+        int value=0;
+
+        /* Read Headphone GPIO */
+        sprintf(buffer,"/sys/class/gpio/gpio%d/value",HEADPHONE_GPIO);
+        fd=open(buffer,O_RDONLY);
+        if (fd<0) {
+                printf("Error opening value %s\n",strerror(errno));
+                return -1;
+        }
+        read(fd,buffer,1);
+        close(fd);
+        value=buffer[0];
+        return (value-'0');
+}
+
+
 int display_keypad_read(int display_type) {
 
 	unsigned char ch;
@@ -89,6 +115,22 @@ int display_keypad_read(int display_type) {
 	if (keypad_result) {
 		return keypad_result;
 	}
+
+	/* Poll the amplifier switch	*/
+	/* Only do this occasionally?	*/
+        if (amp_switch_count==0) {
+                result=read_amp_switch();
+		if (result!=amp_switch_state) {
+			amp_switch_state=result;
+			if (result) {
+				return CMD_AMP_ON;
+			}
+			else {
+				return CMD_AMP_OFF;
+			}
+		}
+        }
+	amp_switch_count++;
 
 	/* Read from Keyboard, emulate keypad */
 	result=read(0,&ch,1);
@@ -107,10 +149,10 @@ int display_keypad_read(int display_type) {
 				return CMD_VOL_UP;
 				break;
 			case '1':
-				return CMD_HEADPHONE_IN;
+				return CMD_AMP_ON;
 				break;
 			case '2':
-				return CMD_HEADPHONE_OUT;
+				return CMD_AMP_OFF;
 				break;
 
 			/* Top Row */
