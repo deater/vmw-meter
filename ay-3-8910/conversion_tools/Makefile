@@ -7,8 +7,8 @@ DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_1
 
 all:	dump_xm dump_ym5 text_to_ed text_to_ym ym_to_ym5 ym5_to_mockingboard
 
-../lib/i2c_lib.o:	../lib/i2c_lib.c
-	cd ../lib && make
+../ymlib/ym_lib.o:	
+	cd ../ymlib && make
 
 ###
 
