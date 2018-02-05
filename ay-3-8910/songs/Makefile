@@ -5,13 +5,17 @@ LFLAGS = -lm
 TEXT_TO_YM = ../conversion_tools/text_to_ym
 YM_TO_YM5 = ../conversion_tools/ym_to_ym5
 TEXT_TO_ED = ../conversion_tools/text_to_ed
+XM_TO_TEXT = ../conversion_tools/xm_to_text
 
-all:	sa.ym5 sa.ed \
+#saxm.vmw5
+#test.ed
+all:	kerbal.vmw5 \
+	sa.ym5 sa.ed \
 	kerbal.ym5 \
 	korobeiniki.ym5 \
 	fighting.ym5 fighting.ed \
-	highwind.ym5 highwind.ed \
-	test.ed
+	highwind.ym5 highwind.ed
+
 
 #	saxm1.ym5 saxm2.ym5 saxm3.ym5 saxm.vmw5
 
@@ -23,9 +27,14 @@ saxm.vmw5:	saxm1.ym5 saxm3.ym5
 
 ###
 
+kerbal.vmw5:	kerbal.ym5 kerbal2.ym5
+	cp kerbal.ym5 kerbal.vmw5
+	cat kerbal2.ym5 >> kernal.vmw5
 
-saxm1.txt:	../xm_to_text ../stillalive.xm
-	../xm_to_text -c 0,2,3 ../stillalive.xm ./saxm1.txt
+###
+
+saxm1.txt:	$(XM_TO_TEXT) ../stillalive.xm
+	$(XM_TO_TEXT) -c 0,2,3 ../stillalive.xm ./saxm1.txt
 
 saxm1.ym:	$(TEXT_TO_YM) saxm1.txt
 	$(TEXT_TO_YM) saxm1.txt saxm1
@@ -35,8 +44,8 @@ saxm1.ym5:	saxm1.ym
 
 ###
 
-saxm2.txt:	../xm_to_text ../stillalive.xm
-	../xm_to_text -c 0,1,2 ../stillalive.xm ./saxm2.txt
+saxm2.txt:	$(XM_TO_TEXT) ../stillalive.xm
+	$(XM_TO_TEXT) -c 0,1,2 ../stillalive.xm ./saxm2.txt
 
 saxm2.ym:	$(TEXT_TO_YM) saxm2.txt
 	$(TEXT_TO_YM) saxm2.txt saxm2
@@ -46,8 +55,8 @@ saxm2.ym5:	saxm2.ym
 
 ###
 
-saxm3.txt:	../xm_to_text ../stillalive.xm
-	../xm_to_text -c 0,1,3 ../stillalive.xm ./saxm3.txt
+saxm3.txt:	$(XM_TO_TEXT) ../stillalive.xm
+	$(XM_TO_TEXT) -c 0,1,3 ../stillalive.xm ./saxm3.txt
 
 saxm3.ym:	$(TEXT_TO_YM) saxm3.txt
 	$(TEXT_TO_YM) saxm3.txt saxm3
@@ -91,6 +100,12 @@ kerbal.ym:	$(TEXT_TO_YM) kerbal.txt
 
 kerbal.ym5:	$(YM_TO_YM5) kerbal.ym
 	$(YM_TO_YM5) kerbal
+
+kerbal2.ym:	$(TEXT_TO_YM) kerbal2.txt
+	$(TEXT_TO_YM) kerbal2.txt kerbal2
+
+kerbal2.ym5:	$(YM_TO_YM5) kerbal2.ym
+	$(YM_TO_YM5) kerbal2
 
 ###
 
