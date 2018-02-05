@@ -367,6 +367,7 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 		n->length=note_to_length(n->len,line);
 		printf("T Length=%d %c\n",n->length,n->len+'0');
 	}
+//	n->left=n->length-1;
 	n->left=n->length-1;
 
 	if (n->length<=0) {
@@ -512,7 +513,9 @@ static int get_note2(char *string, int sp, struct note_type *n, int line) {
 			n->length=note_to_length(n->len,line);
 		}
 
+//		n->left=n->length-1;
 		n->left=n->length-1;
+		printf("VMW: left %d length %d\n",n->left,n->length);
 
 		if (n->length<=0) {
 			printf("Error with length line %d\n",line);
@@ -668,8 +671,8 @@ static int calculate_amplitude(struct note_type *n) {
 
 /*
  A  A  A  D  D  D                    R R
-16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-
+16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0	LEFT
+			RELEASE_SIZE=2
 length=17
 */
 
@@ -678,16 +681,23 @@ length=17
 		/* ADSR type envelope */
 
 		if ( n->left < i->release_size ) {
-			result=i->release[i->release_size-n->left];
+			result=i->release[i->release_size-n->left-1];
+			printf("VMW: left=%d RELEASE %d\n",
+				n->left,i->release_size-n->left-1);
 		}
-		else if (n->left>(n->length-(i->attack_size+1))) {
+		else if (n->left>(n->length-(i->attack_size)-1)) {
 			result=i->attack[(n->length-n->left-1)];
+			printf("VMW: left=%d ATTACK %d\n",
+				n->left,n->length-n->left-1);
 		}
 		else if (n->left>(n->length-i->attack_size-i->decay_size-1)) {
 			result=i->decay[(n->length-n->left-i->attack_size-1)];
+			printf("VMW: left=%d DECAY %d\n",
+				n->left,n->length-n->left-i->attack_size-1);
 		}
 		else {
 			result=i->sustain;
+			printf("VMW: left=%d SUSTAIN\n",n->left);
 		}
 	}
 	else {
@@ -719,7 +729,8 @@ length=17
 	result=log_amp;
 #endif
 
-	if (debug) printf("%d %d %d (%d)\n",n->length,n->left,result,
+//	if (debug) 
+		printf("LEN=%d LEFT=%d RESULT=%d LOUD=(%d)\n",n->length,n->left,result,
 		n->loud);
 //		((n->length-n->left)*16)/n->length,
 //		instruments[DEFAULT].envelope[
@@ -962,7 +973,7 @@ static int parse_music(FILE *ym_file,FILE *in_file, FILE *lyrics_file, int versi
 					frame[6]=calculate_noise(&a);
 					frame[7]&=~enable_noise(&a,0);
 				}
-
+				printf("FRAME8=%x\n",frame[8]);
 
 			}
 			else {
