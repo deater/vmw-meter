@@ -114,6 +114,12 @@ static int dump_song(char *filename, int debug) {
 		}
 
 		if (frame_different) {
+			if (frame_num-lastframe>254) {
+				printf("ERROR frame diff too big %d!\n",
+					frame_num-lastframe);
+				exit(1);
+			}
+
 			printf(".byte\t$%02X,$%02X,",
 				frame_num-lastframe,which1);
 			byte_count+=3;
@@ -147,6 +153,8 @@ static int dump_song(char *filename, int debug) {
 
 		/* Check to see if done with file */
 		if (frame_num>=ym_song.num_frames) {
+			printf(".byte\t$%02X,$00,$00,$ff\t\t\t\t\t; %05d\n",
+				frame_num-lastframe,frame_num);
 			break;
 		}
 	}

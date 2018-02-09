@@ -27,9 +27,9 @@ saxm.vmw5:	saxm1.ym5 saxm3.ym5
 
 ###
 
-kerbal.vmw5:	kerbal.ym5 kerbal2.ym5
+kerbal.vmw5:	kerbal.ym5 kerbal2.ym5 kerbal3.ym5
 	cp kerbal.ym5 kerbal.vmw5
-	cat kerbal2.ym5 >> kerbal.vmw5
+	cat kerbal3.ym5 >> kerbal.vmw5
 
 ###
 
@@ -106,6 +106,12 @@ kerbal2.ym:	$(TEXT_TO_YM) kerbal2.txt
 
 kerbal2.ym5:	$(YM_TO_YM5) kerbal2.ym
 	$(YM_TO_YM5) kerbal2
+
+kerbal3.ym:	$(TEXT_TO_YM) kerbal3.txt
+	$(TEXT_TO_YM) kerbal3.txt kerbal3
+
+kerbal3.ym5:	$(YM_TO_YM5) kerbal3.ym
+	$(YM_TO_YM5) kerbal3
 
 ###
 
