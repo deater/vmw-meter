@@ -39,80 +39,9 @@ static void print_help(int just_version, char *exec_name) {
 	exit(0);
 }
 
-static int dump_song_raw(char *filename, int debug) {
 
-	int result;
-
-	int frame_num=0;
-	int i;
-
-	struct ym_song_t ym_song;
-
-	unsigned char frame[YM5_FRAME_SIZE];
-
-	fprintf(stderr, "\nDumping song %s\n",filename);
-
-	result=load_ym_song(filename,&ym_song);
-	if (result<0) {
-		return -1;
-	}
-
-	/**********************/
-	/* Print song summary */
-	/**********************/
-#if 0
-	int length_seconds;
-
-	printf("\tYM%d",ym_song.type);
-	printf("\tSong attributes (%d) : ",ym_song.attributes);
-	printf("Interleaved=%s\n",ym_song.interleaved?"yes":"no");
-	if (ym_song.num_digidrum>0) {
-		printf("Num digidrum samples: %d\n",ym_song.num_digidrum);
-	}
-	printf("\tFrames: %d, ",ym_song.num_frames);
-	printf("Chip clock: %d Hz, ",ym_song.master_clock);
-	printf("Frame rate: %d Hz, ",ym_song.frame_rate);
-	if (ym_song.frame_rate!=50) {
-		fprintf(stderr,"FIX ME framerate %d\n",ym_song.frame_rate);
-		exit(1);
-	}
-	length_seconds=ym_song.num_frames/ym_song.frame_rate;
-	printf("Length=%d:%02d\n",length_seconds/60,length_seconds%60);
-	printf("\tLoop frame: %d, ",ym_song.loop_frame);
-	printf("Extra data size: %d\n",ym_song.extra_data);
-	printf("\tSong name: %s\n",ym_song.song_name);
-	printf("\tAuthor name: %s\n",ym_song.author);
-	printf("\tComment: %s\n",ym_song.comment);
-#endif
-	/******************/
-	/* Play the song! */
-	/******************/
-
-	frame_num=0;
-	while(1) {
-
-		ym_return_frame(&ym_song,frame_num,frame,NULL);
-
-		for(i=0;i<14;i++) fprintf(stdout,"%c",frame[i]);
-
-
-		frame_num++;
-
-		/* Check to see if done with file */
-		if (frame_num>=ym_song.num_frames) {
-			break;
-		}
-	}
-
-	fprintf(stderr,"; Total size = %d bytes\n",frame_num*14);
-
-	/* Free the ym file */
-	free(ym_song.file_data);
-
-	return 0;
-}
-
-static int dump_song_raw_interleaved(char *filename, int debug) {
+static int dump_song_raw_interleaved(char *filename, int debug, int size,
+		char *outfile) {
 
 	int result;
 
@@ -176,10 +105,33 @@ static int dump_song_raw_interleaved(char *filename, int debug) {
 		}
 	}
 
-	for(x=0;x<ym_song.num_frames*14;x++) {
-		fprintf(stdout,"%c",interleaved_data[x]);
-	}
+	int num_chunks;
+	FILE *fff;
+	char outname[BUFSIZ];
+	int j;
+	int frames_per_chunk;
 
+	num_chunks=ym_song.num_frames/(1024);
+	fprintf(stderr,"%d frames %d chunks total\n",
+			ym_song.num_frames,num_chunks);
+
+	for(j=0;j<num_chunks;j++) {
+
+		sprintf(outname,"%s.%d",outfile,j);
+		fff=fopen(outname,"w");
+		if (fff==NULL) {
+			fprintf(stderr,"Error opening %s\n",outname);
+			return -1;
+		}
+
+		for(y=0;y<14;y++) {
+			for(x=0;x<1024;x++) {
+				fprintf(fff,"%c",
+				interleaved_data[x+(y*ym_song.num_frames)]);
+			}
+		}
+		fclose(fff);
+	}
 
 	fprintf(stderr,"; Total size = %d bytes\n",ym_song.num_frames*14);
 
@@ -195,13 +147,15 @@ static int dump_song_raw_interleaved(char *filename, int debug) {
 int main(int argc, char **argv) {
 
 	char filename[BUFSIZ]="intro2.ym";
+	char outfile[BUFSIZ]="out";
 
 	int c,debug=0;
 	int first_song;
-	int interleaved=0;
+
+	int size=4096;
 
 	/* Parse command line arguments */
-	while ((c = getopt(argc, argv, "dhiv"))!=-1) {
+	while ((c = getopt(argc, argv, "dhv"))!=-1) {
 		switch (c) {
 			case 'd':
 				/* Debug messages */
@@ -211,10 +165,6 @@ int main(int argc, char **argv) {
 			case 'h':
 				/* help */
 				print_help(0,argv[0]);
-				break;
-			case 'i':
-				/* interleaved */
-				interleaved=1;
 				break;
 			case 'v':
 				/* version */
@@ -233,12 +183,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* Dump the song */
-	if (interleaved) {
-		dump_song_raw_interleaved(filename,debug);
-	}
-	else {
-		dump_song_raw(filename,debug);
-	}
+	dump_song_raw_interleaved(filename,debug,size,outfile);
 
 	return 0;
 }
