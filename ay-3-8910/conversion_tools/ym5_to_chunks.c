@@ -44,10 +44,17 @@ static int dump_song_raw_interleaved(char *filename, int debug, int size,
 		char *outfile) {
 
 	int result;
+	int data_size;
 
 	int x,y;
 
 	struct ym_song_t ym_song;
+
+	int num_chunks;
+	FILE *fff;
+	char outname[BUFSIZ];
+	int j;
+	int frames_per_chunk;
 
 	unsigned char *interleaved_data;
 	unsigned char frame[YM5_FRAME_SIZE];
@@ -90,7 +97,19 @@ static int dump_song_raw_interleaved(char *filename, int debug, int size,
 	/* Play the song! */
 	/******************/
 
-	interleaved_data=calloc(ym_song.num_frames,sizeof(char)*14);
+#define NUMPAGES	3
+
+	/* plus one for end frame */
+	num_chunks=(ym_song.num_frames+1)/(NUMPAGES*256);
+	/* pad to even number of frames */
+	num_chunks+=1;
+	data_size=num_chunks*NUMPAGES*256*14;
+
+	fprintf(stderr,"%d frames %d chunks total total_size %d\n",
+			ym_song.num_frames,num_chunks,data_size);
+
+
+	interleaved_data=calloc(data_size,sizeof(char));
 	if (interleaved_data==NULL) {
 		fprintf(stderr,"Error allocating memory!\n");
 		return -1;
@@ -105,16 +124,6 @@ static int dump_song_raw_interleaved(char *filename, int debug, int size,
 		}
 	}
 
-	int num_chunks;
-	FILE *fff;
-	char outname[BUFSIZ];
-	int j;
-	int frames_per_chunk;
-
-	num_chunks=ym_song.num_frames/(1024);
-	fprintf(stderr,"%d frames %d chunks total\n",
-			ym_song.num_frames,num_chunks);
-
 	for(j=0;j<num_chunks;j++) {
 
 		sprintf(outname,"%s.%d",outfile,j);
@@ -125,9 +134,11 @@ static int dump_song_raw_interleaved(char *filename, int debug, int size,
 		}
 
 		for(y=0;y<14;y++) {
-			for(x=0;x<1024;x++) {
+			for(x=0;x<(256*NUMPAGES);x++) {
 				fprintf(fff,"%c",
-				interleaved_data[x+(y*ym_song.num_frames)]);
+				interleaved_data[x+
+					j*(256*NUMPAGES)+
+					(y*ym_song.num_frames)]);
 			}
 		}
 		fclose(fff);
