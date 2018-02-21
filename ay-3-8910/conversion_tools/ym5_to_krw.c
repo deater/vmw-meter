@@ -1,7 +1,12 @@
-/* Convert ym5 file to raw, uncompressed register dump */
+/* Convert ym5 file to krw, optimized for playing on AppleII/Mockingboard */
 
-/* ym5 files are usually set up so each register is in a row, then LHA */
-/* compressed. */
+/* krw file format */
+/* ((40-TITLE_LEN)/2) NULL_TERMINATED_TITLE_STRING */
+/* ((40-AUTHOR_LEN)/2) NULL_TERMINATED_AUTHOR_STRING */
+/* 14, 0:00 / M:SS\0, where M/SS is the length */
+/* LENL/LENH followed by LZ4 block of first 3 chunks (768*14) of ym5 data */
+/* repeat, when done LENL/LENH is 0/0 */
+/* The data is Interleaved, zero-padded, and frame[0]=0xff on last frame */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,25 +27,23 @@
 
 static void print_help(int just_version, char *exec_name) {
 
-	printf("\nym5_to_raw version %s by Vince Weaver <vince@deater.net>\n\n",VERSION);
+	printf("\nym5_to_krw version %s by Vince Weaver <vince@deater.net>\n\n",VERSION);
 	if (just_version) exit(0);
 
-	printf("This converts ym5 files to a raw form\n\n");
+	printf("This converts ym5 files to krw (AppleII/Mockingboard)\n\n");
 
 	printf("Usage:\n");
-	printf("\t%s [-h] [-v] [-d] [-i] [-r] filename\n\n",
+	printf("\t%s [-h] [-v] [-d] filename\n\n",
 		exec_name);
 	printf("\t-h: this help message\n");
 	printf("\t-v: version info\n");
 	printf("\t-d: print debug messages\n");
-	printf("\t-i: interleaved file\n");
-	printf("\t-r: raw uncompressed data\n");
 
 	exit(0);
 }
 
 
-static int dump_song_raw_interleaved(char *filename, int debug, int size,
+static int dump_song_krw(char *filename, int debug, int size,
 		char *outfile) {
 
 	int result;
@@ -194,7 +197,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* Dump the song */
-	dump_song_raw_interleaved(filename,debug,size,outfile);
+	dump_song_krw(filename,debug,size,outfile);
 
 	return 0;
 }
