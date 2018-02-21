@@ -7,7 +7,7 @@ DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_1
 
 all:	dump_xm xm_to_text \
 	dump_ym5 text_to_ed text_to_ym ym_to_ym5 \
-	ym5_to_raw ym5_to_mockingboard ym5_to_chunks
+	ym5_to_raw ym5_to_mockingboard ym5_to_krw
 
 ../ymlib/ym_lib.o:	
 	cd ../ymlib && make
@@ -79,11 +79,11 @@ ym5_to_raw.o:	ym5_to_raw.c
 
 ###
 
-ym5_to_chunks:	ym5_to_chunks.o ../ymlib/ym_lib.o
-	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym5_to_chunks ym5_to_chunks.o ../ymlib/ym_lib.o
+ym5_to_krw:	ym5_to_krw.o ../ymlib/ym_lib.o
+	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym5_to_krw ym5_to_krw.o ../ymlib/ym_lib.o
 
-ym5_to_chunks.o:	ym5_to_chunks.c
-	$(CC) $(CFLAGS) $(YMLIB_INCLUDE) -c ym5_to_chunks.c
+ym5_to_krw.o:	ym5_to_krw.c
+	$(CC) $(CFLAGS) $(YMLIB_INCLUDE) -c ym5_to_krw.c
 
 
 
@@ -117,4 +117,4 @@ ym_to_ym5.o:	ym_to_ym5.c
 clean:	
 	rm -f *~ *.o text_to_ym ym_to_ym5 text_to_ed \
 		dump_ym5 dump_xm xm_to_text ym5_to_mockingboard \
-		ym5_to_raw ym5_to_chunks
+		ym5_to_raw ym5_to_krw
