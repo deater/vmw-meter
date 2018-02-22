@@ -2,6 +2,7 @@ include ../Makefile.include
 
 YMLIB_INCLUDE = -I../ymlib/
 NOTES_INC = -I../noteslib/
+LZ4_LIB = -llz4
 
 DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_14seg.o notes.o
 
@@ -80,7 +81,7 @@ ym5_to_raw.o:	ym5_to_raw.c
 ###
 
 ym5_to_krw:	ym5_to_krw.o ../ymlib/ym_lib.o
-	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym5_to_krw ym5_to_krw.o ../ymlib/ym_lib.o
+	$(CC) $(LFLAGS) $(LZ4_LIB) $(LIBLHASA_LIB) -o ym5_to_krw ym5_to_krw.o ../ymlib/ym_lib.o
 
 ym5_to_krw.o:	ym5_to_krw.c
 	$(CC) $(CFLAGS) $(YMLIB_INCLUDE) -c ym5_to_krw.c

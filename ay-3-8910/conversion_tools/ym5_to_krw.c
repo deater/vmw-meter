@@ -1,9 +1,11 @@
 /* Convert ym5 file to krw, optimized for playing on AppleII/Mockingboard */
 
+/* Note, need to have liblz4-dev installed, apt-get install liblz4-dev */
+
 /* krw file format */
 /* ((40-TITLE_LEN)/2) NULL_TERMINATED_TITLE_STRING */
 /* ((40-AUTHOR_LEN)/2) NULL_TERMINATED_AUTHOR_STRING */
-/* 14, 0:00 / M:SS\0, where M/SS is the length */
+/* 14, 0:00 /  M:SS\0, where M/SS is the length */
 /* LENL/LENH followed by LZ4 block of first 3 chunks (768*14) of ym5 data */
 /* repeat, when done LENL/LENH is 0/0 */
 /* The data is Interleaved, zero-padded, and frame[0]=0xff on last frame */
@@ -22,6 +24,11 @@
 
 #include "stats.h"
 #include "ym_lib.h"
+
+/* Need liblz4 installed */
+#include "lz4.h"
+#include "lz4hc.h"
+
 
 #define VERSION "0.7"
 
@@ -42,6 +49,7 @@ static void print_help(int just_version, char *exec_name) {
 	exit(0);
 }
 
+#define NUMPAGES	3
 
 static int dump_song_krw(char *filename, int debug, int size,
 		char *outfile) {
@@ -57,17 +65,48 @@ static int dump_song_krw(char *filename, int debug, int size,
 	FILE *fff;
 	char outname[BUFSIZ];
 	int j;
-	int frames_per_chunk;
+	int minutes,seconds;
+	int compressed_size;
 
 	unsigned char *interleaved_data;
+	char *raw_data,*compressed_data;
 	unsigned char frame[YM5_FRAME_SIZE];
 
-	fprintf(stderr, "\nDumping song %s\n",filename);
+	/* FIXME: if "-" then use stdout? */
+	sprintf(outname,"%s",outfile);
+	fff=fopen(outname,"w");
+	if (fff==NULL) {
+		fprintf(stderr,"Error opening %s\n",outname);
+		return -1;
+	}
+
+	fprintf(stderr, "\nDumping song %s to %s\n",filename,outname);
 
 	result=load_ym_song(filename,&ym_song);
 	if (result<0) {
 		return -1;
 	}
+
+	seconds=ym_song.num_frames/ym_song.frame_rate;
+	minutes=seconds/60;
+	seconds-=(minutes*60);
+
+	if (minutes>9) {
+		fprintf(stderr,"Warning!  Decoder doesn't "
+				"necessarily handle files > 9min\n");
+	}
+
+	fprintf(stderr,"\tFrames: %d, %d:%02d\n",
+		ym_song.num_frames,minutes,seconds);
+
+
+	fputc(1,fff);
+	fprintf(fff,"INTRO2: JUNGAR OF BIT WORLD FROM KIEV%c",0);
+	fputc(5,fff);
+	fprintf(fff,"BY: SURGEON (ALEKSEY LUTSENKO)%c",0);
+	fputc(14,fff);
+	fprintf(fff,"0:00 / %d:%02d%c",minutes,seconds,0);
+
 
 	/**********************/
 	/* Print song summary */
@@ -100,7 +139,6 @@ static int dump_song_krw(char *filename, int debug, int size,
 	/* Play the song! */
 	/******************/
 
-#define NUMPAGES	3
 
 	/* plus one for end frame */
 	num_chunks=(ym_song.num_frames+1)/(NUMPAGES*256);
@@ -118,6 +156,19 @@ static int dump_song_krw(char *filename, int debug, int size,
 		return -1;
 	}
 
+	raw_data=calloc(NUMPAGES*256*14,sizeof(char));
+	if (raw_data==NULL) {
+		fprintf(stderr,"Error allocating memory!\n");
+		return -1;
+	}
+
+	compressed_data=calloc(NUMPAGES*256*14*2,sizeof(char));
+	if (raw_data==NULL) {
+		fprintf(stderr,"Error allocating memory!\n");
+		return -1;
+	}
+
+
 	for(y=0;y<14;y++) {
 		for(x=0;x<ym_song.num_frames;x++) {
 
@@ -128,28 +179,50 @@ static int dump_song_krw(char *filename, int debug, int size,
 	}
 
 	for(j=0;j<num_chunks;j++) {
-
-		sprintf(outname,"%s.%d",outfile,j);
-		fff=fopen(outname,"w");
-		if (fff==NULL) {
-			fprintf(stderr,"Error opening %s\n",outname);
-			return -1;
-		}
-
 		for(y=0;y<14;y++) {
 			for(x=0;x<(256*NUMPAGES);x++) {
-				fprintf(fff,"%c",
-				interleaved_data[x+
+				raw_data[x+y*(256*NUMPAGES)]=
+					interleaved_data[x+
 					j*(256*NUMPAGES)+
-					(y*ym_song.num_frames)]);
+					(y*ym_song.num_frames)];
 			}
 		}
-		fclose(fff);
+
+		compressed_size=LZ4_compress_HC (raw_data,
+						compressed_data,
+						256*NUMPAGES*14,
+						256*NUMPAGES*14*2,
+						16);
+
+		if (compressed_size>65536) {
+			fprintf(stderr,"Error!  Compressed data too big!\n");
+		}
+		fputc(compressed_size%256,fff);
+		fputc(compressed_size/256,fff);
+
+		fwrite(compressed_data,sizeof(unsigned char),
+			compressed_size,fff);
+
+//		for(y=0;y<14;y++) {
+//			for(x=0;x<(256*NUMPAGES);x++) {
+//				fputc(raw_data[x+y*(256*NUMPAGES)],fff);
+//			}
+//		}
+
+
 	}
+
+	fputc(0,fff);
+	fputc(0,fff);
+
+
+	fclose(fff);
 
 	fprintf(stderr,"; Total size = %d bytes\n",ym_song.num_frames*14);
 
 	free(interleaved_data);
+	free(raw_data);
+	free(compressed_data);
 
 	/* Free the ym file */
 	free(ym_song.file_data);
@@ -161,7 +234,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 int main(int argc, char **argv) {
 
 	char filename[BUFSIZ]="intro2.ym";
-	char outfile[BUFSIZ]="out";
+	char outfile[BUFSIZ]="out.krw";
 
 	int c,debug=0;
 	int first_song;
