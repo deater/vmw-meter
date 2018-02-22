@@ -68,6 +68,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 	int j;
 	int minutes,seconds;
 	int compressed_size;
+	int fake_frames;
 
 	unsigned char *interleaved_data;
 	char *raw_data,*compressed_data;
@@ -105,10 +106,10 @@ static int dump_song_krw(char *filename, int debug, int size,
 	fputc('R',fff);
 	fputc('W',fff);
 
-	skip=1+5+14+3+
+	skip=1+3+3+
 		strlen("INTRO2: JUNGAR OF BIT WORLD FROM KIEV")+
 		strlen("BY: SURGEON (ALEKSEY LUTSENKO)")+
-		strlen("0:00 /  0:00");
+		strlen("0:00  /  0:00");
 
 	fputc(skip,fff);
 
@@ -117,7 +118,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 	fputc(5,fff);
 	fprintf(fff,"BY: SURGEON (ALEKSEY LUTSENKO)%c",0);
 	fputc(14,fff);
-	fprintf(fff,"0:00 / %2d:%02d%c",minutes,seconds,0);
+	fprintf(fff,"0:00  / %2d:%02d%c",minutes,seconds,0);
 
 
 	/**********************/
@@ -153,13 +154,19 @@ static int dump_song_krw(char *filename, int debug, int size,
 
 
 	/* plus one for end frame */
+		// 8960 /768 = 11.6
+		// num_chunks = 12
+		// 8960/50=179.2 = 2:59
+		// stops at 2:48 = 8400 (11 is 8448)
 	num_chunks=(ym_song.num_frames+1)/(NUMPAGES*256);
 	/* pad to even number of frames */
 	num_chunks+=1;
 	data_size=num_chunks*NUMPAGES*256*14;
 
-	fprintf(stderr,"%d frames %d chunks total total_size %d\n",
-			ym_song.num_frames,num_chunks,data_size);
+	fake_frames=data_size/14;
+
+	fprintf(stderr,"%d frames %d fake_frames %d chunks total total_size %d\n",
+			ym_song.num_frames,fake_frames,num_chunks,data_size);
 
 
 	interleaved_data=calloc(data_size,sizeof(char));
@@ -167,6 +174,9 @@ static int dump_song_krw(char *filename, int debug, int size,
 		fprintf(stderr,"Error allocating memory!\n");
 		return -1;
 	}
+
+	/* 0xFFs at end are end-of-song marker */
+	memset(interleaved_data,0xff,data_size);
 
 	raw_data=calloc(NUMPAGES*256*14,sizeof(char));
 	if (raw_data==NULL) {
@@ -181,11 +191,12 @@ static int dump_song_krw(char *filename, int debug, int size,
 	}
 
 
+	/* Interleave the data */
 	for(y=0;y<14;y++) {
 		for(x=0;x<ym_song.num_frames;x++) {
 
 			ym_return_frame(&ym_song,x,frame,NULL);
-			interleaved_data[(y*ym_song.num_frames)+x]=
+			interleaved_data[(y*fake_frames)+x]=
 				frame[y];
 		}
 	}
@@ -196,9 +207,17 @@ static int dump_song_krw(char *filename, int debug, int size,
 				raw_data[x+y*(256*NUMPAGES)]=
 					interleaved_data[x+
 					j*(256*NUMPAGES)+
-					(y*ym_song.num_frames)];
+					(y*fake_frames)];
 			}
+
 		}
+
+//		printf("%d: ",j);
+//		for(y=0;y<14;y++) {
+//			printf("%02X ",
+//				(unsigned char)raw_data[(255*NUMPAGES)+(y*256*NUMPAGES)]);
+//		}
+//		printf("\n");
 
 		compressed_size=LZ4_compress_HC (raw_data,
 						compressed_data,
@@ -214,6 +233,8 @@ static int dump_song_krw(char *filename, int debug, int size,
 
 		fwrite(compressed_data,sizeof(unsigned char),
 			compressed_size,fff);
+
+		fprintf(stderr,"%d size %x\n",j,compressed_size);
 
 //		for(y=0;y<14;y++) {
 //			for(x=0;x<(256*NUMPAGES);x++) {
