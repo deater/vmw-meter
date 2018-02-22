@@ -11,6 +11,13 @@
 /* repeat, when done LENL/LENH is 0/0 */
 /* The data is Interleaved, zero-padded, and frame[0]=0xff on last frame */
 
+/* FIXME: BAD THINGS ABOUT FORMAT */
+/* No way to specify on fly whether it's 2*256 or 3*256 chunks */
+
+#define DEFAULT_PAGES_PER_CHUNK	2
+
+static int pages_per_chunk=DEFAULT_PAGES_PER_CHUNK;
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -50,7 +57,7 @@ static void print_help(int just_version, char *exec_name) {
 	exit(0);
 }
 
-#define NUMPAGES	3
+
 
 static int dump_song_krw(char *filename, int debug, int size,
 		char *outfile) {
@@ -158,10 +165,10 @@ static int dump_song_krw(char *filename, int debug, int size,
 		// num_chunks = 12
 		// 8960/50=179.2 = 2:59
 		// stops at 2:48 = 8400 (11 is 8448)
-	num_chunks=(ym_song.num_frames+1)/(NUMPAGES*256);
+	num_chunks=(ym_song.num_frames+1)/(pages_per_chunk*256);
 	/* pad to even number of frames */
 	num_chunks+=1;
-	data_size=num_chunks*NUMPAGES*256*14;
+	data_size=num_chunks*pages_per_chunk*256*14;
 
 	fake_frames=data_size/14;
 
@@ -178,13 +185,13 @@ static int dump_song_krw(char *filename, int debug, int size,
 	/* 0xFFs at end are end-of-song marker */
 	memset(interleaved_data,0xff,data_size);
 
-	raw_data=calloc(NUMPAGES*256*14,sizeof(char));
+	raw_data=calloc(pages_per_chunk*256*14,sizeof(char));
 	if (raw_data==NULL) {
 		fprintf(stderr,"Error allocating memory!\n");
 		return -1;
 	}
 
-	compressed_data=calloc(NUMPAGES*256*14*2,sizeof(char));
+	compressed_data=calloc(pages_per_chunk*256*14*2,sizeof(char));
 	if (raw_data==NULL) {
 		fprintf(stderr,"Error allocating memory!\n");
 		return -1;
@@ -203,10 +210,10 @@ static int dump_song_krw(char *filename, int debug, int size,
 
 	for(j=0;j<num_chunks;j++) {
 		for(y=0;y<14;y++) {
-			for(x=0;x<(256*NUMPAGES);x++) {
-				raw_data[x+y*(256*NUMPAGES)]=
+			for(x=0;x<(256*pages_per_chunk);x++) {
+				raw_data[x+y*(256*pages_per_chunk)]=
 					interleaved_data[x+
-					j*(256*NUMPAGES)+
+					j*(256*pages_per_chunk)+
 					(y*fake_frames)];
 			}
 
@@ -215,14 +222,14 @@ static int dump_song_krw(char *filename, int debug, int size,
 //		printf("%d: ",j);
 //		for(y=0;y<14;y++) {
 //			printf("%02X ",
-//				(unsigned char)raw_data[(255*NUMPAGES)+(y*256*NUMPAGES)]);
+//				(unsigned char)raw_data[(255*pages_per_chunk)+(y*256*pages_per_chunk)]);
 //		}
 //		printf("\n");
 
 		compressed_size=LZ4_compress_HC (raw_data,
 						compressed_data,
-						256*NUMPAGES*14,
-						256*NUMPAGES*14*2,
+						256*pages_per_chunk*14,
+						256*pages_per_chunk*14*2,
 						16);
 
 		if (compressed_size>65536) {
@@ -237,8 +244,8 @@ static int dump_song_krw(char *filename, int debug, int size,
 		fprintf(stderr,"%d size %x\n",j,compressed_size);
 
 //		for(y=0;y<14;y++) {
-//			for(x=0;x<(256*NUMPAGES);x++) {
-//				fputc(raw_data[x+y*(256*NUMPAGES)],fff);
+//			for(x=0;x<(256*pages_per_chunk);x++) {
+//				fputc(raw_data[x+y*(256*pages_per_chunk)],fff);
 //			}
 //		}
 
