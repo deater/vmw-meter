@@ -3,6 +3,7 @@
 /* Note, need to have liblz4-dev installed, apt-get install liblz4-dev */
 
 /* krw file format */
+/* KRW (ASCII), SKIPVALUE (bytes to first block) */
 /* ((40-TITLE_LEN)/2) NULL_TERMINATED_TITLE_STRING */
 /* ((40-AUTHOR_LEN)/2) NULL_TERMINATED_AUTHOR_STRING */
 /* 14, 0:00 /  M:SS\0, where M/SS is the length */
@@ -71,6 +72,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 	unsigned char *interleaved_data;
 	char *raw_data,*compressed_data;
 	unsigned char frame[YM5_FRAME_SIZE];
+	int skip;
 
 	/* FIXME: if "-" then use stdout? */
 	sprintf(outname,"%s",outfile);
@@ -99,13 +101,23 @@ static int dump_song_krw(char *filename, int debug, int size,
 	fprintf(stderr,"\tFrames: %d, %d:%02d\n",
 		ym_song.num_frames,minutes,seconds);
 
+	fputc('K',fff);
+	fputc('R',fff);
+	fputc('W',fff);
+
+	skip=1+5+14+3+
+		strlen("INTRO2: JUNGAR OF BIT WORLD FROM KIEV")+
+		strlen("BY: SURGEON (ALEKSEY LUTSENKO)")+
+		strlen("0:00 /  0:00");
+
+	fputc(skip,fff);
 
 	fputc(1,fff);
 	fprintf(fff,"INTRO2: JUNGAR OF BIT WORLD FROM KIEV%c",0);
 	fputc(5,fff);
 	fprintf(fff,"BY: SURGEON (ALEKSEY LUTSENKO)%c",0);
 	fputc(14,fff);
-	fprintf(fff,"0:00 / %d:%02d%c",minutes,seconds,0);
+	fprintf(fff,"0:00 / %2d:%02d%c",minutes,seconds,0);
 
 
 	/**********************/
@@ -267,6 +279,10 @@ int main(int argc, char **argv) {
 
 	if (argv[first_song]!=NULL) {
 		strcpy(filename,argv[first_song]);
+	}
+
+	if (first_song+1<argc) {
+		strcpy(outfile,argv[first_song+1]);
 	}
 
 	/* Dump the song */
