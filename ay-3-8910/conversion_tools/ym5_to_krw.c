@@ -14,7 +14,7 @@
 /* FIXME: BAD THINGS ABOUT FORMAT */
 /* No way to specify on fly whether it's 2*256 or 3*256 chunks */
 
-#define DEFAULT_PAGES_PER_CHUNK	2
+#define DEFAULT_PAGES_PER_CHUNK	3
 
 static int pages_per_chunk=DEFAULT_PAGES_PER_CHUNK;
 
@@ -60,7 +60,7 @@ static void print_help(int just_version, char *exec_name) {
 
 
 static int dump_song_krw(char *filename, int debug, int size,
-		char *outfile) {
+		char *outfile, char *a, char *t) {
 
 	int result;
 	int data_size;
@@ -81,6 +81,10 @@ static int dump_song_krw(char *filename, int debug, int size,
 	char *raw_data,*compressed_data;
 	unsigned char frame[YM5_FRAME_SIZE];
 	int skip;
+
+	char title[BUFSIZ];
+	char author[BUFSIZ];
+
 
 	/* FIXME: if "-" then use stdout? */
 	sprintf(outname,"%s",outfile);
@@ -113,19 +117,6 @@ static int dump_song_krw(char *filename, int debug, int size,
 	fputc('R',fff);
 	fputc('W',fff);
 
-	skip=1+3+3+
-		strlen("INTRO2: JUNGAR OF BIT WORLD FROM KIEV")+
-		strlen("BY: SURGEON (ALEKSEY LUTSENKO)")+
-		strlen("0:00  /  0:00");
-
-	fputc(skip,fff);
-
-	fputc(1,fff);
-	fprintf(fff,"INTRO2: JUNGAR OF BIT WORLD FROM KIEV%c",0);
-	fputc(5,fff);
-	fprintf(fff,"BY: SURGEON (ALEKSEY LUTSENKO)%c",0);
-	fputc(14,fff);
-	fprintf(fff,"0:00  / %2d:%02d%c",minutes,seconds,0);
 
 
 	/**********************/
@@ -155,6 +146,49 @@ static int dump_song_krw(char *filename, int debug, int size,
 	printf("\tAuthor name: %s\n",ym_song.author);
 	printf("\tComment: %s\n",ym_song.comment);
 #endif
+
+	/* default */
+//	fprintf(fff,"INTRO2: JUNGAR OF BIT WORLD FROM KIEV%c",0);
+//	fprintf(fff,"BY: SURGEON (ALEKSEY LUTSENKO)%c",0);
+
+	/* Get from title */
+	if (t) {
+		strcpy(title,t);
+	}
+	else {
+		strcpy(title,ym_song.song_name);
+	}
+	title[40]=0;
+
+	if (a) {
+		sprintf(author,"BY: %s",a);
+	}
+	else {
+		sprintf(author,"BY: %s",ym_song.author);
+	}
+	author[40]=0;
+
+	fprintf(stderr,"TITLE: %s\n",title);
+	fprintf(stderr,"AUTHOR: %s\n",author);
+
+
+	skip=1+3+3+
+		strlen(title)+
+		strlen(author)+
+		strlen("0:00  /  0:00");
+
+	fputc(skip,fff);
+
+	fputc( (40-strlen(title))/2,fff);
+	fprintf(fff,title);
+	fputc(0,fff);
+	fputc( (40-strlen(author))/2,fff);
+	fprintf(fff,author);
+	fputc(0,fff);
+	fputc(14,fff);
+	fprintf(fff,"0:00  / %2d:%02d",minutes,seconds);
+	fputc(0,fff);
+
 	/******************/
 	/* Play the song! */
 	/******************/
@@ -241,7 +275,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 		fwrite(compressed_data,sizeof(unsigned char),
 			compressed_size,fff);
 
-		fprintf(stderr,"%d size %x\n",j,compressed_size);
+//		fprintf(stderr,"%d size %x\n",j,compressed_size);
 
 //		for(y=0;y<14;y++) {
 //			for(x=0;x<(256*pages_per_chunk);x++) {
@@ -281,8 +315,12 @@ int main(int argc, char **argv) {
 
 	int size=4096;
 
+	char *author=NULL;
+	char *title=NULL;
+
+
 	/* Parse command line arguments */
-	while ((c = getopt(argc, argv, "dhv"))!=-1) {
+	while ((c = getopt(argc, argv, "dhva:t:"))!=-1) {
 		switch (c) {
 			case 'd':
 				/* Debug messages */
@@ -297,6 +335,15 @@ int main(int argc, char **argv) {
 				/* version */
 				print_help(1,argv[0]);
 				break;
+			case 'a':
+				/* author */
+				author=strdup(optarg);
+				break;
+			case 't':
+				/* title */
+				title=strdup(optarg);
+				break;
+
 			default:
 				print_help(0,argv[0]);
 				break;
@@ -314,7 +361,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* Dump the song */
-	dump_song_krw(filename,debug,size,outfile);
+	dump_song_krw(filename,debug,size,outfile,author,title);
 
 	return 0;
 }

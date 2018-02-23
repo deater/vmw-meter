@@ -1,7 +1,10 @@
 #!/bin/sh
 
-./ym5_to_krw ../music/INTRO2.ym INTRO2.KRW
-./ym5_to_krw ../music/DEMO4.YM DEMO4.KRW
+./ym5_to_krw \
+	-t "INTRO2: JUNGAR OF BIT WORLD FROM KIEV" \
+	-a "SURGEON (ALEKSEY LUTSENKO)" \
+	../music/INTRO2.ym INTRO2.KRW
+./ym5_to_krw -t "DEMO4" ../music/DEMO4.YM DEMO4.KRW
 ./ym5_to_krw ../music/CAMOUFLA-OMD-ELECTRICITY.YM CAMOUFLAGE.KRW
 ./ym5_to_krw ../music/SDEMO.YM SDEMO.KRW
 ./ym5_to_krw "../music/new/Surgeon - CR MOROS (1996).ym" CRMOROS.KRW
