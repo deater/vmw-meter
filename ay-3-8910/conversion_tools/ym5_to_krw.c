@@ -60,7 +60,7 @@ static void print_help(int just_version, char *exec_name) {
 
 
 static int dump_song_krw(char *filename, int debug, int size,
-		char *outfile, char *a, char *t) {
+		char *outfile, char *a, char *t, int force_end_frame) {
 
 	int result;
 	int data_size;
@@ -85,6 +85,8 @@ static int dump_song_krw(char *filename, int debug, int size,
 	char title[BUFSIZ];
 	char author[BUFSIZ];
 
+	int end_frame;
+
 
 	/* FIXME: if "-" then use stdout? */
 	sprintf(outname,"%s",outfile);
@@ -96,12 +98,22 @@ static int dump_song_krw(char *filename, int debug, int size,
 
 	fprintf(stderr, "\nDumping song %s to %s\n",filename,outname);
 
+	/*****************************************/
+	/* LOAD SONG				*/
+	/***************************************/
 	result=load_ym_song(filename,&ym_song);
 	if (result<0) {
 		return -1;
 	}
 
-	seconds=ym_song.num_frames/ym_song.frame_rate;
+	if (force_end_frame) {
+		end_frame=force_end_frame;
+	}
+	else {
+		end_frame=ym_song.num_frames;
+	}
+
+	seconds=end_frame/ym_song.frame_rate;
 	minutes=seconds/60;
 	seconds-=(minutes*60);
 
@@ -111,7 +123,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 	}
 
 	fprintf(stderr,"\tFrames: %d, %d:%02d\n",
-		ym_song.num_frames,minutes,seconds);
+		end_frame,minutes,seconds);
 
 	fputc('K',fff);
 	fputc('R',fff);
@@ -161,7 +173,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 	title[40]=0;
 
 	if (a) {
-		sprintf(author,"BY: %s",a);
+		sprintf(author,"%s",a);
 	}
 	else {
 		sprintf(author,"BY: %s",ym_song.author);
@@ -185,7 +197,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 	fputc( (40-strlen(author))/2,fff);
 	fprintf(fff,author);
 	fputc(0,fff);
-	fputc(14,fff);
+	fputc(13,fff);
 	fprintf(fff,"0:00  / %2d:%02d",minutes,seconds);
 	fputc(0,fff);
 
@@ -199,7 +211,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 		// num_chunks = 12
 		// 8960/50=179.2 = 2:59
 		// stops at 2:48 = 8400 (11 is 8448)
-	num_chunks=(ym_song.num_frames+1)/(pages_per_chunk*256);
+	num_chunks=(end_frame+1)/(pages_per_chunk*256);
 	/* pad to even number of frames */
 	num_chunks+=1;
 	data_size=num_chunks*pages_per_chunk*256*14;
@@ -207,7 +219,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 	fake_frames=data_size/14;
 
 	fprintf(stderr,"%d frames %d fake_frames %d chunks total total_size %d\n",
-			ym_song.num_frames,fake_frames,num_chunks,data_size);
+			end_frame,fake_frames,num_chunks,data_size);
 
 
 	interleaved_data=calloc(data_size,sizeof(char));
@@ -234,7 +246,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 
 	/* Interleave the data */
 	for(y=0;y<14;y++) {
-		for(x=0;x<ym_song.num_frames;x++) {
+		for(x=0;x<end_frame;x++) {
 
 			ym_return_frame(&ym_song,x,frame,NULL);
 			interleaved_data[(y*fake_frames)+x]=
@@ -292,7 +304,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 
 	fclose(fff);
 
-	fprintf(stderr,"; Total size = %d bytes\n",ym_song.num_frames*14);
+	fprintf(stderr,"; Total size = %d bytes\n",end_frame*14);
 
 	free(interleaved_data);
 	free(raw_data);
@@ -312,6 +324,7 @@ int main(int argc, char **argv) {
 
 	int c,debug=0;
 	int first_song;
+	int force_end_frame=0;
 
 	int size=4096;
 
@@ -320,7 +333,7 @@ int main(int argc, char **argv) {
 
 
 	/* Parse command line arguments */
-	while ((c = getopt(argc, argv, "dhva:t:"))!=-1) {
+	while ((c = getopt(argc, argv, "dhva:f:t:"))!=-1) {
 		switch (c) {
 			case 'd':
 				/* Debug messages */
@@ -338,6 +351,10 @@ int main(int argc, char **argv) {
 			case 'a':
 				/* author */
 				author=strdup(optarg);
+				break;
+			case 'f':
+				/* force end-frame */
+				force_end_frame=atoi(optarg);
 				break;
 			case 't':
 				/* title */
@@ -361,7 +378,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* Dump the song */
-	dump_song_krw(filename,debug,size,outfile,author,title);
+	dump_song_krw(filename,debug,size,outfile,author,title,force_end_frame);
 
 	return 0;
 }
