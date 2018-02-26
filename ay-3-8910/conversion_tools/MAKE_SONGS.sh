@@ -20,3 +20,5 @@
 ./ym5_to_krw "../music/beverly.ym" AXELF.KRW
 ./ym5_to_krw "../songs/fighting.ym5" FIGHTING.KRW
 ./ym5_to_krw "../songs/korobeiniki.ym5" KORO.KRW
+./ym5_to_krw "../music/new/Rcl - HOLIDAYS.ym" HOLIDAYS.KRW
+./ym5_to_krw "../music/new/Random - Maddy.ym" RANDOM.KRW
