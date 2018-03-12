@@ -243,6 +243,11 @@ static int play_song(char *filename) {
 				else mute_channel|=0x20;
 				printf("NEW %x\n",mute_channel);
 			}
+			if (display_command==CMD_MUTE_ENVELOPE) {
+				if (mute_channel&0x40) mute_channel&=~0x40;
+				else mute_channel|=0x40;
+				printf("NEW %x\n",mute_channel);
+			}
 
 			if (display_command==CMD_EXIT_PROGRAM) {
 				free(ym_song.file_data);

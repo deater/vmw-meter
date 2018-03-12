@@ -53,6 +53,26 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	if (mute_channel&0x8) frame[7]|=0x8;
 	if (mute_channel&0x10) frame[7]|=0x10;
 	if (mute_channel&0x20) frame[7]|=0x20;
+	/* Mute envelope */
+	if (mute_channel&0x40) {
+		frame[8]&=0xf;
+		frame[9]&=0xf;
+		frame[10]&=0xf;
+	}
+
+	/* FIXME: do this right? */
+	if (mute_channel&0x1) frame2[8]=0;
+	if (mute_channel&0x2) frame2[9]=0;
+	if (mute_channel&0x4) frame2[10]=0;
+	if (mute_channel&0x8) frame2[7]|=0x8;
+	if (mute_channel&0x10) frame2[7]|=0x10;
+	if (mute_channel&0x20) frame2[7]|=0x20;
+	/* Mute envelope */
+	if (mute_channel&0x40) {
+		frame2[8]&=0xf;
+		frame2[9]&=0xf;
+		frame2[10]&=0xf;
+	}
 
 	if (play_music) {
 		for(j=0;j<13;j++) {

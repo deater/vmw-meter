@@ -173,6 +173,9 @@ int display_keypad_read(int display_type) {
 			case 's':
 				return CMD_STOP;
 				break;
+			case 'd':
+				return CMD_MUTE_ENVELOPE;
+				break;
 			case 'l': /* toggle loop */
 				return CMD_LOOP;
 				break;

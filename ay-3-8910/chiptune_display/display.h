@@ -39,6 +39,8 @@ extern int i2c_fd;
 #define CMD_MENU		0x13
 #define CMD_CANCEL		0x14
 
+#define CMD_MUTE_ENVELOPE	0x15
+
 
 #define NUM_ALPHANUM	12
 
