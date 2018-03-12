@@ -28,15 +28,15 @@ static void print_help(int just_version, char *exec_name) {
 	printf("\ndump_ym5 version %s by Vince Weaver <vince@deater.net>\n\n",VERSION);
 	if (just_version) exit(0);
 
-	printf("This plays YM5 music files out of the VMW AY-3-8910 device\n");
-	printf("on a suitably configured Raspberry Pi machine.\n\n");
+	printf("This dumps the contents of a ym5 music file.\n\n");
 
 	printf("Usage:\n");
-	printf("\t%s [-h] [-v] [-d] [-i] [-t] [-m] [-s] [-n] filename\n\n",
+	printf("\t%s [-h] [-v] [-d] [-r] filename\n\n",
 		exec_name);
 	printf("\t-h: this help message\n");
 	printf("\t-v: version info\n");
 	printf("\t-d: print debug messages\n");
+	printf("\t-r: don't pretty print values\n");
 
 	exit(0);
 }
@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
 	int first_song;
 
 	/* Parse command line arguments */
-	while ((c = getopt(argc, argv, "dDmhvmsnitr"))!=-1) {
+	while ((c = getopt(argc, argv, "dhvr"))!=-1) {
 		switch (c) {
 			case 'd':
 				/* Debug messages */
@@ -136,6 +136,10 @@ int main(int argc, char **argv) {
 			case 'v':
 				/* version */
 				print_help(1,argv[0]);
+				break;
+			case 'r':
+				/* raw */
+				debug=1;
 				break;
 			default:
 				print_help(0,argv[0]);
