@@ -27,17 +27,18 @@ static void print_help(int just_version, char *exec_name) {
 	printf("This converts ym5 files to a form playable on Apple II Mockkingboard\n\n");
 
 	printf("Usage:\n");
-	printf("\t%s [-h] [-v] [-d] [-r] filename\n\n",
+	printf("\t%s [-h] [-v] [-b] [-d] [-r] filename\n\n",
 		exec_name);
 	printf("\t-h: this help message\n");
 	printf("\t-v: version info\n");
+	printf("\t-b: write out binary (not assembly) results\n");
 	printf("\t-d: print debug messages\n");
 	printf("\t-r: raw uncompressed data\n");
 
 	exit(0);
 }
 
-static int dump_song(char *filename, int debug) {
+static int dump_song(char *filename, int debug, int binary) {
 
 	int result;
 	int length_seconds,total;
@@ -55,8 +56,10 @@ static int dump_song(char *filename, int debug) {
 
 	unsigned char frame[YM5_FRAME_SIZE];
 
-
-	printf("\n; Using ym5_to_mockingboard to convert song %s\n",filename);
+	if (!binary) {
+		printf("\n; Using ym5_to_mockingboard to convert song %s\n",
+			filename);
+	}
 
 	result=load_ym_song(filename,&ym_song);
 	if (result<0) {
@@ -67,26 +70,30 @@ static int dump_song(char *filename, int debug) {
 	/* Print song summary */
 	/**********************/
 
-	printf(";\tYM%d",ym_song.type);
-	printf("\tSong attributes (%d) : ",ym_song.attributes);
-	printf("Interleaved=%s\n",ym_song.interleaved?"yes":"no");
-	if (ym_song.num_digidrum>0) {
-		printf("; Num digidrum samples: %d\n",ym_song.num_digidrum);
+	if (!binary) {
+		printf(";\tYM%d",ym_song.type);
+		printf("\tSong attributes (%d) : ",ym_song.attributes);
+		printf("Interleaved=%s\n",ym_song.interleaved?"yes":"no");
+		if (ym_song.num_digidrum>0) {
+			printf("; Num digidrum samples: %d\n",
+				ym_song.num_digidrum);
+		}
+		printf(";\tFrames: %d, ",ym_song.num_frames);
+		printf("Chip clock: %d Hz, ",ym_song.master_clock);
+		printf("Frame rate: %d Hz, ",ym_song.frame_rate);
+		if (ym_song.frame_rate!=50) {
+			fprintf(stderr,"FIX ME framerate %d\n",
+				ym_song.frame_rate);
+			exit(1);
+		}
+		length_seconds=ym_song.num_frames/ym_song.frame_rate;
+		printf("Length=%d:%02d\n",length_seconds/60,length_seconds%60);
+		printf(";\tLoop frame: %d, ",ym_song.loop_frame);
+		printf("Extra data size: %d\n",ym_song.extra_data);
+		printf(";\tSong name: %s\n",ym_song.song_name);
+		printf(";\tAuthor name: %s\n",ym_song.author);
+		printf(";\tComment: %s\n",ym_song.comment);
 	}
-	printf(";\tFrames: %d, ",ym_song.num_frames);
-	printf("Chip clock: %d Hz, ",ym_song.master_clock);
-	printf("Frame rate: %d Hz, ",ym_song.frame_rate);
-	if (ym_song.frame_rate!=50) {
-		fprintf(stderr,"FIX ME framerate %d\n",ym_song.frame_rate);
-		exit(1);
-	}
-	length_seconds=ym_song.num_frames/ym_song.frame_rate;
-	printf("Length=%d:%02d\n",length_seconds/60,length_seconds%60);
-	printf(";\tLoop frame: %d, ",ym_song.loop_frame);
-	printf("Extra data size: %d\n",ym_song.extra_data);
-	printf(";\tSong name: %s\n",ym_song.song_name);
-	printf(";\tAuthor name: %s\n",ym_song.author);
-	printf(";\tComment: %s\n",ym_song.comment);
 
 	frame_num=0;
 	while(1) {
@@ -115,35 +122,57 @@ static int dump_song(char *filename, int debug) {
 
 		if (frame_different) {
 			if (frame_num-lastframe>254) {
-				printf("ERROR frame diff too big %d!\n",
+				fprintf(stderr,"ERROR frame diff too big %d!\n",
 					frame_num-lastframe);
 				exit(1);
 			}
 
-			printf(".byte\t$%02X,$%02X,",
-				frame_num-lastframe,which1);
+			if (!binary) {
+				printf(".byte\t$%02X,$%02X,",
+					frame_num-lastframe,which1);
+			}
+			else {
+				printf("%c%c",frame_num-lastframe,which1);
+			}
+
 			byte_count+=3;
 			for(i=0;i<14;i++) {
 				if (i==8) {
-					if (which2) printf("$%02X,",which2);
-					else printf(",$%02X",which2);
+					if (!binary) {
+						if (which2) printf("$%02X,",which2);
+						else printf(",$%02X",which2);
+					}
+					else {
+						printf("%c",which2);
+					}
 				}
 				if ((i==13)&&(frame[i]==0xff)) {
 
 				}
 				else {
 					if (frame[i]!=oldframe[i]) {
-						printf("$%02X",frame[i]);
+						if (!binary) {
+							printf("$%02X",frame[i]);
+						}
+						else {
+							printf("%c",frame[i]);
+						}
 						byte_count+=1;
 						total++;
-						if (total!=frame_different) {
-							printf(",");
+						if (!binary) {
+							if (total!=frame_different) {
+								printf(",");
+							}
 						}
 					}
 				}
 			}
-			for(i=0;i<5-(frame_different*4)/8;i++) printf("\t");
-			printf("; %05d\n",frame_num);
+			if (!binary) {
+				for(i=0;i<5-(frame_different*4)/8;i++) {
+					printf("\t");
+				}
+				printf("; %05d\n",frame_num);
+			}
 			lastframe=frame_num;
 		}
 
@@ -153,14 +182,28 @@ static int dump_song(char *filename, int debug) {
 
 		/* Check to see if done with file */
 		if (frame_num>=ym_song.num_frames) {
-			printf(".byte\t$%02X,$00,$00,$ff\t\t\t\t\t; %05d\n",
-				frame_num-lastframe,frame_num);
+			if (!binary) {
+				printf(".byte\t$%02X,$00,$00,$ff"
+					"\t\t\t\t\t; %05d\n",
+					frame_num-lastframe,frame_num);
+			}
+			else {
+				printf("%c%c%c%c",
+					frame_num-lastframe,0x0,0x0,0xff);
+			}
+			byte_count+=4;
 			break;
 		}
 	}
 
-	printf("; Raw size = %d bytes\n",frame_num*14);
-	printf("; Updated size = %d bytes\n",byte_count);
+	if (!binary) {
+		printf("; Raw size = %d bytes\n",frame_num*14);
+		printf("; Updated size = %d bytes\n",byte_count);
+	}
+	else {
+		fprintf(stderr,"; Raw size = %d bytes\n",frame_num*14);
+		fprintf(stderr,"; Updated size = %d bytes\n",byte_count);
+	}
 
 	/* Free the ym file */
 	free(ym_song.file_data);
@@ -168,7 +211,7 @@ static int dump_song(char *filename, int debug) {
 	return 0;
 }
 
-static int dump_song_raw(char *filename, int debug) {
+static int dump_song_raw(char *filename, int debug, int binary) {
 
 	int result;
 	int length_seconds;
@@ -253,10 +296,10 @@ int main(int argc, char **argv) {
 
 	int c,debug=0;
 	int first_song;
-	int raw=0;
+	int raw=0,binary=0;
 
 	/* Parse command line arguments */
-	while ((c = getopt(argc, argv, "dDmhvmsnitr"))!=-1) {
+	while ((c = getopt(argc, argv, "dhbrv"))!=-1) {
 		switch (c) {
 			case 'd':
 				/* Debug messages */
@@ -266,6 +309,10 @@ int main(int argc, char **argv) {
 			case 'h':
 				/* help */
 				print_help(0,argv[0]);
+				break;
+			case 'b':
+				/* binary */
+				binary=1;
 				break;
 			case 'r':
 				/* raw */
@@ -289,10 +336,10 @@ int main(int argc, char **argv) {
 
 	/* Dump the song */
 	if (raw) {
-		dump_song_raw(filename,debug);
+		dump_song_raw(filename,debug,binary);
 	}
 	else {
-		dump_song(filename,debug);
+		dump_song(filename,debug,binary);
 	}
 
 	return 0;

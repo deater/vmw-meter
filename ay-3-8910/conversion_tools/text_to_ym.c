@@ -1264,8 +1264,12 @@ int main(int argc, char **argv) {
 				}
 				if (strstr(string,"NOISE:")) {
 					get_string(string,"NOISE:",temp,1);
-					instruments[which_instrument].noise=atoi(temp);
+					len=get_list(string,"NOISE:",
+						instruments[which_instrument].noise_period);
+					instruments[which_instrument].noise=1;
+					instruments[which_instrument].noise_size=len;
 					printf("\tNOISE=%x\n",instruments[which_instrument].noise);
+					instruments[which_instrument].length=len;
 				}
 				if (strstr(string,"ONCE:")) {
 					get_string(string,"ONCE:",temp,1);
