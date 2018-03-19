@@ -48,11 +48,14 @@ static void print_help(int just_version, char *exec_name) {
 	printf("This converts ym5 files to krw (AppleII/Mockingboard)\n\n");
 
 	printf("Usage:\n");
-	printf("\t%s [-h] [-v] [-d] filename\n\n",
+	printf("\t%s [-h] [-v] [-d] [-t] [-a] [-f] filename\n\n",
 		exec_name);
 	printf("\t-h: this help message\n");
 	printf("\t-v: version info\n");
 	printf("\t-d: print debug messages\n");
+	printf("\t-t: override title\n");
+	printf("\t-a: override author\n");
+	printf("\t-f: force early end frame\n");
 
 	exit(0);
 }

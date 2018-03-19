@@ -4,11 +4,9 @@ YMLIB_INCLUDE = -I../ymlib/
 NOTES_INC = -I../noteslib/
 LZ4_LIB = -llz4
 
-DISPLAY = display.o display_bargraph.o display_keypad.o display_8x16.o display_14seg.o notes.o
-
 all:	dump_xm xm_to_text \
 	dump_ym5 text_to_ed text_to_ym ym_to_ym5 \
-	ym5_to_raw ym5_to_mockingboard ym5_to_krw
+	ym5_to_raw ym5_to_mockingboard ym5_to_krg ym5_to_krw
 
 ../ymlib/ym_lib.o:	
 	cd ../ymlib && make
@@ -39,21 +37,10 @@ ym_lib.o:	ym_lib.c ym_lib.h
 	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c ym_lib.c
 
 
-ym_play:	ym_play.o ay-3-8910.o max98306.o ym_lib.o \
-			$(DISPLAY) \
-			../lib/i2c_lib.o
-	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o ym_play ym_play.o ay-3-8910.o \
-			max98306.o \
-			$(DISPLAY) ym_lib.o \
-			../lib/i2c_lib.o /usr/local/lib/libbcm2835.a
-
-ym_play.o:	ym_play.c display.h ay-3-8910.h
-	$(CC) $(CFLAGS) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c ym_play.c
 
 
 ######
 
-#			$(DISPLAY) ../lib/i2c_lib.o
 
 dump_ym5:	dump_ym5.o ../ymlib/ym_lib.o
 	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o dump_ym5 dump_ym5.o ../ymlib/ym_lib.o
@@ -77,6 +64,14 @@ ym5_to_raw:	ym5_to_raw.o ../ymlib/ym_lib.o
 
 ym5_to_raw.o:	ym5_to_raw.c
 	$(CC) $(CFLAGS) $(YMLIB_INCLUDE) -c ym5_to_raw.c
+
+###
+
+ym5_to_krg:	ym5_to_krg.o ../ymlib/ym_lib.o
+	$(CC) $(LFLAGS) $(LZ4_LIB) $(LIBLHASA_LIB) -o ym5_to_krg ym5_to_krg.o ../ymlib/ym_lib.o
+
+ym5_to_krg.o:	ym5_to_krg.c
+	$(CC) $(CFLAGS) $(YMLIB_INCLUDE) -c ym5_to_krg.c
 
 ###
 
@@ -118,4 +113,4 @@ ym_to_ym5.o:	ym_to_ym5.c
 clean:	
 	rm -f *~ *.o text_to_ym ym_to_ym5 text_to_ed \
 		dump_ym5 dump_xm xm_to_text ym5_to_mockingboard \
-		ym5_to_raw ym5_to_krw
+		ym5_to_raw ym5_to_krg ym5_to_krw
