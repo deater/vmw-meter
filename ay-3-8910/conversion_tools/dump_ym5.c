@@ -93,8 +93,8 @@ static int dump_song(char *filename, int debug) {
 		m=s/60;
 		s=s%60;
 
-		if (frame_num%96==0) {
-			printf("%02d:%02d  ---- A     B     C      N     E -------------------------------\n",m,s);
+		if (frame_num%50==0) {
+			printf(";%02d:%02d ---- A     B     C      N     E -------------------------------\n",m,s);
 		}
 
 		ym_dump_frame(&ym_song,frame_num,debug,0);
@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
 				break;
 			case 'r':
 				/* raw */
-				debug=1;
+				debug=2;
 				break;
 			default:
 				print_help(0,argv[0]);

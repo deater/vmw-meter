@@ -709,6 +709,7 @@ static int ym_dump_frame_triplet(struct ym_song_t *ym_song,
 				(frame[14]<<8)+frame[15]);
 	}
 
+	if (raw!=2) {
 
 	if (which==0) printf("%05d:\t",frame_num);
 	else printf("\t");
@@ -744,6 +745,9 @@ static int ym_dump_frame_triplet(struct ym_song_t *ym_song,
 		if (frame[13]&0x8) printf("Continue");
 	}
 	printf("\n");
+
+	}
+
 
 	return 0;
 

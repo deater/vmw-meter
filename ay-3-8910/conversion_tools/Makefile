@@ -5,7 +5,7 @@ NOTES_INC = -I../noteslib/
 LZ4_LIB = -llz4
 
 all:	dump_xm xm_to_text \
-	dump_ym5 text_to_ed text_to_ym ym_to_ym5 \
+	dump_ym5 text_to_ed raw_to_ym text_to_ym ym_to_ym5 \
 	ym5_to_raw ym5_to_mockingboard ym5_to_krg ym5_to_krw
 
 ../ymlib/ym_lib.o:	
@@ -91,6 +91,14 @@ text_to_ym:	text_to_ym.o ../noteslib/notes.o
 text_to_ym.o:	text_to_ym.c ../noteslib/notes.h
 	$(CC) $(CFLAGS) $(NOTES_INC) -c text_to_ym.c
 
+###
+
+raw_to_ym:	raw_to_ym.o
+	$(CC) $(LFLAGS) -o raw_to_ym raw_to_ym.o
+
+raw_to_ym.o:	raw_to_ym.c
+	$(CC) $(CFLAGS) -c raw_to_ym.c
+
 ####
 
 text_to_ed:	text_to_ed.o ../noteslib/notes.o
@@ -113,4 +121,4 @@ ym_to_ym5.o:	ym_to_ym5.c
 clean:	
 	rm -f *~ *.o text_to_ym ym_to_ym5 text_to_ed \
 		dump_ym5 dump_xm xm_to_text ym5_to_mockingboard \
-		ym5_to_raw ym5_to_krg ym5_to_krw
+		ym5_to_raw ym5_to_krg ym5_to_krw raw_to_ym
