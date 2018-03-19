@@ -150,13 +150,13 @@ static int dump_song_krg(char *filename, int debug, int size,
 		interleaved_data[y*(num_chunks*256)+x]=frame[7];
 
 		y=5; //acoarse/bcoarse
-		interleaved_data[y*(num_chunks*256)+x]=((frame[1]&0xf)<<8)|(frame[3]&0xf);
+		interleaved_data[y*(num_chunks*256)+x]=((frame[1]&0xf)<<4)|(frame[3]&0xf);
 
 		y=6; //ccoarse/aamp
-		interleaved_data[y*(num_chunks*256)+x]=((frame[5]&0xf)<<8)|(frame[8]&0xf);
+		interleaved_data[y*(num_chunks*256)+x]=((frame[5]&0xf)<<4)|(frame[8]&0xf);
 
 		y=7; //bamp/camp
-		interleaved_data[y*(num_chunks*256)+x]=((frame[9]&0xf)<<8)|(frame[10]&0xf);
+		interleaved_data[y*(num_chunks*256)+x]=((frame[9]&0xf)<<4)|(frame[10]&0xf);
 	}
 
 	for(x=0;x<data_size;x++) {

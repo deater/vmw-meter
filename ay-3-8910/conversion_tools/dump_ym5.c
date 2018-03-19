@@ -71,7 +71,7 @@ static int dump_song(char *filename, int debug) {
 	printf("\tFrames: %d, ",ym_song.num_frames);
 	printf("Chip clock: %d Hz, ",ym_song.master_clock);
 	printf("Frame rate: %d Hz, ",ym_song.frame_rate);
-	if (ym_song.frame_rate!=50) {
+	if (ym_song.frame_rate<=0) {
 		fprintf(stderr,"FIX ME framerate %d\n",ym_song.frame_rate);
 		exit(1);
 	}
@@ -89,11 +89,11 @@ static int dump_song(char *filename, int debug) {
 
 	frame_num=0;
 	while(1) {
-		s=frame_num/50;
+		s=frame_num/ym_song.frame_rate;
 		m=s/60;
 		s=s%60;
 
-		if (frame_num%50==0) {
+		if (frame_num%ym_song.frame_rate==0) {
 			printf(";%02d:%02d ---- A     B     C      N     E -------------------------------\n",m,s);
 		}
 

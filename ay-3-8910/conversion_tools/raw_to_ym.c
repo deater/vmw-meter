@@ -195,6 +195,8 @@ int main(int argc, char **argv) {
 		frame[14]=0;
 		frame[15]=0;
 
+//		frame[7]|=0x2d;
+
 		{
 		printf("%04d: ",frames);
 		for(i=0;i<14;i++) printf("%02x ",frame[i]);
