@@ -195,6 +195,15 @@ int main(int argc, char **argv) {
 		frame[14]=0;
 		frame[15]=0;
 
+		if (!envelope_enable) {
+			frame[8]&=0xf;
+			frame[9]&=0xf;
+			frame[10]&=0xf;
+			frame[11]=0;
+			frame[12]=0;
+			frame[13]=0xff;
+		}
+
 //		frame[7]|=0x2d;
 
 		{

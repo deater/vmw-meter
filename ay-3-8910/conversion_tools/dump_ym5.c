@@ -97,7 +97,11 @@ static int dump_song(char *filename, int debug) {
 			printf(";%02d:%02d ---- A     B     C      N     E -------------------------------\n",m,s);
 		}
 
-		ym_dump_frame(&ym_song,frame_num,debug,0);
+		if ((debug&0x4) && (frame_num&1)) {
+		}
+		else {
+			ym_dump_frame(&ym_song,frame_num,debug&0x3,0);
+		}
 
 		frame_num++;
 
@@ -122,7 +126,7 @@ int main(int argc, char **argv) {
 	int first_song;
 
 	/* Parse command line arguments */
-	while ((c = getopt(argc, argv, "dhvr"))!=-1) {
+	while ((c = getopt(argc, argv, "dhvrs"))!=-1) {
 		switch (c) {
 			case 'd':
 				/* Debug messages */
@@ -140,6 +144,10 @@ int main(int argc, char **argv) {
 			case 'r':
 				/* raw */
 				debug=2;
+				break;
+			case 's':
+				/* skip */
+				debug|=4;
 				break;
 			default:
 				print_help(0,argv[0]);
