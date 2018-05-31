@@ -19,8 +19,10 @@
 */
 
 /* ed file format */
-/* from about.md */
-/* First byte 0:	Voice */
+
+/* First byte 0:	??? (0,0,0 = exit) */
+
+/* First byte 1:	Voice */
 /*		byte1 = voice1 instrument */
 /*		byte2 = voice2 instrument */
 /*		Varies, bigger than 8 seem to make no difference */
@@ -28,9 +30,6 @@
 /* Otherwise,	byte0 = duration (20=quarter, 40=half) */
 /* 		byte1 = voice1 note */
 /*		byte2 = voice2 note */
-
-#define LOWER_OCTAVE 1
-
 
 #include <stdio.h>
 #include <stdint.h>
@@ -45,7 +44,8 @@ static int debug=0;
 
 static int bpm=120;
 static int baselen=80;
-//static int frames_per_line=6;
+static int frames_per_line;
+static int octave_adjust=0;
 
 static int note_to_length(int length) {
 
@@ -125,11 +125,8 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 
 	if (n->note!='-') {
 
-		if (LOWER_OCTAVE) n->octave--;
-
-		freq=note_to_ed(n->note,n->flat,n->sharp,n->octave);
-
-
+		freq=note_to_ed(n->note,n->flat,n->sharp,
+					n->octave+octave_adjust);
 
 		if (debug) printf("(%c) %c%c L=%d O=%d f=%d\n",
 				n->which,
@@ -187,7 +184,7 @@ int main(int argc, char **argv) {
 	FILE *ed_file,*lyrics_file,*in_file;
 	int frames=0;
 	//int attributes=0;
-	int loop=0;
+	int loop=0,i;
 	int sp,external_frequency,irq;
 	int line=0;
 	struct note_type a,b,c;
@@ -200,20 +197,22 @@ int main(int argc, char **argv) {
 	unsigned char sharp_char[]=" #-=";
 
 	/* Check command line arguments */
-	if (argc<3) {
+	if (argc<4) {
 		printf("%s -- create an ED music file\n",argv[0]);
 		printf("\n");
-		printf("Usage:	%s INFILE OUTROOT\n\n",argv[0]);
+		printf("Usage:	octave %s INFILE OUTROOT\n\n",argv[0]);
 		printf("\n");
 		exit(1);
 	}
 
+	octave_adjust=atoi(argv[1]);
+
 	/* Open the input file */
-	if (argv[1][0]=='-') {
+	if (argv[2][0]=='-') {
 		in_file=stdin;
 	}
 	else {
-		in_filename=strdup(argv[1]);
+		in_filename=strdup(argv[2]);
 		in_file=fopen(in_filename,"r");
 		if (in_file==NULL) {
 			fprintf(stderr,"Couldn't open %s\n",in_filename);
@@ -222,8 +221,8 @@ int main(int argc, char **argv) {
 	}
 
 	/* Open the output/lyrics files */
-	sprintf(ed_filename,"%s.ed",argv[2]);
-	sprintf(lyrics_filename,"%s.edlyrics",argv[2]);
+	sprintf(ed_filename,"%s.ed",argv[3]);
+	sprintf(lyrics_filename,"%s.edlyrics",argv[3]);
 
 	ed_file=fopen(ed_filename,"w");
 	if (ed_file==NULL) {
@@ -239,6 +238,7 @@ int main(int argc, char **argv) {
 
 
 	/* Get the info for the header */
+
 	while(1) {
 		result=fgets(string,BUFSIZ,in_file);
 		if (result==NULL) break;
@@ -273,13 +273,13 @@ int main(int argc, char **argv) {
 
 	}
 
-	if (bpm==115) { // 		(too fast)
-		baselen=100;
+	if (bpm==115) {
+		baselen=90;
 	}
-	if (bpm==120) { // 2Hz, 500ms, 80x=500, x=6.25		(too fast)
+	if (bpm==120) { // 2Hz, 500ms, 80x=500, x=6.25
 		baselen=120;
 	}
-	else if (bpm==136) { // 2.3Hz, 440ms, should be 70  (right)
+	else if (bpm==136) { // 2.3Hz, 440ms, should be 70
 		baselen=70;
 	}
 	else if (bpm==160) {// 2.66Hz, 375ms, should be 60
@@ -293,11 +293,16 @@ int main(int argc, char **argv) {
 		baselen=80;
 	}
 
+	frames_per_line=baselen/16;
+
 	a.which='A';	b.which='B';	c.which='C';
 
+	int first=1;
 	int a_last=0,b_last=0,same_count=0;
-	int a_len=0,b_len=0;
+	int a_len=0,b_len=0,a_freq=0,b_freq=0;
 	int frame=0;
+
+	fprintf(ed_file,"%c%c%c",1,0,1);	// Instruments 0=square
 
 	while(1) {
 		result=fgets(string,BUFSIZ,in_file);
@@ -306,6 +311,8 @@ int main(int argc, char **argv) {
 
 		a.ed_freq=0;
 		b.ed_freq=0;
+		a.length=0;
+		b.length=0;
 
 		/* skip comments */
 		if (string[0]=='\'') continue;
@@ -326,7 +333,7 @@ int main(int argc, char **argv) {
 			while((string[sp]==' ' || string[sp]=='\t')) sp++;
 			if (string[sp]!='\n') {
 				fprintf(lyrics_file,"%d %s",frames,&string[sp]);
-				printf("%s",&string[sp]);
+//				printf("%s",&string[sp]);
 			}
 		}
 
@@ -342,40 +349,74 @@ int main(int argc, char **argv) {
 			printf("%c%c%d %d (%d,%d)\n",
 				b.note,sharp_char[b.sharp+2*b.flat],b.octave,
 				b.len,b.ed_freq,b.length);
-		
+		}
 
-		a_len=a.length;
-		b_len=b.length;
+		if (a.length) a_len=a.length;
+		if (b.length) b_len=b.length;
+		if (a.ed_freq) {
+			a_freq=a.ed_freq;
+		}
+		if (b.ed_freq) {
+			b_freq=b.ed_freq;
+		}
 
-//		for(i=0;i<16;i++) {
+		if (first) {
+			a_last=a_freq;
+			b_last=b_freq;
+			first=0;
+		}
 
+		for(i=0;i<frames_per_line;i++) {
 
-			if ((a.ed_freq!=a_last) || (b.ed_freq!=b_last) || (same_count>250)) {
-				if (same_count!=0) {
-					fprintf(ed_file,"%c%c%c",same_count*(baselen/16),a_last,b_last);
-					printf("*** %x %x %x\n",same_count*(baselen/16),a_last,b_last);
+			if ( (a_len==0) || (b_len=0) ) {
+			//	fprintf(ed_file,"%c%c%c",same_count*(baselen/16),a_last,b_last);
+			//	printf("*** %x %x %x\n",same_count*(baselen/16),a_last,b_last);
+				if (a_len==0) {
+					a_freq=0;
+			//		printf("A hit zero\n");
 				}
+				if (b_len==0) {
+					b_freq=0;
+			//		printf("B hit zero\n");
+				}
+			//	same_count=0;
+
+			}
+			else {
+			//	printf("%d\n",a_len);
+			}
+
+			if ((a_freq!=a_last) ||
+				(b_freq!=b_last) ||
+				(same_count>250)) {
+
+				fprintf(ed_file,"%c%c%c",same_count,a_last,b_last);
+				printf("*** %x %x %x\n",same_count,a_last,b_last);
 				same_count=0;
+
 			}
 
 			same_count++;
 
-			a_last=a.ed_freq;
-			b_last=b.ed_freq;
+			if (a_len) a_len--;
+			if (b_len) b_len--;
 
-
+			a_last=a_freq;
+			b_last=b_freq;
 
 		}
 		frame++;
-		if (a_len>0) a_len--;
-		if (b_len>0) b_len--;
-		printf("%d %d %d\n",frame,a_len,b_len);
+
 	}
-	fprintf(ed_file,"%c%c%c",same_count*(baselen/16),a_last,b_last);
+	fprintf(ed_file,"%c%c%c",same_count,a_last,b_last);
 	fprintf(ed_file,"%c%c%c",0,0,0);	// EOF?
 
 	fclose(ed_file);
 	fclose(lyrics_file);
+
+	(void) irq;
+	(void) loop;
+	(void) external_frequency;
 
 	return 0;
 }
