@@ -114,7 +114,7 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 	else {
 		fprintf(stderr,"Unknown note modifier %c\n",string[sp]);
 	}
-	printf("Sharp=%d Flat=%d\n",n->sharp,n->flat);
+//	printf("Sharp=%d Flat=%d\n",n->sharp,n->flat);
 	sp++;
 	n->octave=string[sp]-'0';
 	sp++;
