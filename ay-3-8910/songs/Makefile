@@ -9,7 +9,7 @@ XM_TO_TEXT = ../conversion_tools/xm_to_text
 
 #saxm.vmw5
 #test.ed
-all:	kerbal.vmw5 \
+all:	kerbal.vmw5 kerbal.ed \
 	sa.ym5 sa.ed \
 	kerbal.ym5 \
 	korobeiniki.ym5 \
@@ -122,6 +122,9 @@ korobeiniki.ym5:	$(YM_TO_YM5) korobeiniki.ym
 	$(YM_TO_YM5) korobeiniki
 
 ###
+
+kerbal.ed:	$(TEXT_TO_ED) kerbal.txt
+	$(TEXT_TO_ED) kerbal.txt kerbal
 
 sa.ed:	$(TEXT_TO_ED) sa.txt
 	$(TEXT_TO_ED) sa.txt sa

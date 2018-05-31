@@ -273,14 +273,20 @@ int main(int argc, char **argv) {
 
 	}
 
-	if (bpm==120) { // 2Hz, 500ms, 80x=500, x=6.25
-		baselen=80;
+	if (bpm==115) { // 		(too fast)
+		baselen=100;
 	}
-	else if (bpm==136) { // 2.3Hz, 440ms, should be 70
+	if (bpm==120) { // 2Hz, 500ms, 80x=500, x=6.25		(too fast)
+		baselen=120;
+	}
+	else if (bpm==136) { // 2.3Hz, 440ms, should be 70  (right)
 		baselen=70;
 	}
 	else if (bpm==160) {// 2.66Hz, 375ms, should be 60
 		baselen=60;
+	}
+	else if (bpm==250) {
+		baselen=50;	// eyeballed
 	}
 	else {
 		fprintf(stderr,"Warning!  Unusual BPM of %d\n",bpm);
@@ -290,11 +296,16 @@ int main(int argc, char **argv) {
 	a.which='A';	b.which='B';	c.which='C';
 
 	int a_last=0,b_last=0,same_count=0;
+	int a_len=0,b_len=0;
+	int frame=0;
 
 	while(1) {
 		result=fgets(string,BUFSIZ,in_file);
 		if (result==NULL) break;
 		line++;
+
+		a.ed_freq=0;
+		b.ed_freq=0;
 
 		/* skip comments */
 		if (string[0]=='\'') continue;
@@ -320,8 +331,8 @@ int main(int argc, char **argv) {
 		}
 
 
-
 		if ((a.ed_freq!=0)||(b.ed_freq!=0)) {
+			printf("%d: ",frame);
 			printf("%c%c%d %d (%d,%d) |%d %d %d %c|\t",
 				a.note,sharp_char[a.sharp+2*a.flat],a.octave,
 				a.len,a.ed_freq,a.length,
@@ -331,6 +342,13 @@ int main(int argc, char **argv) {
 			printf("%c%c%d %d (%d,%d)\n",
 				b.note,sharp_char[b.sharp+2*b.flat],b.octave,
 				b.len,b.ed_freq,b.length);
+		
+
+		a_len=a.length;
+		b_len=b.length;
+
+//		for(i=0;i<16;i++) {
+
 
 			if ((a.ed_freq!=a_last) || (b.ed_freq!=b_last) || (same_count>250)) {
 				if (same_count!=0) {
@@ -345,9 +363,16 @@ int main(int argc, char **argv) {
 			a_last=a.ed_freq;
 			b_last=b.ed_freq;
 
-		}
 
+
+		}
+		frame++;
+		if (a_len>0) a_len--;
+		if (b_len>0) b_len--;
+		printf("%d %d %d\n",frame,a_len,b_len);
 	}
+	fprintf(ed_file,"%c%c%c",same_count*(baselen/16),a_last,b_last);
+	fprintf(ed_file,"%c%c%c",0,0,0);	// EOF?
 
 	fclose(ed_file);
 	fclose(lyrics_file);
