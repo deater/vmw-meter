@@ -126,9 +126,14 @@ int note_to_ed(char note, int flat, int sharp, int octave) {
 
 	offset+=((octave-1)*12);
 
-	if ((offset<0) || (offset>63)) {
+	if (offset>63) {
 		fprintf(stderr,"Out of range offset %d\n",offset);
-		return -1;
+		return 7;
+	}
+
+	if (offset<0) {
+		fprintf(stderr,"Out of range offset %d\n",offset);
+		return 255;
 	}
 
 	return ed_freqs[offset];

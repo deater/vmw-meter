@@ -275,6 +275,17 @@ static int dump_song_krw(char *filename, int debug, int size,
 //		}
 //		printf("\n");
 
+#if 0
+	{
+		int fd;
+		fd=open("blah.raw",O_WRONLY|O_CREAT);
+		write(fd,raw_data,256*pages_per_chunk*14);
+		close(fd);
+		exit(1);
+
+	}
+#endif
+
 		compressed_size=LZ4_compress_HC (raw_data,
 						compressed_data,
 						256*pages_per_chunk*14,

@@ -213,6 +213,7 @@ static int dump_song_kr4(char *filename1, char *filename2,
 	}
 
 	/* 0xFFs at end are end-of-song marker */
+	/* Tricky if exact multiple of 256 :( */
 	memset(interleaved_data,0xff,data_size);
 
 	raw_data=calloc(pages_per_chunk*256*14,sizeof(char));
@@ -249,6 +250,8 @@ static int dump_song_kr4(char *filename1, char *filename2,
 			}
 		}
 	}
+	/* HACK! make sure we have end-marker */
+	interleaved_data[(1*fake_frames)+(end_frame-1)]=0xff;
 
 	for(j=0;j<num_chunks;j++) {
 		for(y=0;y<14;y++) {
