@@ -114,6 +114,7 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 	else {
 		fprintf(stderr,"Unknown note modifier %c\n",string[sp]);
 	}
+	printf("Sharp=%d Flat=%d\n",n->sharp,n->flat);
 	sp++;
 	n->octave=string[sp]-'0';
 	sp++;
@@ -126,7 +127,7 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 
 		if (LOWER_OCTAVE) n->octave--;
 
-		freq=note_to_ed(n->note,n->sharp,n->flat,n->octave);
+		freq=note_to_ed(n->note,n->flat,n->sharp,n->octave);
 
 
 
@@ -189,12 +190,14 @@ int main(int argc, char **argv) {
 	int loop=0;
 	int sp,external_frequency,irq;
 	int line=0;
-	struct note_type a,b;//,c;
+	struct note_type a,b,c;
 
 	char song_name[BUFSIZ];
 	char author_name[BUFSIZ];
 	char comments[BUFSIZ];
 	char *comments_ptr=comments;
+
+	unsigned char sharp_char[]=" #-=";
 
 	/* Check command line arguments */
 	if (argc<3) {
@@ -284,7 +287,7 @@ int main(int argc, char **argv) {
 		baselen=80;
 	}
 
-	a.which='A';	b.which='B';	//c.which='C';
+	a.which='A';	b.which='B';	c.which='C';
 
 	int a_last=0,b_last=0,same_count=0;
 
@@ -296,6 +299,7 @@ int main(int argc, char **argv) {
 		/* skip comments */
 		if (string[0]=='\'') continue;
 		if (string[0]=='-') continue;
+		if (string[0]=='*') continue;
 
 		sp=0;
 
@@ -304,22 +308,25 @@ int main(int argc, char **argv) {
 
 		sp=get_note(string,sp,&a,line);
 		if (sp!=-1) sp=get_note(string,sp,&b,line);
-//		if (sp!=-1) sp=get_note(string,sp,&c,line);
+		if (sp!=-1) sp=get_note(string,sp,&c,line);
 
 		/* handle lyrics */
 		if (sp!=-1) {
 			while((string[sp]==' ' || string[sp]=='\t')) sp++;
 			if (string[sp]!='\n') {
 				fprintf(lyrics_file,"%d %s",frames,&string[sp]);
+				printf("%s",&string[sp]);
 			}
 		}
 
-		char sharp_char[3]=" -#";
+
 
 		if ((a.ed_freq!=0)||(b.ed_freq!=0)) {
-			printf("%c%c%d %d (%d,%d)\t",
+			printf("%c%c%d %d (%d,%d) |%d %d %d %c|\t",
 				a.note,sharp_char[a.sharp+2*a.flat],a.octave,
-				a.len,a.ed_freq,a.length);
+				a.len,a.ed_freq,a.length,
+				a.sharp,a.flat,a.sharp+2*a.flat,
+				sharp_char[2]);
 
 			printf("%c%c%d %d (%d,%d)\n",
 				b.note,sharp_char[b.sharp+2*b.flat],b.octave,
