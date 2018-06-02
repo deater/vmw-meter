@@ -127,7 +127,7 @@ kerbal.ed:	$(TEXT_TO_ED) kerbal.txt
 	$(TEXT_TO_ED) -o -1 kerbal.txt kerbal
 
 sa.ed:	$(TEXT_TO_ED) sa.txt
-	$(TEXT_TO_ED) -o -1 -s 1 sa.txt sa
+	$(TEXT_TO_ED) -o -1 -i 1 sa.txt sa
 
 sa.ym:	$(TEXT_TO_YM) sa.txt
 	$(TEXT_TO_YM) sa.txt sa
