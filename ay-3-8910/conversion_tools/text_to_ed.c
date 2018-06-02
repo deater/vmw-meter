@@ -31,12 +31,13 @@
 /* 		byte1 = voice1 note */
 /*		byte2 = voice2 note */
 
+#define VERSION	"1.0"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
-#include <arpa/inet.h>
-#include <math.h>
+#include <unistd.h>
 
 #include "notes.h"
 
@@ -175,19 +176,43 @@ static int get_string(char *string, char *key, char *output, int strip_linefeed)
 
 }
 
+static void print_help(int just_version, char *exec_name) {
+
+	printf("\ntext_to_ed version %s by Vince Weaver <vince@deater.net>\n\n",VERSION);
+	if (just_version) exit(0);
+
+	printf("This created Electric Duet files\n\n");
+
+	printf("Usage:\n");
+	printf("\t%s [-h] [-v] [-d] [-o X] [-i X] textfile outbase\n\n",
+		exec_name);
+        printf("\t-h: this help message\n");
+        printf("\t-v: version info\n");
+        printf("\t-d: print debug messages\n");
+        printf("\t-o: Offset octave by X\n");
+	printf("\t-i: set second instrument to X\n");
+
+	exit(0);
+}
+
+
 int main(int argc, char **argv) {
 
 	char string[BUFSIZ];
 	char *result;
 	char ed_filename[BUFSIZ],lyrics_filename[BUFSIZ],*in_filename;
 	char temp[BUFSIZ];
-	FILE *ed_file,*lyrics_file,*in_file;
+	FILE *ed_file,*lyrics_file,*in_file=NULL;
 	int frames=0;
 	//int attributes=0;
 	int loop=0,i;
 	int sp,external_frequency,irq;
 	int line=0;
 	struct note_type a,b,c;
+	int copt;
+
+	// Instruments 0=square
+	int voice1=0,voice2=0;
 
 	char song_name[BUFSIZ];
 	char author_name[BUFSIZ];
@@ -196,33 +221,61 @@ int main(int argc, char **argv) {
 
 	unsigned char sharp_char[]=" #-=";
 
-	/* Check command line arguments */
-	if (argc<4) {
-		printf("%s -- create an ED music file\n",argv[0]);
-		printf("\n");
-		printf("Usage:	octave %s INFILE OUTROOT\n\n",argv[0]);
-		printf("\n");
-		exit(1);
-	}
-
-	octave_adjust=atoi(argv[1]);
-
-	/* Open the input file */
-	if (argv[2][0]=='-') {
-		in_file=stdin;
-	}
-	else {
-		in_filename=strdup(argv[2]);
-		in_file=fopen(in_filename,"r");
-		if (in_file==NULL) {
-			fprintf(stderr,"Couldn't open %s\n",in_filename);
-			return -1;
+	/* Parse command line arguments */
+	while ((copt = getopt(argc, argv, "dhvo:i:"))!=-1) {
+		switch (copt) {
+                        case 'd':
+                                /* Debug messages */
+                                printf("Debug enabled\n");
+                                debug=1;
+                                break;
+                        case 'h':
+                                /* help */
+                                print_help(0,argv[0]);
+				break;
+			case 'v':
+				/* version */
+				print_help(1,argv[0]);
+				break;
+			case 'o':
+				/* octave offset */
+				octave_adjust=atoi(optarg);
+				break;
+			case 'i':
+				/* instrument to use */
+				voice1=atoi(optarg);
+				break;
+			default:
+				print_help(0,argv[0]);
+				break;
 		}
 	}
 
+	if (argv[optind]!=NULL) {
+		/* Open the input file */
+		if (argv[optind][0]=='-') {
+			in_file=stdin;
+		}
+		else {
+			in_filename=strdup(argv[optind]);
+			in_file=fopen(in_filename,"r");
+			if (in_file==NULL) {
+				fprintf(stderr,"Couldn't open %s\n",in_filename);
+				return -1;
+			}
+		}
+        }
+
+	if (optind+1>=argc) {
+		fprintf(stderr,"Error, need outfile\n");
+		exit(0);
+        }
+
+
+
 	/* Open the output/lyrics files */
-	sprintf(ed_filename,"%s.ed",argv[3]);
-	sprintf(lyrics_filename,"%s.edlyrics",argv[3]);
+	sprintf(ed_filename,"%s.ed",argv[optind+1]);
+	sprintf(lyrics_filename,"%s.edlyrics",argv[optind+1]);
 
 	ed_file=fopen(ed_filename,"w");
 	if (ed_file==NULL) {
@@ -302,7 +355,7 @@ int main(int argc, char **argv) {
 	int a_len=0,b_len=0,a_freq=0,b_freq=0;
 	int frame=0;
 
-	fprintf(ed_file,"%c%c%c",1,0,1);	// Instruments 0=square
+	fprintf(ed_file,"%c%c%c",1,voice1,voice2);
 
 	while(1) {
 		result=fgets(string,BUFSIZ,in_file);

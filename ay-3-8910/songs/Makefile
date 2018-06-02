@@ -68,7 +68,7 @@ saxm3.ym5:	saxm3.ym
 
 
 fighting.ed:	$(TEXT_TO_ED) fighting.txt
-	$(TEXT_TO_ED) 0 fighting.txt fighting
+	$(TEXT_TO_ED) fighting.txt fighting
 
 fighting.ym:	$(TEXT_TO_YM) fighting.txt
 	$(TEXT_TO_YM) fighting.txt fighting
@@ -79,7 +79,7 @@ fighting.ym5:	$(YM_TO_YM5) fighting.ym
 ###
 
 highwind.ed:	$(TEXT_TO_ED) highwind.txt
-	$(TEXT_TO_ED) -1 highwind.txt highwind
+	$(TEXT_TO_ED) -o -1 highwind.txt highwind
 
 highwind.ym:	$(TEXT_TO_YM) highwind.txt
 	$(TEXT_TO_YM) highwind.txt highwind
@@ -124,10 +124,10 @@ korobeiniki.ym5:	$(YM_TO_YM5) korobeiniki.ym
 ###
 
 kerbal.ed:	$(TEXT_TO_ED) kerbal.txt
-	$(TEXT_TO_ED) -1 kerbal.txt kerbal
+	$(TEXT_TO_ED) -o -1 kerbal.txt kerbal
 
 sa.ed:	$(TEXT_TO_ED) sa.txt
-	$(TEXT_TO_ED) -1 sa.txt sa
+	$(TEXT_TO_ED) -o -1 -s 1 sa.txt sa
 
 sa.ym:	$(TEXT_TO_YM) sa.txt
 	$(TEXT_TO_YM) sa.txt sa
