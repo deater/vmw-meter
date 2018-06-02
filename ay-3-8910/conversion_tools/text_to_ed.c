@@ -48,6 +48,10 @@ static int baselen=80;
 static int frames_per_line;
 static int octave_adjust=0;
 
+static int line=0;
+
+static int header_version=0;
+
 static int note_to_length(int length) {
 
 	int len=1;
@@ -67,7 +71,8 @@ static int note_to_length(int length) {
 		case 12: len=(baselen*3)/2; break;	// < = 3/2 dotted whole
 		case 13: len=(baselen*2); break;	// = = 2   double whole
 		default:
-			fprintf(stderr,"Unknown length %d\n",length);
+			fprintf(stderr,"Unknown length %d, line %d\n",
+				length,line);
 	}
 
 	return len;
@@ -93,6 +98,8 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 	int freq;
 	int ch;
 
+//	fprintf(stderr,"VMW: Entering, sp=%d\n",sp);
+
 	/* Skip white space */
 	while((string[sp]==' ' || string[sp]=='\t')) sp++;
 
@@ -100,7 +107,15 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 
 	/* return early if no change */
 	ch=string[sp];
-	if (ch=='-') return sp+6;
+
+//	fprintf(stderr,"VMW: %d %d\n",ch,sp);
+
+	if (ch=='-') {
+		if (header_version==0) return sp+6;
+		else {
+			return sp+11;
+		}
+	}
 
 	/* get note info */
 	n->sharp=0;
@@ -113,7 +128,9 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 	else if (string[sp]=='-') n->flat=1;
 	else if (string[sp]=='=') n->flat=2;
 	else {
-		fprintf(stderr,"Unknown note modifier %c\n",string[sp]);
+		fprintf(stderr,"Unknown note modifier %c, line %d:%d\n",
+			string[sp],line,sp);
+		fprintf(stderr,"String: %s\n",string);
 	}
 //	printf("Sharp=%d Flat=%d\n",n->sharp,n->flat);
 	sp++;
@@ -150,6 +167,8 @@ static int get_note(char *string, int sp, struct note_type *n, int line) {
 	else {
 		n->ed_freq=0;
 	}
+
+	if (header_version==2) sp+=6;
 
 	return sp;
 }
@@ -207,7 +226,6 @@ int main(int argc, char **argv) {
 	//int attributes=0;
 	int loop=0,i;
 	int sp,external_frequency,irq;
-	int line=0;
 	struct note_type a,b,c;
 	int copt;
 
@@ -297,6 +315,11 @@ int main(int argc, char **argv) {
 		if (result==NULL) break;
 		line++;
 		if (strstr(string,"ENDHEADER")) break;
+		if (strstr(string,"HEADER:")) {
+			get_string(string,"HEADER:",temp,1);
+			header_version=atoi(temp);
+			printf("Found header version %d\n",header_version);
+		}
 		if (strstr(string,"TITLE:")) {
 			get_string(string,"TITLE:",song_name,1);
 		}
@@ -327,9 +350,9 @@ int main(int argc, char **argv) {
 	}
 
 	if (bpm==115) {
-		baselen=90;
+		baselen=80;
 	}
-	if (bpm==120) { // 2Hz, 500ms, 80x=500, x=6.25
+	else if (bpm==120) { // 2Hz, 500ms, 80x=500, x=6.25, should be 80
 		baselen=120;
 	}
 	else if (bpm==136) { // 2.3Hz, 440ms, should be 70
@@ -392,16 +415,18 @@ int main(int argc, char **argv) {
 
 
 		if ((a.ed_freq!=0)||(b.ed_freq!=0)) {
-			printf("%d: ",frame);
-			printf("%c%c%d %d (%d,%d) |%d %d %d %c|\t",
-				a.note,sharp_char[a.sharp+2*a.flat],a.octave,
-				a.len,a.ed_freq,a.length,
-				a.sharp,a.flat,a.sharp+2*a.flat,
-				sharp_char[2]);
+			if (debug) {
+				printf("%d: ",frame);
+				printf("%c%c%d %d (%d,%d) |%d %d %d %c|\t",
+					a.note,sharp_char[a.sharp+2*a.flat],a.octave,
+					a.len,a.ed_freq,a.length,
+					a.sharp,a.flat,a.sharp+2*a.flat,
+					sharp_char[2]);
 
-			printf("%c%c%d %d (%d,%d)\n",
-				b.note,sharp_char[b.sharp+2*b.flat],b.octave,
-				b.len,b.ed_freq,b.length);
+				printf("%c%c%d %d (%d,%d)\n",
+					b.note,sharp_char[b.sharp+2*b.flat],b.octave,
+					b.len,b.ed_freq,b.length);
+			}
 		}
 
 		if (a.length) a_len=a.length;
@@ -443,8 +468,13 @@ int main(int argc, char **argv) {
 				(b_freq!=b_last) ||
 				(same_count>250)) {
 
+				/* Avoid changing instrument by accident */
+				if (same_count==1) same_count++;
+
 				fprintf(ed_file,"%c%c%c",same_count,a_last,b_last);
-				printf("*** %x %x %x\n",same_count,a_last,b_last);
+				if (debug) {
+					printf("*** %x %x %x\n",same_count,a_last,b_last);
+				}
 				same_count=0;
 
 			}
@@ -461,6 +491,7 @@ int main(int argc, char **argv) {
 		frame++;
 
 	}
+	if (same_count==1) same_count++;
 	fprintf(ed_file,"%c%c%c",same_count,a_last,b_last);
 	fprintf(ed_file,"%c%c%c",0,0,0);	// EOF?
 
