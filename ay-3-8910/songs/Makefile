@@ -12,7 +12,7 @@ XM_TO_TEXT = ../conversion_tools/xm_to_text
 all:	kerbal.vmw5 kerbal.ed \
 	sa.ym5 sa.ed \
 	kerbal.ym5 \
-	korobeiniki.ym5 \
+	korobeiniki.ym5 korobeiniki.ed \
 	fighting.ym5 fighting.ed \
 	highwind.ym5 highwind.ed
 
@@ -121,6 +121,8 @@ korobeiniki.ym:	$(TEXT_TO_YM) korobeiniki.txt
 korobeiniki.ym5:	$(YM_TO_YM5) korobeiniki.ym
 	$(YM_TO_YM5) korobeiniki
 
+korobeiniki.ed:	$(TEXT_TO_ED) korobeiniki.txt
+	$(TEXT_TO_ED) korobeiniki.txt korobeiniki
 ###
 
 kerbal.ed:	$(TEXT_TO_ED) kerbal.txt
