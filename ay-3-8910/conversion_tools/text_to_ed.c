@@ -446,7 +446,7 @@ int main(int argc, char **argv) {
 
 		for(i=0;i<frames_per_line;i++) {
 
-			if ( (a_len==0) || (b_len=0) ) {
+			if ( (a_len==0) || (b_len==0) ) {
 			//	fprintf(ed_file,"%c%c%c",same_count*(baselen/16),a_last,b_last);
 			//	printf("*** %x %x %x\n",same_count*(baselen/16),a_last,b_last);
 				if (a_len==0) {
