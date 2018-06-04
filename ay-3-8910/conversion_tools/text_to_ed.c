@@ -222,7 +222,6 @@ int main(int argc, char **argv) {
 	char ed_filename[BUFSIZ],lyrics_filename[BUFSIZ],*in_filename;
 	char temp[BUFSIZ];
 	FILE *ed_file,*lyrics_file,*in_file=NULL;
-	int frames=0;
 	//int attributes=0;
 	int loop=0,i;
 	int sp,external_frequency,irq;
@@ -376,7 +375,8 @@ int main(int argc, char **argv) {
 	int first=1;
 	int a_last=0,b_last=0,same_count=0;
 	int a_len=0,b_len=0,a_freq=0,b_freq=0;
-	int frame=0;
+	int frame=0,lyric=0;
+	int lyric_line=1;
 
 	fprintf(ed_file,"%c%c%c",1,voice1,voice2);
 
@@ -405,12 +405,57 @@ int main(int argc, char **argv) {
 		if (sp!=-1) sp=get_note(string,sp,&c,line);
 
 		/* handle lyrics */
-		if (sp!=-1) {
+		if ((sp!=-1) && (string[sp]!='\n') && (string[sp]!=0)) {
+			fprintf(lyrics_file,"; %d: %s",frame,&string[sp]);
 			while((string[sp]==' ' || string[sp]=='\t')) sp++;
 			if (string[sp]!='\n') {
-				fprintf(lyrics_file,"%d %s",frames,&string[sp]);
+				fprintf(lyrics_file,".byte\t$%02X",lyric_line&0xff);
+
+				/* get to first quote */
+				while(string[sp]!='\"') sp++;
+				sp++;
+
+				/* stop at second quote */
+				while(string[sp]!='\"') {
+					if (string[sp]=='\\') {
+						sp++;
+						/* Ignore if we have LED panel */
+						if (string[sp]=='i') {
+							//printf(",$%02X",10);
+						}
+						/* form feed */
+						else if (string[sp]=='f') {
+							fprintf(lyrics_file,",$%02X",12);
+						}
+						/* Vertical tab */
+						else if (string[sp]=='v') {
+							fprintf(lyrics_file,",$%02X",11);
+						}
+						else if (string[sp]=='n') {
+							fprintf(lyrics_file,",$%02X",13|0x80);
+						}
+						else if ((string[sp]>='0') &&
+							(string[sp]<=':')) {
+							fprintf(lyrics_file,",$%02X",string[sp]-'0');
+						}
+						else {
+							printf("UNKNOWN ESCAPE %d\n",string[sp]);
+					}
+					sp++;
+					continue;
+				}
+				fprintf(lyrics_file,",$%02X",string[sp]|0x80);
+				sp++;
+			}
+			fprintf(lyrics_file,",$00\n");
+
+
+
+//				fprintf(lyrics_file," %s",&string[sp]);
 //				printf("%s",&string[sp]);
 			}
+			lyric=1;
+
 		}
 
 
@@ -466,10 +511,16 @@ int main(int argc, char **argv) {
 
 			if ((a_freq!=a_last) ||
 				(b_freq!=b_last) ||
+				(lyric) ||
 				(same_count>250)) {
 
+
 				/* Avoid changing instrument by accident */
-				if (same_count==1) same_count++;
+				/* Also keep lyrics in sync */
+				if (same_count<2) {
+					same_count=2;
+				}
+				lyric_line++;
 
 				fprintf(ed_file,"%c%c%c",same_count,a_last,b_last);
 				if (debug) {
@@ -486,6 +537,7 @@ int main(int argc, char **argv) {
 
 			a_last=a_freq;
 			b_last=b_freq;
+			lyric=0;
 
 		}
 		frame++;
