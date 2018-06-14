@@ -1,0 +1,4 @@
+Try to get a MAX7349 matrix keyboard/sounder chip going
+
+With AD0 grounded matrix at addr 0x70, sound at 0x72
+
