@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -O2 -g -I../include
 LFLAGS =
 
-all:	sounder_demo
+all:	sounder_demo keyboard_demo
 
 ###
 
@@ -21,5 +21,14 @@ sounder_demo.o:	sounder_demo.c ../include/i2c_lib.h
 	$(CC) $(CFLAGS) -c sounder_demo.c
 
 
+####
+
+keyboard_demo:	keyboard_demo.o ../lib/i2c_lib.o
+	$(CC) $(LFLASG) -o keyboard_demo keyboard_demo.o ../lib/i2c_lib.o
+
+keyboard_demo.o:	keyboard_demo.c ../include/i2c_lib.h
+	$(CC) $(CFLAGS) -c keyboard_demo.c
+
+
 clean:
-	rm -f *~ *.o sounder_demo
+	rm -f *~ *.o sounder_demo keyboard_demo
