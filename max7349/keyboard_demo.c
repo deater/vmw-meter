@@ -112,8 +112,9 @@ int main(int argc, char **argv) {
 	buffer[2]=0x00; /* autorepeat */
 	buffer[3]=0x00; /* interrupt */
 	buffer[4]=0x83;	/* config: enable device + enable sound */
+	buffer[5]=0xff;	/* port register (default all high) */
 
-	result=write(i2c_fd,buffer,5);
+	result=write(i2c_fd,buffer,6);
 
 	printf("Result was %d, %s\n",result,strerror(errno));
 
