@@ -14,7 +14,8 @@ all:	kerbal.vmw5 kerbal.ed \
 	kerbal.ym5 \
 	korobeiniki.ym5 korobeiniki.ed \
 	fighting.ym5 fighting.ed \
-	highwind.ym5 highwind.ed
+	highwind.ym5 highwind.ed \
+	mariol.ym5
 
 
 #	saxm1.ym5 saxm2.ym5 saxm3.ym5 saxm.vmw5
@@ -112,6 +113,15 @@ kerbal3.ym:	$(TEXT_TO_YM) kerbal3.txt
 
 kerbal3.ym5:	$(YM_TO_YM5) kerbal3.ym
 	$(YM_TO_YM5) kerbal3
+
+###
+
+mariol.ym:	$(TEXT_TO_YM) mariol.txt
+	$(TEXT_TO_YM) mariol.txt mariol
+
+mariol.ym5:	$(YM_TO_YM5) mariol.ym
+	$(YM_TO_YM5) mariol
+
 
 ###
 
