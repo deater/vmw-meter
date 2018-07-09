@@ -15,7 +15,7 @@ all:	kerbal.vmw5 kerbal.ed \
 	korobeiniki.ym5 korobeiniki.ed \
 	fighting.ym5 fighting.ed \
 	highwind.ym5 highwind.ed \
-	mariol.ym5
+	mariol.ym5 muda.ym5
 
 
 #	saxm1.ym5 saxm2.ym5 saxm3.ym5 saxm.vmw5
@@ -121,6 +121,14 @@ mariol.ym:	$(TEXT_TO_YM) mariol.txt
 
 mariol.ym5:	$(YM_TO_YM5) mariol.ym
 	$(YM_TO_YM5) mariol
+
+###
+
+muda.ym:	$(TEXT_TO_YM) muda.txt
+	$(TEXT_TO_YM) muda.txt muda
+
+muda.ym5:	$(YM_TO_YM5) muda.ym
+	$(YM_TO_YM5) muda
 
 
 ###
