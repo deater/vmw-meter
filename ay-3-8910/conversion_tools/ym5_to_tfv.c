@@ -163,14 +163,10 @@ static int dump_song_kr4(char *filename1,
 			}
 
 		}
+		/* hack */
+		for(j=0;j<128;j++) fputc(0xff,fff);
 
 	}
-
-
-
-
-	fputc(0,fff);
-	fputc(0,fff);
 
 
 	fclose(fff);
