@@ -1,6 +1,6 @@
 /* Convert ym5 file to tfv, optimized for playing on AppleII/Mockingboard */
 /* It's designed to be used in low-overhead bitbang mode */
-/* Also assumes very simple sound files, only on Channel A+B */
+/* Also assumes very simple sound files, only on Channel A+C */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -145,11 +145,11 @@ static int dump_song_kr4(char *filename1,
 
 	for(y=0;y<14;y++) {
 		if (y==1) continue; // skip coarse A
-		if (y==4) continue; // skip fine C
-		if (y==5) continue; // skip coarse C
+		if (y==2) continue; // skip fine B
+		if (y==3) continue; // skip coarse B
 		if (y==6) continue; // skip noise
 		if (y==7) continue; // skip enable
-		if (y==10) continue; // skip C volume
+		if (y==9) continue; // skip B volume
 		if (y==11) continue; // skip envelope
 		if (y==12) continue; // skip envelope
 		if (y==13) continue; // skip envelope
