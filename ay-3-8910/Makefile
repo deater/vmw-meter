@@ -56,21 +56,20 @@ play_ym.o:	play_ym.c ./chiptune_display/display.h ./chiptune_audio/ay-3-8910.h
 		$(VISUAL_INCLUDE) $(YM_INCLUDE) \
 		$(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c play_ym.c
 
+
+pt3lib.o:	pt3lib.c
+	$(CC) $(CFLAGS) -c pt3lib.c
+
 ###
 
-play_pt3:	play_pt3.o ./chiptune_audio/audio.a \
-			ymlib/ym_lib.o ymlib/ym_play.o \
-			noteslib/notes.o
-	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o play_pt3 play_pt3.o \
-			./chiptune_audio/audio.a \
-			ymlib/ym_lib.o ymlib/ym_play.o \
-			noteslib/notes.o \
+play_pt3:	play_pt3.o ./chiptune_audio/audio.a pt3lib.o
+	$(CC) $(LFLAGS) -o play_pt3 play_pt3.o \
+			./chiptune_audio/audio.a pt3lib.o \
 			$(LIBBCM2835)
 
-play_pt3.o:	play_pt3.c ./chiptune_display/display.h ./chiptune_audio/ay-3-8910.h
-	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) $(AUDIO_INCLUDE) \
-		$(VISUAL_INCLUDE) $(YM_INCLUDE) \
-		$(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c play_pt3.c
+play_pt3.o:	play_pt3.c ./chiptune_audio/ay-3-8910.h
+	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) \
+		-c play_pt3.c
 
 
 
