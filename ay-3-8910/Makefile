@@ -8,7 +8,7 @@ VISUAL_INCLUDE = -I./visualizations/
 AUDIO_LIB = ./chiptune_audio/audio.a $(LIBBCM2835)
 
 all:	kiosk play_ym organ glados temperature falling_blocks \
-	pom cpu_meter alarm_clock tengwar
+	pom cpu_meter alarm_clock tengwar play_pt3
 	cd conversion_tools && make
 
 ###
@@ -55,6 +55,23 @@ play_ym.o:	play_ym.c ./chiptune_display/display.h ./chiptune_audio/ay-3-8910.h
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) $(AUDIO_INCLUDE) \
 		$(VISUAL_INCLUDE) $(YM_INCLUDE) \
 		$(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c play_ym.c
+
+###
+
+play_pt3:	play_pt3.o ./chiptune_audio/audio.a \
+			ymlib/ym_lib.o ymlib/ym_play.o \
+			noteslib/notes.o
+	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o play_pt3 play_pt3.o \
+			./chiptune_audio/audio.a \
+			ymlib/ym_lib.o ymlib/ym_play.o \
+			noteslib/notes.o \
+			$(LIBBCM2835)
+
+play_pt3.o:	play_pt3.c ./chiptune_display/display.h ./chiptune_audio/ay-3-8910.h
+	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) $(AUDIO_INCLUDE) \
+		$(VISUAL_INCLUDE) $(YM_INCLUDE) \
+		$(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c play_pt3.c
+
 
 
 ###
@@ -182,7 +199,7 @@ kiosk.o:	kiosk.c chiptune_display/display.h
 clean:	
 	rm -f *~ *.o play_ym organ glados \
 		falling_blocks temperature pom cpu_meter \
-		alarm_clock tengwar kiosk
+		alarm_clock tengwar kiosk play_pt3
 	cd chiptune_audio && make clean
 	cd chiptune_display && make clean
 	cd conversion_tools && make clean
