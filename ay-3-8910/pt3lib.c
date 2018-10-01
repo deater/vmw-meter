@@ -69,11 +69,16 @@ VARS:
 
 ;vars in code and other self-modified code moved here
 ;(for ROM and RAM separation)
-SETUP:
+*/
+
+#define SETUP	0x100 //static unsigned char SETUP=0;
+
+/*SETUP:
 	DEFB 0 ;set bit0 to 1, if you want to play without looping
 	     ;bit7 is set each time, when loop point is passed
-CrPsPtr:
-	DEFW 0
+*/
+static short CrPsPtr=0;	// CrPsPtr: DEFW 0
+/*
 AddToEn:
 	DEFB 0
 AdInPtA:
@@ -89,20 +94,19 @@ static short MODADDR;	// MODADDR:DEFW 0
 /*
 ESldAdd:
 	DEFW 0
-Delay:
-	DEFB 0
+*/
+static unsigned char Delay;	//Delay: DEFB 0
+/*
 PDSP_:
 CSP_:
 PSP_:
 	DEFW 0
-SamPtrs:
-	DEFW 0
-OrnPtrs:
-	DEFW 0
-PatsPtr:
-	DEFW 0
-LPosPtr:
-	DEFW 0
+*/
+unsigned short SamPtrs=0;	// SamPtrs: DEFW 0
+unsigned short OrnPtrs=0;	// OrnPtrs: DEFW 0
+unsigned short PatsPtr=0;	// PatsPtr: DEFW 0
+unsigned short LPosPtr=0;	// LPosPtr: DEFW 0
+/*
 L3:
 M2:
 PrSlide:
@@ -169,7 +173,9 @@ DEFC MDLADDR = ASMPC
 
 
 static unsigned char ram[65536];
-static short hl=0;
+static short hl=0,de=0,ix=0;
+unsigned char a=0;
+static unsigned short sp=0xdff0;
 
 extern void pt3_init(void);
 
@@ -187,7 +193,7 @@ int play_pt3(char *filename) {
 	}
 	result=read(fd,&ram[0x1000],16384);
 
-	printf("Read %d bytes into RAM\n",result);
+	printf("Read %d bytes into RAM at $1000\n",result);
 
 	close(fd);
 
@@ -244,39 +250,83 @@ MUTE:
 	JP ROUT_A0
 */
 
+void push(short value) {
+
+	sp-=2;
+	ram[sp]=value&0xff;
+	ram[sp+1]=(value>>8)&0xff;
+}
+
+short pop(void) {
+	short temp;
+	temp=ram[sp] | (ram[sp+1]<<8);
+	return temp;
+}
+
+void ld_E(unsigned short addr) {
+	unsigned char temp_e;
+
+	temp_e=ram[addr];
+
+	de&=0xff00;
+	de|=temp_e;
+}
+
+void ld_L(unsigned short addr) {
+	unsigned char temp_l;
+
+	temp_l=ram[addr];
+
+	hl&=0xff00;
+	hl|=temp_l;
+}
+
+void ld_H(unsigned short addr) {
+	unsigned char temp_h;
+
+	temp_h=ram[addr];
+
+	hl&=0x00ff;
+	hl|=temp_h<<8;
+}
+
 void pt3_init(void) {
 	// INIT:
 	// ;HL - AddressOfModule
 
-	MODADDR=hl;	// LD (MODADDR),HL
-/*
-	PUSH HL
-	LD DE,100
-	ADD HL,DE
-	LD A,(HL)
-	LD (Delay),A
-	PUSH HL
-	POP IX
-	ADD HL,DE
-	LD (CrPsPtr),HL
-	LD E,(IX+102-100)
-	ADD HL,DE
-	INC HL
-	LD (LPosPtr),HL
-	POP DE
-	LD L,(IX+103-100)
-	LD H,(IX+104-100)
-	ADD HL,DE
-	LD (PatsPtr),HL
-	LD HL,169
-	ADD HL,DE
-	LD (OrnPtrs),HL
-	LD HL,105
-	ADD HL,DE
-	LD (SamPtrs),HL
-	LD HL,SETUP
-	RES 7,(HL)
+	MODADDR=hl;		// LD (MODADDR),HL
+	push(hl);		// PUSH HL
+	de=100;			// LD DE,100
+	hl=hl+de;		// ADD HL,DE
+	a=ram[hl];		// LD A,(HL)
+	Delay=a;		// LD (Delay),A
+	push(hl);		// PUSH HL
+	ix=pop();		// POP IX
+	hl=hl+de;		// ADD HL,DE
+	CrPsPtr=hl;		// LD (CrPsPtr),HL
+	ld_E(ix+102-100);	// LD E,(IX+102-100)
+	hl=hl+de;		// ADD HL,DE
+	hl++;			// INC HL
+	LPosPtr=hl;		// LD (LPosPtr),HL
+	de=pop();		// POP DE
+	ld_L(ix+103-100);	// LD L,(IX+103-100)
+	ld_H(ix+104-100);	// LD H,(IX+104-100)
+	hl=hl+de;		// ADD HL,DE
+	PatsPtr=hl;		// LD (PatsPtr),HL
+	hl=169;			// LD HL,169
+	hl=hl+de;		// ADD HL,DE
+	OrnPtrs=hl;		// LD (OrnPtrs),HL
+	hl=105;			// LD HL,105
+	hl=hl+de;		// ADD HL,DE
+	SamPtrs=hl;		// LD (SamPtrs),HL
+	hl=SETUP;		// LD HL,SETUP
+	ram[hl]&=0x7f;		// RES 7,(HL)
 
+	printf("\tSamPtrs=%04x\n",SamPtrs);
+	printf("\tPatsPtr=%04x\n",PatsPtr);
+	printf("\tDelay=%02x\n",Delay);
+
+/*
 ;note table data depacker
 	LD DE,T_PACK
 	LD BC,T1_+(2*49)-1
