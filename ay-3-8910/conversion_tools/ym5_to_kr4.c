@@ -1,4 +1,4 @@
-/* Convert ym5 file to krw, optimized for playing on AppleII/Mockingboard */
+/* Convert ym5 file to kr4, optimized for playing on AppleII/Mockingboard */
 
 /* Note, need to have liblz4-dev installed, apt-get install liblz4-dev */
 
@@ -11,8 +11,11 @@
 /* repeat, when done LENL/LENH is 0/0 */
 /* The data is Interleaved, zero-padded, and frame[0]=0xff on last frame */
 
-/* FIXME: BAD THINGS ABOUT FORMAT */
-/* No way to specify on fly whether it's 2*256 or 3*256 chunks */
+/* This is like a KRW, but optimized for playing 4-channel files */
+/* Such as those from converted MOD files. */
+/* Takes two ym5 files as input, outputs 1 2 3, 1 4 3 */
+/* Also strips off envelope */
+
 
 #define DEFAULT_PAGES_PER_CHUNK	3
 
@@ -42,10 +45,10 @@ static int pages_per_chunk=DEFAULT_PAGES_PER_CHUNK;
 
 static void print_help(int just_version, char *exec_name) {
 
-	printf("\nym5_to_krw version %s by Vince Weaver <vince@deater.net>\n\n",VERSION);
+	printf("\nym5_to_kr4 version %s by Vince Weaver <vince@deater.net>\n\n",VERSION);
 	if (just_version) exit(0);
 
-	printf("This converts ym5 files to krw (AppleII/Mockingboard)\n\n");
+	printf("This converts ym5 files to kr4 (AppleII/Mockingboard)\n\n");
 
 	printf("Usage:\n");
 	printf("\t%s [-h] [-v] [-d] [-t] [-a] [-f] filename\n\n",
@@ -62,7 +65,8 @@ static void print_help(int just_version, char *exec_name) {
 
 
 
-static int dump_song_krw(char *filename, int debug, int size,
+static int dump_song_kr4(char *filename1, char *filename2,
+		int debug, int size,
 		char *outfile, char *a, char *t, int force_end_frame) {
 
 	int result;
@@ -70,7 +74,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 
 	int x,y;
 
-	struct ym_song_t ym_song;
+	struct ym_song_t ym_song,ym_song2;
 
 	int num_chunks;
 	FILE *fff;
@@ -84,6 +88,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 	char *raw_data,*compressed_data;
 	unsigned char frame[YM5_FRAME_SIZE];
 	int skip;
+	unsigned char temp_value;
 
 	char title[BUFSIZ];
 	char author[BUFSIZ];
@@ -99,12 +104,18 @@ static int dump_song_krw(char *filename, int debug, int size,
 		return -1;
 	}
 
-	fprintf(stderr, "\nDumping song %s to %s\n",filename,outname);
+	fprintf(stderr, "\nDumping song %s+%s to %s\n",
+		filename1,filename2,outname);
 
 	/*****************************************/
 	/* LOAD SONG				*/
 	/***************************************/
-	result=load_ym_song(filename,&ym_song);
+	result=load_ym_song(filename1,&ym_song);
+	if (result<0) {
+		return -1;
+	}
+
+	result=load_ym_song(filename2,&ym_song2);
 	if (result<0) {
 		return -1;
 	}
@@ -131,36 +142,6 @@ static int dump_song_krw(char *filename, int debug, int size,
 	fputc('K',fff);
 	fputc('R',fff);
 	fputc('W',fff);
-
-
-
-	/**********************/
-	/* Print song summary */
-	/**********************/
-#if 0
-	int length_seconds;
-
-	printf("\tYM%d",ym_song.type);
-	printf("\tSong attributes (%d) : ",ym_song.attributes);
-	printf("Interleaved=%s\n",ym_song.interleaved?"yes":"no");
-	if (ym_song.num_digidrum>0) {
-		printf("Num digidrum samples: %d\n",ym_song.num_digidrum);
-	}
-	printf("\tFrames: %d, ",ym_song.num_frames);
-	printf("Chip clock: %d Hz, ",ym_song.master_clock);
-	printf("Frame rate: %d Hz, ",ym_song.frame_rate);
-	if (ym_song.frame_rate!=50) {
-		fprintf(stderr,"FIX ME framerate %d\n",ym_song.frame_rate);
-		exit(1);
-	}
-	length_seconds=ym_song.num_frames/ym_song.frame_rate;
-	printf("Length=%d:%02d\n",length_seconds/60,length_seconds%60);
-	printf("\tLoop frame: %d, ",ym_song.loop_frame);
-	printf("Extra data size: %d\n",ym_song.extra_data);
-	printf("\tSong name: %s\n",ym_song.song_name);
-	printf("\tAuthor name: %s\n",ym_song.author);
-	printf("\tComment: %s\n",ym_song.comment);
-#endif
 
 	/* default */
 //	fprintf(fff,"INTRO2: JUNGAR OF BIT WORLD FROM KIEV%c",0);
@@ -232,6 +213,7 @@ static int dump_song_krw(char *filename, int debug, int size,
 	}
 
 	/* 0xFFs at end are end-of-song marker */
+	/* Tricky if exact multiple of 256 :( */
 	memset(interleaved_data,0xff,data_size);
 
 	raw_data=calloc(pages_per_chunk*256*14,sizeof(char));
@@ -251,11 +233,25 @@ static int dump_song_krw(char *filename, int debug, int size,
 	for(y=0;y<14;y++) {
 		for(x=0;x<end_frame;x++) {
 
-			ym_return_frame(&ym_song,x,frame,NULL);
-			interleaved_data[(y*fake_frames)+x]=
-				frame[y];
+			if (y<11) {
+				ym_return_frame(&ym_song,x,frame,NULL);
+				interleaved_data[(y*fake_frames)+x]=
+					frame[y];
+			}
+			else {
+				ym_return_frame(&ym_song2,x,frame,NULL);
+				if (y==11) temp_value=frame[2];
+				if (y==12) temp_value=frame[3];
+				if (y==13) temp_value=frame[9];
+
+				interleaved_data[(y*fake_frames)+x]=
+					temp_value;
+
+			}
 		}
 	}
+	/* HACK! make sure we have end-marker */
+	interleaved_data[(1*fake_frames)+(end_frame-1)]=0xff;
 
 	for(j=0;j<num_chunks;j++) {
 		for(y=0;y<14;y++) {
@@ -274,17 +270,6 @@ static int dump_song_krw(char *filename, int debug, int size,
 //				(unsigned char)raw_data[(255*pages_per_chunk)+(y*256*pages_per_chunk)]);
 //		}
 //		printf("\n");
-
-#if 0
-	{
-		int fd;
-		fd=open("blah.raw",O_WRONLY|O_CREAT);
-		write(fd,raw_data,256*pages_per_chunk*14);
-		close(fd);
-		exit(1);
-
-	}
-#endif
 
 		compressed_size=LZ4_compress_HC (raw_data,
 						compressed_data,
@@ -333,7 +318,8 @@ static int dump_song_krw(char *filename, int debug, int size,
 
 int main(int argc, char **argv) {
 
-	char filename[BUFSIZ]="intro2.ym";
+	char filename1[BUFSIZ]="intro2.ym";
+	char filename2[BUFSIZ]="intro2.ym";
 	char outfile[BUFSIZ]="out.krw";
 
 	int c,debug=0;
@@ -384,15 +370,20 @@ int main(int argc, char **argv) {
 	first_song=optind;
 
 	if (argv[first_song]!=NULL) {
-		strcpy(filename,argv[first_song]);
+		strcpy(filename1,argv[first_song]);
 	}
 
 	if (first_song+1<argc) {
-		strcpy(outfile,argv[first_song+1]);
+		strcpy(filename2,argv[first_song+1]);
+	}
+
+	if (first_song+2<argc) {
+		strcpy(outfile,argv[first_song+2]);
 	}
 
 	/* Dump the song */
-	dump_song_krw(filename,debug,size,outfile,author,title,force_end_frame);
+	dump_song_kr4(filename1,filename2,
+			debug,size,outfile,author,title,force_end_frame);
 
 	return 0;
 }

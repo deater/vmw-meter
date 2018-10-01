@@ -1,0 +1,54 @@
+This describes how to build the pi-ps2-gpio board included here.
+
+See the PARTS file for a list of parts.
+
+Included under the pi-ps2-hat directory is the GEDA/gerber files for
+making the board.  You can also purchase one (well, three) from OSHPark
+https://www.oshpark.com/shared_projects/210R11m3
+
+
+1. Put the 26-pin hat header through the holes and solder in place.
+	The pins should poke through the top side of the board
+	(the side that doesn't say VMW on it).
+	This is actually a pain to do.
+
+	Alternately, if you don't want to use this with a pi, you
+	can just use a regular SIP header and connect to the board
+	with jumper wires.  Only 5 connectors are important.
+	5V, 3.3V, GND, and two GPIOs (pins 1,2,6,16, and 18).
+
+2. Solder in place the two 4.7k resistors.  I did this on the top
+	of the board but you can do it on the bottom too.
+
+3. Solder in place the two-pin SIP headers.  I did this so that you
+	could pop the jumper blocks off and disconnect the GPIOs
+	w/o removing the board.  You can also in that case jumper
+	to alternate GPIO pins if you wanted to use ones other
+	than GPIO23/24
+
+4. Put together the Level Shifter and then solder in place on top.
+	The top of the Level Shifter board (with HV and LV) corresponds 
+	to the triangle on the solder-mask.
+
+5. Solder the DIN6 PS/2 connector to the top of the board.
+
+6. Solder the USBA connector to the top of the board.
+
+	Note: You don't need to connect both PS/2 and USB connectors.
+		If you are only going to use one you can leave the
+		other off.
+
+7. Use jumper blocks on the SIP header to connect up the GPIOs.
+
+8. Install on your pi (be sure the USB/PS2 connectors are facing out,
+	and that you line up the header to be at the very top of the
+	GPIO header.  This is easier to get wrong on B+/A+ boards
+	that have more pins).
+
+	You probably want to do the above with the power off.
+	Hook up the keyboard too.
+
+9. Try out one of the testing tools, or install the Linux kernel module
+	provided.
+
+

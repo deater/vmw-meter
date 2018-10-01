@@ -1,0 +1,24 @@
+Try to get a MAX7349 matrix keyboard/sounder chip going
+
+With AD0 grounded matrix at addr 0x70, sound at 0x72
+
+
+
+Pinout, based on Q10-24 Proto Board from kingetc.com and
+https://hackaday.io/project/27520-pimp-personal-information-manager-pager/log/69681-blackberry-q10-keyboard-destructive-disassembly
+https://hackaday.io/project/27520-pimp-personal-information-manager-pager/log/70581-solder-once-beepout-twice
+
+
+   |	GND	26 |  1 GND
+   |		25 |  2
+   | 6  COL3	24 |  3
+   | 4  ROW2	23 |  4 COL2  14
+---- 7  COL4	22 |  5 COL1  15
+     5  ROW3	21 |  6 ROW1   3
+     8  ROW4	20 |  7 COL0  16
+     9  ROW5	19 |  8	ROW0   2
+----    D1	18 |  9
+   |    D2	17 | 10
+   |    D3	16 | 11
+   |    D4	15 | 12
+   | 10 ROW6	14 | 13

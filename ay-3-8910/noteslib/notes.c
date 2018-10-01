@@ -36,6 +36,7 @@ double note_to_freq(char note, int flat, int sharp, int octave, double sub) {
 
 /* https://sourceforge.net/p/ed2midi/code/ */
 /* From a spreadsheet from ed2midi */
+/* Ugh, ym5 changes octave on C, but looks like ED does at A */
 /*      Octave  1       2       3       4       5
         A       255     128     64      32      16
         A#/B-   240     120     60      30      15
@@ -48,61 +49,94 @@ double note_to_freq(char note, int flat, int sharp, int octave, double sub) {
         F       160      80     40      20      10
         F#/G-   152      76     38      19      9
         G       144      72     36      18      9
-        G#/A-   136      68     34      17      8
+        G#/A-   136      68     34      17      8		*/
+
+
+/*      Octave  1	2       3       4       5       6
+        C       	216     108     54      27      13
+        C#/D-   	204     102     51      25      12
+        D       	192      96     48      24      12
+        D#/E-   	180      90     45      22      11
+        E       	172      86     43      21      10
+        F       	160      80     40      20      10
+        F#/G-   	152      76     38      19      9
+        G       	144      72     36      18      9
+        G#/A-   	136      68     34      17      8
+        A       255     128      64     32      16
+        A#/B-   240     120      60     30      15
+        B       228     114      57     28      14
+
 */
 
+
+/*      Octave  1	2       3       4       5       6
+        C       	216     108     54      27      13
+        C#/D-   	204     102     51      25      12
+        D       	192      96     48      24      12
+        D#/E-   	180      90     45      22      11
+        E       	172      86     43      21      10
+        F       	160      80     40      20      10
+        F#/G-   	152      76     38      19      9
+        G       	144      72     36      18      9
+        G#/A-   	136      68     34      17      8
+        A       255     128      64     32      16	8
+        A#/B-   240     120      60     30      15	8
+        B       228     114      57     28      14	7
+
+*/
+
+static unsigned char ed_freqs[]={
+/*      A   A#  B   C   C#  D   D#  E   F   F#  G   G# */
+	255,240,228,216,204,192,180,172,160,152,144,136,
+	128,120,114,108,102,96, 90, 86, 80, 76, 72, 68,
+	64, 60, 57, 54, 51, 48, 45, 43, 40, 38, 36, 34,
+	32, 30, 28, 27, 25, 24, 22, 21, 20, 19, 18, 17,
+	16, 15, 14, 13, 12, 12, 11, 10, 10, 9,  9,  8,
+	8,  8,  7};
+
+/*	c1	c1
+	d1	d1
+	e1	e1
+	f1	f1
+	g1	g1
+	a1	a2
+	b1	b2
+	c2	c2
+
+ */
 int note_to_ed(char note, int flat, int sharp, int octave) {
 
-	int value=0;
+	int offset;
 
 	switch(note) {
-		case 'A':
-			if (flat==1) value=272;
-			else if (sharp==1) value=240;
-			else value=255;
-			break;
-		case 'B':
-			if (flat==1) value=240;
-			else if (sharp==1) value=216;
-			else value=228;
-			break;
-		case 'C':
-			if (flat==1) value=228;
-			else if (sharp==1) value=204;
-			else value=216;
-			break;
-		case 'D':
-			if (flat==1) value=204;
-			else if (sharp==1) value=180;
-			else value=192;
-			break;
-		case 'E':
-			if (flat==1) value=180;
-			else if (sharp==1) value=160;
-			else value=172;
-			break;
-		case 'F':
-			if (flat==1) value=172;
-			else if (sharp==1) value=152;
-			else value=160;
-			break;
-		case 'G':
-			if (flat==1) value=152;
-			else if (sharp==1) value=136;
-			else value=144;
-			break;
+		case 'A': offset=12; break;
+		case 'B': offset=14; break;
+		case 'C': offset=3; break;
+		case 'D': offset=5; break;
+		case 'E': offset=7; break;
+		case 'F': offset=8; break;
+		case 'G': offset=10; break;
 		default:
 			fprintf(stderr,"Unknown note %c\n",note);
+			return -1;
+	}
+	if (flat==1) offset--;
+	if (sharp==1) offset++;
+	if (sharp==2) offset+=2;
+
+	offset+=((octave-1)*12);
+
+	if (offset>63) {
+		fprintf(stderr,"Out of range offset %d\n",offset);
+		return 7;
 	}
 
-	int octave_divider[5]={1,2,4,8,16};
-
-	if ((octave<1) || (octave>5)) {
-		fprintf(stderr,"Invalid octave %d\n",octave);
-		return -1;
+	if (offset<0) {
+		fprintf(stderr,"Out of range offset %d\n",offset);
+		return 255;
 	}
 
-	return value/octave_divider[octave-1];
+	return ed_freqs[offset];
 }
 
 
