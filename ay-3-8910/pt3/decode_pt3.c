@@ -7,6 +7,8 @@
 /* PT3 Format */
 
 /* Header */
+/* Note: 16-bit values are little-endian */
+
 // $00 - $0C : 13 bytes : Magic       : "ProTracker 3."
 // $0D       :  1 byte  : Version     : '5' for Vortex Tracker II
 // $0E - $1D : 16 bytes : String      : " compilation of "
@@ -17,10 +19,10 @@
 // $64       :  1 byte  : Speed/Delay
 // $65       :  1 byte  : Number of patterns
 // $66       :  1 byte  : LPosPtr     : Pattern loop/LPosPtr
-// $67       :  2 bytes : PatsPtrs    : Position of patterns inside the module
-// $69       : 64 bytes : SamPtrs[32] : Position of samples inside the module
-// $A9       : 32 bytes : OrnPtrs[16] : Position of ornaments inside the module
-// $C9       :  2 bytes : CrPsPtr     : Points to pattern order
+// $67 - $68 :  2 bytes : PatsPtrs    : Position of patterns inside the module
+// $69 - $A8 : 64 bytes : SamPtrs[32] : Position of samples inside the module
+// $A9 - $C8 : 32 bytes : OrnPtrs[16] : Position of ornaments inside the module
+// $C9 - $CA :  2 bytes : CrPsPtr     : Points to pattern order
 
 #include <stdio.h>
 #include <string.h>
@@ -38,20 +40,22 @@ struct header_info_t {
 	int speed;
 	int num_patterns;
 	int loop;
-	short pattern_loc;
-	short sample_patterns[32];
-	short ornament_patterns[16];
-	short pattern_order;
+	unsigned short pattern_loc;
+	unsigned short sample_patterns[32];
+	unsigned short ornament_patterns[16];
+	unsigned short pattern_order;
 } header;
 
 #define HEADER_SIZE 0xCB
 
-static char raw_header[HEADER_SIZE];
+static unsigned char raw_header[HEADER_SIZE];
 
 static int debug=1;
 
 
 static int load_header(int fd) {
+
+	int i;
 
 	memset(&raw_header,0,HEADER_SIZE);
 
@@ -76,7 +80,35 @@ static int load_header(int fd) {
 	/* Author */
 	memcpy(&header.author,&raw_header[0x42],32);
 
+	/* Frequency Table */
+	header.frequency_table=raw_header[0x63];
 
+	/* Speed */
+	header.speed=raw_header[0x64];
+
+	/* Number of Patterns */
+	header.num_patterns=raw_header[0x65];
+
+	/* Loop Pointer */
+	header.loop=raw_header[0x66];
+
+	/* Pattern Position */
+	header.pattern_loc=(raw_header[0x68]<<8)|raw_header[0x67];
+
+	/* Sample positions */
+	for(i=0;i<32;i++) {
+		header.sample_patterns[i]=
+			(raw_header[0x6a+(i*2)]<<8)|raw_header[0x69+(i*2)];
+	}
+
+	/* Ornament Positions */
+	for(i=0;i<16;i++) {
+		header.ornament_patterns[i]=
+			(raw_header[0xaa+(i*2)]<<8)|raw_header[0xa9+(i*2)];
+	}
+
+	/* Pattern Order */
+	header.pattern_order=(raw_header[0xca]<<8)|raw_header[0xc9];
 
 	return 0;
 
@@ -85,7 +117,7 @@ static int load_header(int fd) {
 int main(int argc, char **argv) {
 
 	char filename[BUFSIZ];
-	int fd;
+	int fd,i;
 	int result;
 
 	if (argc>1) {
@@ -117,8 +149,26 @@ int main(int argc, char **argv) {
 		printf("%s%c\n",header.magic,header.version);
 		printf("\tNAME: %s\n",header.name);
 		printf("\tBY  : %s\n",header.author);
+		printf("\tFreqTable: %d Speed: %d  Patterns: %d Loop: %d\n",
+			header.frequency_table,
+			header.speed,
+			header.num_patterns,
+			header.loop);
+		printf("\tPattern Location Offset: %04x\n",header.pattern_loc);
+		printf("\tSample patterns:");
+		for(i=0;i<32;i++) {
+			if (i%8==0) printf("\n\t\t");
+			printf("%04x ",header.sample_patterns[i]);
+		}
+		printf("\n");
+		printf("\tOrnament patterns:");
+		for(i=0;i<16;i++) {
+			if (i%8==0) printf("\n\t\t");
+			printf("%04x ",header.ornament_patterns[i]);
+		}
+		printf("\n");
+		printf("\tPattern order @%04x\n",header.pattern_order);
 	}
-
 
 	return 0;
 }
