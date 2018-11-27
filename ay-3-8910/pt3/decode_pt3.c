@@ -22,7 +22,9 @@
 // $67 - $68 :  2 bytes : PatsPtrs    : Position of patterns inside the module
 // $69 - $A8 : 64 bytes : SamPtrs[32] : Position of samples inside the module
 // $A9 - $C8 : 32 bytes : OrnPtrs[16] : Position of ornaments inside the module
-// $C9 - $CA :  2 bytes : CrPsPtr     : Points to pattern order
+// ***************** this is wrong? $C9 - $CA :  2 bytes : CrPsPtr     : Points to pattern order
+// pattern order follows starting at $C9, $ff terminated
+// each pattern number is multiplied by 3
 
 #include <stdio.h>
 #include <string.h>
@@ -114,8 +116,8 @@ static int load_header(void) {
 int main(int argc, char **argv) {
 
 	char filename[BUFSIZ];
-	int fd,i;
-	int result;
+	int fd,i,j;
+	int result,sample_loop,sample_len;
 
 	if (argc>1) {
 		strncpy(filename,argv[1],BUFSIZ-1);
@@ -164,7 +166,7 @@ int main(int argc, char **argv) {
 			header.num_patterns,
 			header.loop);
 		printf("\tPattern Location Offset: %04x\n",header.pattern_loc);
-		printf("\tSample patterns:");
+		printf("\tSample pattern addresses:");
 		for(i=0;i<32;i++) {
 			if (i%8==0) printf("\n\t\t");
 			printf("%04x ",header.sample_patterns[i]);
@@ -176,7 +178,46 @@ int main(int argc, char **argv) {
 			printf("%04x ",header.ornament_patterns[i]);
 		}
 		printf("\n");
-		printf("\tPattern order @%04x\n",header.pattern_order);
+//		printf("\tPattern order @%04x\n",header.pattern_order);
+
+		i=0;
+		printf("\tPattern order:");
+		while(1) {
+			if (i%16==0) printf("\n\t\t");
+			if (pt3_data[0xc9+i]==0xff) break;
+			printf("%02d ",pt3_data[0xc9+i]/3);
+			i++;
+		}
+		printf("\n");
+
+		printf("\tSample Dump:\n");
+		for(i=0;i<32;i++) {
+			printf("\t\t%i: ",i);
+			if (header.sample_patterns[i]==0) printf("N/A\n");
+			else {
+				sample_loop=pt3_data[0+
+						header.sample_patterns[i]];
+				sample_len=pt3_data[1+
+						header.sample_patterns[i]];
+				printf("Loop: %d Length: %d\n",
+						sample_loop,
+						sample_len);
+				for(j=0;j<sample_len;j++) {
+					printf("\t\t\t%02x %02x %02x %02x\n",
+						pt3_data[2+(j*4)+
+						header.sample_patterns[i]],
+						pt3_data[3+(j*4)+
+						header.sample_patterns[i]],
+						pt3_data[4+(j*4)+
+						header.sample_patterns[i]],
+						pt3_data[5+(j*4)+
+						header.sample_patterns[i]]);
+				}
+			}
+		}
+
+
+
 	}
 
 	return 0;
