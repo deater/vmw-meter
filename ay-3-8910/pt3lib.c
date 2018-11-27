@@ -77,25 +77,15 @@ VARS:
 	DEFB 0 ;set bit0 to 1, if you want to play without looping
 	     ;bit7 is set each time, when loop point is passed
 */
-static short CrPsPtr=0;	// CrPsPtr: DEFW 0
-/*
-AddToEn:
-	DEFB 0
-AdInPtA:
-	DEFW 0
-AdInPtB:
-	DEFW 0
-AdInPtC:
-	DEFW 0
-Env_Del:
-	DEFB 0
-*/
-static short MODADDR;	// MODADDR:DEFW 0
-/*
-ESldAdd:
-	DEFW 0
-*/
-static unsigned char Delay;	//Delay: DEFB 0
+static short CrPsPtr=0;		// CrPsPtr: DEFW 0
+static unsigned char AddToEn=0;	// AddToEn: DEFB 0
+static short AdInPtA=0;		// AdInPtA: DEFW 0
+static short AdInPtB=0;		// AdInPtB: DEFW 0
+static short AdInPtC=0;		// AdInPtC: DEFW 0
+static unsigned char Env_Del;	// Env_Del: DEFB 0
+static short MODADDR;		// MODADDR: DEFW 0
+static short ESldAdd;		// ESldAdd: DEFW 0
+static unsigned char Delay;	// Delay: DEFB 0
 /*
 PDSP_:
 CSP_:
@@ -201,6 +191,7 @@ int play_pt3(char *filename) {
 
 	pt3_init();
 
+	pt3_play();
 
 	return 0;
 }
@@ -1090,12 +1081,15 @@ CH_EXIT:
 CH_ONDL:
 	LD (IX+CHP_COnOff),A
 	RET
+*/
 
-PLAY:
-	XOR A
-	LD (AddToEn),A
+void pt3_play(void) {
+				// PLAY:
+	a=0;				// XOR A
+	AddToEn=a;			// LD (AddToEn),A
+/*
 	LD (AYREGS+Mixer),A
-	DEC A
+	a--;				// DEC A
 	LD (AYREGS+EnvTp),A
 	LD HL,DelyCnt
 	DEC (HL)
@@ -1103,8 +1097,6 @@ PLAY:
 	LD HL,ChanA+CHP_NtSkCn
 	DEC (HL)
 	JR NZ,PL1B
-;DEFC AdInPtA = ASMPC+1
-;	LD BC,$0101
 	LD BC,(AdInPtA)
 	LD A,(BC)
 	AND A
@@ -1117,8 +1109,6 @@ PLAY:
 	INC A
 	JR NZ,PLNLP
 	CALL CHECKLP
-;DEFC LPosPtr = ASMPC+1
-;	LD HL,$2121
 	LD HL,(LPosPtr)
 	LD A,(HL)
 	INC A
@@ -1256,8 +1246,11 @@ LOUT:
 	RET M
 	LD B,E
 	OUT (C),A
-	RET
+*/
+				// RET
+}
 
+/*
 NT_DATA:
 	DEFB (T_NEW_0-T1_)*2
 	DEFB TCNEW_0-T_
