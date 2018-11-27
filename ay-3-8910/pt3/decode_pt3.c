@@ -17,7 +17,7 @@
 // $42 - $62 : 32 bytes : Author      : Author of the module.
 // $63       :  1 byte  : Frequency table (from 1 to 4)
 // $64       :  1 byte  : Speed/Delay
-// $65       :  1 byte  : Number of patterns
+// $65       :  1 byte  : Number of patterns (-1?  Max Patterns?)
 // $66       :  1 byte  : LPosPtr     : Pattern loop/LPosPtr
 // $67 - $68 :  2 bytes : PatsPtrs    : Position of patterns inside the module
 // $69 - $A8 : 64 bytes : SamPtrs[32] : Position of samples inside the module
@@ -86,7 +86,7 @@ static int load_header(void) {
 	header.speed=raw_header[0x64];
 
 	/* Number of Patterns */
-	header.num_patterns=raw_header[0x65];
+	header.num_patterns=raw_header[0x65]+1;
 
 	/* Loop Pointer */
 	header.loop=raw_header[0x66];
@@ -116,7 +116,7 @@ static int load_header(void) {
 int main(int argc, char **argv) {
 
 	char filename[BUFSIZ];
-	int fd,i,j;
+	int fd,i,j,addr;
 	int result,sample_loop,sample_len;
 
 	if (argc>1) {
@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
 			printf("%04x ",header.sample_patterns[i]);
 		}
 		printf("\n");
-		printf("\tOrnament patterns:");
+		printf("\tOrnament addresses:");
 		for(i=0;i<16;i++) {
 			if (i%8==0) printf("\n\t\t");
 			printf("%04x ",header.ornament_patterns[i]);
@@ -189,6 +189,25 @@ int main(int argc, char **argv) {
 			i++;
 		}
 		printf("\n");
+
+		printf("\tPattern Locations:\n");
+		for(i=0;i<header.num_patterns;i++) {
+			printf("\t\t%d (%4x):\t",i,(i*6)+header.pattern_loc);
+
+			addr=pt3_data[(i*6)+0+header.pattern_loc] |
+				(pt3_data[(i*6)+1+header.pattern_loc]<<8);
+			printf("A: %04x ",addr);
+
+			addr=pt3_data[(i*6)+2+header.pattern_loc] |
+				(pt3_data[(i*6)+3+header.pattern_loc]<<8);
+			printf("B: %04x ",addr);
+
+			addr=pt3_data[(i*6)+4+header.pattern_loc] |
+				(pt3_data[(i*6)+5+header.pattern_loc]<<8);
+			printf("C: %04x ",addr);
+
+			printf("\n");
+		}
 
 		printf("\tSample Dump:\n");
 		for(i=0;i<32;i++) {
@@ -213,6 +232,28 @@ int main(int argc, char **argv) {
 						pt3_data[5+(j*4)+
 						header.sample_patterns[i]]);
 				}
+			}
+		}
+
+
+		printf("\tOrnament Dump:\n");
+		for(i=0;i<16;i++) {
+			printf("\t\t%i: ",i);
+			if (header.ornament_patterns[i]==0) printf("N/A\n");
+			else {
+				sample_loop=pt3_data[0+
+						header.ornament_patterns[i]];
+				sample_len=pt3_data[1+
+						header.ornament_patterns[i]];
+				printf("Loop: %d Length: %d\n\t\t\t",
+						sample_loop,
+						sample_len);
+				for(j=0;j<sample_len;j++) {
+					printf("%02x ",
+						pt3_data[2+j+
+						header.sample_patterns[i]]);
+				}
+				printf("\n");
 			}
 		}
 
