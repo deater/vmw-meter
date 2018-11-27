@@ -32,8 +32,8 @@
 struct header_info_t {
 	char magic[13+1];
 	char version;
-	char name[32];
-	char author[32];
+	char name[32+1];
+	char author[32+1];
 	int frequency_table;
 	int speed;
 	int num_patterns;
@@ -69,6 +69,14 @@ static int load_header(int fd) {
 
 	/* version */
 	header.version=raw_header[0xd];
+
+	/* Name */
+	memcpy(&header.name,&raw_header[0x1e],32);
+
+	/* Author */
+	memcpy(&header.author,&raw_header[0x42],32);
+
+
 
 	return 0;
 
@@ -107,6 +115,8 @@ int main(int argc, char **argv) {
 	/* Print header info */
 	if (debug) {
 		printf("%s%c\n",header.magic,header.version);
+		printf("\tNAME: %s\n",header.name);
+		printf("\tBY  : %s\n",header.author);
 	}
 
 
