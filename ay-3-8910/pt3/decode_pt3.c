@@ -47,20 +47,17 @@ struct header_info_t {
 } header;
 
 #define HEADER_SIZE 0xCB
+#define MAX_PT3_SIZE	65536
 
 static unsigned char raw_header[HEADER_SIZE];
+static unsigned char pt3_data[MAX_PT3_SIZE];
 
 static int debug=1;
 
 
-static int load_header(int fd) {
+static int load_header(void) {
 
 	int i;
-
-	memset(&raw_header,0,HEADER_SIZE);
-
-	read(fd,raw_header,HEADER_SIZE);
-	if (read<0) return -1;
 
 	/* Magic */
 	memcpy(&header.magic,&raw_header[0],13);
@@ -135,14 +132,26 @@ int main(int argc, char **argv) {
 
 	}
 
-	result=load_header(fd);
-	if (result) {
-		fprintf(stderr,"Error loading!\n");
-		close(fd);
+
+	memset(&pt3_data,0,MAX_PT3_SIZE);
+
+	result=read(fd,pt3_data,MAX_PT3_SIZE);
+	if (result<0) {
+		fprintf(stderr,"Error reading file: %s\n",
+			strerror(errno));
 		return -1;
 	}
 
 	close(fd);
+
+	memcpy(&raw_header,&pt3_data,HEADER_SIZE);
+	result=load_header();
+	if (result) {
+		fprintf(stderr,"Error decoding header!\n");
+		return -1;
+	}
+
+
 
 	/* Print header info */
 	if (debug) {
