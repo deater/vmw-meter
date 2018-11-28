@@ -56,6 +56,7 @@ static unsigned char pt3_data[MAX_PT3_SIZE];
 
 static int debug=1;
 
+static int music_len=0,current_pattern=0;
 
 static int load_header(void) {
 
@@ -187,6 +188,7 @@ int main(int argc, char **argv) {
 			if (pt3_data[0xc9+i]==0xff) break;
 			printf("%02d ",pt3_data[0xc9+i]/3);
 			i++;
+			music_len++;
 		}
 		printf("\n");
 
@@ -257,7 +259,20 @@ int main(int argc, char **argv) {
 			}
 		}
 
-
+		printf("Song Dump:\n");
+		// Not easy to know song length in advance?
+		for(i=0;i<music_len;i++) {
+			current_pattern=pt3_data[0xc9+i];
+			printf("Chunk %d/%d, 00:00/00:00, Pattern #%d\n",
+				i,music_len-1,current_pattern/3);
+			for(j=0;j<64;j++) {
+				printf("%02x|....|..",j);
+				printf("|--- .... ....");
+				printf("|--- .... ....");
+				printf("|--- .... ....");
+				printf("\n");
+			}
+		}
 
 	}
 
