@@ -26,6 +26,48 @@
 // pattern order follows starting at $C9, $ff terminated
 // each pattern number is multiplied by 3
 
+
+// Actual Pattern Data, Stream of bytes, null terminated
+//      $00           -- nul teminate
+//      $01-$0f       -- extra commands
+//		
+//      $10-$1f       -- envelope related?
+//	$20-$3f       -- set noise
+//      $40-$4f       -- set ornament
+//      $50-$ad       -- play note, see below
+//	$b0-$bf       -- envelope?
+//      $c0-$cf       -- set volume, value-$c0.  $c0 means sound off
+//      $d0-$ef       -- set sample, value-$d0.  $d0 means nothing/quit?
+//	$f0-$ff, arg1 -- Initialize?
+//               Envelope=15, Ornament=low byte, Sample=arg1/2
+
+
+
+// 50-AF = notes
+//      0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
+//50: C-1 C#1 D-1 D#1 E-1 F-1 F#1 G-1 G#1 A-1 A#1 B-1 C-2 C#2 D-2 D#2
+//60: E-2 F-2 F#2 G-2 G#2 A-2 A#2 B-2 C-3 C#3 D-3 D#3 E-3 F-3 F#3 G-3
+//70: G#3 A-3 A#3 B-3 C-4 C#4 D-4 D#4 E-4 F-2 F#4 G-4 G#4 A-4 A#4 B-4
+//80: C-5 C#5 D-5 D#5 E-5 F-5 F#5 G-5 G#5 A-5 A#5 B-5 C-6 C#6 D-6 D#6
+//90: E-6 F-6 F#6 G-6 G#6 A-6 A#6 B-6 C-7 C#7 D-7 D#7 E-7 F-7 F#7 G-7
+//a0: G#7 A-7 A#7 B-7 C-8 C#8 D-8 D#8 E-8 F-8 F#8 G-8 G#8 A-8 A#8 B-8
+
+char note_names[96][4]={
+	"C-1","C#1","D-1","D#1","E-1","F-1","F#1","G-1", // 50
+	"G#1","A-1","A#1","B-1","C-2","C#2","D-2","D#2", // 58
+	"E-2","F-2","F#2","G-2","G#2","A-2","A#2","B-2", // 60
+	"C-3","C#3","D-3","D#3","E-3","F-3","F#3","G-3", // 68
+	"G#3","A-3","A#3","B-3","C-4","C#4","D-4","D#4", // 70
+	"E-4","F-2","F#4","G-4","G#4","A-4","A#4","B-4", // 78
+	"C-5","C#5","D-5","D#5","E-5","F-5","F#5","G-5", // 80
+	"G#5","A-5","A#5","B-5","C-6","C#6","D-6","D#6", // 88
+	"E-6","F-6","F#6","G-6","G#6","A-6","A#6","B-6", // 90
+	"C-7","C#7","D-7","D#7","E-7","F-7","F#7","G-7", // 98
+	"G#7","A-7","A#7","B-7","C-8","C#8","D-8","D#8", // a0
+	"E-8","F-8","F#8","G-8","G#8","A-8","A#8","B-8", // a8
+};
+
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -53,6 +95,9 @@ struct header_info_t {
 
 static unsigned char raw_header[HEADER_SIZE];
 static unsigned char pt3_data[MAX_PT3_SIZE];
+
+unsigned char *aptr,*bptr,*cptr;
+unsigned short a_addr,b_addr,c_addr;
 
 static int debug=1;
 
@@ -259,12 +304,30 @@ int main(int argc, char **argv) {
 			}
 		}
 
+
 		printf("Song Dump:\n");
 		// Not easy to know song length in advance?
 		for(i=0;i<music_len;i++) {
-			current_pattern=pt3_data[0xc9+i];
+			current_pattern=pt3_data[0xc9+i]/3;
 			printf("Chunk %d/%d, 00:00/00:00, Pattern #%d\n",
-				i,music_len-1,current_pattern/3);
+				i,music_len-1,current_pattern);
+
+			a_addr=pt3_data[(current_pattern*6)+0+header.pattern_loc] |
+				(pt3_data[(current_pattern*6)+1+header.pattern_loc]<<8);
+
+			b_addr=pt3_data[(current_pattern*6)+2+header.pattern_loc] |
+				(pt3_data[(current_pattern*6)+3+header.pattern_loc]<<8);
+
+			c_addr=pt3_data[(current_pattern*6)+4+header.pattern_loc] |
+				(pt3_data[(current_pattern*6)+5+header.pattern_loc]<<8);
+
+			printf("a_addr: %04x, b_addr: %04x, c_addr: %04x\n",
+				a_addr,b_addr,c_addr);
+
+			aptr=&pt3_data[a_addr];
+			bptr=&pt3_data[b_addr];
+			cptr=&pt3_data[c_addr];
+
 			for(j=0;j<64;j++) {
 				printf("%02x|....|..",j);
 				printf("|--- .... ....");
