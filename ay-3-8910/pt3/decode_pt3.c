@@ -30,16 +30,20 @@
 // Actual Pattern Data, Stream of bytes, null terminated
 //      $00           -- nul teminate
 //      $01-$0f       -- extra commands
-//		
 //      $10-$1f       -- envelope related?
 //	$20-$3f       -- set noise
 //      $40-$4f       -- set ornament
 //      $50-$ad       -- play note, see below
-//	$b0-$bf       -- envelope?
+//	$b0           -- env=$f, ornament=saved ornament
+//	$b1, arg1     -- set skip value to arg1 (how long note plays)
+//	$b2-$bf,arg1/2-- envelope?
 //      $c0-$cf       -- set volume, value-$c0.  $c0 means sound off
-//      $d0-$ef       -- set sample, value-$d0.  $d0 means nothing/quit?
+//	$d0           -- do nothing?
+//      $d1-$ef       -- set sample, value-$d0.
 //	$f0-$ff, arg1 -- Initialize?
 //               Envelope=15, Ornament=low byte, Sample=arg1/2
+
+// if you reach a note, a 0xd0, a 0xc0 then done this note.
 
 
 
