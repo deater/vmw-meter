@@ -95,7 +95,7 @@ static int dump_song_mega(char *filename1,
 	int data_size;
 	int fd[8];
 
-	int x;
+	int x,i;
 
 	struct ym_song_t ym_song;
 
@@ -106,7 +106,7 @@ static int dump_song_mega(char *filename1,
 	unsigned char *adatah,*adatal,*bdatah,*bdatal,
 			*cdatah,*cdatal,*ndatah,*ndatal;
 
-	int end_frame;
+	int end_frame,rounded;
 
 	char filename[8][BUFSIZ];
 
@@ -147,52 +147,53 @@ static int dump_song_mega(char *filename1,
 	/******************/
 
 	data_size=end_frame*14;
+	rounded=((end_frame/256)+1)*256;
 
 	fprintf(stderr,"total_size %d\n",data_size);
 
-	adatah=calloc(end_frame,sizeof(char));
+	adatah=calloc(rounded,sizeof(char));
 	if (adatah==NULL) {
 		fprintf(stderr,"Error allocating memory!\n");
 		return -1;
 	}
 
-	adatal=calloc(end_frame,sizeof(char));
+	adatal=calloc(rounded,sizeof(char));
 	if (adatal==NULL) {
 		fprintf(stderr,"Error allocating memory!\n");
 		return -1;
 	}
 
-	bdatah=calloc(end_frame,sizeof(char));
+	bdatah=calloc(rounded,sizeof(char));
 	if (bdatah==NULL) {
 		fprintf(stderr,"Error allocating memory!\n");
 		return -1;
 	}
 
-	bdatal=calloc(end_frame,sizeof(char));
+	bdatal=calloc(rounded,sizeof(char));
 	if (bdatal==NULL) {
 		fprintf(stderr,"Error allocating memory!\n");
 		return -1;
 	}
 
-	cdatah=calloc(end_frame,sizeof(char));
+	cdatah=calloc(rounded,sizeof(char));
 	if (cdatah==NULL) {
 		fprintf(stderr,"Error allocating memory!\n");
 		return -1;
 	}
 
-	cdatal=calloc(end_frame,sizeof(char));
+	cdatal=calloc(rounded,sizeof(char));
 	if (cdatal==NULL) {
 		fprintf(stderr,"Error allocating memory!\n");
 		return -1;
 	}
 
-	ndatah=calloc(end_frame,sizeof(char));
+	ndatah=calloc(rounded,sizeof(char));
 	if (ndatah==NULL) {
 		fprintf(stderr,"Error allocating memory!\n");
 		return -1;
 	}
 
-	ndatal=calloc(end_frame,sizeof(char));
+	ndatal=calloc(rounded,sizeof(char));
 	if (ndatal==NULL) {
 		fprintf(stderr,"Error allocating memory!\n");
 		return -1;
@@ -350,16 +351,15 @@ static int dump_song_mega(char *filename1,
 		sprintf(filename[6],"mock.nl.%02d",x/256);
 		sprintf(filename[7],"mock.nh.%02d",x/256);
 
-		fd[0]=open(filename[0],O_CREAT|O_WRONLY,0777);
-		fd[1]=open(filename[1],O_CREAT|O_WRONLY,0777);
-		fd[2]=open(filename[2],O_CREAT|O_WRONLY,0777);
-		fd[3]=open(filename[3],O_CREAT|O_WRONLY,0777);
-		fd[4]=open(filename[4],O_CREAT|O_WRONLY,0777);
-		fd[5]=open(filename[5],O_CREAT|O_WRONLY,0777);
-		fd[6]=open(filename[6],O_CREAT|O_WRONLY,0777);
-		fd[7]=open(filename[7],O_CREAT|O_WRONLY,0777);
+		for(i=0;i<8;i++) {
+			fd[i]=open(filename[i],O_CREAT|O_WRONLY,0777);
+			if (fd[i]<0) {
+				fprintf(stderr,"ERROR opening %s\n",filename[i]);
+			}
+		}
 
-		printf("Writing 256 bytes at frame %d\n",x);
+		fprintf(stderr,"Writing 256 bytes at frame %d\n",x);
+
 		write(fd[0],&adatal[x],256);
 		write(fd[1],&adatah[x],256);
 		write(fd[2],&bdatal[x],256);
@@ -369,16 +369,9 @@ static int dump_song_mega(char *filename1,
 		write(fd[6],&ndatal[x],256);
 		write(fd[7],&ndatah[x],256);
 
-
-		close(fd[0]);
-		close(fd[1]);
-		close(fd[2]);
-		close(fd[3]);
-		close(fd[4]);
-		close(fd[5]);
-		close(fd[6]);
-		close(fd[7]);
-
+		for(i=0;i<8;i++) {
+			close(fd[i]);
+		}
 	}
 
 
