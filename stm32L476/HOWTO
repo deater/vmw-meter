@@ -1,0 +1,17 @@
+To get set up on Debian Linux:
+
+	sudo apt-get install openocd
+	sudo apt-get install gcc-arm-none-eabi
+	sudo apt-get install gdb-arm-none-eabi
+
+Connect:
+
++ sudo openocd -f /usr/share/openocd/scripts/board/stm32l4discovery.cfg
+
+Program:
+
+        had to do it with stlink-gui first
+
+        openocd -f board/stm32l4discovery.cfg \
+                        -c "program blinky.elf verify" \
+                        -c "reset run"
