@@ -29,10 +29,35 @@
 
 // Actual Pattern Data, Stream of bytes, null terminated
 //      $00           -- nul teminate
-//      $01-$0f       -- extra commands
-//      $10-$1f       -- envelope related?
+//      $01-$0f       -- effects
+//           $02: Sound frequency decreasing in that channel.
+//           $02: Tone portamento.
+//                First byte indicates the delay used to add the new frequency.
+//                Next 2 bytes will indicate the frequency to add. Example:
+//                $02,$23,$00 will add $23 to the final frequency in that raster
+//                and another $23 every 2 rasters.
+//           $01: Sound frequency increasing in that channel.
+//                It's the same as above but the value is rested to $FFFF. Example:
+//                $01,$DD,$FF will rest $23 to the final frequency in every raster.
+//           $03: Starts playing sample from a particular position/line definition.
+//                Byte indicates from which position.
+//           $04: Starts playing ornament from a particular position/line definition.
+//                Byte indicates from which position.
+//           $06: Periodic sound off/on in that channel
+//                Two bytes are used here. The first one tells how many rasters will be
+//                played and the second how many will be not. Example. $03,$04 means
+//                that that channel will be played 3 rasters, 4 not played, 3 played, ...
+//           $08: Envelope frequency increasing.
+//                Two bytes will indicate the frequency to add to registers R12 and R11.
+//                Example: $34,$00 will add $34 to R11.
+//           $09: Set playing speed (new Delay).
+//                The byte after the note will tell the new delay.
+//           $0A: Envelope frequency decreasing.
+//                Same as increasing but the value is rested to $FFFF.
+//                Example: $CC,$FF will rest $34 to R11.
+//      $10-$1f       -- envelope.   (1-E, F=envelope off)
 //	$20-$3f       -- set noise
-//      $40-$4f       -- set ornament
+//      $40-$4f       -- set ornament 0-F
 //      $50-$ad       -- play note, see below
 //	$b0           -- env=$f, ornament=saved ornament
 //	$b1, arg1     -- set skip value to arg1 (how long note plays)
@@ -45,6 +70,7 @@
 
 // if you reach a note, a 0xd0, a 0xc0 then done this note.
 
+// f0 10 cf b1 40 74 00
 
 
 // 50-AF = notes
@@ -56,7 +82,7 @@
 //90: E-6 F-6 F#6 G-6 G#6 A-6 A#6 B-6 C-7 C#7 D-7 D#7 E-7 F-7 F#7 G-7
 //a0: G#7 A-7 A#7 B-7 C-8 C#8 D-8 D#8 E-8 F-8 F#8 G-8 G#8 A-8 A#8 B-8
 
-char note_names[96][4]={
+static char note_names[96][4]={
 	"C-1","C#1","D-1","D#1","E-1","F-1","F#1","G-1", // 50
 	"G#1","A-1","A#1","B-1","C-2","C#2","D-2","D#2", // 58
 	"E-2","F-2","F#2","G-2","G#2","A-2","A#2","B-2", // 60
@@ -162,6 +188,180 @@ static int load_header(void) {
 	return 0;
 
 }
+
+struct note_type {
+	int note;
+	int sample;
+	int envelope;
+	int ornament;
+	int volume;
+	int spec_command;
+	int spec_delay;
+	int spec_hi;
+	int spec_lo;
+
+	int len;
+	int len_count;
+};
+
+int envelope_period_h=0;
+int envelope_period_l=0;
+int delay=0;
+
+static void decode_note(struct note_type *a,
+			unsigned short *addr) {
+
+	int a_done=0;
+	int current_val;
+
+	a->note=0;
+
+	/* Skip decode if note still running */
+	if (a->len_count>1) {
+		a->len_count--;
+		return;
+	}
+
+	while(1) {
+		a->len_count=a->len;
+
+		current_val=pt3_data[*addr];
+		//printf("%02X\n",current_val);
+
+		switch((current_val>>4)&0xf) {
+			case 0:
+				if (current_val==0x0) a_done=1;
+				else if (current_val==0x9) {
+					current_val=pt3_data[*addr+1];
+
+					delay=current_val;
+					printf("DELAY=%02X ",current_val);
+					(*addr)++;
+
+					current_val=pt3_data[*addr+1];
+					delay=current_val;
+					printf("%02X\n",current_val);
+					(*addr)++;
+				}
+				else printf("UNKNOWN %02X\n",current_val);
+				break;
+			case 1:
+				if ((current_val&0xf)==0xc) {
+					//printf("UNKNOWN %02X ",current_val);
+					a->envelope=(current_val&0xf);
+
+					current_val=pt3_data[*addr+1];
+					envelope_period_h=current_val;
+					//printf("%02X ",current_val);
+					(*addr)++;
+
+					current_val=pt3_data[(*addr)+1];
+					envelope_period_l=current_val;
+					//printf("%02X ",current_val);
+					(*addr)++;
+
+					current_val=pt3_data[(*addr)+1];
+					a->sample=(current_val/2);
+					//printf("%02X\n",current_val);
+					(*addr)++;
+				}
+				else if ((current_val&0xf)==0x0) {
+					//printf("UNKNOWN %02X ",current_val);
+					a->envelope=(current_val&0xf);
+					current_val=pt3_data[(*addr)+1];
+					//printf("%02X\n",current_val);
+					(*addr)++;
+
+				}
+				else {
+					printf("UNKNOWN %02X ",current_val);
+				}
+				break;
+			case 2:
+			case 3:
+				printf("UNKNOWN %02X\n",current_val);
+				break;
+			case 4:
+				a->ornament=(current_val&0xf);
+				break;
+			case 5:
+			case 6:
+			case 7:
+			case 8:
+			case 9:
+			case 0xa:
+				a->note=current_val;
+				a_done=1;
+				break;
+			case 0xb:
+				if (current_val==0xb1) {
+					current_val=pt3_data[(*addr)+1];
+					a->len=current_val;
+					a->len_count=a->len;
+					(*addr)++;
+				}
+				else {
+					printf("UNKNOWN %02X\n",current_val);
+				}
+				break;
+			case 0xc:
+				a->volume=current_val&0xf;
+				if (a->volume==0) a_done=1;
+				break;
+			case 0xd:
+				if (current_val==0xd0) {
+					a->note=0;
+					a_done=1;
+				}
+				else {
+					a->sample=(current_val&0xf);
+				}
+				break;
+			case 0xe:
+				printf("UNKNOWN %02X\n",current_val);
+				break;
+			case 0xf:
+//               Envelope=15, Ornament=low byte, Sample=arg1/2
+				a->envelope=0xf;
+				a->ornament=(current_val&0xf);
+				current_val=pt3_data[(*addr)+1];
+				a->sample=current_val/2;
+				(*addr)++;
+				break;
+		}
+
+		(*addr)++;
+		if (a_done) break;
+	}
+
+}
+
+static void print_note(struct note_type *a, struct note_type *a_old) {
+	/* A note */
+	if (a->note==0) printf("---");
+	else printf("%s",note_names[a->note-0x50]);
+	printf(" ");
+
+	/* A sample */
+	if (a->sample==a_old->sample) printf(".");
+	else printf("%X",a->sample);
+
+	/* A envelope */
+	if (a->envelope==a_old->envelope) printf(".");
+	else printf("%X",a->envelope);
+
+	/* A ornament */
+	if (a->ornament==a_old->ornament) printf(".");
+	else printf("%X",a->ornament);
+
+	if (a->volume==a_old->volume) printf(".");
+	else printf("%X",a->volume);
+
+	printf(" ....");
+	printf("|");
+}
+
+
 
 int main(int argc, char **argv) {
 
@@ -332,11 +532,46 @@ int main(int argc, char **argv) {
 			bptr=&pt3_data[b_addr];
 			cptr=&pt3_data[c_addr];
 
+			struct note_type a,b,c;
+			struct note_type a_old,b_old,c_old;
+
+			memset(&a,0,sizeof(struct note_type));
+			memset(&b,0,sizeof(struct note_type));
+			memset(&c,0,sizeof(struct note_type));
+
+			memset(&a_old,0,sizeof(struct note_type));
+			memset(&b_old,0,sizeof(struct note_type));
+			memset(&c_old,0,sizeof(struct note_type));
+
+			int noise_period=0;
+
 			for(j=0;j<64;j++) {
-				printf("%02x|....|..",j);
-				printf("|--- .... ....");
-				printf("|--- .... ....");
-				printf("|--- .... ....");
+				decode_note(&a,&a_addr);
+				decode_note(&b,&b_addr);
+				decode_note(&c,&c_addr);
+
+				/* Print line of tracker */
+
+				/* line */
+				printf("%02x|",j);
+
+				/* envelope */
+				if (envelope_period_h==0) printf("..");
+				else printf("%02X",envelope_period_h);
+				if (envelope_period_l==0) printf("..");
+				else printf("%02X",envelope_period_l);
+
+				/* noise */
+				printf("|");
+				if (noise_period==0) printf("..");
+				else printf("%02X",noise_period);
+				printf("|");
+
+				print_note(&a,&a_old);
+				print_note(&b,&b_old);
+				print_note(&c,&c_old);
+
+
 				printf("\n");
 			}
 		}
