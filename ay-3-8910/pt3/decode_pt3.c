@@ -214,6 +214,8 @@ static void decode_note(struct note_type *a,
 	int a_done=0;
 	int current_val;
 
+	a->spec_command=0;
+	a->spec_lo=0;
 	a->note=0;
 
 	/* Skip decode if note still running */
@@ -232,16 +234,10 @@ static void decode_note(struct note_type *a,
 			case 0:
 				if (current_val==0x0) a_done=1;
 				else if (current_val==0x9) {
-					current_val=pt3_data[*addr+1];
-
-					delay=current_val;
-					printf("DELAY=%02X ",current_val);
-					(*addr)++;
-
-					current_val=pt3_data[*addr+1];
-					delay=current_val;
-					printf("%02X\n",current_val);
-					(*addr)++;
+					printf("DELAY=%02X\n",
+					current_val);
+					/* Note: delay is *after* note */
+					a->spec_command=0xb;
 				}
 				else printf("UNKNOWN %02X\n",current_val);
 				break;
@@ -331,7 +327,15 @@ static void decode_note(struct note_type *a,
 		}
 
 		(*addr)++;
-		if (a_done) break;
+		if (a_done) {
+			if (a->spec_command==0xb) {
+				current_val=pt3_data[(*addr)];
+				a->spec_lo=current_val;
+				(*addr)++;
+			}
+
+			break;
+		}
 	}
 
 }
@@ -357,7 +361,16 @@ static void print_note(struct note_type *a, struct note_type *a_old) {
 	if (a->volume==a_old->volume) printf(".");
 	else printf("%X",a->volume);
 
-	printf(" ....");
+	printf(" ");
+	if (a->spec_command==0) printf(".");
+	else printf("%X",a->spec_command);
+	if (a->spec_delay==0) printf(".");
+	else printf("%X",a->spec_delay);
+	if (a->spec_hi==0) printf(".");
+	else printf("%X",a->spec_hi);
+	if (a->spec_lo==0) printf(".");
+	else printf("%X",a->spec_lo);
+
 	printf("|");
 }
 
@@ -545,6 +558,13 @@ int main(int argc, char **argv) {
 
 			int noise_period=0;
 
+			j=0;
+			while(pt3_data[b_addr+j]) {
+				printf("%02X ",pt3_data[b_addr+j]);
+				j++;
+			};
+			printf("\n");
+
 			for(j=0;j<64;j++) {
 				decode_note(&a,&a_addr);
 				decode_note(&b,&b_addr);
@@ -571,6 +591,9 @@ int main(int argc, char **argv) {
 				print_note(&b,&b_old);
 				print_note(&c,&c_old);
 
+				memcpy(&a_old,&a,sizeof(struct note_type));
+				memcpy(&b_old,&b,sizeof(struct note_type));
+				memcpy(&c_old,&c,sizeof(struct note_type));
 
 				printf("\n");
 			}
