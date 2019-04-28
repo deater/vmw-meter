@@ -63,6 +63,8 @@
 //      $10-$1f       -- envelope.   (1-E, F=envelope off)
 //	$20-$3f       -- set noise
 //      $40-$4f       -- set ornament 0-F
+//		Ornament 0 can't be set directly, instead $40
+//		is reported as envelope off (F)?
 //      $50-$ad       -- play note, see below
 //	$b0           -- env=$f, ornament=saved ornament
 //	$b1, arg1     -- set skip value to arg1 (how long note plays)
@@ -144,7 +146,12 @@ static int load_header(void) {
 
 	/* Magic */
 	memcpy(&header.magic,&raw_header[0],13);
-	if (memcmp(header.magic,"ProTracker 3.",13)) {
+	if (!memcmp(header.magic,"ProTracker 3.",13)) {
+		printf("Found ProTracker 3.");
+	}
+	else if (!memcmp(header.magic,"Vortex Tracke",13)) {
+		printf("Found Vortex Tracke");
+	} else {
 		fprintf(stderr,"Wrong magic %s != %s\n",
 			header.magic,"ProTracker 3.");
 
@@ -298,6 +305,7 @@ static void decode_note(struct note_type *a,
 				break;
 			case 4:
 				a->ornament=(current_val&0xf);
+				if (a->ornament==0) a->envelope=0xf;
 				break;
 			case 5:
 			case 6:
@@ -403,7 +411,8 @@ static void print_note(struct note_type *a, struct note_type *a_old) {
 	else printf(".");
 
 	/* A ornament */
-	if (a->ornament==a_old->ornament) printf(".");
+	if (a->ornament==0) printf(".");
+	else if (a->ornament==a_old->ornament) printf(".");
 	else printf("%X",a->ornament);
 
 	/* A volume */
@@ -612,10 +621,10 @@ int main(int argc, char **argv) {
 			j=0;
 		//	while(pt3_data[c_addr+j]) {
 
-//			while(j<80) {
-//				printf("%02X ",pt3_data[a_addr+j]);
-//				j++;
-//			};
+			while(j<80) {
+				printf("%02X ",pt3_data[a_addr+j]);
+				j++;
+			};
 //			printf("\n");
 
 			for(j=0;j<64;j++) {
