@@ -31,7 +31,7 @@
 //      $00           -- nul teminate
 //      $01-$0f       -- effects
 // OnDisk  InTracker
-//   ??      $01: Tone Down
+//   01      $01: Tone Down
 //                First byte indicates the delay used to add the new frequency.
 //                Next 2 bytes will indicate the frequency to add. Example:
 //                $02,$23,$00 will add $23 to the final frequency in that raster
@@ -258,53 +258,34 @@ static void decode_note(struct note_type *a,
 					a->all_done=1;
 					a_done=1;
 				}
+				else if (current_val==0x1) {
+					/* tone down */
+					a->spec_command=0x1;
+				}
 				else if (current_val==0x2) {
 					/* port */
 					a->spec_command=0x3;
-//					printf("PORT %02X %02X %02X %02X\n",
-//						current_val,
-//						pt3_data[*(addr)+1],
-//						pt3_data[*(addr)+2],
-//						pt3_data[*(addr)+3]);
 				}
 				else if (current_val==0x8) {
 					a->spec_command=0x9;
-
-
-					/* note? */
-					current_val=pt3_data[(*addr)+1];
-					if (current_val<0xb0) {
-						a->note=current_val;
-						a_done=1;
-					}
-					(*addr)++;
-
-					/* delay? */
-					current_val=pt3_data[(*addr)+1];
-					a->spec_delay=current_val&0xf;
-					(*addr)++;
-
-					/* Low? */
-					current_val=pt3_data[(*addr)+1];
-					a->spec_lo=current_val&0xf;
-					(*addr)++;
-
-					/* High? */
-					current_val=pt3_data[(*addr)+1];
-					a->spec_hi=current_val&0xf;
-					(*addr)++;
 				}
 				else if (current_val==0x9) {
-					//printf("DELAY=%02X\n",
-					//	current_val);
-					/* Note: delay is *after* note */
 					a->spec_command=0xb;
 				}
 				else printf("%c UNKNOWN %02X\n",a->which,current_val);
 				break;
 			case 1:
-				if ((current_val&0xf)==0xc) {
+				if ((current_val&0xf)==0x0) {
 					//printf("UNKNOWN %02X ",current_val);
+					a->envelope=0xf; // (disable)
+					current_val=pt3_data[(*addr)+1];
+					a->sample=(current_val/2);
+					//printf("%02X\n",current_val);
+					(*addr)++;
+					//printf("Envelope=%x\n",a->envelope);
+
+				}
+				else if ((current_val&0xf)==0xc) {
 					a->envelope=(current_val&0xf);
 
 					current_val=pt3_data[*addr+1];
@@ -322,15 +303,23 @@ static void decode_note(struct note_type *a,
 					//printf("%02X\n",current_val);
 					(*addr)++;
 				}
-				else if ((current_val&0xf)==0x0) {
-					//printf("UNKNOWN %02X ",current_val);
-					a->envelope=0xf; // (disable)
+				else if ((current_val&0xf)==0xe) {
+					a->envelope=(current_val&0xf);
+
+					current_val=pt3_data[*addr+1];
+					envelope_period_h=current_val;
+					//printf("%02X ",current_val);
+					(*addr)++;
+
+					current_val=pt3_data[(*addr)+1];
+					envelope_period_l=current_val;
+					//printf("%02X ",current_val);
+					(*addr)++;
+
 					current_val=pt3_data[(*addr)+1];
 					a->sample=(current_val/2);
 					//printf("%02X\n",current_val);
 					(*addr)++;
-					printf("Envelope=%x\n",a->envelope);
-
 				}
 				else {
 					printf("%c UNKNOWN %02X ",a->which,current_val);
@@ -424,6 +413,19 @@ static void decode_note(struct note_type *a,
 				a->spec_lo=current_val;
 				(*addr)++;
 			}
+			if (a->spec_command==0x1) {
+				current_val=pt3_data[(*addr)];
+				a->spec_delay=current_val;
+				(*addr)++;
+
+				current_val=pt3_data[(*addr)];
+				a->spec_lo=(current_val);
+				(*addr)++;
+
+				current_val=pt3_data[(*addr)];
+				a->spec_hi=(current_val);
+				(*addr)++;
+			}
 			if (a->spec_command==0x3) {
 				current_val=pt3_data[(*addr)];
 				a->spec_delay=current_val;
@@ -444,7 +446,23 @@ static void decode_note(struct note_type *a,
 				(*addr)++;
 
 			}
+			if (a->spec_command==0x9) {
 
+				/* delay? */
+				current_val=pt3_data[(*addr)];
+				a->spec_delay=current_val&0xf;
+				(*addr)++;
+
+				/* Low? */
+				current_val=pt3_data[(*addr)];
+				a->spec_lo=current_val&0xf;
+				(*addr)++;
+
+				/* High? */
+				current_val=pt3_data[(*addr)];
+				a->spec_hi=current_val&0xf;
+				(*addr)++;
+			}
 			break;
 		}
 	}
@@ -485,12 +503,15 @@ static void print_note(struct note_type *a, struct note_type *a_old) {
 	printf(" ");
 	if (a->spec_command==0) printf(".");
 	else printf("%X",a->spec_command);
+
 	if (a->spec_delay==0) printf(".");
 	else printf("%X",a->spec_delay);
-	if (a->spec_hi==0) printf(".");
-	else printf("%X",a->spec_hi);
+
+	if ((a->spec_lo&0xf0)==0) printf(".");
+	else printf("%X",(a->spec_lo>>4)&0xf);
+
 	if (a->spec_lo==0) printf(".");
-	else printf("%X",a->spec_lo);
+	else printf("%X",(a->spec_lo&0xf));
 
 	printf("|");
 }
@@ -687,7 +708,7 @@ int main(int argc, char **argv) {
 		//	while(pt3_data[c_addr+j]) {
 
 			while(j<80) {
-				printf("%02X ",pt3_data[b_addr+j]);
+				printf("%02X ",pt3_data[c_addr+j]);
 				j++;
 			};
 //			printf("\n");
