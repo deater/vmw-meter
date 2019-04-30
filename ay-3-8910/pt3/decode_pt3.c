@@ -207,6 +207,7 @@ struct note_type {
 	int sample;
 	int envelope;
 	int ornament;
+	int prev_ornament;
 	int volume;
 	int spec_command;
 	int spec_delay;
@@ -278,52 +279,26 @@ static void decode_note(struct note_type *a,
 				if ((current_val&0xf)==0x0) {
 					//printf("UNKNOWN %02X ",current_val);
 					a->envelope=0xf; // (disable)
-					current_val=pt3_data[(*addr)+1];
-					a->sample=(current_val/2);
-					//printf("%02X\n",current_val);
-					(*addr)++;
-					//printf("Envelope=%x\n",a->envelope);
-
-				}
-				else if ((current_val&0xf)==0xc) {
-					a->envelope=(current_val&0xf);
-
-					current_val=pt3_data[*addr+1];
-					envelope_period_h=current_val;
-					//printf("%02X ",current_val);
-					(*addr)++;
-
-					current_val=pt3_data[(*addr)+1];
-					envelope_period_l=current_val;
-					//printf("%02X ",current_val);
-					(*addr)++;
-
-					current_val=pt3_data[(*addr)+1];
-					a->sample=(current_val/2);
-					//printf("%02X\n",current_val);
-					(*addr)++;
-				}
-				else if ((current_val&0xf)==0xe) {
-					a->envelope=(current_val&0xf);
-
-					current_val=pt3_data[*addr+1];
-					envelope_period_h=current_val;
-					//printf("%02X ",current_val);
-					(*addr)++;
-
-					current_val=pt3_data[(*addr)+1];
-					envelope_period_l=current_val;
-					//printf("%02X ",current_val);
-					(*addr)++;
-
-					current_val=pt3_data[(*addr)+1];
-					a->sample=(current_val/2);
-					//printf("%02X\n",current_val);
-					(*addr)++;
 				}
 				else {
-					printf("%c UNKNOWN %02X ",a->which,current_val);
+					a->envelope=(current_val&0xf);
+
+					current_val=pt3_data[*addr+1];
+					envelope_period_h=current_val;
+					//printf("%02X ",current_val);
+					(*addr)++;
+
+					current_val=pt3_data[(*addr)+1];
+					envelope_period_l=current_val;
+					//printf("%02X ",current_val);
+					(*addr)++;
 				}
+				current_val=pt3_data[(*addr)+1];
+				a->ornament=a->prev_ornament;
+				a->sample=(current_val/2);
+				//printf("%02X\n",current_val);
+				(*addr)++;
+
 				break;
 			case 2:
 				/* Reset noise? */
@@ -339,8 +314,10 @@ static void decode_note(struct note_type *a,
 				noise_period=(current_val&0xf)+0x10;
 				break;
 			case 4:
+				if (a->envelope==0) a->envelope=0xf;
 				a->ornament=(current_val&0xf);
-				//if (a->ornament==0) a->envelope=0xf;
+				a->prev_ornament=a->ornament;
+
 				//printf("%x envelope=%x\n",current_val,
 				//	a->envelope);
 				break;
@@ -356,8 +333,10 @@ static void decode_note(struct note_type *a,
 			case 0xb:
 				/* Set noise? */
 				if (current_val==0xb0) {
-					current_val=pt3_data[(*addr)+1];
-					noise_period=(current_val&0xf);
+					a->envelope=0xf;
+					a->ornament=a->prev_ornament;
+					//current_val=pt3_data[(*addr)+1];
+					//noise_period=(current_val&0xf);
 					(*addr)++;
 				}
 				/* set len */
@@ -369,6 +348,7 @@ static void decode_note(struct note_type *a,
 				}
 				else {
 					a->envelope=(current_val&0xf)-1;
+					a->ornament=a->prev_ornament;
 					current_val=pt3_data[(*addr)+1];
 					(*addr)++;
 					envelope_period_h=current_val;
@@ -400,6 +380,7 @@ static void decode_note(struct note_type *a,
 //               Envelope=15, Ornament=low byte, Sample=arg1/2
 				a->envelope=0xf;
 				a->ornament=(current_val&0xf);
+				a->prev_ornament=(current_val&0xf);
 				current_val=pt3_data[(*addr)+1];
 				a->sample=current_val/2;
 				(*addr)++;
