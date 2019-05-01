@@ -23,13 +23,14 @@ static char note_names[96][4]={
 #include <stdlib.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <arpa/inet.h>
 
 static int external_frequency=1000000;
-static int bpm=120;
-static int tempo=6;
-static int frames_per_line=6;   /* frames per tracker line */
-static int frames_per_whole=96; /* numer of frames per whole note */
+//static int bpm=120;
+//static int tempo=6;
+//static int frames_per_line=6;   /* frames per tracker line */
+//static int frames_per_whole=96; /* numer of frames per whole note */
 
 static int line=0,frames=0;
 
@@ -442,6 +443,8 @@ int main(int argc, char **argv) {
 	int digidrums=0;
 	int attributes=0;
 	int irq=50,loop=0;
+	char comments[]="VMW pt3_to_ym5";
+	int header_length;
 
 	if (argc>1) {
 		strncpy(filename,argv[1],BUFSIZ-1);
@@ -493,23 +496,15 @@ int main(int argc, char **argv) {
 			header.loop);
 	printf("\tPattern Location Offset: %04x\n",header.pattern_loc);
 
-	strncpy(our_header.id,"YM5!",4);
-        strncpy(our_header.check,"LeOnArD!",8);
-        our_header.vbl=htonl(frames);
-        our_header.song_attr=htonl(attributes);
-        our_header.digidrum=htonl(digidrums);
-        our_header.external_frequency=htonl(external_frequency);
-        our_header.player_frequency=htons(irq);
-        our_header.loop=htonl(loop);
-        our_header.additional_data=htons(0);
+	/* Skip header, we'll fill in later */
+	header_length=sizeof(struct ym_header)+
+		strlen(header.name)+1+
+		strlen(header.author)+1+
+		strlen(comments)+1;
 
-        write(out,&our_header,sizeof(struct ym_header));
+	lseek(fd, header_length, SEEK_SET);
 
-        write(out,header.name,strlen(header.name));
-	write(out,"\0",1);
-        write(out,header.author,strlen(header.author));
-	write(out,"\0",1);
-//        fprintf(ym_file,"%s%c",comments,0);
+
 
 
 //	printf("\tNAME: %s\n",header.name);
@@ -712,6 +707,34 @@ int main(int argc, char **argv) {
 
 	}
 #endif
+
+
+	/* Print End! marker */
+	write(fd,"End!",4);
+
+	/* Go back and print header */
+
+	lseek(fd,0,SEEK_SET);
+
+	strncpy(our_header.id,"YM5!",4);
+        strncpy(our_header.check,"LeOnArD!",8);
+        our_header.vbl=htonl(frames);
+        our_header.song_attr=htonl(attributes);
+        our_header.digidrum=htonl(digidrums);
+        our_header.external_frequency=htonl(external_frequency);
+        our_header.player_frequency=htons(irq);
+        our_header.loop=htonl(loop);
+        our_header.additional_data=htons(0);
+
+        write(out,&our_header,sizeof(struct ym_header));
+
+        write(out,header.name,strlen(header.name));
+	write(out,"\0",1);
+        write(out,header.author,strlen(header.author));
+	write(out,"\0",1);
+        write(out,comments,strlen(comments));
+	write(out,"\0",1);
+
 
 	close(out);
 
