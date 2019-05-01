@@ -26,13 +26,14 @@ static char note_names[96][4]={
 #include <unistd.h>
 #include <arpa/inet.h>
 
-static int external_frequency=1000000;
+/* Is this standard for pt3?  I guess on spectrum files? */
+static int external_frequency=1773400;
 //static int bpm=120;
 //static int tempo=6;
 //static int frames_per_line=6;   /* frames per tracker line */
 //static int frames_per_whole=96; /* numer of frames per whole note */
 
-static int line=0,frames=0;
+static int frames=0;
 
 struct ym_header {
         char id[4];                             // 0  -> 4
@@ -71,8 +72,6 @@ static unsigned char pt3_data[MAX_PT3_SIZE];
 
 unsigned char *aptr,*bptr,*cptr;
 unsigned short a_addr,b_addr,c_addr;
-
-static int debug=1;
 
 static int music_len=0,current_pattern=0;
 
@@ -505,17 +504,6 @@ int main(int argc, char **argv) {
 	lseek(fd, header_length, SEEK_SET);
 
 
-
-
-//	printf("\tNAME: %s\n",header.name);
-//	printf("\tBY  : %s\n",header.author);
-//	printf("\tFreqTable: %d Speed: %d  Patterns: %d Loop: %d\n",
-//			header.frequency_table,
-//			header.speed,
-//			header.num_patterns,
-//			header.loop);
-//	printf("\tPattern Location Offset: %04x\n",header.pattern_loc);
-
 #if 0
 	printf("\tSample pattern addresses:");
 		for(i=0;i<32;i++) {
@@ -608,78 +596,69 @@ int main(int argc, char **argv) {
 				printf("\n");
 			}
 		}
+#endif
 
 
-		printf("Song Dump:\n");
-		// Not easy to know song length in advance?
-		for(i=0;i<music_len;i++) {
-			current_pattern=pt3_data[0xc9+i]/3;
-			printf("Chunk %d/%d, 00:00/00:00, Pattern #%d\n",
-				i,music_len-1,current_pattern);
+	for(i=0;i<music_len;i++) {
+		current_pattern=pt3_data[0xc9+i]/3;
+		printf("Chunk %d/%d, 00:00/00:00, Pattern #%d\n",
+			i,music_len-1,current_pattern);
 
-			a_addr=pt3_data[(current_pattern*6)+0+header.pattern_loc] |
-				(pt3_data[(current_pattern*6)+1+header.pattern_loc]<<8);
+		a_addr=pt3_data[(current_pattern*6)+0+header.pattern_loc] |
+			(pt3_data[(current_pattern*6)+1+header.pattern_loc]<<8);
 
-			b_addr=pt3_data[(current_pattern*6)+2+header.pattern_loc] |
-				(pt3_data[(current_pattern*6)+3+header.pattern_loc]<<8);
+		b_addr=pt3_data[(current_pattern*6)+2+header.pattern_loc] |
+			(pt3_data[(current_pattern*6)+3+header.pattern_loc]<<8);
 
-			c_addr=pt3_data[(current_pattern*6)+4+header.pattern_loc] |
-				(pt3_data[(current_pattern*6)+5+header.pattern_loc]<<8);
+		c_addr=pt3_data[(current_pattern*6)+4+header.pattern_loc] |
+			(pt3_data[(current_pattern*6)+5+header.pattern_loc]<<8);
 
-			printf("a_addr: %04x, b_addr: %04x, c_addr: %04x\n",
+		printf("a_addr: %04x, b_addr: %04x, c_addr: %04x\n",
 				a_addr,b_addr,c_addr);
 
-			aptr=&pt3_data[a_addr];
-			bptr=&pt3_data[b_addr];
-			cptr=&pt3_data[c_addr];
+		aptr=&pt3_data[a_addr];
+		bptr=&pt3_data[b_addr];
+		cptr=&pt3_data[c_addr];
 
-			struct note_type a,b,c;
-			struct note_type a_old,b_old,c_old;
+		struct note_type a,b,c;
+		struct note_type a_old,b_old,c_old;
 
-			memset(&a,0,sizeof(struct note_type));
-			memset(&b,0,sizeof(struct note_type));
-			memset(&c,0,sizeof(struct note_type));
-			a.which='A';
-			b.which='B';
-			c.which='C';
+		memset(&a,0,sizeof(struct note_type));
+		memset(&b,0,sizeof(struct note_type));
+		memset(&c,0,sizeof(struct note_type));
+		a.which='A';
+		b.which='B';
+		c.which='C';
 
+		memset(&a_old,0,sizeof(struct note_type));
+		memset(&b_old,0,sizeof(struct note_type));
+		memset(&c_old,0,sizeof(struct note_type));
 
-			memset(&a_old,0,sizeof(struct note_type));
-			memset(&b_old,0,sizeof(struct note_type));
-			memset(&c_old,0,sizeof(struct note_type));
+		noise_period=0;
 
-			noise_period=0;
+		j=0;
 
-			j=0;
-		//	while(pt3_data[c_addr+j]) {
+		for(j=0;j<64;j++) {
 
-			while(j<80) {
-				printf("%02X ",pt3_data[c_addr+j]);
-				j++;
-			};
-//			printf("\n");
+			envelope_period_h=0;
+			envelope_period_l=0;
 
-			for(j=0;j<64;j++) {
-
-				envelope_period_h=0;
-				envelope_period_l=0;
-
-				decode_note(&a,&a_addr);
-				decode_note(&b,&b_addr);
-				decode_note(&c,&c_addr);
+			decode_note(&a,&a_addr);
+			decode_note(&b,&b_addr);
+			decode_note(&c,&c_addr);
 
 
-				if (a.all_done && b.all_done && c.all_done) {
-					break;
-				}
+			if (a.all_done && b.all_done && c.all_done) {
+				break;
+			}
 
 
-				/* Print line of tracker */
+			/* Print line of tracker */
 
-				/* line */
-				printf("%02x|",j);
+			/* line */
+			printf("%02x|",j);
 
-				/* envelope */
+			/* envelope */
 				if (envelope_period_h==0) printf("..");
 				else printf("%02X",envelope_period_h);
 				if (envelope_period_l==0) printf("..");
@@ -705,8 +684,6 @@ int main(int argc, char **argv) {
 			}
 		}
 
-	}
-#endif
 
 
 	/* Print End! marker */
@@ -716,8 +693,8 @@ int main(int argc, char **argv) {
 
 	lseek(fd,0,SEEK_SET);
 
-	strncpy(our_header.id,"YM5!",4);
-        strncpy(our_header.check,"LeOnArD!",8);
+	strncpy(our_header.id,"YM5!",5);
+        strncpy(our_header.check,"LeOnArD!",9);
         our_header.vbl=htonl(frames);
         our_header.song_attr=htonl(attributes);
         our_header.digidrum=htonl(digidrums);
