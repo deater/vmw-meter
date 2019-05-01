@@ -503,8 +503,6 @@ int main(int argc, char **argv) {
 
 	lseek(fd, header_length, SEEK_SET);
 
-
-#if 0
 	printf("\tSample pattern addresses:");
 		for(i=0;i<32;i++) {
 			if (i%8==0) printf("\n\t\t");
@@ -596,7 +594,7 @@ int main(int argc, char **argv) {
 				printf("\n");
 			}
 		}
-#endif
+
 
 
 	for(i=0;i<music_len;i++) {
@@ -636,10 +634,9 @@ int main(int argc, char **argv) {
 
 		noise_period=0;
 
-		j=0;
 
 		for(j=0;j<64;j++) {
-
+			frames++;
 			envelope_period_h=0;
 			envelope_period_l=0;
 
@@ -659,30 +656,30 @@ int main(int argc, char **argv) {
 			printf("%02x|",j);
 
 			/* envelope */
-				if (envelope_period_h==0) printf("..");
-				else printf("%02X",envelope_period_h);
-				if (envelope_period_l==0) printf("..");
-				else printf("%02X",envelope_period_l);
+			if (envelope_period_h==0) printf("..");
+			else printf("%02X",envelope_period_h);
+			if (envelope_period_l==0) printf("..");
+			else printf("%02X",envelope_period_l);
 
-				/* noise */
-				printf("|");
-				if (noise_period==0) printf("..");
-				else printf("%02X",noise_period);
-				printf("|");
+			/* noise */
+			printf("|");
+			if (noise_period==0) printf("..");
+			else printf("%02X",noise_period);
+			printf("|");
 
-				print_note(&a,&a_old);
-				print_note(&b,&b_old);
-				print_note(&c,&c_old);
+			print_note(&a,&a_old);
+			print_note(&b,&b_old);
+			print_note(&c,&c_old);
 
-				memcpy(&a_old,&a,sizeof(struct note_type));
-				memcpy(&b_old,&b,sizeof(struct note_type));
-				memcpy(&c_old,&c,sizeof(struct note_type));
-				envelope_period_h_old=envelope_period_h;
-				envelope_period_l_old=envelope_period_l;
+			memcpy(&a_old,&a,sizeof(struct note_type));
+			memcpy(&b_old,&b,sizeof(struct note_type));
+			memcpy(&c_old,&c,sizeof(struct note_type));
+			envelope_period_h_old=envelope_period_h;
+			envelope_period_l_old=envelope_period_l;
 
-				printf("\n");
-			}
+			printf("\n");
 		}
+	}
 
 
 
