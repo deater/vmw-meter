@@ -1,4 +1,7 @@
+/* Some code based on Formats.pas in Bulba's ay_emul */
+
 /* Convert pt3 file to ym file */
+
 
 static char note_names[96][4]={
 	"C-1","C#1","D-1","D#1","E-1","F-1","F#1","G-1", // 50
@@ -169,6 +172,27 @@ struct note_type {
 	int len_count;
 
 	int all_done;
+
+        int ornament_pointer;
+        int ornament_length;
+        int ornament_loop;
+        int ornament_position;
+
+        int sample_pointer;
+        int sample_length;
+        int sample_loop;
+        int sample_position;
+
+        int envelope_enabled;
+
+        int amplitude_sliding;
+        int noise_sliding;
+        int envelope_sliding;
+        int tone_slide_count;
+        int tone_sliding;
+        int tone_accumulator;
+        int onoff;
+        int enabled;
 };
 
 static int envelope_period_h=0;
@@ -178,6 +202,129 @@ static int envelope_period_l_old=0;
 static int noise_period=0;
 
 static int delay=6;
+
+
+/*
+ Loop: 0 Length: 18
+                        80 8f 00 00
+                        80 8f 00 00
+                        00 8e 00 00
+                        00 8e 00 00
+                        00 8d 00 00
+                        00 8d 00 00
+                        00 8c 00 00
+                        00 8c 00 00
+                        00 8b 00 00
+                        00 8b 00 00
+                        00 8a 00 00
+                        00 8a 00 00
+                        00 89 00 00
+                        00 89 00 00
+                        00 88 00 00
+                        00 88 00 00
+                        00 87 00 00
+                        00 87 00 00
+*/
+
+static int calculate_amplitude(struct note_type *a) {
+        // XX YYYYY Z  = X= 10=VOLDOWN 11=VOLUP, Y=NOISE, Z= 0=ENV, 1=NO ENVELOPE
+        // XX YY ZZZZ  = X= FREQ SLIDE YY=NOISE SLIDE ZZ=VOLUME
+        // XXXXXXXX = LOW BYTE FREQ SLIDE
+        // YYYYYYYY = HIGH BYTE FREQ SLIDE
+        //
+        // 80 8f 00 00
+        // 1000 0000 -- VOLDOWN
+        // 10 00 1111 --FREQ_SLIDE, VOLUME 
+
+        int j,b1,b0; // byte;
+        int w;          // word;
+#if 0
+        if (a->enabled) {
+                // Ton := WordPtr(@Index[SamplePointer + Position_In_Sample * 4 + 2])^;
+                // Inc(Ton,Ton_Accumulator);
+                // b0 := Index[SamplePointer + Position_In_Sample * 4];
+                // b1 := Index[SamplePointer + Position_In_Sample * 4 + 1];
+                //if b1 and $40 <> 0 then
+                //      Ton_Accumulator := Ton;
+                //j := Note + Index[OrnamentPointer + Position_In_Ornament];
+                //if shortint(j) < 0 then j := 0
+                //else if j > 95 then j := 95;
+                //w := GetNoteFreq(j);
+                //Ton := (Ton + Current_Ton_Sliding + w) and $fff;
+                //if (Ton_Slide_Count > 0) {
+                //      Dec(Ton_Slide_Count);
+                //      if (Ton_Slide_Count==0) {
+                //              Inc(Current_Ton_Sliding,Ton_Slide_Step);
+                //              Ton_Slide_Count := Ton_Slide_Delay;
+          if not SimpleGliss then
+           if ((Ton_Slide_Step < 0) and (Current_Ton_Sliding <= Ton_Delta)) or
+              ((Ton_Slide_Step >= 0) and (Current_Ton_Sliding >= Ton_Delta)) then
+            begin
+             Note := Slide_To_Note;
+             Ton_Slide_Count := 0;
+             Current_Ton_Sliding := 0
+            end
+         end
+       end;
+      Amplitude := b1 and $f;
+      if b0 and $80 <> 0 then
+      if b0 and $40 <> 0 then
+       begin
+        if Current_Amplitude_Sliding < 15 then
+         inc(Current_Amplitude_Sliding)
+       end
+      else if Current_Amplitude_Sliding > -15 then
+       dec(Current_Amplitude_Sliding);
+inc(Amplitude,Current_Amplitude_Sliding);
+      if shortint(Amplitude) < 0 then Amplitude := 0
+      else if Amplitude > 15 then Amplitude := 15;
+      if PlParams.PT3.PT3_Version <= 4 then
+       Amplitude := PT3VolumeTable_33_34[Volume,Amplitude]
+      else
+       Amplitude := PT3VolumeTable_35[Volume,Amplitude];
+      if (b0 and 1 = 0) and Envelope_Enabled then
+       Amplitude := Amplitude or 16;
+      if b1 and $80 <> 0 then
+       begin
+        if b0 and $20 <> 0 then
+         j := (b0 shr 1) or $F0 + Current_Envelope_Sliding
+        else
+         j := (b0 shr 1) and $F + Current_Envelope_Sliding;
+        if b1 and $20 <> 0 then Current_Envelope_Sliding := j;
+        Inc(AddToEnv,j)
+       end
+      else
+       begin
+        PlParams.PT3.AddToNoise := b0 shr 1 + Current_Noise_Sliding;
+        if b1 and $20 <> 0 then
+         Current_Noise_Sliding := PlParams.PT3.AddToNoise
+       end;
+TempMixer := b1 shr 1 and $48 or TempMixer;
+      Inc(Position_In_Sample);
+      if Position_In_Sample >= Sample_Length then
+       Position_In_Sample := Loop_Sample_Position;
+      Inc(Position_In_Ornament);
+      if Position_In_Ornament >= Ornament_Length then
+       Position_In_Ornament := Loop_Ornament_Position
+     end
+    else
+     Amplitude := 0;
+    TempMixer := TempMixer shr 1;
+    if Current_OnOff > 0 then
+     begin
+      dec(Current_OnOff);
+      if Current_OnOff = 0 then
+       begin
+        Enabled := not Enabled;
+        if Enabled then Current_OnOff := OnOff_Delay
+        else Current_OnOff := OffOn_Delay
+       end;
+     end
+   end
+
+#endif
+        return 0xc;
+}
 
 static void decode_note(struct note_type *a,
 			unsigned short *addr) {
@@ -278,7 +425,17 @@ static void decode_note(struct note_type *a,
 			case 8:
 			case 9:
 			case 0xa:
-				a->note=current_val;
+				a->note=(current_val-0x50);
+                                a->sample_position=0;
+                                a->amplitude_sliding=0;
+                                a->noise_sliding=0;
+                                a->envelope_sliding=0;
+                                a->ornament_position=0;
+                                a->tone_slide_count=0;
+                                a->tone_sliding=0;
+                                a->tone_accumulator=0;
+                                a->onoff=0;
+                                a->enabled=1;
 				a_done=1;
 				break;
 			case 0xb:
@@ -309,11 +466,24 @@ static void decode_note(struct note_type *a,
 				}
 				break;
 			case 0xc:	/* volume */
-				a->volume=current_val&0xf;
-				if (a->volume==0) {
+				if ((current_val&0xf)==0) {
 					a->note=0xff;
+
+                                        a->sample_position=0;
+                                        a->amplitude_sliding=0;
+                                        a->noise_sliding=0;
+                                        a->envelope_sliding=0;
+                                        a->ornament_position=0;
+                                        a->tone_slide_count=0;
+                                        a->tone_sliding=0;
+                                        a->tone_accumulator=0;
+                                        a->onoff=0;
+                                        a->enabled=0;
 					a_done=1;
 				}
+                                else {
+        				a->volume=current_val&0xf;
+                                }
 				break;
 			case 0xd:
 				if (current_val==0xd0) {
@@ -322,6 +492,11 @@ static void decode_note(struct note_type *a,
 				}
 				else {
 					a->sample=(current_val&0xf);
+                                        a->sample_pointer=pt3_data[header.sample_patterns[a->sample]];
+                                        a->sample_loop=pt3_data[a->sample_pointer];
+                                        a->sample_pointer++;
+                                        a->sample_length=pt3_data[a->sample_pointer];
+                                        a->sample_pointer++;
 				}
 				break;
 			case 0xe:
@@ -330,11 +505,26 @@ static void decode_note(struct note_type *a,
 			case 0xf:
 //               Envelope=15, Ornament=low byte, Sample=arg1/2
 				a->envelope=0xf;
+                                a->envelope_enabled=0;
 				a->ornament=(current_val&0xf);
 				a->prev_ornament=(current_val&0xf);
-				current_val=pt3_data[(*addr)+1];
-				a->sample=current_val/2;
+
+                                a->ornament_pointer=pt3_data[header.ornament_patterns[a->ornament]];
+                                a->ornament_loop=pt3_data[a->ornament_pointer];
+                                a->ornament_pointer++;
+                                a->ornament_length=pt3_data[a->ornament_length];
+                                a->ornament_pointer++;
+
 				(*addr)++;
+				current_val=pt3_data[*addr];
+
+				a->sample=current_val/2;
+                                a->sample_pointer=pt3_data[header.sample_patterns[a->sample]];
+                                a->sample_loop=pt3_data[a->sample_pointer];
+                                a->sample_pointer++;
+                                a->sample_length=pt3_data[a->sample_pointer];
+                                a->sample_pointer++;
+
 				break;
 		}
 
@@ -404,9 +594,9 @@ static void decode_note(struct note_type *a,
 
 static void print_note(struct note_type *a, struct note_type *a_old) {
 	/* A note */
-	if (a->note==0xff) printf("R--");
-	else if (a->note==0) printf("---");
-	else printf("%s",note_names[a->note-0x50]);
+        if (a->note==a_old->note) printf("---");
+	else if (a->note==0xff) printf("R--");
+	else printf("%s",note_names[a->note]);
 	printf(" ");
 
 	/* A sample */
@@ -715,27 +905,27 @@ int main(int argc, char **argv) {
 
 			for(f=0;f<delay;f++) {
 				if (a.note) {
-					frame[0]=notes1[a.note-0x50]&0xff;
-					frame[1]=(notes1[a.note-0x50]>>8)&0xff;
+					frame[0]=notes1[a.note]&0xff;
+					frame[1]=(notes1[a.note]>>8)&0xff;
 				}
 				if (b.note) {
-					frame[2]=notes1[b.note-0x50]&0xff;
-					frame[3]=(notes1[b.note-0x50]>>8)&0xff;
+					frame[2]=notes1[b.note]&0xff;
+					frame[3]=(notes1[b.note]>>8)&0xff;
 				}
 				if (c.note) {
-					frame[4]=notes1[c.note-0x50]&0xff;
-					frame[5]=(notes1[c.note-0x50]>>8)&0xff;
+					frame[4]=notes1[c.note]&0xff;
+					frame[5]=(notes1[c.note]>>8)&0xff;
 				}
 				frame[6]=0x0;
 				frame[7]=0x08;
 				if (a.note) {
-					frame[8]=0xb;
+					frame[8]=calculate_amplitude(&a);
 				}
 				if (b.note) {
-					frame[9]=0xb;
+					frame[9]=calculate_amplitude(&b);
 				}
 				if (c.note) {
-					frame[10]=0xb;
+					frame[10]=calculate_amplitude(&c);
 				}
 				frame[11]=0x0;
 				frame[12]=0x0;
