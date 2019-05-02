@@ -444,7 +444,7 @@ void print_diff(int frame_num) {
 int ym_make_frame(struct ym_song_t *ym_song,
 			unsigned char *frame_data,
 			int frame_num,
-			unsigned char *frame) {
+			unsigned char *frame, int raw) {
 
 	int j;
 
@@ -467,6 +467,11 @@ int ym_make_frame(struct ym_song_t *ym_song,
 	/* Write out the music			*/
 	/****************************************/
 
+	if (raw) {
+
+	}
+	else {
+		/* adjust for different freq */
 	a_period=((frame[1]&0xf)<<8)|frame[0];
 	b_period=((frame[3]&0xf)<<8)|frame[2];
 	c_period=((frame[5]&0xf)<<8)|frame[4];
@@ -514,6 +519,7 @@ int ym_make_frame(struct ym_song_t *ym_song,
 		frame[4]=new_c&0xff;	frame[5]=(new_c>>8)&0xf;
 		frame[6]=new_n&0x1f;
 		frame[11]=new_e&0xff;	frame[12]=(new_e>>8)&0xff;
+		}
 	}
 
 	return 0;
@@ -690,11 +696,6 @@ static int ym_dump_frame_triplet(struct ym_song_t *ym_song,
 	n_period=frame[6]&0x1f;
 	e_period=((frame[12]&0xff)<<8)|frame[11];
 
-	if (a_period>0) a_freq=ym_song->master_clock/(16.0*(double)a_period);
-	if (b_period>0) b_freq=ym_song->master_clock/(16.0*(double)b_period);
-	if (c_period>0) c_freq=ym_song->master_clock/(16.0*(double)c_period);
-	if (n_period>0) n_freq=ym_song->master_clock/(16.0*(double)n_period);
-	if (e_period>0) e_freq=ym_song->master_clock/(256.0*(double)e_period);
 
 	if (raw) {
 
@@ -708,7 +709,17 @@ static int ym_dump_frame_triplet(struct ym_song_t *ym_song,
 				(frame[12]<<8)+frame[11],frame[13],
 				(frame[14]<<8)+frame[15]);
 	}
+	else {
 
+
+	if (a_period>0) a_freq=ym_song->master_clock/(16.0*(double)a_period);
+	if (b_period>0) b_freq=ym_song->master_clock/(16.0*(double)b_period);
+	if (c_period>0) c_freq=ym_song->master_clock/(16.0*(double)c_period);
+	if (n_period>0) n_freq=ym_song->master_clock/(16.0*(double)n_period);
+	if (e_period>0) e_freq=ym_song->master_clock/(256.0*(double)e_period);
+
+
+	}
 	if (raw!=2) {
 
 	if (which==0) printf("%05d:\t",frame_num);
@@ -759,11 +770,11 @@ int ym_dump_frame(struct ym_song_t *ym_song, int frame_num, int raw,
 	unsigned char frame[YM5_FRAME_SIZE];
 	unsigned char frame2[YM5_FRAME_SIZE];
 
-	ym_make_frame(ym_song,ym_song->frame_data,frame_num,frame);
+	ym_make_frame(ym_song,ym_song->frame_data,frame_num,frame,raw);
 	ym_dump_frame_triplet(ym_song,frame,frame_num, raw, 0);
 
 	if (ym_song->channels==6) {
-		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,frame2);
+		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,frame2,raw);
 		ym_dump_frame_triplet(ym_song,frame2,frame_num, raw, 1);
 	}
 
@@ -864,11 +875,11 @@ int ym_dump_frame_raw(struct ym_song_t *ym_song, int frame_num) {
 	unsigned char frame[YM5_FRAME_SIZE];
 	unsigned char frame2[YM5_FRAME_SIZE];
 
-	ym_make_frame(ym_song,ym_song->frame_data,frame_num,frame);
+	ym_make_frame(ym_song,ym_song->frame_data,frame_num,frame,1);
 	ym_dump_frame_really_raw(ym_song,frame,frame_num, 0);
 
 	if (ym_song->channels==6) {
-		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,frame2);
+		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,frame2,1);
 		ym_dump_frame_really_raw(ym_song,frame2,frame_num, 1);
 	}
 
@@ -882,11 +893,11 @@ int ym_return_frame(struct ym_song_t *ym_song, int frame_num,
 	unsigned char ourframe[YM5_FRAME_SIZE];
 	unsigned char ourframe2[YM5_FRAME_SIZE];
 
-	ym_make_frame(ym_song,ym_song->frame_data,frame_num,ourframe);
+	ym_make_frame(ym_song,ym_song->frame_data,frame_num,ourframe,0);
 	if (frame) memcpy(frame,ourframe,YM5_FRAME_SIZE);
 
 	if (ym_song->channels==6) {
-		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,ourframe2);
+		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,ourframe2,0);
 		if (frame2) memcpy(frame2,ourframe,YM5_FRAME_SIZE);
 	}
 

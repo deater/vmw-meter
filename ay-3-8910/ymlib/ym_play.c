@@ -23,12 +23,12 @@ int ym_play_frame(struct ym_song_t *ym_song, int frame_num, int shift_size,
 	double left_a_freq=0.0, left_b_freq=0.0, left_c_freq=0.0;
 	double right_a_freq=0.0, right_b_freq=0.0, right_c_freq=0.0;
 
-	ym_make_frame(ym_song,ym_song->frame_data,frame_num,frame);
+	ym_make_frame(ym_song,ym_song->frame_data,frame_num,frame,0);
 
 	if (ym_song->channels==3) {
 		memcpy(frame2,frame,sizeof(frame));
 	} else {
-		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,frame2);
+		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,frame2,0);
 	}
 
 	left_a_period=((frame[1]&0xf)<<8)|frame[0];
@@ -134,7 +134,7 @@ int ym_play_frame_effects(struct ym_song_t *ym_song,
 	double right_a_freq=0.0, right_b_freq=0.0, right_c_freq=0.0;
 
 	if (ym_song) {
-		ym_make_frame(ym_song,ym_song->frame_data,frame_num,frame);
+		ym_make_frame(ym_song,ym_song->frame_data,frame_num,frame,0);
 	}
 	else {
 		memset(frame,0,16);

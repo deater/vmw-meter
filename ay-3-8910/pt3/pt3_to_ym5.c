@@ -15,6 +15,22 @@ static char note_names[96][4]={
 	"E-8","F-8","F#8","G-8","G#8","A-8","A#8","B-8", // a8
 };
 
+/* Table #1 of Pro Tracker 3.3x - 3.5x */
+static unsigned short notes1[]={
+  0x0EF8,0x0E10,0x0D60,0x0C80,0x0BD8,0x0B28,0x0A88,0x09F0,  // 50
+  0x0960,0x08E0,0x0858,0x07E0,0x077C,0x0708,0x06B0,0x0640,  // 58
+  0x05EC,0x0594,0x0544,0x04F8,0x04B0,0x0470,0x042C,0x03FD,  // 60
+  0x03BE,0x0384,0x0358,0x0320,0x02F6,0x02CA,0x02A2,0x027C,  // 68
+  0x0258,0x0238,0x0216,0x01F8,0x01DF,0x01C2,0x01AC,0x0190,  // 70
+  0x017B,0x0165,0x0151,0x013E,0x012C,0x011C,0x010A,0x00FC,  // 78
+  0x00EF,0x00E1,0x00D6,0x00C8,0x00BD,0x00B2,0x00A8,0x009F,  // 80
+  0x0096,0x008E,0x0085,0x007E,0x0077,0x0070,0x006B,0x0064,  // 88 (g#5-D#6)
+  0x005E,0x0059,0x0054,0x004F,0x004B,0x0047,0x0042,0x003F,  // 90 (e6-b6)
+  0x003B,0x0038,0x0035,0x0032,0x002F,0x002C,0x002A,0x0027,  // 98 (c7-g7)
+  0x0025,0x0023,0x0021,0x001F,0x001D,0x001C,0x001A,0x0019,  // a0 (G#7-d#8)
+  0x0017,0x0016,0x0015,0x0013,0x0012,0x0011,0x0010,0x000F   // a8 (e8-b8)
+};
+
 
 #include <stdio.h>
 #include <stdint.h>
@@ -161,7 +177,7 @@ static int envelope_period_h_old=0;
 static int envelope_period_l_old=0;
 static int noise_period=0;
 
-//static int delay=0;
+static int delay=6;
 
 static void decode_note(struct note_type *a,
 			unsigned short *addr) {
@@ -172,7 +188,7 @@ static void decode_note(struct note_type *a,
 	a->spec_command=0;
 	a->spec_delay=0;
 	a->spec_lo=0;
-	a->note=0;
+//	a->note=0;
 	a->envelope=0;
 
 	/* Skip decode if note still running */
@@ -327,6 +343,7 @@ static void decode_note(struct note_type *a,
 			if (a->spec_command==0xb) {
 				current_val=pt3_data[(*addr)];
 				a->spec_lo=current_val;
+                                delay=current_val;
 				(*addr)++;
 			}
 			if (a->spec_command==0x1) {
@@ -432,12 +449,13 @@ static void print_note(struct note_type *a, struct note_type *a_old) {
 	printf("|");
 }
 
-
+unsigned char frame[16];
 
 int main(int argc, char **argv) {
 
 	char filename[BUFSIZ];
-	int fd,out,i,j,addr;
+	int i,j,f;
+	int fd,out,addr;
 	int result,sample_loop,sample_len;
 	int digidrums=0;
 	int attributes=0;
@@ -501,7 +519,7 @@ int main(int argc, char **argv) {
 		strlen(header.author)+1+
 		strlen(comments)+1;
 
-	lseek(fd, header_length, SEEK_SET);
+	lseek(out, header_length, SEEK_SET);
 
 	printf("\tSample pattern addresses:");
 		for(i=0;i<32;i++) {
@@ -636,7 +654,9 @@ int main(int argc, char **argv) {
 
 
 		for(j=0;j<64;j++) {
-			frames++;
+			/* clear out frame */
+			memset(frame,0,16);
+
 			envelope_period_h=0;
 			envelope_period_l=0;
 
@@ -677,6 +697,55 @@ int main(int argc, char **argv) {
 			envelope_period_h_old=envelope_period_h;
 			envelope_period_l_old=envelope_period_l;
 
+			/* R0 = A period low */
+			/* R1 = A period high */
+			/* R2 = B period low */
+			/* R3 = B period high */
+			/* R4 = C period low */
+			/* R5 = C period high */
+			/* R6 = Noise period */
+			/* R7 = Enable XX Noise=!CBA Tone=!CBA */
+			/* R8 = Channel A amplitude M3210 */
+			/* R9 = Channel B amplitude M3210 */
+			/* R10 = Channel C amplitude M3210 */
+			/* R11 = Envelope Period L */
+			/* R12 = Envelope Period H */
+			/* R13 = Envelope Shape */
+			/* R14/R15 = I/O (ignored) */
+
+			for(f=0;f<delay;f++) {
+				if (a.note) {
+					frame[0]=notes1[a.note-0x50]&0xff;
+					frame[1]=(notes1[a.note-0x50]>>8)&0xff;
+				}
+				if (b.note) {
+					frame[2]=notes1[b.note-0x50]&0xff;
+					frame[3]=(notes1[b.note-0x50]>>8)&0xff;
+				}
+				if (c.note) {
+					frame[4]=notes1[c.note-0x50]&0xff;
+					frame[5]=(notes1[c.note-0x50]>>8)&0xff;
+				}
+				frame[6]=0x0;
+				frame[7]=0x08;
+				if (a.note) {
+					frame[8]=0xb;
+				}
+				if (b.note) {
+					frame[9]=0xb;
+				}
+				if (c.note) {
+					frame[10]=0xb;
+				}
+				frame[11]=0x0;
+				frame[12]=0x0;
+				frame[13]=0xff;
+
+
+				write(out,frame,16);
+				frames++;
+			}
+
 			printf("\n");
 		}
 	}
@@ -684,11 +753,11 @@ int main(int argc, char **argv) {
 
 
 	/* Print End! marker */
-	write(fd,"End!",4);
+	write(out,"End!",4);
 
 	/* Go back and print header */
 
-	lseek(fd,0,SEEK_SET);
+	lseek(out,0,SEEK_SET);
 
 	strncpy(our_header.id,"YM5!",5);
         strncpy(our_header.check,"LeOnArD!",9);

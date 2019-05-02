@@ -1,7 +1,14 @@
 CC = gcc
 CFLAGS = -g -O2 -Wall
 
-all:	decode_pt3 pt3_to_ym5
+all:	decode_pt3 pt3_to_ym5 out.ym5
+
+
+out.ym5:	out.ym
+	../conversion_tools/ym_to_ym5 out
+
+out.ym:	pt3_to_ym5
+	./pt3_to_ym5
 
 ###
 
