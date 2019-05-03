@@ -324,10 +324,6 @@ static int calculate_amplitude(struct note_type *a) {
 		b0 = pt3_data[a->sample_pointer + a->sample_position * 4];
 		b1 = pt3_data[a->sample_pointer + a->sample_position * 4 + 1];
 
-		printf("VMW: sample_pointer %x, pos=%d, b0=%x b1=%x\n",
-				a->sample_pointer,
-				a->sample_position,b0,b1);
-
 		if ((b1 & 0x40) != 0) {
 			a->tone_accumulator=a->tone;
 		}
@@ -356,8 +352,6 @@ static int calculate_amplitude(struct note_type *a) {
 		}
 
 		amplitude= (b1 & 0xf);
-
-		printf("VMW: amp = %x\n",amplitude);
 
 		if ((b0 & 0x80)!=0) {
 			if ((b0&0x40)!=0) {
@@ -444,7 +438,6 @@ static void decode_note(struct note_type *a,
 	a->spec_command=0;
 	a->spec_delay=0;
 	a->spec_lo=0;
-//	a->note=0;
 	a->envelope=0;
 
 	/* Skip decode if note still running */
@@ -608,7 +601,6 @@ static void decode_note(struct note_type *a,
 				break;
 			case 0xd:
 				if (current_val==0xd0) {
-					a->note=0;
 					a_done=1;
 				}
 				else {
@@ -928,6 +920,21 @@ int main(int argc, char **argv) {
 		}
 
 
+	struct note_type a,b,c;
+	struct note_type a_old,b_old,c_old;
+
+	memset(&a,0,sizeof(struct note_type));
+	memset(&b,0,sizeof(struct note_type));
+	memset(&c,0,sizeof(struct note_type));
+	a.which='A';
+	b.which='B';
+	c.which='C';
+
+	memset(&a_old,0,sizeof(struct note_type));
+	memset(&b_old,0,sizeof(struct note_type));
+	memset(&c_old,0,sizeof(struct note_type));
+
+	noise_period=0;
 
 	for(i=0;i<music_len;i++) {
 		current_pattern=pt3_data[0xc9+i]/3;
@@ -950,26 +957,14 @@ int main(int argc, char **argv) {
 		bptr=&pt3_data[b_addr];
 		cptr=&pt3_data[c_addr];
 
-		struct note_type a,b,c;
-		struct note_type a_old,b_old,c_old;
-
-		memset(&a,0,sizeof(struct note_type));
-		memset(&b,0,sizeof(struct note_type));
-		memset(&c,0,sizeof(struct note_type));
-		a.which='A';
-		b.which='B';
-		c.which='C';
-
-		memset(&a_old,0,sizeof(struct note_type));
-		memset(&b_old,0,sizeof(struct note_type));
-		memset(&c_old,0,sizeof(struct note_type));
-
-		noise_period=0;
-
+		printf("Cdata: ");
+		for(j=0;j<32;j++) printf("%02x ",pt3_data[c_addr+j]);
+		printf("\n");
 
 		for(j=0;j<64;j++) {
-			/* clear out frame */
-			memset(frame,0,16);
+
+			printf("VMW frame: %d\n",frames);
+
 
 			envelope_period_h=0;
 			envelope_period_l=0;
@@ -1028,20 +1023,27 @@ int main(int argc, char **argv) {
 			/* R14/R15 = I/O (ignored) */
 
 			for(f=0;f<delay;f++) {
-				if (a.note) {
+
+				/* clear out frame */
+				memset(frame,0,16);
+
+				if (a.enabled) {
 					frame[0]=PT3NoteTable_ST[a.note]&0xff;
 					frame[1]=(PT3NoteTable_ST[a.note]>>8)&0xff;
 				}
-				if (b.note) {
+				if (b.enabled) {
 					frame[2]=PT3NoteTable_ST[b.note]&0xff;
 					frame[3]=(PT3NoteTable_ST[b.note]>>8)&0xff;
 				}
-				if (c.note) {
+				if (c.enabled) {
 					frame[4]=PT3NoteTable_ST[c.note]&0xff;
 					frame[5]=(PT3NoteTable_ST[c.note]>>8)&0xff;
 				}
 				frame[6]=0x0;
-				frame[7]=0x08;
+				frame[7]=(a.enabled<<3)|
+					(b.enabled<<4)|
+					(c.enabled<<5);
+
 				if (a.note) {
 					frame[8]=calculate_amplitude(&a);
 				}
