@@ -251,10 +251,13 @@ static int envelope_period_l=0;
 static int envelope_period_h_old=0;
 static int envelope_period_l_old=0;
 static int envelope_slide=0;
+static int envelope_add=0;
 static int envelope_delay=0;
-
+static int mixer_value=0;
 
 static int noise_period=0;
+static int noise_base=0;
+static int noise_add=0;
 
 static int delay=6;
 
@@ -301,6 +304,10 @@ int GetNoteFreq(int j) {
                         00 88 00 00
                         00 87 00 00
                         00 87 00 00
+
+V			01 00 00 00
+			c1 00 00 00
+
 */
 
 static void calculate_note(struct note_type *a) {
@@ -315,7 +322,7 @@ static void calculate_note(struct note_type *a) {
 
 	int j,b1,b0; // byte;
 	int w;          // word;
-	int TempMixer;
+
 
 	if (a->enabled) {
 		a->tone = pt3_data[a->sample_pointer + a->sample_position * 4 + 2];
@@ -355,16 +362,26 @@ static void calculate_note(struct note_type *a) {
 
 		a->amplitude= (b1 & 0xf);
 
+		if (a->which=='C') {
+			printf("VMWC: sample=%d ptr=%x b0=%x\n",
+				a->sample,a->sample_pointer,b0);
+		}
+
 		if ((b0 & 0x80)!=0) {
 			if ((b0&0x40)!=0) {
+				if (a->which=='C') printf("VMWC: C0 amp sliding %d\n",a->amplitude_sliding);
 				if (a->amplitude_sliding < 15) {
 					a->amplitude_sliding++;
 				}
 			}
-			else if (a->amplitude_sliding > -15) {
-				a->amplitude_sliding--;
+			else {
+				if (a->which=='C') printf("VMWC: 80 amp sliding %d\n",a->amplitude_sliding);
+				if (a->amplitude_sliding > -15) {
+					a->amplitude_sliding--;
+				}
 			}
 		}
+		printf("VMW: amp sliding %d\n",a->amplitude_sliding);
 		a->amplitude+=a->amplitude_sliding;
 
 		if (a->amplitude < 0) a->amplitude = 0;
@@ -393,16 +410,16 @@ static void calculate_note(struct note_type *a) {
                         if (( b1 & 0x20) != 0) {
                                 a->envelope_sliding = j;
                         }
-//			Inc(AddToEnv,j)
+			envelope_add+=j;
 		}
 		else {
-//			PlParams.PT3.AddToNoise := b0 shr 1 + Current_Noise_Sliding;
+			noise_add = (b0>>1) + a->noise_sliding;
 			if ((b1 & 0x20) != 0) {
-//				a->noise_sliding = PlParams.PT3.AddToNoise;
+				a->noise_sliding = noise_add;
 			}
 		}
 
-		TempMixer = ((b1 >>1) & 0x48) | TempMixer;
+		mixer_value = ((b1 >>1) & 0x48) | mixer_value;
 
 		a->sample_position++;
 		if (a->sample_position >= a->sample_length) {
@@ -418,7 +435,7 @@ static void calculate_note(struct note_type *a) {
 		a->amplitude=0;
 	}
 
-        TempMixer=TempMixer>>1;
+        mixer_value=mixer_value>>1;
 
         if (a->onoff>0) {
                 a->onoff--;
@@ -505,6 +522,7 @@ static void decode_note(struct note_type *a,
 				a->sample=(current_val/2);
 
 				a->sample_pointer=header.sample_patterns[a->sample];
+				printf("0x1: Sample pointer %d %x\n",a->sample,a->sample_pointer);
 				a->sample_loop=pt3_data[a->sample_pointer];
 				a->sample_pointer++;
 				a->sample_length=pt3_data[a->sample_pointer];
@@ -611,16 +629,25 @@ static void decode_note(struct note_type *a,
 				}
 				else {
 					a->sample=(current_val&0xf);
-                                        a->sample_pointer=header.sample_patterns[a->sample];
-					printf("0xd: sample pointer %x\n",a->sample_pointer);
-                                        a->sample_loop=pt3_data[a->sample_pointer];
-                                        a->sample_pointer++;
-                                        a->sample_length=pt3_data[a->sample_pointer];
-                                        a->sample_pointer++;
+					a->sample_pointer=header.sample_patterns[a->sample];
+					printf("0xd: sample %d sample pointer %x\n",
+						a->sample,a->sample_pointer);
+					a->sample_loop=pt3_data[a->sample_pointer];
+					a->sample_pointer++;
+					a->sample_length=pt3_data[a->sample_pointer];
+					a->sample_pointer++;
 				}
 				break;
 			case 0xe:
 				a->sample=(current_val-0xd0);
+				a->sample_pointer=header.sample_patterns[a->sample];
+				printf("0xe: sample %d sample pointer %x\n",
+					a->sample,a->sample_pointer);
+				a->sample_loop=pt3_data[a->sample_pointer];
+				a->sample_pointer++;
+				a->sample_length=pt3_data[a->sample_pointer];
+				a->sample_pointer++;
+
 				break;
 			case 0xf:
 //               Envelope=15, Ornament=low byte, Sample=arg1/2
@@ -1070,6 +1097,9 @@ int main(int argc, char **argv) {
 				/* clear out frame */
 				memset(frame,0,16);
 
+				mixer_value=0;
+				envelope_add=0;
+
 				calculate_note(&a);
 				calculate_note(&b);
 				calculate_note(&c);
@@ -1092,10 +1122,11 @@ int main(int argc, char **argv) {
 					frame[4]=c.tone&0xff;
 					frame[5]=(c.tone>>8)&0xff;
 				}
-				frame[6]=0x0;
-				frame[7]=(a.enabled<<3)|
-					(b.enabled<<4)|
-					(c.enabled<<5);
+
+				/* Noise */
+				frame[6]= (noise_base+noise_add)&0x1f;
+
+				frame[7]=mixer_value;
 
 				if (a.enabled) {
 					frame[8]=a.amplitude;
@@ -1106,10 +1137,26 @@ int main(int argc, char **argv) {
 				if (c.enabled) {
 					frame[10]=c.amplitude;
 				}
+
+				/* Envelope period */
 				frame[11]=0x0;
 				frame[12]=0x0;
-				frame[13]=0xff;
 
+				/* Envelope shape */
+				frame[13]=0xff;
+#if 0
+RegisterAY.Envelope := Env_Base.wrd + AddToEnv + Cur_Env_Slide;
+
+  if Cur_Env_Delay > 0 then
+   begin
+    Dec(Cur_Env_Delay);
+    if Cur_Env_Delay = 0 then
+     begin
+      Cur_Env_Delay := Env_Delay;
+      Inc(Cur_Env_Slide,Env_Slide_Add)
+     end
+   end
+#endif
 
 				write(out,frame,16);
 				frames++;
