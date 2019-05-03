@@ -188,10 +188,21 @@ struct note_type {
         int amplitude_sliding;
         int noise_sliding;
         int envelope_sliding;
+
         int tone_slide_count;
         int tone_sliding;
+	int tone_slide_step;
+	int tone_slide_delay;
+	int tone_delta;
+	int slide_to_note;
+
+	int simplegliss;
+
         int tone_accumulator;
         int onoff;
+	int onoff_delay;
+	int offon_delay;
+	int tone;
         int enabled;
 };
 
@@ -236,94 +247,117 @@ static int calculate_amplitude(struct note_type *a) {
         // 1000 0000 -- VOLDOWN
         // 10 00 1111 --FREQ_SLIDE, VOLUME 
 
-        int j,b1,b0; // byte;
-        int w;          // word;
-#if 0
-        if (a->enabled) {
-                // Ton := WordPtr(@Index[SamplePointer + Position_In_Sample * 4 + 2])^;
-                // Inc(Ton,Ton_Accumulator);
-                // b0 := Index[SamplePointer + Position_In_Sample * 4];
-                // b1 := Index[SamplePointer + Position_In_Sample * 4 + 1];
-                //if b1 and $40 <> 0 then
-                //      Ton_Accumulator := Ton;
-                //j := Note + Index[OrnamentPointer + Position_In_Ornament];
-                //if shortint(j) < 0 then j := 0
-                //else if j > 95 then j := 95;
-                //w := GetNoteFreq(j);
-                //Ton := (Ton + Current_Ton_Sliding + w) and $fff;
-                //if (Ton_Slide_Count > 0) {
-                //      Dec(Ton_Slide_Count);
-                //      if (Ton_Slide_Count==0) {
-                //              Inc(Current_Ton_Sliding,Ton_Slide_Step);
-                //              Ton_Slide_Count := Ton_Slide_Delay;
-          if not SimpleGliss then
-           if ((Ton_Slide_Step < 0) and (Current_Ton_Sliding <= Ton_Delta)) or
-              ((Ton_Slide_Step >= 0) and (Current_Ton_Sliding >= Ton_Delta)) then
-            begin
-             Note := Slide_To_Note;
-             Ton_Slide_Count := 0;
-             Current_Ton_Sliding := 0
-            end
-         end
-       end;
-      Amplitude := b1 and $f;
-      if b0 and $80 <> 0 then
-      if b0 and $40 <> 0 then
-       begin
-        if Current_Amplitude_Sliding < 15 then
-         inc(Current_Amplitude_Sliding)
-       end
-      else if Current_Amplitude_Sliding > -15 then
-       dec(Current_Amplitude_Sliding);
-inc(Amplitude,Current_Amplitude_Sliding);
-      if shortint(Amplitude) < 0 then Amplitude := 0
-      else if Amplitude > 15 then Amplitude := 15;
-      if PlParams.PT3.PT3_Version <= 4 then
-       Amplitude := PT3VolumeTable_33_34[Volume,Amplitude]
-      else
-       Amplitude := PT3VolumeTable_35[Volume,Amplitude];
-      if (b0 and 1 = 0) and Envelope_Enabled then
-       Amplitude := Amplitude or 16;
-      if b1 and $80 <> 0 then
-       begin
-        if b0 and $20 <> 0 then
-         j := (b0 shr 1) or $F0 + Current_Envelope_Sliding
-        else
-         j := (b0 shr 1) and $F + Current_Envelope_Sliding;
-        if b1 and $20 <> 0 then Current_Envelope_Sliding := j;
-        Inc(AddToEnv,j)
-       end
-      else
-       begin
-        PlParams.PT3.AddToNoise := b0 shr 1 + Current_Noise_Sliding;
-        if b1 and $20 <> 0 then
-         Current_Noise_Sliding := PlParams.PT3.AddToNoise
-       end;
-TempMixer := b1 shr 1 and $48 or TempMixer;
-      Inc(Position_In_Sample);
-      if Position_In_Sample >= Sample_Length then
-       Position_In_Sample := Loop_Sample_Position;
-      Inc(Position_In_Ornament);
-      if Position_In_Ornament >= Ornament_Length then
-       Position_In_Ornament := Loop_Ornament_Position
-     end
-    else
-     Amplitude := 0;
-    TempMixer := TempMixer shr 1;
-    if Current_OnOff > 0 then
-     begin
-      dec(Current_OnOff);
-      if Current_OnOff = 0 then
-       begin
-        Enabled := not Enabled;
-        if Enabled then Current_OnOff := OnOff_Delay
-        else Current_OnOff := OffOn_Delay
-       end;
-     end
-   end
+	int j,b1,b0; // byte;
+	int w;          // word;
+	int amplitude;
+	int TempMixer;
 
-#endif
-        return 0xc;
+	if (a->enabled) {
+		a->tone = pt3_data[a->sample_pointer + a->sample_position * 4 + 2];
+		a->tone += a->tone_accumulator;
+		b0 = pt3_data[a->sample_pointer + a->sample_position * 4];
+		b1 = pt3_data[a->sample_pointer + a->sample_position * 4 + 1];
+		if ((b1 & 0x40) != 0) {
+			a->tone_accumulator=a->tone;
+		}
+
+		j = a->note + pt3_data[a->ornament_pointer + a->ornament_position];
+		if (j < 0) j = 0;
+                else if (j > 95) j = 95;
+//		w = GetNoteFreq(j);
+		a->tone = (a->tone + a->tone_sliding + w) & 0xfff;
+                if (a->tone_slide_count > 0) {
+			a->tone_slide_count--;
+			if (a->tone_slide_count==0) {
+				a->tone_sliding+=a->tone_slide_step;
+				a->tone_slide_count = a->tone_slide_delay;
+				if (!a->simplegliss) {
+					if ( ((a->tone_slide_step < 0) &&
+					      (a->tone_sliding <= a->tone_delta)) ||
+					     ((a->tone_slide_step >= 0) &&
+				 	      (a->tone_sliding >= a->tone_delta)) ) {
+						a->note = a->slide_to_note;
+						a->tone_slide_count = 0;
+						a->tone_sliding = 0;
+					}
+				}
+			}
+		}
+
+		amplitude= (b1 & 0xf);
+		if (((b0 & 0x80)!=0) && ((b0&0x40)!=0)) {
+			if (a->amplitude_sliding < 15) {
+				a->amplitude_sliding++;
+			}
+		}
+		else if (a->amplitude_sliding > -15) {
+			a->amplitude_sliding--;
+		}
+
+		amplitude+=a->amplitude_sliding;
+
+		if (amplitude < 0) amplitude = 0;
+		else if (amplitude > 15) amplitude = 15;
+
+//              if PlParams.PT3.PT3_Version <= 4 {
+//                      Amplitude := PT3VolumeTable_33_34[Volume,Amplitude]
+//              }
+//              else {
+//                      Amplitude := PT3VolumeTable_35[Volume,Amplitude];
+//              }
+
+		if (((b0 & 0x1) == 0) && ( a->envelope_enabled)) {
+			amplitude |= 16;
+		}
+
+                if ((b1 & 0x80) != 0) {
+                        if ((b0 & 0x20) != 0) {
+                                j = ((b0>>1)|0xF0) + a->envelope_sliding;
+                        }
+                        else {
+                                j = ((b0>>1)|0xF) + a->envelope_sliding;
+                        }
+
+                        if (( b1 & 0x20) != 0) {
+                                a->envelope_sliding = j;
+                        }
+//			Inc(AddToEnv,j)
+		}
+		else {
+//			PlParams.PT3.AddToNoise := b0 shr 1 + Current_Noise_Sliding;
+			if ((b1 & 0x20) != 0) {
+//				a->noise_sliding = PlParams.PT3.AddToNoise;
+			}
+		}
+
+		TempMixer = ((b1 >>1) & 0x48) | TempMixer;
+
+		a->sample_position++;
+		if (a->sample_position >= a->sample_length) {
+                        a->sample_position = a->sample_loop;
+                }
+
+		a->ornament_position++;
+		if (a->ornament_position >= a->ornament_length) {
+			a->ornament_position = a->ornament_loop;
+                }
+
+	} else {
+		amplitude=0;
+	}
+
+        TempMixer=TempMixer>>1;
+
+        if (a->onoff>0) {
+                a->onoff--;
+                if (a->onoff==0) {
+                        a->enabled=!a->enabled;
+                        if (a->enabled) a->onoff=a->onoff_delay;
+                        else a->onoff=a->offon_delay;
+                }
+        }
+
+        return amplitude;
 }
 
 static void decode_note(struct note_type *a,
