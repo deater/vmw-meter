@@ -199,7 +199,6 @@ struct note_type {
 	char which;
 	int note;
 	int sample;
-	int envelope;
 	int ornament;
 	int volume;
 	int spec_command;
@@ -246,13 +245,15 @@ struct note_type {
         int enabled;
 };
 
-static int envelope_period_h=0;
-static int envelope_period_l=0;
-static int envelope_period_h_old=0;
-static int envelope_period_l_old=0;
+static int envelope_type=0;
+static int envelope_type_old=0;
+static int envelope_period=0;
+static int envelope_period_old=0;
 static int envelope_slide=0;
+static int envelope_slide_add=0;
 static int envelope_add=0;
 static int envelope_delay=0;
+static int envelope_delay_orig=0;
 static int mixer_value=0;
 
 static int noise_period=0;
@@ -404,7 +405,7 @@ static void calculate_note(struct note_type *a) {
                                 j = ((b0>>1)|0xF0) + a->envelope_sliding;
                         }
                         else {
-                                j = ((b0>>1)|0xF) + a->envelope_sliding;
+                                j = ((b0>>1)&0xF) + a->envelope_sliding;
                         }
 
                         if (( b1 & 0x20) != 0) {
@@ -458,7 +459,6 @@ static void decode_note(struct note_type *a,
 	a->spec_command=0;
 	a->spec_delay=0;
 	a->spec_lo=0;
-	a->envelope=0;
 
 	/* Skip decode if note still running */
 	if (a->len_count>1) {
@@ -503,15 +503,15 @@ static void decode_note(struct note_type *a,
 					a->envelope_enabled=0;
 				}
 				else {
-					a->envelope=(current_val&0xf);
+					envelope_type=(current_val&0xf);
 
 					(*addr)++;
 					current_val=pt3_data[*addr];
-					envelope_period_h=current_val;
+					envelope_period=(current_val<<8);
 
 					(*addr)++;
 					current_val=pt3_data[(*addr)];
-					envelope_period_l=current_val;
+					envelope_period|=(current_val&0xff);
 
 					a->envelope_enabled=1;
 					envelope_slide=0;
@@ -544,7 +544,6 @@ static void decode_note(struct note_type *a,
 				noise_period=(current_val&0xf)+0x10;
 				break;
 			case 4:
-				if (a->envelope==0) a->envelope=0xf;
 				a->ornament=(current_val&0xf);
                                 a->ornament_pointer=header.ornament_patterns[a->ornament];
                                 a->ornament_loop=pt3_data[a->ornament_pointer];
@@ -587,15 +586,15 @@ static void decode_note(struct note_type *a,
 				}
 				else {
 					a->envelope_enabled=1;
-					a->envelope=(current_val&0xf)-1;
+					envelope_type=(current_val&0xf)-1;
 
 					(*addr)++;
 					current_val=pt3_data[(*addr)];
-					envelope_period_h=current_val;
+					envelope_period=(current_val<<8);
 
 					(*addr)++;
 					current_val=pt3_data[(*addr)];
-					envelope_period_l=current_val;
+					envelope_period|=(current_val&0xff);
 
 					a->ornament_position=0;
 					envelope_slide=0;
@@ -651,7 +650,6 @@ static void decode_note(struct note_type *a,
 				break;
 			case 0xf:
 //               Envelope=15, Ornament=low byte, Sample=arg1/2
-				a->envelope=0xf;
                                 a->envelope_enabled=0;
 				a->ornament=(current_val&0xf);
 
@@ -795,7 +793,7 @@ static void print_note(struct note_type *a, struct note_type *a_old) {
 //	else printf("%X",a->envelope);
 
 //	if ((envelope_period_l==0) || (a->envelope==0)) printf(".");
-	if (a->envelope!=0) printf("%X",a->envelope);
+	if (a->envelope_enabled) printf("%X",envelope_type);
 	else printf(".");
 
 	/* A ornament */
@@ -1036,8 +1034,7 @@ int main(int argc, char **argv) {
 			printf("VMW frame: %d\n",frames);
 
 
-			envelope_period_h=0;
-			envelope_period_l=0;
+			envelope_period=0;
 
 			decode_note(&a,&a_addr);
 			decode_note(&b,&b_addr);
@@ -1055,10 +1052,10 @@ int main(int argc, char **argv) {
 			printf("%02x|",j);
 
 			/* envelope */
-			if (envelope_period_h==0) printf("..");
-			else printf("%02X",envelope_period_h);
-			if (envelope_period_l==0) printf("..");
-			else printf("%02X",envelope_period_l);
+			if ((envelope_period>>8)==0) printf("..");
+			else printf("%02X",envelope_period>>8);
+			if (envelope_period&0xff) printf("..");
+			else printf("%02X",envelope_period&0xff);
 
 			/* noise */
 			printf("|");
@@ -1073,8 +1070,7 @@ int main(int argc, char **argv) {
 			memcpy(&a_old,&a,sizeof(struct note_type));
 			memcpy(&b_old,&b,sizeof(struct note_type));
 			memcpy(&c_old,&c,sizeof(struct note_type));
-			envelope_period_h_old=envelope_period_h;
-			envelope_period_l_old=envelope_period_l;
+			envelope_period_old=(envelope_period);
 
 			/* R0 = A period low */
 			/* R1 = A period high */
@@ -1139,24 +1135,33 @@ int main(int argc, char **argv) {
 				}
 
 				/* Envelope period */
-				frame[11]=0x0;
-				frame[12]=0x0;
+				int temp_envelope;
+				temp_envelope=envelope_period+
+						envelope_add+
+						envelope_slide;
+				frame[11]=(temp_envelope&0xff);
+				frame[12]=(temp_envelope>>8);
+
+				printf("VMW ENV %x, period=%x add=%x slide=%x\n",
+					temp_envelope,
+					envelope_period,envelope_add,envelope_slide);
 
 				/* Envelope shape */
-				frame[13]=0xff;
-#if 0
-RegisterAY.Envelope := Env_Base.wrd + AddToEnv + Cur_Env_Slide;
+				if (envelope_type==envelope_type_old) {
+					frame[13]=0xff;
+				}
+				else {
+					frame[13]=envelope_type;
+				}
+				envelope_type_old=envelope_type;
 
-  if Cur_Env_Delay > 0 then
-   begin
-    Dec(Cur_Env_Delay);
-    if Cur_Env_Delay = 0 then
-     begin
-      Cur_Env_Delay := Env_Delay;
-      Inc(Cur_Env_Slide,Env_Slide_Add)
-     end
-   end
-#endif
+				if (envelope_delay > 0) {
+					envelope_delay--;
+					if (envelope_delay==0) {
+						envelope_delay=envelope_delay_orig;
+						envelope_slide+=envelope_slide_add;
+					}
+				}
 
 				write(out,frame,16);
 				frames++;
