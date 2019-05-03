@@ -310,7 +310,7 @@ static int calculate_amplitude(struct note_type *a) {
         //
         // 80 8f 00 00
         // 1000 0000 -- VOLDOWN
-        // 10 00 1111 --FREQ_SLIDE, VOLUME 
+        // 10 00 1111 --FREQ_SLIDE, VOLUME
 
 	int j,b1,b0; // byte;
 	int w;          // word;
@@ -359,15 +359,16 @@ static int calculate_amplitude(struct note_type *a) {
 
 		printf("VMW: amp = %x\n",amplitude);
 
-		if (((b0 & 0x80)!=0) && ((b0&0x40)!=0)) {
-			if (a->amplitude_sliding < 15) {
-				a->amplitude_sliding++;
+		if ((b0 & 0x80)!=0) {
+			if ((b0&0x40)!=0) {
+				if (a->amplitude_sliding < 15) {
+					a->amplitude_sliding++;
+				}
+			}
+			else if (a->amplitude_sliding > -15) {
+				a->amplitude_sliding--;
 			}
 		}
-		else if (a->amplitude_sliding > -15) {
-			a->amplitude_sliding--;
-		}
-
 		amplitude+=a->amplitude_sliding;
 
 		if (amplitude < 0) amplitude = 0;
