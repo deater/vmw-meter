@@ -224,6 +224,7 @@ struct note_type {
 
         int envelope_enabled;
 
+	int amplitude;
         int amplitude_sliding;
         int noise_sliding;
         int envelope_sliding;
@@ -302,7 +303,7 @@ int GetNoteFreq(int j) {
                         00 87 00 00
 */
 
-static int calculate_amplitude(struct note_type *a) {
+static void calculate_note(struct note_type *a) {
         // XX YYYYY Z  = X= 10=VOLDOWN 11=VOLUP, Y=NOISE, Z= 0=ENV, 1=NO ENVELOPE
         // XX YY ZZZZ  = X= FREQ SLIDE YY=NOISE SLIDE ZZ=VOLUME
         // XXXXXXXX = LOW BYTE FREQ SLIDE
@@ -314,11 +315,11 @@ static int calculate_amplitude(struct note_type *a) {
 
 	int j,b1,b0; // byte;
 	int w;          // word;
-	int amplitude;
 	int TempMixer;
 
 	if (a->enabled) {
 		a->tone = pt3_data[a->sample_pointer + a->sample_position * 4 + 2];
+		a->tone += (pt3_data[a->sample_pointer + a->sample_position * 4 + 3])<<8;
 		a->tone += a->tone_accumulator;
 
 		b0 = pt3_data[a->sample_pointer + a->sample_position * 4];
@@ -332,6 +333,7 @@ static int calculate_amplitude(struct note_type *a) {
 		if (j < 0) j = 0;
                 else if (j > 95) j = 95;
 		w = GetNoteFreq(j);
+
 		a->tone = (a->tone + a->tone_sliding + w) & 0xfff;
                 if (a->tone_slide_count > 0) {
 			a->tone_slide_count--;
@@ -351,7 +353,7 @@ static int calculate_amplitude(struct note_type *a) {
 			}
 		}
 
-		amplitude= (b1 & 0xf);
+		a->amplitude= (b1 & 0xf);
 
 		if ((b0 & 0x80)!=0) {
 			if ((b0&0x40)!=0) {
@@ -363,22 +365,23 @@ static int calculate_amplitude(struct note_type *a) {
 				a->amplitude_sliding--;
 			}
 		}
-		amplitude+=a->amplitude_sliding;
+		a->amplitude+=a->amplitude_sliding;
 
-		if (amplitude < 0) amplitude = 0;
-		else if (amplitude > 15) amplitude = 15;
+		if (a->amplitude < 0) a->amplitude = 0;
+		else if (a->amplitude > 15) a->amplitude = 15;
 
 //              if PlParams.PT3.PT3_Version <= 4 {
-			amplitude = PT3VolumeTable_33_34[a->volume][amplitude];
+			a->amplitude = PT3VolumeTable_33_34[a->volume][a->amplitude];
 //              }
 //              else {
-//			amplitude = PT3VolumeTable_35[a->volume][amplitude];
+//			amplitude = PT3VolumeTable_35[a->volume][a->amplitude];
 //              }
 
 		if (((b0 & 0x1) == 0) && ( a->envelope_enabled)) {
-			amplitude |= 16;
+			a->amplitude |= 16;
 		}
 
+		/* Frequency slide */
                 if ((b1 & 0x80) != 0) {
                         if ((b0 & 0x20) != 0) {
                                 j = ((b0>>1)|0xF0) + a->envelope_sliding;
@@ -412,7 +415,7 @@ static int calculate_amplitude(struct note_type *a) {
                 }
 
 	} else {
-		amplitude=0;
+		a->amplitude=0;
 	}
 
         TempMixer=TempMixer>>1;
@@ -426,7 +429,6 @@ static int calculate_amplitude(struct note_type *a) {
                 }
         }
 
-        return amplitude;
 }
 
 static void decode_note(struct note_type *a,
@@ -434,6 +436,7 @@ static void decode_note(struct note_type *a,
 
 	int a_done=0;
 	int current_val;
+	int prev_note,prev_sliding;
 
 	a->spec_command=0;
 	a->spec_delay=0;
@@ -445,6 +448,9 @@ static void decode_note(struct note_type *a,
 		a->len_count--;
 		return;
 	}
+
+	prev_note=a->note;
+	prev_sliding=a->tone_sliding;
 
 	while(1) {
 		a->len_count=a->len;
@@ -645,45 +651,82 @@ static void decode_note(struct note_type *a,
 		}
 
 		(*addr)++;
+		/* Note, the AY code has code to make sure these are applied */
+		/* In the same order they appear.  We don't bother? */
 		if (a_done) {
+			printf("VMW DONE %d\n",a->spec_command);
+			if (a->spec_command==0x1) {
+				current_val=pt3_data[(*addr)];
+				a->spec_delay=current_val;
+				a->tone_slide_delay=current_val;
+				a->tone_slide_count=a->tone_slide_delay;
+
+				(*addr)++;
+				current_val=pt3_data[(*addr)];
+				a->spec_lo=(current_val);
+
+				(*addr)++;
+				current_val=pt3_data[(*addr)];
+				a->spec_hi=(current_val);
+
+				a->tone_slide_step=(a->spec_lo)|(a->spec_hi<<8);
+				printf("TONE_SLIDE %x\n",a->tone_slide_step);
+				a->simplegliss=1;
+				a->onoff=0;
+
+				(*addr)++;
+			}
+			/* port */
+			if (a->spec_command==0x3) {
+				a->simplegliss=0;
+				a->onoff=0;
+
+				current_val=pt3_data[(*addr)];
+				a->spec_delay=current_val;
+
+				a->tone_slide_delay=current_val;
+				a->tone_slide_count=a->tone_slide_delay;
+
+				(*addr)++;
+				(*addr)++;
+				(*addr)++;
+				current_val=pt3_data[(*addr)];
+				a->spec_lo=current_val;
+
+				(*addr)++;
+				current_val=pt3_data[(*addr)];
+				a->spec_hi=current_val;
+
+				(*addr)++;
+
+				a->tone_slide_step=(a->spec_hi<<8)|(a->spec_lo);
+				/* sign extend */
+				a->tone_slide_step=(a->tone_slide_step<<16)>>16;
+				/* abs() */
+				if (a->tone_slide_step<0) a->tone_slide_step=-a->tone_slide_step;
+
+
+				a->tone_delta=GetNoteFreq(a->note)-
+					GetNoteFreq(prev_note);
+				a->slide_to_note=a->note;
+				a->note=prev_note;
+				printf("VMW: slide_step: %x delta %x sliding %x\n",
+					a->tone_slide_step,a->tone_delta,
+					a->tone_sliding);
+//				if (PlParams.PT3.PT3_Version >= 6) {
+//					a->tone_sliding = PrSliding;
+				if ((a->tone_delta - a->tone_sliding) < 0) {
+					a->tone_slide_step = -a->tone_slide_step;
+				}
+				printf("VMW: slide count: %d newslidestep: %x\n",
+					a->tone_slide_count,a->tone_slide_step);
+			}
+
 			if (a->spec_command==0xb) {
 				current_val=pt3_data[(*addr)];
 				a->spec_lo=current_val;
                                 delay=current_val;
 				(*addr)++;
-			}
-			if (a->spec_command==0x1) {
-				current_val=pt3_data[(*addr)];
-				a->spec_delay=current_val;
-				(*addr)++;
-
-				current_val=pt3_data[(*addr)];
-				a->spec_lo=(current_val);
-				(*addr)++;
-
-				current_val=pt3_data[(*addr)];
-				a->spec_hi=(current_val);
-				(*addr)++;
-			}
-			if (a->spec_command==0x3) {
-				current_val=pt3_data[(*addr)];
-				a->spec_delay=current_val;
-				(*addr)++;
-
-				current_val=pt3_data[(*addr)];
-//				a->spec_lo=(current_val)&0xf;
-				(*addr)++;
-
-				current_val=pt3_data[(*addr)];
-//				a->spec_lo=(current_val)&0xf;
-				(*addr)++;
-				current_val=pt3_data[(*addr)];
-				a->spec_lo=(current_val)&0xf;
-				(*addr)++;
-				current_val=pt3_data[(*addr)];
-//				a->spec_lo=(current_val)&0xf;
-				(*addr)++;
-
 			}
 			if (a->spec_command==0x9) {
 
@@ -1027,31 +1070,41 @@ int main(int argc, char **argv) {
 				/* clear out frame */
 				memset(frame,0,16);
 
+				calculate_note(&a);
+				calculate_note(&b);
+				calculate_note(&c);
+
 				if (a.enabled) {
-					frame[0]=PT3NoteTable_ST[a.note]&0xff;
-					frame[1]=(PT3NoteTable_ST[a.note]>>8)&0xff;
+//					frame[0]=PT3NoteTable_ST[a.note]&0xff;
+//					frame[1]=(PT3NoteTable_ST[a.note]>>8)&0xff;
+					frame[0]=a.tone&0xff;
+					frame[1]=(a.tone>>8)&0xff;
 				}
 				if (b.enabled) {
-					frame[2]=PT3NoteTable_ST[b.note]&0xff;
-					frame[3]=(PT3NoteTable_ST[b.note]>>8)&0xff;
+//					frame[2]=PT3NoteTable_ST[b.note]&0xff;
+//					frame[3]=(PT3NoteTable_ST[b.note]>>8)&0xff;
+					frame[2]=b.tone&0xff;
+					frame[3]=(b.tone>>8)&0xff;
 				}
 				if (c.enabled) {
-					frame[4]=PT3NoteTable_ST[c.note]&0xff;
-					frame[5]=(PT3NoteTable_ST[c.note]>>8)&0xff;
+//					frame[4]=PT3NoteTable_ST[c.note]&0xff;
+//					frame[5]=(PT3NoteTable_ST[c.note]>>8)&0xff;
+					frame[4]=c.tone&0xff;
+					frame[5]=(c.tone>>8)&0xff;
 				}
 				frame[6]=0x0;
 				frame[7]=(a.enabled<<3)|
 					(b.enabled<<4)|
 					(c.enabled<<5);
 
-				if (a.note) {
-					frame[8]=calculate_amplitude(&a);
+				if (a.enabled) {
+					frame[8]=a.amplitude;
 				}
-				if (b.note) {
-					frame[9]=calculate_amplitude(&b);
+				if (b.enabled) {
+					frame[9]=b.amplitude;
 				}
-				if (c.note) {
-					frame[10]=calculate_amplitude(&c);
+				if (c.enabled) {
+					frame[10]=c.amplitude;
 				}
 				frame[11]=0x0;
 				frame[12]=0x0;
