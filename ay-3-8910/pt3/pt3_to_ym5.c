@@ -503,6 +503,7 @@ static void decode_note(struct note_type *a,
 					a->envelope_enabled=0;
 				}
 				else {
+					envelope_type_old=0x78;
 					envelope_type=(current_val&0xf);
 
 					(*addr)++;
@@ -586,6 +587,7 @@ static void decode_note(struct note_type *a,
 				}
 				else {
 					a->envelope_enabled=1;
+					envelope_type_old=0x78;
 					envelope_type=(current_val&0xf)-1;
 
 					(*addr)++;
@@ -1034,7 +1036,7 @@ int main(int argc, char **argv) {
 			printf("VMW frame: %d\n",frames);
 
 
-			envelope_period=0;
+			//envelope_period=0;
 
 			decode_note(&a,&a_addr);
 			decode_note(&b,&b_addr);
