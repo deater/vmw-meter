@@ -201,7 +201,6 @@ struct note_type {
 	int sample;
 	int envelope;
 	int ornament;
-	int prev_ornament;
 	int volume;
 	int spec_command;
 	int spec_delay;
@@ -250,6 +249,10 @@ static int envelope_period_h=0;
 static int envelope_period_l=0;
 static int envelope_period_h_old=0;
 static int envelope_period_l_old=0;
+static int envelope_slide=0;
+static int envelope_delay=0;
+
+
 static int noise_period=0;
 
 static int delay=6;
@@ -480,27 +483,33 @@ static void decode_note(struct note_type *a,
 				break;
 			case 1:
 				if ((current_val&0xf)==0x0) {
-					//printf("UNKNOWN %02X ",current_val);
-					a->envelope=0xf; // (disable)
+					a->envelope_enabled=0;
 				}
 				else {
 					a->envelope=(current_val&0xf);
 
-					current_val=pt3_data[*addr+1];
+					(*addr)++;
+					current_val=pt3_data[*addr];
 					envelope_period_h=current_val;
-					//printf("%02X ",current_val);
-					(*addr)++;
 
-					current_val=pt3_data[(*addr)+1];
-					envelope_period_l=current_val;
-					//printf("%02X ",current_val);
 					(*addr)++;
+					current_val=pt3_data[(*addr)];
+					envelope_period_l=current_val;
+
+					a->envelope_enabled=1;
+					envelope_slide=0;
+					envelope_delay=0;
 				}
-				current_val=pt3_data[(*addr)+1];
-				a->ornament=a->prev_ornament;
-				a->sample=(current_val/2);
-				//printf("%02X\n",current_val);
 				(*addr)++;
+				current_val=pt3_data[(*addr)];
+				a->sample=(current_val/2);
+
+				a->sample_pointer=header.sample_patterns[a->sample];
+				a->sample_loop=pt3_data[a->sample_pointer];
+				a->sample_pointer++;
+				a->sample_length=pt3_data[a->sample_pointer];
+				a->sample_pointer++;
+				a->ornament_position=0;
 
 				break;
 			case 2:
@@ -519,10 +528,12 @@ static void decode_note(struct note_type *a,
 			case 4:
 				if (a->envelope==0) a->envelope=0xf;
 				a->ornament=(current_val&0xf);
-				a->prev_ornament=a->ornament;
-
-				//printf("%x envelope=%x\n",current_val,
-				//	a->envelope);
+                                a->ornament_pointer=header.ornament_patterns[a->ornament];
+                                a->ornament_loop=pt3_data[a->ornament_pointer];
+                                a->ornament_pointer++;
+                                a->ornament_length=pt3_data[a->ornament_pointer];
+                                a->ornament_pointer++;
+				a->ornament_position=0;
 				break;
 			case 5:
 			case 6:
@@ -544,30 +555,34 @@ static void decode_note(struct note_type *a,
 				a_done=1;
 				break;
 			case 0xb:
-				/* Set noise? */
+				/* Disable envelope */
 				if (current_val==0xb0) {
-					a->envelope=0xf;
-					a->ornament=a->prev_ornament;
-					//current_val=pt3_data[(*addr)+1];
-					//noise_period=(current_val&0xf);
-					(*addr)++;
+					a->envelope_enabled=0;
+					a->ornament_position=0;
 				}
 				/* set len */
 				else if (current_val==0xb1) {
-					current_val=pt3_data[(*addr)+1];
+					(*addr)++;
+					current_val=pt3_data[(*addr)];
 					a->len=current_val;
 					a->len_count=a->len;
-					(*addr)++;
 				}
 				else {
+					a->envelope_enabled=1;
 					a->envelope=(current_val&0xf)-1;
-					a->ornament=a->prev_ornament;
-					current_val=pt3_data[(*addr)+1];
+
 					(*addr)++;
+					current_val=pt3_data[(*addr)];
 					envelope_period_h=current_val;
-					current_val=pt3_data[(*addr)+1];
+
 					(*addr)++;
+					current_val=pt3_data[(*addr)];
 					envelope_period_l=current_val;
+
+					a->ornament_position=0;
+					envelope_slide=0;
+					envelope_delay=0;
+
 				}
 				break;
 			case 0xc:	/* volume */
@@ -613,7 +628,6 @@ static void decode_note(struct note_type *a,
 				a->envelope=0xf;
                                 a->envelope_enabled=0;
 				a->ornament=(current_val&0xf);
-				a->prev_ornament=(current_val&0xf);
 
                                 a->ornament_pointer=header.ornament_patterns[a->ornament];
                                 a->ornament_loop=pt3_data[a->ornament_pointer];
