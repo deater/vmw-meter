@@ -375,10 +375,10 @@ static int calculate_amplitude(struct note_type *a) {
 		else if (amplitude > 15) amplitude = 15;
 
 //              if PlParams.PT3.PT3_Version <= 4 {
-//			amplitude = PT3VolumeTable_33_34[a->volume][amplitude];
+			amplitude = PT3VolumeTable_33_34[a->volume][amplitude];
 //              }
 //              else {
-			amplitude = PT3VolumeTable_35[a->volume][amplitude];
+//			amplitude = PT3VolumeTable_35[a->volume][amplitude];
 //              }
 
 		if (((b0 & 0x1) == 0) && ( a->envelope_enabled)) {
