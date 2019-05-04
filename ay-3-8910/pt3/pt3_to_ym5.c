@@ -197,6 +197,22 @@ struct pt3_song_t {
 	struct note_type a_old,b_old,c_old;
 	int music_len;
 	int current_pattern;
+
+	int envelope_type;
+	int envelope_type_old;
+	int envelope_period;
+	int envelope_period_old;
+	int envelope_slide;
+	int envelope_slide_add;
+	int envelope_add;
+	int envelope_delay;
+	int envelope_delay_orig;
+	int mixer_value;
+
+	int noise_period;
+	int noise_base;
+	int noise_add;
+
 	unsigned char data[MAX_PT3_SIZE];
 };
 
@@ -273,26 +289,9 @@ static int pt3_load_header(int verbose, struct pt3_song_t *pt3) {
 }
 
 
-static int envelope_type=0;
-static int envelope_type_old=0;
-static int envelope_period=0;
-static int envelope_period_old=0;
-static int envelope_slide=0;
-static int envelope_slide_add=0;
-static int envelope_add=0;
-static int envelope_delay=0;
-static int envelope_delay_orig=0;
-static int mixer_value=0;
-
-static int noise_period=0;
-static int noise_base=0;
-static int noise_add=0;
-
-static int delay=3;
-static int freq_table=1;
 
 
-int GetNoteFreq(int j) {
+static int GetNoteFreq(int j, int freq_table) {
 
  // case RAM.PT3_TonTableId of
 //  0:if PlParams.PT3.PT3_Version <= 3 then
@@ -380,7 +379,7 @@ static void calculate_note(struct note_type *a, struct pt3_song_t *pt3) {
 //				pt3->data[a->ornament_pointer+a->ornament_position],j);
 		if (j < 0) j = 0;
                 else if (j > 95) j = 95;
-		w = GetNoteFreq(j);
+		w = GetNoteFreq(j,pt3->frequency_table);
 
 		a->tone = (a->tone + a->tone_sliding + w) & 0xfff;
                 if (a->tone_slide_count > 0) {
@@ -452,16 +451,16 @@ static void calculate_note(struct note_type *a, struct pt3_song_t *pt3) {
                         if (( b1 & 0x20) != 0) {
                                 a->envelope_sliding = j;
                         }
-			envelope_add+=j;
+			pt3->envelope_add+=j;
 		}
 		else {
-			noise_add = (b0>>1) + a->noise_sliding;
+			pt3->noise_add = (b0>>1) + a->noise_sliding;
 			if ((b1 & 0x20) != 0) {
-				a->noise_sliding = noise_add;
+				a->noise_sliding = pt3->noise_add;
 			}
 		}
 
-		mixer_value = ((b1 >>1) & 0x48) | mixer_value;
+		pt3->mixer_value = ((b1 >>1) & 0x48) | pt3->mixer_value;
 
 		a->sample_position++;
 		if (a->sample_position >= a->sample_length) {
@@ -477,7 +476,7 @@ static void calculate_note(struct note_type *a, struct pt3_song_t *pt3) {
 		a->amplitude=0;
 	}
 
-        mixer_value=mixer_value>>1;
+        pt3->mixer_value=pt3->mixer_value>>1;
 
         if (a->onoff>0) {
                 a->onoff--;
@@ -546,20 +545,20 @@ static void decode_note(struct note_type *a,
 					a->envelope_enabled=0;
 				}
 				else {
-					envelope_type_old=0x78;
-					envelope_type=(current_val&0xf);
+					pt3->envelope_type_old=0x78;
+					pt3->envelope_type=(current_val&0xf);
 
 					(*addr)++;
 					current_val=pt3->data[*addr];
-					envelope_period=(current_val<<8);
+					pt3->envelope_period=(current_val<<8);
 
 					(*addr)++;
 					current_val=pt3->data[(*addr)];
-					envelope_period|=(current_val&0xff);
+					pt3->envelope_period|=(current_val&0xff);
 
 					a->envelope_enabled=1;
-					envelope_slide=0;
-					envelope_delay=0;
+					pt3->envelope_slide=0;
+					pt3->envelope_delay=0;
 				}
 				(*addr)++;
 				current_val=pt3->data[(*addr)];
@@ -576,7 +575,7 @@ static void decode_note(struct note_type *a,
 				break;
 			case 2:
 				/* Reset noise? */
-				noise_period=(current_val&0xf);
+				pt3->noise_period=(current_val&0xf);
 //				if (current_val==0x20) {
 //					noise_period=0;
 //				}
@@ -585,7 +584,7 @@ static void decode_note(struct note_type *a,
 //				}
 				break;
 			case 3:
-				noise_period=(current_val&0xf)+0x10;
+				pt3->noise_period=(current_val&0xf)+0x10;
 				break;
 			case 4:
 				printf("VMW4: ornament=%x\n",current_val&0xf);
@@ -631,20 +630,20 @@ static void decode_note(struct note_type *a,
 				}
 				else {
 					a->envelope_enabled=1;
-					envelope_type_old=0x78;
-					envelope_type=(current_val&0xf)-1;
+					pt3->envelope_type_old=0x78;
+					pt3->envelope_type=(current_val&0xf)-1;
 
 					(*addr)++;
 					current_val=pt3->data[(*addr)];
-					envelope_period=(current_val<<8);
+					pt3->envelope_period=(current_val<<8);
 
 					(*addr)++;
 					current_val=pt3->data[(*addr)];
-					envelope_period|=(current_val&0xff);
+					pt3->envelope_period|=(current_val&0xff);
 
 					a->ornament_position=0;
-					envelope_slide=0;
-					envelope_delay=0;
+					pt3->envelope_slide=0;
+					pt3->envelope_delay=0;
 
 				}
 				break;
@@ -778,8 +777,8 @@ static void decode_note(struct note_type *a,
 				if (a->tone_slide_step<0) a->tone_slide_step=-a->tone_slide_step;
 
 
-				a->tone_delta=GetNoteFreq(a->note)-
-					GetNoteFreq(prev_note);
+				a->tone_delta=GetNoteFreq(a->note,pt3->frequency_table)-
+					GetNoteFreq(prev_note,pt3->frequency_table);
 				a->slide_to_note=a->note;
 				a->note=prev_note;
 				printf("VMW: slide_step: %x delta %x sliding %x\n",
@@ -797,7 +796,7 @@ static void decode_note(struct note_type *a,
 			if (a->spec_command==0xb) {
 				current_val=pt3->data[(*addr)];
 				a->spec_lo=current_val;
-                                delay=current_val;
+				pt3->speed=current_val;
 				(*addr)++;
 			}
 			if (a->spec_command==0x9) {
@@ -823,7 +822,30 @@ static void decode_note(struct note_type *a,
 
 }
 
-static void print_note(struct note_type *a, struct note_type *a_old) {
+static void print_note(int which, struct pt3_song_t *pt3) {
+
+	struct note_type *a, *a_old;
+
+	if (which=='A') {
+		a=&(pt3->a);
+		a_old=&(pt3->a_old);
+	}
+	else if (which=='B') {
+		a=&(pt3->b);
+		a_old=&(pt3->b_old);
+	}
+	else if (which=='C') {
+		a=&(pt3->c);
+		a_old=&(pt3->c_old);
+	}
+	else {
+		fprintf(stderr,"ERROR unknown note %c\n",which);
+		exit(1);
+	}
+
+
+
+
 	/* A note */
         if (a->note==a_old->note) printf("---");
 	else if (a->note==0xff) printf("R--");
@@ -840,7 +862,7 @@ static void print_note(struct note_type *a, struct note_type *a_old) {
 //	else printf("%X",a->envelope);
 
 //	if ((envelope_period_l==0) || (a->envelope==0)) printf(".");
-	if (a->envelope_enabled) printf("%X",envelope_type);
+	if (a->envelope_enabled) printf("%X",pt3->envelope_type);
 	else printf(".");
 
 	/* A ornament */
@@ -1003,6 +1025,9 @@ int pt3_load_song(char *filename, struct pt3_song_t *pt3) {
 	int fd;
 	int result;
 
+	/* Clear out the struct */
+	memset(pt3,0,sizeof(struct pt3_song_t));
+
 	/* Open file */
 	fd=open(filename,O_RDONLY);
 	if (fd<0) {
@@ -1044,6 +1069,9 @@ int pt3_load_song(char *filename, struct pt3_song_t *pt3) {
 	memset(&pt3->b_old,0,sizeof(struct note_type));
 	memset(&pt3->c_old,0,sizeof(struct note_type));
 
+	/* Some defaults */
+	pt3->speed=3;
+
 	dump_header(pt3);
 
 	return 0;
@@ -1072,8 +1100,8 @@ void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame) {
 	/* clear out frame */
 	memset(frame,0,16);
 
-	mixer_value=0;
-	envelope_add=0;
+	pt3->mixer_value=0;
+	pt3->envelope_add=0;
 
 	calculate_note(&pt3->a,pt3);
 	calculate_note(&pt3->b,pt3);
@@ -1093,9 +1121,9 @@ void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame) {
 //	}
 
 	/* Noise */
-	frame[6]= (noise_base+noise_add)&0x1f;
+	frame[6]= (pt3->noise_base+pt3->noise_add)&0x1f;
 
-	frame[7]=mixer_value;
+	frame[7]=pt3->mixer_value;
 
 //	if (a.enabled) {
 		frame[8]=pt3->a.amplitude;
@@ -1109,30 +1137,30 @@ void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame) {
 
 	/* Envelope period */
 
-	temp_envelope=envelope_period+
-			envelope_add+
-			envelope_slide;
+	temp_envelope=pt3->envelope_period+
+			pt3->envelope_add+
+			pt3->envelope_slide;
 	frame[11]=(temp_envelope&0xff);
 	frame[12]=(temp_envelope>>8);
 
 	printf("VMW ENV %x, period=%x add=%x slide=%x\n",
 			temp_envelope,
-			envelope_period,envelope_add,envelope_slide);
+			pt3->envelope_period,pt3->envelope_add,pt3->envelope_slide);
 
 	/* Envelope shape */
-	if (envelope_type==envelope_type_old) {
+	if (pt3->envelope_type==pt3->envelope_type_old) {
 		frame[13]=0xff;
 	}
 	else {
-		frame[13]=envelope_type;
+		frame[13]=pt3->envelope_type;
 	}
-	envelope_type_old=envelope_type;
+	pt3->envelope_type_old=pt3->envelope_type;
 
-	if (envelope_delay > 0) {
-		envelope_delay--;
-		if (envelope_delay==0) {
-			envelope_delay=envelope_delay_orig;
-			envelope_slide+=envelope_slide_add;
+	if (pt3->envelope_delay > 0) {
+		pt3->envelope_delay--;
+		if (pt3->envelope_delay==0) {
+			pt3->envelope_delay=pt3->envelope_delay_orig;
+			pt3->envelope_slide+=pt3->envelope_slide_add;
 		}
 	}
 }
@@ -1181,8 +1209,8 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
+	/* Start filling in the ym file */
 
-	/* Create the ym fiel */
 	/* Skip header, we'll fill in later */
 	ym5_header_length=sizeof(struct ym_header)+
 		strlen(pt3.name)+1+
@@ -1192,7 +1220,7 @@ int main(int argc, char **argv) {
 
 
 
-	noise_period=0;
+	pt3.noise_period=0;
 
 	for(i=0;i < pt3.music_len;i++) {
 		pt3.current_pattern=pt3.data[0xc9+i]/3;
@@ -1235,27 +1263,27 @@ int main(int argc, char **argv) {
 			printf("%02x|",j);
 
 			/* envelope */
-			if ((envelope_period>>8)==0) printf("..");
-			else printf("%02X",envelope_period>>8);
-			if (envelope_period&0xff) printf("..");
-			else printf("%02X",envelope_period&0xff);
+			if ((pt3.envelope_period>>8)==0) printf("..");
+			else printf("%02X",pt3.envelope_period>>8);
+			if (pt3.envelope_period&0xff) printf("..");
+			else printf("%02X",pt3.envelope_period&0xff);
 
 			/* noise */
 			printf("|");
-			if (noise_period==0) printf("..");
-			else printf("%02X",noise_period);
+			if (pt3.noise_period==0) printf("..");
+			else printf("%02X",pt3.noise_period);
 			printf("|");
 
-			print_note(&pt3.a,&pt3.a_old);
-			print_note(&pt3.b,&pt3.b_old);
-			print_note(&pt3.c,&pt3.c_old);
+			print_note('A',&pt3);
+			print_note('B',&pt3);
+			print_note('C',&pt3);
 
 			memcpy(&pt3.a_old,&pt3.a,sizeof(struct note_type));
 			memcpy(&pt3.b_old,&pt3.b,sizeof(struct note_type));
 			memcpy(&pt3.c_old,&pt3.c,sizeof(struct note_type));
-			envelope_period_old=(envelope_period);
+			pt3.envelope_period_old=(pt3.envelope_period);
 
-			for(f=0;f<delay;f++) {
+			for(f=0;f<pt3.speed;f++) {
 				pt3_make_frame(&pt3,frame);
 
 				write(out_fd,frame,16);
