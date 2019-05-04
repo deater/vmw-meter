@@ -609,7 +609,7 @@ static void decode_note(struct note_type *a,
 				break;
 			case 0xc:	/* volume */
 				if ((current_val&0xf)==0) {
-					a->note=0xff;
+					//a->note=0xff;
 
                                         a->sample_position=0;
                                         a->amplitude_sliding=0;
@@ -1106,39 +1106,39 @@ int main(int argc, char **argv) {
 				calculate_note(&b);
 				calculate_note(&c);
 
-				if (a.enabled) {
+//				if (a.enabled) {
 //					frame[0]=PT3NoteTable_ST[a.note]&0xff;
 //					frame[1]=(PT3NoteTable_ST[a.note]>>8)&0xff;
 					frame[0]=a.tone&0xff;
 					frame[1]=(a.tone>>8)&0xff;
-				}
-				if (b.enabled) {
+//				}
+//				if (b.enabled) {
 //					frame[2]=PT3NoteTable_ST[b.note]&0xff;
 //					frame[3]=(PT3NoteTable_ST[b.note]>>8)&0xff;
 					frame[2]=b.tone&0xff;
 					frame[3]=(b.tone>>8)&0xff;
-				}
-				if (c.enabled) {
+//				}
+//				if (c.enabled) {
 //					frame[4]=PT3NoteTable_ST[c.note]&0xff;
 //					frame[5]=(PT3NoteTable_ST[c.note]>>8)&0xff;
 					frame[4]=c.tone&0xff;
 					frame[5]=(c.tone>>8)&0xff;
-				}
+//				}
 
 				/* Noise */
 				frame[6]= (noise_base+noise_add)&0x1f;
 
 				frame[7]=mixer_value;
 
-				if (a.enabled) {
+//				if (a.enabled) {
 					frame[8]=a.amplitude;
-				}
-				if (b.enabled) {
+//				}
+//				if (b.enabled) {
 					frame[9]=b.amplitude;
-				}
-				if (c.enabled) {
+//				}
+//				if (c.enabled) {
 					frame[10]=c.amplitude;
-				}
+//				}
 
 				/* Envelope period */
 				int temp_envelope;
