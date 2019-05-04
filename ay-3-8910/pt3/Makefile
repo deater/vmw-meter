@@ -8,7 +8,7 @@ out.ym5:	out.ym
 	../conversion_tools/ym_to_ym5 out
 
 out.ym:	pt3_to_ym5
-	./pt3_to_ym5
+	./pt3_to_ym5 mmcm_sr.pt3
 
 ###
 
