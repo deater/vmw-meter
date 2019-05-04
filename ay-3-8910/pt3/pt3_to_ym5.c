@@ -141,14 +141,14 @@ struct pt3_song_t {
 	unsigned short sample_patterns[32];
 	unsigned short ornament_patterns[16];
 	unsigned short pattern_order;
+	unsigned short a_addr,b_addr,c_addr;
+	int music_len;
+	int current_pattern;
 	unsigned char data[MAX_PT3_SIZE];
 };
 
 
-unsigned char *aptr,*bptr,*cptr;
-unsigned short a_addr,b_addr,c_addr;
 
-static int music_len=0,current_pattern=0;
 
 static int pt3_load_header(int verbose, struct pt3_song_t *pt3) {
 
@@ -206,6 +206,14 @@ static int pt3_load_header(int verbose, struct pt3_song_t *pt3) {
 
 	/* Pattern Order */
 	pt3->pattern_order=(pt3->data[0xca]<<8)|pt3->data[0xc9];
+
+	/* Calculate number of patterns in song */
+	i=0;
+	while(1) {
+		if (pt3->data[0xc9+i]==0xff) break;
+		i++;
+		pt3->music_len++;
+	}
 
 	return 0;
 
@@ -913,7 +921,6 @@ void dump_header(struct pt3_song_t *pt3) {
 		if (pt3->data[0xc9+i]==0xff) break;
 		printf("%02d ",pt3->data[0xc9+i]/3);
 		i++;
-		music_len++;
 	}
 	printf("\n");
 
@@ -1074,14 +1081,12 @@ int main(int argc, char **argv) {
 	}
 
 
-
-
+	/* Create the ym fiel */
 	/* Skip header, we'll fill in later */
 	ym5_header_length=sizeof(struct ym_header)+
 		strlen(pt3.name)+1+
 		strlen(pt3.author)+1+
 		strlen(ym5_comment)+1;
-
 	lseek(out_fd, ym5_header_length, SEEK_SET);
 
 	struct note_type a,b,c;
@@ -1100,29 +1105,25 @@ int main(int argc, char **argv) {
 
 	noise_period=0;
 
-	for(i=0;i<music_len;i++) {
-		current_pattern=pt3.data[0xc9+i]/3;
+	for(i=0;i < pt3.music_len;i++) {
+		pt3.current_pattern=pt3.data[0xc9+i]/3;
 		printf("Chunk %d/%d, 00:00/00:00, Pattern #%d\n",
-			i,music_len-1,current_pattern);
+			i,pt3.music_len-1,pt3.current_pattern);
 
-		a_addr=pt3.data[(current_pattern*6)+0+pt3.pattern_loc] |
-			(pt3.data[(current_pattern*6)+1+pt3.pattern_loc]<<8);
+		pt3.a_addr=pt3.data[(pt3.current_pattern*6)+0+pt3.pattern_loc] |
+			(pt3.data[(pt3.current_pattern*6)+1+pt3.pattern_loc]<<8);
 
-		b_addr=pt3.data[(current_pattern*6)+2+pt3.pattern_loc] |
-			(pt3.data[(current_pattern*6)+3+pt3.pattern_loc]<<8);
+		pt3.b_addr=pt3.data[(pt3.current_pattern*6)+2+pt3.pattern_loc] |
+			(pt3.data[(pt3.current_pattern*6)+3+pt3.pattern_loc]<<8);
 
-		c_addr=pt3.data[(current_pattern*6)+4+pt3.pattern_loc] |
-			(pt3.data[(current_pattern*6)+5+pt3.pattern_loc]<<8);
+		pt3.c_addr=pt3.data[(pt3.current_pattern*6)+4+pt3.pattern_loc] |
+			(pt3.data[(pt3.current_pattern*6)+5+pt3.pattern_loc]<<8);
 
 		printf("a_addr: %04x, b_addr: %04x, c_addr: %04x\n",
-				a_addr,b_addr,c_addr);
-
-		aptr=&pt3.data[a_addr];
-		bptr=&pt3.data[b_addr];
-		cptr=&pt3.data[c_addr];
+				pt3.a_addr,pt3.b_addr,pt3.c_addr);
 
 		printf("Cdata: ");
-		for(j=0;j<32;j++) printf("%02x ",pt3.data[c_addr+j]);
+		for(j=0;j<32;j++) printf("%02x ",pt3.data[pt3.c_addr+j]);
 		printf("\n");
 
 		for(j=0;j<64;j++) {
@@ -1132,9 +1133,9 @@ int main(int argc, char **argv) {
 
 			//envelope_period=0;
 
-			decode_note(&a,&a_addr,&pt3);
-			decode_note(&b,&b_addr,&pt3);
-			decode_note(&c,&c_addr,&pt3);
+			decode_note(&a,&(pt3.a_addr),&pt3);
+			decode_note(&b,&(pt3.b_addr),&pt3);
+			decode_note(&c,&(pt3.c_addr),&pt3);
 
 
 			if (a.all_done && b.all_done && c.all_done) {
@@ -1268,6 +1269,7 @@ int main(int argc, char **argv) {
 	}
 
 
+	/* Finish out ym5 file */
 
 	/* Print End! marker */
 	write(out_fd,"End!",4);
