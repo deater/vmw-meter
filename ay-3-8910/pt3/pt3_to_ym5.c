@@ -1071,6 +1071,7 @@ int pt3_load_song(char *filename, struct pt3_song_t *pt3) {
 
 	/* Some defaults */
 	pt3->speed=3;
+	pt3->noise_period=0;
 
 	dump_header(pt3);
 
@@ -1165,6 +1166,65 @@ void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame) {
 	}
 }
 
+void pt3_print_tracker_line(struct pt3_song_t *pt3, int line) {
+
+	/* Print line of tracker */
+
+	/* line */
+	printf("%02x|",line);
+
+	/* envelope */
+	if ((pt3->envelope_period>>8)==0) printf("..");
+	else printf("%02X",pt3->envelope_period>>8);
+	if (pt3->envelope_period&0xff) printf("..");
+	else printf("%02X",pt3->envelope_period&0xff);
+
+	/* noise */
+	printf("|");
+	if (pt3->noise_period==0) printf("..");
+	else printf("%02X",pt3->noise_period);
+	printf("|");
+
+	print_note('A',pt3);
+	print_note('B',pt3);
+	print_note('C',pt3);
+
+	memcpy(&pt3->a_old,&pt3->a,sizeof(struct note_type));
+	memcpy(&pt3->b_old,&pt3->b,sizeof(struct note_type));
+	memcpy(&pt3->c_old,&pt3->c,sizeof(struct note_type));
+	pt3->envelope_period_old=(pt3->envelope_period);
+}
+
+
+int pt3_decode_line(struct pt3_song_t *pt3) {
+
+	decode_note(&pt3->a,&(pt3->a_addr),pt3);
+	decode_note(&pt3->b,&(pt3->b_addr),pt3);
+	decode_note(&pt3->c,&(pt3->c_addr),pt3);
+
+
+	if (pt3->a.all_done && pt3->b.all_done && pt3->c.all_done) {
+		return 1;
+	}
+	return 0;
+
+}
+
+void pt3_set_pattern(int i, struct pt3_song_t *pt3) {
+
+	pt3->current_pattern=pt3->data[0xc9+i]/3;
+
+	pt3->a_addr=pt3->data[(pt3->current_pattern*6)+0+pt3->pattern_loc] |
+		(pt3->data[(pt3->current_pattern*6)+1+pt3->pattern_loc]<<8);
+
+	pt3->b_addr=pt3->data[(pt3->current_pattern*6)+2+pt3->pattern_loc] |
+		(pt3->data[(pt3->current_pattern*6)+3+pt3->pattern_loc]<<8);
+
+	pt3->c_addr=pt3->data[(pt3->current_pattern*6)+4+pt3->pattern_loc] |
+		(pt3->data[(pt3->current_pattern*6)+5+pt3->pattern_loc]<<8);
+
+}
+
 int main(int argc, char **argv) {
 
 	char filename[BUFSIZ];
@@ -1220,22 +1280,13 @@ int main(int argc, char **argv) {
 
 
 
-	pt3.noise_period=0;
 
 	for(i=0;i < pt3.music_len;i++) {
-		pt3.current_pattern=pt3.data[0xc9+i]/3;
+
+		pt3_set_pattern(i,&pt3);
+
 		printf("Chunk %d/%d, 00:00/00:00, Pattern #%d\n",
 			i,pt3.music_len-1,pt3.current_pattern);
-
-		pt3.a_addr=pt3.data[(pt3.current_pattern*6)+0+pt3.pattern_loc] |
-			(pt3.data[(pt3.current_pattern*6)+1+pt3.pattern_loc]<<8);
-
-		pt3.b_addr=pt3.data[(pt3.current_pattern*6)+2+pt3.pattern_loc] |
-			(pt3.data[(pt3.current_pattern*6)+3+pt3.pattern_loc]<<8);
-
-		pt3.c_addr=pt3.data[(pt3.current_pattern*6)+4+pt3.pattern_loc] |
-			(pt3.data[(pt3.current_pattern*6)+5+pt3.pattern_loc]<<8);
-
 		printf("a_addr: %04x, b_addr: %04x, c_addr: %04x\n",
 				pt3.a_addr,pt3.b_addr,pt3.c_addr);
 
@@ -1247,42 +1298,18 @@ int main(int argc, char **argv) {
 
 			printf("VMW frame: %d\n",frames);
 
-			decode_note(&pt3.a,&(pt3.a_addr),&pt3);
-			decode_note(&pt3.b,&(pt3.b_addr),&pt3);
-			decode_note(&pt3.c,&(pt3.c_addr),&pt3);
-
-
-			if (pt3.a.all_done && pt3.b.all_done && pt3.c.all_done) {
-				break;
-			}
-
+			/* decode line. 1 if done early */
+			if (pt3_decode_line(&pt3)) break;
 
 			/* Print line of tracker */
+			pt3_print_tracker_line(&pt3,j);
 
-			/* line */
-			printf("%02x|",j);
+//			memcpy(&pt3.a_old,&pt3.a,sizeof(struct note_type));
+//			memcpy(&pt3.b_old,&pt3.b,sizeof(struct note_type));
+//			memcpy(&pt3.c_old,&pt3.c,sizeof(struct note_type));
+//			pt3.envelope_period_old=(pt3.envelope_period);
 
-			/* envelope */
-			if ((pt3.envelope_period>>8)==0) printf("..");
-			else printf("%02X",pt3.envelope_period>>8);
-			if (pt3.envelope_period&0xff) printf("..");
-			else printf("%02X",pt3.envelope_period&0xff);
-
-			/* noise */
-			printf("|");
-			if (pt3.noise_period==0) printf("..");
-			else printf("%02X",pt3.noise_period);
-			printf("|");
-
-			print_note('A',&pt3);
-			print_note('B',&pt3);
-			print_note('C',&pt3);
-
-			memcpy(&pt3.a_old,&pt3.a,sizeof(struct note_type));
-			memcpy(&pt3.b_old,&pt3.b,sizeof(struct note_type));
-			memcpy(&pt3.c_old,&pt3.c,sizeof(struct note_type));
-			pt3.envelope_period_old=(pt3.envelope_period);
-
+			/* Dump out subframes of line */
 			for(f=0;f<pt3.speed;f++) {
 				pt3_make_frame(&pt3,frame);
 
