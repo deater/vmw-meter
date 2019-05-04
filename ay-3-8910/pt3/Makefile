@@ -20,8 +20,8 @@ decode_pt3.o:	decode_pt3.c
 
 ###
 
-pt3_to_ym5:	pt3_to_ym5.o #pt3_lib.o
-	$(CC) $(LFLAGS) -o pt3_to_ym5 pt3_to_ym5.o #pt3_lib.o
+pt3_to_ym5:	pt3_to_ym5.o pt3_lib.o
+	$(CC) $(LFLAGS) -o pt3_to_ym5 pt3_to_ym5.o pt3_lib.o
 
 pt3_to_ym5.o:	pt3_to_ym5.c
 	$(CC) $(CFLAGS) -c pt3_to_ym5.c
