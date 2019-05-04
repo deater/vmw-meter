@@ -81,6 +81,142 @@ static void print_help(int just_version, char *exec_name) {
 	exit(0);
 }
 
+
+static int frame_num=0;
+static int current_mode=MODE_VISUAL;
+
+static int handle_keypress(struct ym_song_t *ym_song) {
+
+	int display_command=0;
+
+	/* Handle keypresses */
+	do {
+		display_command=display_keypad_read(display_type);
+
+		if (display_command==CMD_MUTE_A) {
+			if (mute_channel&0x01) mute_channel&=~0x01;
+			else mute_channel|=0x01;
+			printf("NEW %x\n",mute_channel);
+		}
+		if (display_command==CMD_MUTE_B) {
+			if (mute_channel&0x2) mute_channel&=~0x02;
+			else mute_channel|=0x02;
+			printf("NEW %x\n",mute_channel);
+		}
+		if (display_command==CMD_MUTE_C) {
+			if (mute_channel&0x04) mute_channel&=~0x04;
+			else mute_channel|=0x04;
+			printf("NEW %x\n",mute_channel);
+		}
+		if (display_command==CMD_MUTE_NA) {
+			if (mute_channel&0x08) mute_channel&=~0x08;
+			else mute_channel|=0x08;
+			printf("NEW %x\n",mute_channel);
+		}
+		if (display_command==CMD_MUTE_NB) {
+			if (mute_channel&0x10) mute_channel&=~0x10;
+			else mute_channel|=0x10;
+			printf("NEW %x\n",mute_channel);
+		}
+		if (display_command==CMD_MUTE_NC) {
+			if (mute_channel&0x20) mute_channel&=~0x20;
+			else mute_channel|=0x20;
+			printf("NEW %x\n",mute_channel);
+		}
+		if (display_command==CMD_MUTE_ENVELOPE) {
+			if (mute_channel&0x40) mute_channel&=~0x40;
+			else mute_channel|=0x40;
+			printf("NEW %x\n",mute_channel);
+		}
+
+		if (display_command==CMD_EXIT_PROGRAM) {
+			free(ym_song->file_data);
+			return CMD_EXIT_PROGRAM;
+		}
+
+		/* prev song */
+		if (display_command==CMD_BACK) {
+			free(ym_song->file_data);
+			return CMD_BACK;
+		}
+		/* next song */
+		if (display_command==CMD_NEXT) {
+			free(ym_song->file_data);
+			return CMD_NEXT;
+		}
+
+		/* rewind = Beginning of track */
+		if (display_command==CMD_RW) {
+			frame_num=0;
+		}
+
+		/* fastfwd = skip ahead 5s */
+		if (display_command==CMD_FF) {
+			frame_num+=5*ym_song->frame_rate;
+		}
+
+		if (display_command==CMD_PLAY) {
+			if (music_paused) {
+				music_paused=0;
+				max98306_enable();
+			}
+			else {
+				music_paused=1;
+				quiet_ay_3_8910(shift_size);
+				max98306_disable();
+			}
+		}
+
+		if (display_command==CMD_STOP) {
+			if (!music_paused) {
+				music_paused=1;
+				quiet_ay_3_8910(shift_size);
+				max98306_disable();
+			}
+		}
+
+		if (display_command==CMD_VOL_UP) {
+			volume++;
+			if (volume>5) volume=5;
+			max98306_set_volume(volume);
+		}
+
+		if (display_command==CMD_VOL_DOWN) {
+			volume--;
+			if (volume<0) volume=0;
+			max98306_set_volume(volume);
+		}
+
+		if (display_command==CMD_AMP_OFF) {
+			printf("AMP OFF %x\n",display_command);
+			if (play_music) max98306_disable();
+		}
+
+		if (display_command==CMD_AMP_ON) {
+			printf("AMP ON %x\n",display_command);
+			if (play_music) max98306_enable();
+		}
+
+
+		if (display_command==CMD_MENU) {
+			current_mode++;
+			if (current_mode>=MODE_MAX) current_mode=0;
+		}
+
+
+		if (display_command==CMD_LOOP) {
+			music_loop=!music_loop;
+			if (music_loop) printf("MUSIC LOOP ON\n");
+			else printf("MUSIC LOOP OFF\n");
+		}
+
+		/* Avoid spinning CPU if paused */
+		if (music_paused) usleep(100000);
+	} while (music_paused);
+
+	return 0;
+}
+
 #define TEXT_MODE_BANNER	0
 #define TEXT_MODE_FILENAME	1
 #define TEXT_MODE_SONGNAME	2
@@ -98,15 +234,15 @@ static void print_help(int just_version, char *exec_name) {
 /*   display_string:        5ms (slow!  3 i2c addresses            */
 /*				5.02ms (Linux) 4.9ms (libbcm)	   */
 
-static int current_mode=MODE_VISUAL;
+
 
 static int play_song(char *filename) {
 
 	int length_seconds;
 	double s,n,hz,diff;
 
-	int display_command=0,result;
-	int frame_num=0,frames_elapsed=0;
+	int result;
+	int frames_elapsed=0;
 
 	struct timeval start,next;
 
@@ -176,7 +312,7 @@ static int play_song(char *filename) {
 		if (!music_paused) {
 
 #if TIMING_DEBUG==1
-		gettimeofday(&before,NULL);
+			gettimeofday(&before,NULL);
 #endif
 
 			ym_play_frame(&ym_song,frame_num,shift_size,
@@ -186,10 +322,10 @@ static int play_song(char *filename) {
 
 
 #if TIMING_DEBUG==1
-		gettimeofday(&after,NULL);
-		b=before.tv_sec+(before.tv_usec/1000000.0);
-		a=after.tv_sec+(after.tv_usec/1000000.0);
-		fprintf(debug_file,"T: %lf\n",(a-b));
+			gettimeofday(&after,NULL);
+			b=before.tv_sec+(before.tv_usec/1000000.0);
+			a=after.tv_sec+(after.tv_usec/1000000.0);
+			fprintf(debug_file,"T: %lf\n",(a-b));
 #endif
 
 
@@ -209,127 +345,8 @@ static int play_song(char *filename) {
 			}
 		}
 
-		/* Handle keypresses */
-		do {
-			display_command=display_keypad_read(display_type);
-
-			if (display_command==CMD_MUTE_A) {
-				if (mute_channel&0x01) mute_channel&=~0x01;
-				else mute_channel|=0x01;
-				printf("NEW %x\n",mute_channel);
-			}
-			if (display_command==CMD_MUTE_B) {
-				if (mute_channel&0x2) mute_channel&=~0x02;
-				else mute_channel|=0x02;
-				printf("NEW %x\n",mute_channel);
-			}
-			if (display_command==CMD_MUTE_C) {
-				if (mute_channel&0x04) mute_channel&=~0x04;
-				else mute_channel|=0x04;
-				printf("NEW %x\n",mute_channel);
-			}
-			if (display_command==CMD_MUTE_NA) {
-				if (mute_channel&0x08) mute_channel&=~0x08;
-				else mute_channel|=0x08;
-				printf("NEW %x\n",mute_channel);
-			}
-			if (display_command==CMD_MUTE_NB) {
-				if (mute_channel&0x10) mute_channel&=~0x10;
-				else mute_channel|=0x10;
-				printf("NEW %x\n",mute_channel);
-			}
-			if (display_command==CMD_MUTE_NC) {
-				if (mute_channel&0x20) mute_channel&=~0x20;
-				else mute_channel|=0x20;
-				printf("NEW %x\n",mute_channel);
-			}
-			if (display_command==CMD_MUTE_ENVELOPE) {
-				if (mute_channel&0x40) mute_channel&=~0x40;
-				else mute_channel|=0x40;
-				printf("NEW %x\n",mute_channel);
-			}
-
-			if (display_command==CMD_EXIT_PROGRAM) {
-				free(ym_song.file_data);
-				return CMD_EXIT_PROGRAM;
-			}
-
-			/* prev song */
-			if (display_command==CMD_BACK) {
-				free(ym_song.file_data);
-				return CMD_BACK;
-			}
-			/* next song */
-			if (display_command==CMD_NEXT) {
-				free(ym_song.file_data);
-				return CMD_NEXT;
-			}
-
-			/* rewind = Beginning of track */
-			if (display_command==CMD_RW) {
-				frame_num=0;
-			}
-
-			/* fastfwd = skip ahead 5s */
-			if (display_command==CMD_FF) {
-				frame_num+=5*ym_song.frame_rate;
-			}
-
-			if (display_command==CMD_PLAY) {
-				if (music_paused) {
-					music_paused=0;
-					max98306_enable();
-				}
-				else {
-					music_paused=1;
-					quiet_ay_3_8910(shift_size);
-					max98306_disable();
-				}
-			}
-
-			if (display_command==CMD_STOP) {
-				if (!music_paused) {
-					music_paused=1;
-					quiet_ay_3_8910(shift_size);
-					max98306_disable();
-				}
-			}
-
-			if (display_command==CMD_VOL_UP) {
-				volume++;
-				if (volume>5) volume=5;
-				max98306_set_volume(volume);
-			}
-
-			if (display_command==CMD_VOL_DOWN) {
-				volume--;
-				if (volume<0) volume=0;
-				max98306_set_volume(volume);
-			}
-
-			if (display_command==CMD_AMP_OFF) {
-				max98306_disable();
-			}
-
-			if (display_command==CMD_AMP_ON) {
-				max98306_enable();
-			}
-
-
-			if (display_command==CMD_MENU) {
-				current_mode++;
-				if (current_mode>=MODE_MAX) current_mode=0;
-			}
-
-
-			if (display_command==CMD_LOOP) {
-				music_loop=!music_loop;
-				if (music_loop) printf("MUSIC LOOP ON\n");
-				else printf("MUSIC LOOP OFF\n");
-			}
-			/* Avoid spinning CPU if paused */
-			if (music_paused) usleep(100000);
-		} while (music_paused);
+		result=handle_keypress(&ym_song);
+		if (result!=0) return result;
 
 		/* increment frame */
 		if (!music_paused) frame_num++;
@@ -343,6 +360,7 @@ static int play_song(char *filename) {
 				break;
 			}
 		}
+
 
 		frames_elapsed++;
 

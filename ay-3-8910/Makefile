@@ -3,6 +3,7 @@ include Makefile.include
 DISPLAY_INCLUDE = -I./chiptune_display/
 AUDIO_INCLUDE = -I./chiptune_audio/
 YM_INCLUDE = -I./ymlib/
+PT3_INCLUDE = -I./pt3/
 VISUAL_INCLUDE = -I./visualizations/
 
 AUDIO_LIB = ./chiptune_audio/audio.a $(LIBBCM2835)
@@ -56,19 +57,22 @@ play_ym.o:	play_ym.c ./chiptune_display/display.h ./chiptune_audio/ay-3-8910.h
 		$(VISUAL_INCLUDE) $(YM_INCLUDE) \
 		$(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c play_ym.c
 
-
-pt3lib.o:	pt3lib.c
-	$(CC) $(CFLAGS) -c pt3lib.c
-
 ###
 
-play_pt3:	play_pt3.o ./chiptune_audio/audio.a pt3lib.o
+play_pt3:	play_pt3.o ./chiptune_audio/audio.a ./pt3/pt3_lib.o \
+			chiptune_display/display.a \
+			visualizations/visual.a \
+			noteslib/notes.o
 	$(CC) $(LFLAGS) -o play_pt3 play_pt3.o \
-			./chiptune_audio/audio.a pt3lib.o \
+			./chiptune_audio/audio.a ./pt3/pt3_lib.o \
+			chiptune_display/display.a \
+			visualizations/visual.a \
+			noteslib/notes.o \
 			$(LIBBCM2835)
 
-play_pt3.o:	play_pt3.c ./chiptune_audio/ay-3-8910.h
-	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) \
+play_pt3.o:	play_pt3.c ./chiptune_display/display.h ./chiptune_audio/ay-3-8910.h
+	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) $(AUDIO_INCLUDE) \
+		$(VISUAL_INCLUDE) $(PT3_INCLUDE) \
 		-c play_pt3.c
 
 
