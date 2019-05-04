@@ -150,7 +150,7 @@ unsigned short a_addr,b_addr,c_addr;
 
 static int music_len=0,current_pattern=0;
 
-static int load_header(void) {
+static int pt3_load_header(int verbose) {
 
 	int i;
 
@@ -363,9 +363,9 @@ static void calculate_note(struct note_type *a) {
 			a->tone_accumulator=a->tone;
 		}
 		j = a->note + ((pt3_data[a->ornament_pointer + a->ornament_position]<<24)>>24);
-		if (a->which=='C') printf("VMW: ORN %x %x[%x]=%x j=%x\n",
-			a->note,a->ornament_pointer,a->ornament_position,
-				pt3_data[a->ornament_pointer+a->ornament_position],j);
+//		if (a->which=='C') printf("VMW: ORN %x %x[%x]=%x j=%x\n",
+//			a->note,a->ornament_pointer,a->ornament_position,
+//				pt3_data[a->ornament_pointer+a->ornament_position],j);
 		if (j < 0) j = 0;
                 else if (j > 95) j = 95;
 		w = GetNoteFreq(j);
@@ -391,36 +391,37 @@ static void calculate_note(struct note_type *a) {
 
 		a->amplitude= (b1 & 0xf);
 
-		if (a->which=='C') {
-			printf("VMWC: sample=%d ptr=%x b0=%x\n",
+		if (a->which=='B') {
+			printf("VMWB: sample=%d ptr=%x b0=%x\n",
 				a->sample,a->sample_pointer,b0);
 		}
 
 		if ((b0 & 0x80)!=0) {
 			if ((b0&0x40)!=0) {
-				if (a->which=='C') printf("VMWC: C0 amp sliding %d\n",a->amplitude_sliding);
+				if (a->which=='B') printf("VMWB: C0 amp sliding %d\n",a->amplitude_sliding);
 				if (a->amplitude_sliding < 15) {
 					a->amplitude_sliding++;
 				}
 			}
 			else {
-				if (a->which=='C') printf("VMWC: 80 amp sliding %d\n",a->amplitude_sliding);
+				if (a->which=='B') printf("VMWB: 80 amp sliding %d\n",a->amplitude_sliding);
 				if (a->amplitude_sliding > -15) {
 					a->amplitude_sliding--;
 				}
 			}
 		}
-		printf("VMW: amp sliding %d\n",a->amplitude_sliding);
 		a->amplitude+=a->amplitude_sliding;
+		if (a->which=='B') printf("VMWB: amp sliding %d AMP=%x\n",
+				a->amplitude_sliding,a->amplitude);
 
 		if (a->amplitude < 0) a->amplitude = 0;
 		else if (a->amplitude > 15) a->amplitude = 15;
 
 //              if PlParams.PT3.PT3_Version <= 4 {
-			a->amplitude = PT3VolumeTable_33_34[a->volume][a->amplitude];
+//			a->amplitude = PT3VolumeTable_33_34[a->volume][a->amplitude];
 //              }
 //              else {
-//			amplitude = PT3VolumeTable_35[a->volume][a->amplitude];
+			a->amplitude = PT3VolumeTable_35[a->volume][a->amplitude];
 //              }
 
 		if (((b0 & 0x1) == 0) && ( a->envelope_enabled)) {
@@ -857,58 +858,36 @@ static void print_note(struct note_type *a, struct note_type *a_old) {
 
 unsigned char frame[16];
 
-int main(int argc, char **argv) {
+#define MAX_PT3_STRING	256
 
-	char filename[BUFSIZ];
-	int i,j,f;
-	int fd,out,addr;
-	int result,sample_loop,sample_len;
-	int digidrums=0;
-	int attributes=0;
-	int irq=50,loop=0;
-	char comments[]="VMW pt3_to_ym5";
-	int header_length;
-
-	if (argc>1) {
-		strncpy(filename,argv[1],BUFSIZ-1);
-	}
-	else {
-		strncpy(filename,"ea.pt3",BUFSIZ-1);
-	}
-
-	fd=open(filename,O_RDONLY);
-	if (fd<0) {
-		fprintf(stderr,"Error opening %s: %s\n",
-			filename,strerror(errno));
-		return -1;
-
-	}
-
-	out=open("out.ym",O_WRONLY|O_CREAT,0666);
-	if (out<0) {
-		fprintf(stderr,"Error opening \n");
-		return -1;
-	}
-
-	memset(&pt3_data,0,MAX_PT3_SIZE);
-
-	result=read(fd,pt3_data,MAX_PT3_SIZE);
-	if (result<0) {
-		fprintf(stderr,"Error reading file: %s\n",
-			strerror(errno));
-		return -1;
-	}
-
-	close(fd);
-
-	memcpy(&raw_header,&pt3_data,HEADER_SIZE);
-	result=load_header();
-	if (result) {
-		fprintf(stderr,"Error decoding header!\n");
-		return -1;
-	}
+struct pt3_song_t {
+        int channels;
+        int type;
+        int file_size;
+        int num_frames;
+        int attributes;
+        int interleaved;
+        int num_digidrum;
+        int drum_size;
+        int master_clock;
+        int frame_rate;
+        int extra_data;
+        int loop_frame;
+        int frame_size;
+        unsigned char *file_data;
+        unsigned char *file_data2;
+        unsigned char *frame_data;
+        unsigned char *frame_data2;
+        char song_name[MAX_PT3_STRING];
+        char author[MAX_PT3_STRING];
+        char comment[MAX_PT3_STRING];
+};
 
 
+
+void dump_header(void) {
+
+	int i,j,addr,loop,len;
 
 	printf("\tNAME: %s\n",header.name);
 	printf("\tBY  : %s\n",header.author);
@@ -918,11 +897,165 @@ int main(int argc, char **argv) {
 			header.num_patterns,
 			header.loop);
 
+	/**************************/
+	/* Print pattern location */
+	/**************************/
+	printf("\tPattern Location Offset: %04x\n",header.pattern_loc);
+
+
+	/**************************/
+	/* Print Sample addresses */
+	/**************************/
+	printf("\tSample pattern addresses:");
+	for(i=0;i<32;i++) {
+		if (i%8==0) printf("\n\t\t");
+		printf("%04x ",header.sample_patterns[i]);
+	}
+	printf("\n");
+
+	/****************************/
+	/* Print Ornamemt addresses */
+	/****************************/
+	printf("\tOrnament addresses:");
+	for(i=0;i<16;i++) {
+		if (i%8==0) printf("\n\t\t");
+		printf("%04x ",header.ornament_patterns[i]);
+	}
+	printf("\n");
+//	printf("\tPattern order @%04x\n",header.pattern_order);
+
+	/**************************/
+	/* Print Pattern Order    */
+	/**************************/
+	i=0;
+	printf("\tPattern order:");
+	while(1) {
+		if (i%16==0) printf("\n\t\t");
+		if (pt3_data[0xc9+i]==0xff) break;
+		printf("%02d ",pt3_data[0xc9+i]/3);
+		i++;
+		music_len++;
+	}
+	printf("\n");
+
+	/***************************/
+	/* Print Pattern addresses */
+	/***************************/
+	printf("\tPattern Locations:\n");
+	for(i=0;i<header.num_patterns;i++) {
+		printf("\t\t%d (%4x):\t",i,(i*6)+header.pattern_loc);
+
+		addr=pt3_data[(i*6)+0+header.pattern_loc] |
+			(pt3_data[(i*6)+1+header.pattern_loc]<<8);
+		printf("A: %04x ",addr);
+
+		addr=pt3_data[(i*6)+2+header.pattern_loc] |
+			(pt3_data[(i*6)+3+header.pattern_loc]<<8);
+		printf("B: %04x ",addr);
+
+		addr=pt3_data[(i*6)+4+header.pattern_loc] |
+			(pt3_data[(i*6)+5+header.pattern_loc]<<8);
+		printf("C: %04x ",addr);
+
+		printf("\n");
+	}
+
+	/**************************/
+	/* Print Sample Data      */
+	/**************************/
+	printf("\tSample Dump:\n");
+	for(i=0;i<32;i++) {
+		printf("\t\t%i: ",i);
+		if (header.sample_patterns[i]==0) printf("N/A\n");
+		else {
+			loop=pt3_data[0+header.sample_patterns[i]];
+			len=pt3_data[1+header.sample_patterns[i]];
+			printf("Loop: %d Length: %d\n",loop,len);
+			for(j=0;j<len;j++) {
+				printf("\t\t\t%02x %02x %02x %02x\n",
+					pt3_data[2+(j*4)+
+						header.sample_patterns[i]],
+					pt3_data[3+(j*4)+
+						header.sample_patterns[i]],
+					pt3_data[4+(j*4)+
+						header.sample_patterns[i]],
+					pt3_data[5+(j*4)+
+						header.sample_patterns[i]]);
+			}
+		}
+	}
+
+
+	/**************************/
+	/* Print Ornament Data    */
+	/**************************/
+	printf("\tOrnament Dump:\n");
+	for(i=0;i<16;i++) {
+		printf("\t\t%i: ",i);
+		if (header.ornament_patterns[i]==0) printf("N/A\n");
+		else {
+			loop=pt3_data[0+	header.ornament_patterns[i]];
+			len=pt3_data[1+header.ornament_patterns[i]];
+			printf("Loop: %d Length: %d\n\t\t\t",loop,len);
+			for(j=0;j<len;j++) {
+				printf("%02x ",
+					pt3_data[2+j+
+					header.ornament_patterns[i]]);
+			}
+			printf("\n");
+		}
+	}
+
+}
+
+int pt3_load_song(char *filename, struct pt3_song_t *pt3_song) {
+
+	int i,j,f;
+	int fd,out;
+	int result;
+	int digidrums=0;
+	int attributes=0;
+	int irq=50,loop=0;
+	char comments[]="VMW pt3_to_ym5";
+	int header_length;
+
+	/* Open file */
+	fd=open(filename,O_RDONLY);
+	if (fd<0) {
+		fprintf(stderr,"Error opening %s: %s\n",
+			filename,strerror(errno));
+		return -1;
+
+	}
+
+	/* Clear out our data */
+	memset(&pt3_data,0,MAX_PT3_SIZE);
+
+	/* Read entire file into memory (probably not that big) */
+	result=read(fd,pt3_data,MAX_PT3_SIZE);
+	if (result<0) {
+		fprintf(stderr,"Error reading file: %s\n",
+			strerror(errno));
+		return -1;
+	}
+
+	/* close the file */
+	close(fd);
+
+	/* copy in the header data */
+	memcpy(&raw_header,&pt3_data,HEADER_SIZE);
+	result=pt3_load_header(1);
+	if (result) {
+		fprintf(stderr,"Error decoding header!\n");
+		return -1;
+	}
+
+	dump_header();
+
 	delay=header.speed;
 	loop=header.loop;
 	freq_table=header.frequency_table;
 
-	printf("\tPattern Location Offset: %04x\n",header.pattern_loc);
 
 	/* Skip header, we'll fill in later */
 	header_length=sizeof(struct ym_header)+
@@ -932,97 +1065,9 @@ int main(int argc, char **argv) {
 
 	lseek(out, header_length, SEEK_SET);
 
-	printf("\tSample pattern addresses:");
-		for(i=0;i<32;i++) {
-			if (i%8==0) printf("\n\t\t");
-			printf("%04x ",header.sample_patterns[i]);
-		}
-		printf("\n");
-		printf("\tOrnament addresses:");
-		for(i=0;i<16;i++) {
-			if (i%8==0) printf("\n\t\t");
-			printf("%04x ",header.ornament_patterns[i]);
-		}
-		printf("\n");
-//		printf("\tPattern order @%04x\n",header.pattern_order);
-
-		i=0;
-		printf("\tPattern order:");
-		while(1) {
-			if (i%16==0) printf("\n\t\t");
-			if (pt3_data[0xc9+i]==0xff) break;
-			printf("%02d ",pt3_data[0xc9+i]/3);
-			i++;
-			music_len++;
-		}
-		printf("\n");
-
-		printf("\tPattern Locations:\n");
-		for(i=0;i<header.num_patterns;i++) {
-			printf("\t\t%d (%4x):\t",i,(i*6)+header.pattern_loc);
-
-			addr=pt3_data[(i*6)+0+header.pattern_loc] |
-				(pt3_data[(i*6)+1+header.pattern_loc]<<8);
-			printf("A: %04x ",addr);
-
-			addr=pt3_data[(i*6)+2+header.pattern_loc] |
-				(pt3_data[(i*6)+3+header.pattern_loc]<<8);
-			printf("B: %04x ",addr);
-
-			addr=pt3_data[(i*6)+4+header.pattern_loc] |
-				(pt3_data[(i*6)+5+header.pattern_loc]<<8);
-			printf("C: %04x ",addr);
-
-			printf("\n");
-		}
-
-		printf("\tSample Dump:\n");
-		for(i=0;i<32;i++) {
-			printf("\t\t%i: ",i);
-			if (header.sample_patterns[i]==0) printf("N/A\n");
-			else {
-				sample_loop=pt3_data[0+
-						header.sample_patterns[i]];
-				sample_len=pt3_data[1+
-						header.sample_patterns[i]];
-				printf("Loop: %d Length: %d\n",
-						sample_loop,
-						sample_len);
-				for(j=0;j<sample_len;j++) {
-					printf("\t\t\t%02x %02x %02x %02x\n",
-						pt3_data[2+(j*4)+
-						header.sample_patterns[i]],
-						pt3_data[3+(j*4)+
-						header.sample_patterns[i]],
-						pt3_data[4+(j*4)+
-						header.sample_patterns[i]],
-						pt3_data[5+(j*4)+
-						header.sample_patterns[i]]);
-				}
-			}
-		}
 
 
-		printf("\tOrnament Dump:\n");
-		for(i=0;i<16;i++) {
-			printf("\t\t%i: ",i);
-			if (header.ornament_patterns[i]==0) printf("N/A\n");
-			else {
-				sample_loop=pt3_data[0+
-						header.ornament_patterns[i]];
-				sample_len=pt3_data[1+
-						header.ornament_patterns[i]];
-				printf("Loop: %d Length: %d\n\t\t\t",
-						sample_loop,
-						sample_len);
-				for(j=0;j<sample_len;j++) {
-					printf("%02x ",
-						pt3_data[2+j+
-						header.ornament_patterns[i]]);
-				}
-				printf("\n");
-			}
-		}
+
 
 
 	struct note_type a,b,c;
@@ -1240,4 +1285,42 @@ int main(int argc, char **argv) {
 	close(out);
 
 	return 0;
+}
+
+
+
+int main(int argc, char **argv) {
+
+	char filename[BUFSIZ];
+	char out_filename[BUFSIZ];
+	int out_fd;
+	int result;
+	struct pt3_song_t our_song;
+
+	if (argc>1) {
+		strncpy(filename,argv[1],BUFSIZ-1);
+	}
+	else {
+		strncpy(filename,"ea.pt3",BUFSIZ-1);
+	}
+
+	strncpy(out_filename,"out.ym",BUFSIZ-1);
+
+
+	/* Load song */
+	result=pt3_load_song(filename, &our_song);
+	if (result<0) {
+		fprintf(stderr,"Error opening file %s\n",filename);
+		return -1;
+	}
+
+	/* Open output file */
+	out_fd=open(out_filename,O_WRONLY|O_CREAT,0666);
+	if (out_fd<0) {
+		fprintf(stderr,"Error opening %s\n",out_filename);
+		return -1;
+	}
+
+	return 0;
+
 }
