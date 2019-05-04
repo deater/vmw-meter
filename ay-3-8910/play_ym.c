@@ -92,6 +92,7 @@ static int handle_keypress(struct ym_song_t *ym_song) {
 	/* Handle keypresses */
 	do {
 		display_command=display_keypad_read(display_type);
+//		printf("Read %x\n",display_command);
 
 		if (display_command==CMD_MUTE_A) {
 			if (mute_channel&0x01) mute_channel&=~0x01;

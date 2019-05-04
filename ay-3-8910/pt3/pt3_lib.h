@@ -96,4 +96,4 @@ void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame);
 void pt3_print_tracker_line(struct pt3_song_t *pt3, int line);
 int pt3_decode_line(struct pt3_song_t *pt3);
 void pt3_set_pattern(int i, struct pt3_song_t *pt3);
-
+char *pt3_current_note(int which, struct pt3_song_t *pt3);

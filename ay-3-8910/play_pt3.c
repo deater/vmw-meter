@@ -40,6 +40,125 @@ static int diff_mode=0;
 static int volume=1;
 static int amp_disable=0;
 
+#define YM5_FRAME_SIZE	16
+
+int ym_play_frame(unsigned char *frame, int shift_size,
+			struct display_stats *ds,
+			int diff_mode,
+			int play_music,
+			int mute_channel) {
+
+	int j;
+
+	unsigned char frame2[YM5_FRAME_SIZE];
+
+	int left_a_period,left_b_period,left_c_period;
+	int right_a_period,right_b_period,right_c_period;
+
+	double left_a_freq=0.0, left_b_freq=0.0, left_c_freq=0.0;
+	double right_a_freq=0.0, right_b_freq=0.0, right_c_freq=0.0;
+
+	int channels=3;
+	int master_clock=1777000;
+
+	if (channels==3) {
+		memcpy(frame2,frame,sizeof(frame2));
+	} else {
+//		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,frame2,0);
+	}
+
+	left_a_period=((frame[1]&0xf)<<8)|frame[0];
+	left_b_period=((frame[3]&0xf)<<8)|frame[2];
+	left_c_period=((frame[5]&0xf)<<8)|frame[4];
+
+	right_a_period=((frame2[1]&0xf)<<8)|frame2[0];
+	right_b_period=((frame2[3]&0xf)<<8)|frame2[2];
+	right_c_period=((frame2[5]&0xf)<<8)|frame2[4];
+
+	if (left_a_period>0) left_a_freq=master_clock/(16.0*(double)left_a_period);
+	if (left_b_period>0) left_b_freq=master_clock/(16.0*(double)left_b_period);
+	if (left_c_period>0) left_c_freq=master_clock/(16.0*(double)left_c_period);
+
+//	if (left_n_period>0) left_n_freq=master_clock/(16.0*(double)left_n_period);
+
+	if (right_a_period>0) right_a_freq=master_clock/(16.0*(double)right_a_period);
+	if (right_b_period>0) right_b_freq=master_clock/(16.0*(double)right_b_period);
+	if (right_c_period>0) right_c_freq=master_clock/(16.0*(double)right_c_period);
+
+//	if (right_n_period>0) right_n_freq=master_clock/(16.0*(double)left_n_period);
+
+
+
+	if (mute_channel&0x1) frame[8]=0;
+	if (mute_channel&0x2) frame[9]=0;
+	if (mute_channel&0x4) frame[10]=0;
+	if (mute_channel&0x8) frame[7]|=0x8;
+	if (mute_channel&0x10) frame[7]|=0x10;
+	if (mute_channel&0x20) frame[7]|=0x20;
+	/* Mute envelope */
+	if (mute_channel&0x40) {
+		frame[8]&=0xf;
+		frame[9]&=0xf;
+		frame[10]&=0xf;
+	}
+
+	/* FIXME: do this right? */
+	if (mute_channel&0x1) frame2[8]=0;
+	if (mute_channel&0x2) frame2[9]=0;
+	if (mute_channel&0x4) frame2[10]=0;
+	if (mute_channel&0x8) frame2[7]|=0x8;
+	if (mute_channel&0x10) frame2[7]|=0x10;
+	if (mute_channel&0x20) frame2[7]|=0x20;
+	/* Mute envelope */
+	if (mute_channel&0x40) {
+		frame2[8]&=0xf;
+		frame2[9]&=0xf;
+		frame2[10]&=0xf;
+	}
+
+	if (play_music) {
+		for(j=0;j<13;j++) {
+			write_ay_3_8910(j,frame[j],frame2[j],shift_size);
+		}
+
+		/* Special case.  Writing r13 resets it,	*/
+		/* so special 0xff marker means do not write	*/
+
+		/* FIXME: so what do we do if 2 channels have */
+		/* different values? */
+		/* We'll have to special case, and do a dummy write */
+		/* to a non-13 address.  Should be possible but not */
+		/* worth fixing unless it actually becomes a problem. */
+
+
+		if ((frame[13]!=0xff) || (frame2[13]!=0xff)) {
+			write_ay_3_8910(13,frame[13],frame2[13],shift_size);
+		}
+	}
+
+	if (ds!=NULL) {
+		ds->left_amplitude[0]=frame[8];
+		ds->left_amplitude[1]=frame[9];
+		ds->left_amplitude[2]=frame[10];
+
+		ds->right_amplitude[0]=frame2[8];
+		ds->right_amplitude[1]=frame2[9];
+		ds->right_amplitude[2]=frame2[10];
+
+		ds->left_freq[0]=left_a_freq;
+		ds->left_freq[1]=left_b_freq;
+		ds->left_freq[2]=left_c_freq;
+
+		ds->right_freq[0]=right_a_freq;
+		ds->right_freq[1]=right_b_freq;
+		ds->right_freq[2]=right_c_freq;
+	}
+
+	return 0;
+
+}
+
+
 static void quiet_and_exit(int sig) {
 
 	if (play_music) {
@@ -215,12 +334,14 @@ static int handle_keypress(void) {
 #define TEXT_MODE_AUTHOR	3
 #define TEXT_MODE_TIMER		4
 #define TEXT_MODE_MENU		5
+#define TEXT_MODE_TRACKER	6
 
 
 static char display_text[13];
 
 static void music_visualize(int frames_elapsed, int frame_num, char *filename,
-		int length_seconds, char *name, char *author) {
+		int length_seconds, char *name, char *author,
+		char *string) {
 
 	static int text_mode=TEXT_MODE_BANNER;
 
@@ -278,7 +399,7 @@ static void music_visualize(int frames_elapsed, int frame_num, char *filename,
 			scroll_rate=100/(strlen(full_text)-12);
 		}
 	} else if (frames_elapsed==600) {
-		text_mode=TEXT_MODE_TIMER;
+		text_mode=TEXT_MODE_TRACKER;
 	}
 
 
@@ -312,6 +433,10 @@ static void music_visualize(int frames_elapsed, int frame_num, char *filename,
 					length_seconds/60,length_seconds%60);
 			}
 			break;
+		case TEXT_MODE_TRACKER:
+			memset(display_text,0,13);
+			snprintf(display_text,13,string);
+			break;
 		default:
 			break;
 	}
@@ -340,7 +465,7 @@ static int frame_rate=50;
 
 static int play_song(char *filename) {
 
-	int i,j,f,k,length_seconds;
+	int i,j,f,length_seconds;
 	double s,n,hz,diff;
 
 	int result;
@@ -350,6 +475,7 @@ static int play_song(char *filename) {
 
 	struct pt3_song_t pt3;
 	struct display_stats ds;
+	char string[13];
 
 	unsigned char frame[16];
 
@@ -402,11 +528,8 @@ static int play_song(char *filename) {
 
 				pt3_make_frame(&pt3,frame);
 
-				if (play_music) {
-					for(k=0;k<13;k++) {
-						write_ay_3_8910(k,frame[k],frame[k],shift_size);
-					}
-				}
+				ym_play_frame(frame,shift_size,
+					&ds, diff_mode,play_music,mute_channel);
 
 				if (visualize) {
 					if (display_type&DISPLAY_TEXT) {
@@ -427,9 +550,15 @@ static int play_song(char *filename) {
 				frames_elapsed++;
 				frame_num++;
 
+				sprintf(string,"%s %s %s",
+					pt3_current_note('A',&pt3),
+					pt3_current_note('B',&pt3),
+					pt3_current_note('C',&pt3));
+
 				music_visualize(frames_elapsed,frame_num,
 					filename,
-					length_seconds,pt3.name,pt3.author);
+					length_seconds,pt3.name,pt3.author,
+					string);
 
 				/* Calculate time it took to play/visualize */
 				gettimeofday(&next,NULL);

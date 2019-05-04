@@ -1102,3 +1102,24 @@ void pt3_set_pattern(int i, struct pt3_song_t *pt3) {
 
 }
 
+static char empty_note[]="---";
+
+char *pt3_current_note(int which, struct pt3_song_t *pt3) {
+
+	if (which=='A') {
+		if (pt3->a.volume) return note_names[pt3->a.note];
+		else return empty_note;
+	}
+
+	if (which=='B') {
+		if (pt3->b.volume) return note_names[pt3->b.note];
+		else return empty_note;
+	}
+
+	if (which=='C') {
+		if (pt3->c.volume) return note_names[pt3->c.note];
+		else return empty_note;
+	}
+
+	return empty_note;
+}
