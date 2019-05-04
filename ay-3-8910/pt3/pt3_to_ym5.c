@@ -336,8 +336,10 @@ static void calculate_note(struct note_type *a) {
 		if ((b1 & 0x40) != 0) {
 			a->tone_accumulator=a->tone;
 		}
-
-		j = a->note + pt3_data[a->ornament_pointer + a->ornament_position];
+		j = a->note + ((pt3_data[a->ornament_pointer + a->ornament_position]<<24)>>24);
+		if (a->which=='C') printf("VMW: ORN %x %x[%x]=%x j=%x\n",
+			a->note,a->ornament_pointer,a->ornament_position,
+				pt3_data[a->ornament_pointer+a->ornament_position],j);
 		if (j < 0) j = 0;
                 else if (j > 95) j = 95;
 		w = GetNoteFreq(j);
@@ -545,6 +547,7 @@ static void decode_note(struct note_type *a,
 				noise_period=(current_val&0xf)+0x10;
 				break;
 			case 4:
+				printf("VMW4: ornament=%x\n",current_val&0xf);
 				a->ornament=(current_val&0xf);
                                 a->ornament_pointer=header.ornament_patterns[a->ornament];
                                 a->ornament_loop=pt3_data[a->ornament_pointer];
@@ -653,6 +656,7 @@ static void decode_note(struct note_type *a,
 			case 0xf:
 //               Envelope=15, Ornament=low byte, Sample=arg1/2
                                 a->envelope_enabled=0;
+				printf("VMWf: ornament=%x\n",current_val&0xf);
 				a->ornament=(current_val&0xf);
 
                                 a->ornament_pointer=header.ornament_patterns[a->ornament];
@@ -983,7 +987,7 @@ int main(int argc, char **argv) {
 				for(j=0;j<sample_len;j++) {
 					printf("%02x ",
 						pt3_data[2+j+
-						header.sample_patterns[i]]);
+						header.ornament_patterns[i]]);
 				}
 				printf("\n");
 			}

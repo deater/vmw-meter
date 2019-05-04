@@ -638,7 +638,7 @@ int main(int argc, char **argv) {
 				for(j=0;j<sample_len;j++) {
 					printf("%02x ",
 						pt3_data[2+j+
-						header.sample_patterns[i]]);
+						header.ornament_patterns[i]]);
 				}
 				printf("\n");
 			}
