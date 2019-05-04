@@ -286,28 +286,28 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 
 		a->amplitude= (b1 & 0xf);
 
-		if (a->which=='B') {
-			printf("VMWB: sample=%d ptr=%x b0=%x\n",
-				a->sample,a->sample_pointer,b0);
-		}
+//		if (a->which=='B') {
+//			printf("VMWB: sample=%d ptr=%x b0=%x\n",
+//				a->sample,a->sample_pointer,b0);
+//		}
 
 		if ((b0 & 0x80)!=0) {
 			if ((b0&0x40)!=0) {
-				if (a->which=='B') printf("VMWB: C0 amp sliding %d\n",a->amplitude_sliding);
+//				if (a->which=='B') printf("VMWB: C0 amp sliding %d\n",a->amplitude_sliding);
 				if (a->amplitude_sliding < 15) {
 					a->amplitude_sliding++;
 				}
 			}
 			else {
-				if (a->which=='B') printf("VMWB: 80 amp sliding %d\n",a->amplitude_sliding);
+//				if (a->which=='B') printf("VMWB: 80 amp sliding %d\n",a->amplitude_sliding);
 				if (a->amplitude_sliding > -15) {
 					a->amplitude_sliding--;
 				}
 			}
 		}
 		a->amplitude+=a->amplitude_sliding;
-		if (a->which=='B') printf("VMWB: amp sliding %d AMP=%x\n",
-				a->amplitude_sliding,a->amplitude);
+//		if (a->which=='B') printf("VMWB: amp sliding %d AMP=%x\n",
+//				a->amplitude_sliding,a->amplitude);
 
 		if (a->amplitude < 0) a->amplitude = 0;
 		else if (a->amplitude > 15) a->amplitude = 15;
@@ -449,7 +449,7 @@ static void decode_note(struct pt3_note_type *a,
 				a->sample=(current_val/2);
 
 				a->sample_pointer=pt3->sample_patterns[a->sample];
-				printf("0x1: Sample pointer %d %x\n",a->sample,a->sample_pointer);
+//				printf("0x1: Sample pointer %d %x\n",a->sample,a->sample_pointer);
 				a->sample_loop=pt3->data[a->sample_pointer];
 				a->sample_pointer++;
 				a->sample_length=pt3->data[a->sample_pointer];
@@ -471,7 +471,7 @@ static void decode_note(struct pt3_note_type *a,
 				pt3->noise_period=(current_val&0xf)+0x10;
 				break;
 			case 4:
-				printf("VMW4: ornament=%x\n",current_val&0xf);
+//				printf("VMW4: ornament=%x\n",current_val&0xf);
 				a->ornament=(current_val&0xf);
                                 a->ornament_pointer=pt3->ornament_patterns[a->ornament];
                                 a->ornament_loop=pt3->data[a->ornament_pointer];
@@ -558,8 +558,8 @@ static void decode_note(struct pt3_note_type *a,
 				else {
 					a->sample=(current_val&0xf);
 					a->sample_pointer=pt3->sample_patterns[a->sample];
-					printf("0xd: sample %d sample pointer %x\n",
-						a->sample,a->sample_pointer);
+//					printf("0xd: sample %d sample pointer %x\n",
+//						a->sample,a->sample_pointer);
 					a->sample_loop=pt3->data[a->sample_pointer];
 					a->sample_pointer++;
 					a->sample_length=pt3->data[a->sample_pointer];
@@ -569,8 +569,8 @@ static void decode_note(struct pt3_note_type *a,
 			case 0xe:
 				a->sample=(current_val-0xd0);
 				a->sample_pointer=pt3->sample_patterns[a->sample];
-				printf("0xe: sample %d sample pointer %x\n",
-					a->sample,a->sample_pointer);
+//				printf("0xe: sample %d sample pointer %x\n",
+//					a->sample,a->sample_pointer);
 				a->sample_loop=pt3->data[a->sample_pointer];
 				a->sample_pointer++;
 				a->sample_length=pt3->data[a->sample_pointer];
@@ -580,7 +580,7 @@ static void decode_note(struct pt3_note_type *a,
 			case 0xf:
 //               Envelope=15, Ornament=low byte, Sample=arg1/2
                                 a->envelope_enabled=0;
-				printf("VMWf: ornament=%x\n",current_val&0xf);
+//				printf("VMWf: ornament=%x\n",current_val&0xf);
 				a->ornament=(current_val&0xf);
 
                                 a->ornament_pointer=pt3->ornament_patterns[a->ornament];
@@ -594,9 +594,9 @@ static void decode_note(struct pt3_note_type *a,
 
 				a->sample=current_val/2;
 				a->sample_pointer=pt3->sample_patterns[a->sample];
-				printf("0xf: sample pointer[%d] %x\n",
-						a->sample,
-						a->sample_pointer);
+//				printf("0xf: sample pointer[%d] %x\n",
+//						a->sample,
+//						a->sample_pointer);
                                 a->sample_loop=pt3->data[a->sample_pointer];
                                 a->sample_pointer++;
                                 a->sample_length=pt3->data[a->sample_pointer];
@@ -609,7 +609,6 @@ static void decode_note(struct pt3_note_type *a,
 		/* Note, the AY code has code to make sure these are applied */
 		/* In the same order they appear.  We don't bother? */
 		if (a_done) {
-			printf("VMW DONE %d\n",a->spec_command);
 			if (a->spec_command==0x1) {
 				current_val=pt3->data[(*addr)];
 				a->spec_delay=current_val;
@@ -665,16 +664,16 @@ static void decode_note(struct pt3_note_type *a,
 					GetNoteFreq(prev_note,pt3->frequency_table);
 				a->slide_to_note=a->note;
 				a->note=prev_note;
-				printf("VMW: slide_step: %x delta %x sliding %x\n",
-					a->tone_slide_step,a->tone_delta,
-					a->tone_sliding);
+//				printf("VMW: slide_step: %x delta %x sliding %x\n",
+//					a->tone_slide_step,a->tone_delta,
+//					a->tone_sliding);
 //				if (PlParams.PT3.PT3_Version >= 6) {
 //					a->tone_sliding = PrSliding;
 				if ((a->tone_delta - a->tone_sliding) < 0) {
 					a->tone_slide_step = -a->tone_slide_step;
 				}
-				printf("VMW: slide count: %d newslidestep: %x\n",
-					a->tone_slide_count,a->tone_slide_step);
+//				printf("VMW: slide count: %d newslidestep: %x\n",
+//					a->tone_slide_count,a->tone_slide_step);
 			}
 
 			if (a->spec_command==0xb) {
@@ -706,7 +705,7 @@ static void decode_note(struct pt3_note_type *a,
 
 }
 
-static void print_note(int which, struct pt3_song_t *pt3) {
+static void print_note(int which, struct pt3_song_t *pt3,int line) {
 
 	struct pt3_note_type *a, *a_old;
 
@@ -775,12 +774,6 @@ static void print_note(int which, struct pt3_song_t *pt3) {
 
 	printf("|");
 }
-
-unsigned char frame[16];
-
-
-
-
 
 void dump_header(struct pt3_song_t *pt3) {
 
@@ -1028,9 +1021,9 @@ void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame) {
 	frame[11]=(temp_envelope&0xff);
 	frame[12]=(temp_envelope>>8);
 
-	printf("VMW ENV %x, period=%x add=%x slide=%x\n",
-			temp_envelope,
-			pt3->envelope_period,pt3->envelope_add,pt3->envelope_slide);
+//	printf("VMW ENV %x, period=%x add=%x slide=%x\n",
+//			temp_envelope,
+//			pt3->envelope_period,pt3->envelope_add,pt3->envelope_slide);
 
 	/* Envelope shape */
 	if (pt3->envelope_type==pt3->envelope_type_old) {
@@ -1069,9 +1062,9 @@ void pt3_print_tracker_line(struct pt3_song_t *pt3, int line) {
 	else printf("%02X",pt3->noise_period);
 	printf("|");
 
-	print_note('A',pt3);
-	print_note('B',pt3);
-	print_note('C',pt3);
+	print_note('A',pt3,line);
+	print_note('B',pt3,line);
+	print_note('C',pt3,line);
 
 	memcpy(&pt3->a_old,&pt3->a,sizeof(struct pt3_note_type));
 	memcpy(&pt3->b_old,&pt3->b,sizeof(struct pt3_note_type));
