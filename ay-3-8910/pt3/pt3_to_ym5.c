@@ -128,6 +128,57 @@ struct ym_header {
 #define MAX_PT3_SIZE	65536
 #define MAX_PT3_STRING	256
 
+
+struct note_type {
+	char which;
+	int note;
+	int sample;
+	int ornament;
+	int volume;
+	int spec_command;
+	int spec_delay;
+	int spec_hi;
+	int spec_lo;
+
+	int len;
+	int len_count;
+
+	int all_done;
+
+        int ornament_pointer;
+        int ornament_length;
+        int ornament_loop;
+        int ornament_position;
+
+        int sample_pointer;
+        int sample_length;
+        int sample_loop;
+        int sample_position;
+
+        int envelope_enabled;
+
+	int amplitude;
+        int amplitude_sliding;
+        int noise_sliding;
+        int envelope_sliding;
+
+        int tone_slide_count;
+        int tone_sliding;
+	int tone_slide_step;
+	int tone_slide_delay;
+	int tone_delta;
+	int slide_to_note;
+
+	int simplegliss;
+
+        int tone_accumulator;
+        int onoff;
+	int onoff_delay;
+	int offon_delay;
+	int tone;
+        int enabled;
+};
+
 struct pt3_song_t {
 	char magic[13+1];
 	char version;
@@ -142,6 +193,8 @@ struct pt3_song_t {
 	unsigned short ornament_patterns[16];
 	unsigned short pattern_order;
 	unsigned short a_addr,b_addr,c_addr;
+	struct note_type a,b,c;
+	struct note_type a_old,b_old,c_old;
 	int music_len;
 	int current_pattern;
 	unsigned char data[MAX_PT3_SIZE];
@@ -219,55 +272,6 @@ static int pt3_load_header(int verbose, struct pt3_song_t *pt3) {
 
 }
 
-struct note_type {
-	char which;
-	int note;
-	int sample;
-	int ornament;
-	int volume;
-	int spec_command;
-	int spec_delay;
-	int spec_hi;
-	int spec_lo;
-
-	int len;
-	int len_count;
-
-	int all_done;
-
-        int ornament_pointer;
-        int ornament_length;
-        int ornament_loop;
-        int ornament_position;
-
-        int sample_pointer;
-        int sample_length;
-        int sample_loop;
-        int sample_position;
-
-        int envelope_enabled;
-
-	int amplitude;
-        int amplitude_sliding;
-        int noise_sliding;
-        int envelope_sliding;
-
-        int tone_slide_count;
-        int tone_sliding;
-	int tone_slide_step;
-	int tone_slide_delay;
-	int tone_delta;
-	int slide_to_note;
-
-	int simplegliss;
-
-        int tone_accumulator;
-        int onoff;
-	int onoff_delay;
-	int offon_delay;
-	int tone;
-        int enabled;
-};
 
 static int envelope_type=0;
 static int envelope_type_old=0;
@@ -1029,12 +1033,109 @@ int pt3_load_song(char *filename, struct pt3_song_t *pt3) {
 		return -1;
 	}
 
+	memset(&pt3->a,0,sizeof(struct note_type));
+	memset(&pt3->b,0,sizeof(struct note_type));
+	memset(&pt3->c,0,sizeof(struct note_type));
+	pt3->a.which='A';
+	pt3->b.which='B';
+	pt3->c.which='C';
+
+	memset(&pt3->a_old,0,sizeof(struct note_type));
+	memset(&pt3->b_old,0,sizeof(struct note_type));
+	memset(&pt3->c_old,0,sizeof(struct note_type));
+
 	dump_header(pt3);
 
 	return 0;
 }
 
+void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame) {
 
+	/* R0 = A period low */
+	/* R1 = A period high */
+	/* R2 = B period low */
+	/* R3 = B period high */
+	/* R4 = C period low */
+	/* R5 = C period high */
+	/* R6 = Noise period */
+	/* R7 = Enable XX Noise=!CBA Tone=!CBA */
+	/* R8 = Channel A amplitude M3210 */
+	/* R9 = Channel B amplitude M3210 */
+	/* R10 = Channel C amplitude M3210 */
+	/* R11 = Envelope Period L */
+	/* R12 = Envelope Period H */
+	/* R13 = Envelope Shape */
+	/* R14/R15 = I/O (ignored) */
+
+	int temp_envelope;
+
+	/* clear out frame */
+	memset(frame,0,16);
+
+	mixer_value=0;
+	envelope_add=0;
+
+	calculate_note(&pt3->a,pt3);
+	calculate_note(&pt3->b,pt3);
+	calculate_note(&pt3->c,pt3);
+
+//	if (a.enabled) {
+		frame[0]=pt3->a.tone&0xff;
+		frame[1]=(pt3->a.tone>>8)&0xff;
+//	}
+//	if (b.enabled) {
+		frame[2]=pt3->b.tone&0xff;
+		frame[3]=(pt3->b.tone>>8)&0xff;
+//	}
+//	if (c.enabled) {
+		frame[4]=pt3->c.tone&0xff;
+		frame[5]=(pt3->c.tone>>8)&0xff;
+//	}
+
+	/* Noise */
+	frame[6]= (noise_base+noise_add)&0x1f;
+
+	frame[7]=mixer_value;
+
+//	if (a.enabled) {
+		frame[8]=pt3->a.amplitude;
+//	}
+//	if (b.enabled) {
+		frame[9]=pt3->b.amplitude;
+//	}
+//	if (c.enabled) {
+		frame[10]=pt3->c.amplitude;
+//	}
+
+	/* Envelope period */
+
+	temp_envelope=envelope_period+
+			envelope_add+
+			envelope_slide;
+	frame[11]=(temp_envelope&0xff);
+	frame[12]=(temp_envelope>>8);
+
+	printf("VMW ENV %x, period=%x add=%x slide=%x\n",
+			temp_envelope,
+			envelope_period,envelope_add,envelope_slide);
+
+	/* Envelope shape */
+	if (envelope_type==envelope_type_old) {
+		frame[13]=0xff;
+	}
+	else {
+		frame[13]=envelope_type;
+	}
+	envelope_type_old=envelope_type;
+
+	if (envelope_delay > 0) {
+		envelope_delay--;
+		if (envelope_delay==0) {
+			envelope_delay=envelope_delay_orig;
+			envelope_slide+=envelope_slide_add;
+		}
+	}
+}
 
 int main(int argc, char **argv) {
 
@@ -1089,19 +1190,7 @@ int main(int argc, char **argv) {
 		strlen(ym5_comment)+1;
 	lseek(out_fd, ym5_header_length, SEEK_SET);
 
-	struct note_type a,b,c;
-	struct note_type a_old,b_old,c_old;
 
-	memset(&a,0,sizeof(struct note_type));
-	memset(&b,0,sizeof(struct note_type));
-	memset(&c,0,sizeof(struct note_type));
-	a.which='A';
-	b.which='B';
-	c.which='C';
-
-	memset(&a_old,0,sizeof(struct note_type));
-	memset(&b_old,0,sizeof(struct note_type));
-	memset(&c_old,0,sizeof(struct note_type));
 
 	noise_period=0;
 
@@ -1130,15 +1219,12 @@ int main(int argc, char **argv) {
 
 			printf("VMW frame: %d\n",frames);
 
-
-			//envelope_period=0;
-
-			decode_note(&a,&(pt3.a_addr),&pt3);
-			decode_note(&b,&(pt3.b_addr),&pt3);
-			decode_note(&c,&(pt3.c_addr),&pt3);
+			decode_note(&pt3.a,&(pt3.a_addr),&pt3);
+			decode_note(&pt3.b,&(pt3.b_addr),&pt3);
+			decode_note(&pt3.c,&(pt3.c_addr),&pt3);
 
 
-			if (a.all_done && b.all_done && c.all_done) {
+			if (pt3.a.all_done && pt3.b.all_done && pt3.c.all_done) {
 				break;
 			}
 
@@ -1160,105 +1246,17 @@ int main(int argc, char **argv) {
 			else printf("%02X",noise_period);
 			printf("|");
 
-			print_note(&a,&a_old);
-			print_note(&b,&b_old);
-			print_note(&c,&c_old);
+			print_note(&pt3.a,&pt3.a_old);
+			print_note(&pt3.b,&pt3.b_old);
+			print_note(&pt3.c,&pt3.c_old);
 
-			memcpy(&a_old,&a,sizeof(struct note_type));
-			memcpy(&b_old,&b,sizeof(struct note_type));
-			memcpy(&c_old,&c,sizeof(struct note_type));
+			memcpy(&pt3.a_old,&pt3.a,sizeof(struct note_type));
+			memcpy(&pt3.b_old,&pt3.b,sizeof(struct note_type));
+			memcpy(&pt3.c_old,&pt3.c,sizeof(struct note_type));
 			envelope_period_old=(envelope_period);
 
-			/* R0 = A period low */
-			/* R1 = A period high */
-			/* R2 = B period low */
-			/* R3 = B period high */
-			/* R4 = C period low */
-			/* R5 = C period high */
-			/* R6 = Noise period */
-			/* R7 = Enable XX Noise=!CBA Tone=!CBA */
-			/* R8 = Channel A amplitude M3210 */
-			/* R9 = Channel B amplitude M3210 */
-			/* R10 = Channel C amplitude M3210 */
-			/* R11 = Envelope Period L */
-			/* R12 = Envelope Period H */
-			/* R13 = Envelope Shape */
-			/* R14/R15 = I/O (ignored) */
-
 			for(f=0;f<delay;f++) {
-
-				/* clear out frame */
-				memset(frame,0,16);
-
-				mixer_value=0;
-				envelope_add=0;
-
-				calculate_note(&a,&pt3);
-				calculate_note(&b,&pt3);
-				calculate_note(&c,&pt3);
-
-//				if (a.enabled) {
-//					frame[0]=PT3NoteTable_ST[a.note]&0xff;
-//					frame[1]=(PT3NoteTable_ST[a.note]>>8)&0xff;
-					frame[0]=a.tone&0xff;
-					frame[1]=(a.tone>>8)&0xff;
-//				}
-//				if (b.enabled) {
-//					frame[2]=PT3NoteTable_ST[b.note]&0xff;
-//					frame[3]=(PT3NoteTable_ST[b.note]>>8)&0xff;
-					frame[2]=b.tone&0xff;
-					frame[3]=(b.tone>>8)&0xff;
-//				}
-//				if (c.enabled) {
-//					frame[4]=PT3NoteTable_ST[c.note]&0xff;
-//					frame[5]=(PT3NoteTable_ST[c.note]>>8)&0xff;
-					frame[4]=c.tone&0xff;
-					frame[5]=(c.tone>>8)&0xff;
-//				}
-
-				/* Noise */
-				frame[6]= (noise_base+noise_add)&0x1f;
-
-				frame[7]=mixer_value;
-
-//				if (a.enabled) {
-					frame[8]=a.amplitude;
-//				}
-//				if (b.enabled) {
-					frame[9]=b.amplitude;
-//				}
-//				if (c.enabled) {
-					frame[10]=c.amplitude;
-//				}
-
-				/* Envelope period */
-				int temp_envelope;
-				temp_envelope=envelope_period+
-						envelope_add+
-						envelope_slide;
-				frame[11]=(temp_envelope&0xff);
-				frame[12]=(temp_envelope>>8);
-
-				printf("VMW ENV %x, period=%x add=%x slide=%x\n",
-					temp_envelope,
-					envelope_period,envelope_add,envelope_slide);
-
-				/* Envelope shape */
-				if (envelope_type==envelope_type_old) {
-					frame[13]=0xff;
-				}
-				else {
-					frame[13]=envelope_type;
-				}
-				envelope_type_old=envelope_type;
-
-				if (envelope_delay > 0) {
-					envelope_delay--;
-					if (envelope_delay==0) {
-						envelope_delay=envelope_delay_orig;
-						envelope_slide+=envelope_slide_add;
-					}
-				}
+				pt3_make_frame(&pt3,frame);
 
 				write(out_fd,frame,16);
 				frames++;
