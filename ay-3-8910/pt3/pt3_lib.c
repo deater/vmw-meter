@@ -139,6 +139,8 @@ static int pt3_load_header(int verbose, struct pt3_song_t *pt3) {
 
 	int i;
 
+	pt3->music_len=0;
+
 	/* Magic: 13 bytes at offset 0 */
 	memcpy(&(pt3->magic),&(pt3->data[0]),13);
 	if (!memcmp(pt3->magic,"ProTracker 3.",13)) {
@@ -339,8 +341,8 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 			}
 		}
 		a->amplitude+=a->amplitude_sliding;
-		if (a->which=='B') printf("VMWB: amp sliding %d AMP=%x\n",
-				a->amplitude_sliding,a->amplitude);
+//		if (a->which=='B') printf("VMWB: amp sliding %d AMP=%x\n",
+//				a->amplitude_sliding,a->amplitude);
 
 		if (a->amplitude < 0) a->amplitude = 0;
 		else if (a->amplitude > 15) a->amplitude = 15;
@@ -352,8 +354,8 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 			a->amplitude = PT3VolumeTable_35[a->volume][a->amplitude];
 //              }
 
-		if (a->which=='B') printf("VMWB: final=%d volume=%d\n",
-				a->amplitude,a->volume);
+//		if (a->which=='B') printf("VMWB: final=%d volume=%d\n",
+//				a->amplitude,a->volume);
 
 		if (((b0 & 0x1) == 0) && ( a->envelope_enabled)) {
 			a->amplitude |= 16;
@@ -423,7 +425,6 @@ static void decode_note(struct pt3_note_type *a,
 	a->spec_lo=0;
 
 	/* Skip decode if note still running */
-	printf("VMW: %c len %d\n",a->which,a->len_count);
 	if (a->len_count>1) {
 		a->len_count--;
 		return;
@@ -616,8 +617,10 @@ static void decode_note(struct pt3_note_type *a,
 			int new_spec=0;
 
 			if (a->spec_command) printf("VMW: special command $%x\n",a->spec_command);
+			if (a->spec_command==0x0) {
+			}
 			/* Tone Down */
-			if (a->spec_command==0x1) {
+			else if (a->spec_command==0x1) {
 				current_val=pt3->data[(*addr)];
 				a->spec_delay=current_val;
 				a->tone_slide_delay=current_val;
@@ -754,7 +757,7 @@ static void decode_note(struct pt3_note_type *a,
 			}
 			else {
 				printf("%c UNKNOWN effect %02X\n",
-					a->which,current_val);
+					a->which,a->spec_command);
 			}
 			a->spec_command=new_spec;
 
@@ -956,36 +959,9 @@ void dump_header(struct pt3_song_t *pt3) {
 
 }
 
-int pt3_load_song(char *filename, struct pt3_song_t *pt3) {
+int pt3_init_song(struct pt3_song_t *pt3) {
 
-	int fd;
 	int result;
-
-	/* Clear out the struct */
-	memset(pt3,0,sizeof(struct pt3_song_t));
-
-	/* Open file */
-	fd=open(filename,O_RDONLY);
-	if (fd<0) {
-		fprintf(stderr,"Error opening %s: %s\n",
-			filename,strerror(errno));
-		return -1;
-
-	}
-
-	/* Clear out our data */
-	memset(&pt3->data,0,MAX_PT3_SIZE);
-
-	/* Read entire file into memory (probably not that big) */
-	result=read(fd,pt3->data,MAX_PT3_SIZE);
-	if (result<0) {
-		fprintf(stderr,"Error reading file: %s\n",
-			strerror(errno));
-		return -1;
-	}
-
-	/* close the file */
-	close(fd);
 
 	/* copy in the header data */
 	result=pt3_load_header(1,pt3);
@@ -1026,15 +1002,51 @@ int pt3_load_song(char *filename, struct pt3_song_t *pt3) {
 	memset(&pt3->b_old,0,sizeof(struct pt3_note_type));
 	memset(&pt3->c_old,0,sizeof(struct pt3_note_type));
 
-	/* calculate length of song */
-	/* TODO */
-
-	/* Init Fields */
 	/* Some defaults */
 	pt3->speed=3;
 	pt3->noise_period=0;
 	pt3->noise_add=0;
 	pt3->envelope_period=0;
+	pt3->current_pattern=0;
+
+	return 0;
+}
+
+int pt3_load_song(char *filename, struct pt3_song_t *pt3) {
+
+	int fd;
+	int result;
+
+	/* Clear out the struct */
+	memset(pt3,0,sizeof(struct pt3_song_t));
+
+	/* Open file */
+	fd=open(filename,O_RDONLY);
+	if (fd<0) {
+		fprintf(stderr,"Error opening %s: %s\n",
+			filename,strerror(errno));
+		return -1;
+
+	}
+
+	/* Clear out our data */
+	memset(&pt3->data,0,MAX_PT3_SIZE);
+
+	/* Read entire file into memory (probably not that big) */
+	result=read(fd,pt3->data,MAX_PT3_SIZE);
+	if (result<0) {
+		fprintf(stderr,"Error reading file: %s\n",
+			strerror(errno));
+		return -1;
+	}
+
+	/* close the file */
+	close(fd);
+
+	/* Init Data */
+	result=pt3_init_song(pt3);
+	if (result<0) return result;
+
 
 	dump_header(pt3);
 
@@ -1212,4 +1224,30 @@ char *pt3_current_note(int which, struct pt3_song_t *pt3) {
 	}
 
 	return empty_note;
+}
+
+void pt3_calc_frames(struct pt3_song_t *pt3, int *total, int *loop) {
+
+	int i,j,f;
+
+	*total=0;
+
+	for(i=0;i < pt3->music_len;i++) {
+
+		if (i==pt3->loop) *loop=*total;
+
+                pt3_set_pattern(i,pt3);
+
+                for(j=0;j<64;j++) {
+                        if (pt3_decode_line(pt3)) break;
+
+                        for(f=0;f < pt3->speed;f++) {
+				(*total)++;
+                        }
+		}
+	}
+	/* Re-init the song as finding these values upsets */
+	/* the initial conditions */
+
+	pt3_init_song(pt3);
 }
