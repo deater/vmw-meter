@@ -52,11 +52,8 @@
 //                played and the second how many will be not. Example. $03,$04 means
 //                that that channel will be played 3 rasters, 4 not played, 3 played, ...
 //   $08     $09: Envelope frequency decreasing.
-//                Same as increasing but the value is rested to $FFFF.
-//                Example: $CC,$FF will rest $34 to R11.
-//   $??     $0A: Envelope frequency increasing.
-//                Two bytes will indicate the frequency to add to registers R12 and R11.
-//                Example: $34,$00 will add $34 to R11.
+//   $08     $0A: Envelope frequency increasing.
+//                Has negative value?
 //   $09     $0B: Set playing speed (new Delay).
 //                The byte after the note will tell the new delay.
 -

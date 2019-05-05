@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 	int ym5_attributes=0;
 	int ym5_irq=50;
 	unsigned char frame[16];
-	int frames=0;
+	int frames=0,loop,total_frames;
 
 	int i,j,f;
 
@@ -74,6 +74,8 @@ int main(int argc, char **argv) {
 		fprintf(stderr,"Error opening file %s\n",filename);
 		return -1;
 	}
+
+	pt3_calc_frames(&pt3, &total_frames, &loop);
 
 	/* Open output file */
 	out_fd=open(out_filename,O_WRONLY|O_CREAT,0666);
@@ -151,7 +153,7 @@ int main(int argc, char **argv) {
 	our_header.digidrum=htonl(ym5_digidrums);
 	our_header.external_frequency=htonl(external_frequency);
 	our_header.player_frequency=htons(ym5_irq);
-	our_header.loop=htonl(pt3.loop);
+	our_header.loop=htonl(loop);
 	our_header.additional_data=htons(0);
 
         write(out_fd,&our_header,sizeof(struct ym_header));

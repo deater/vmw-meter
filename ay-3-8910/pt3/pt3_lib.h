@@ -51,6 +51,9 @@ struct pt3_note_type {
 	int offon_delay;
 	int tone;
         int enabled;
+
+	int new_note;
+
 };
 
 struct pt3_song_t {
@@ -96,3 +99,4 @@ void pt3_print_tracker_line(struct pt3_song_t *pt3, int line);
 int pt3_decode_line(struct pt3_song_t *pt3);
 void pt3_set_pattern(int i, struct pt3_song_t *pt3);
 char *pt3_current_note(int which, struct pt3_song_t *pt3);
+void pt3_calc_frames(struct pt3_song_t *pt3, int *total, int *loop);

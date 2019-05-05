@@ -419,6 +419,7 @@ static void decode_note(struct pt3_note_type *a,
 	int current_val;
 	int prev_note;
 //	int prev_sliding;
+	a->new_note=0;
 
 	a->spec_command=0;
 	a->spec_delay=0;
@@ -505,6 +506,7 @@ static void decode_note(struct pt3_note_type *a,
 			case 8:
 			case 9:
 			case 0xa:
+				a->new_note=1;
 				a->note=(current_val-0x50);
                                 a->sample_position=0;
                                 a->amplitude_sliding=0;
@@ -616,7 +618,7 @@ static void decode_note(struct pt3_note_type *a,
 		if (a_done) {
 			int new_spec=0;
 
-			if (a->spec_command) printf("VMW: special command $%x\n",a->spec_command);
+//			if (a->spec_command) printf("VMW: special command $%x\n",a->spec_command);
 			if (a->spec_command==0x0) {
 			}
 			/* Tone Down */
@@ -635,7 +637,7 @@ static void decode_note(struct pt3_note_type *a,
 				a->spec_hi=(current_val);
 
 				a->tone_slide_step=(a->spec_lo)|(a->spec_hi<<8);
-				printf("TONE_SLIDE %x\n",a->tone_slide_step);
+				//printf("TONE_SLIDE %x\n",a->tone_slide_step);
 				a->simplegliss=1;
 				a->onoff=0;
 
@@ -723,28 +725,40 @@ static void decode_note(struct pt3_note_type *a,
 			}
 			/* Envelope Down */
 			else if (a->spec_command==0x8) {
-				printf("VMW: envelope down\n");
+
 				/* delay? */
 				current_val=pt3->data[(*addr)];
 				pt3->envelope_delay=current_val;
 				pt3->envelope_delay_orig=current_val;
+				a->spec_delay=current_val;
 				(*addr)++;
 
 				/* Low? */
 				current_val=pt3->data[(*addr)];
-				a->spec_lo=current_val&0xf;
+				a->spec_lo=current_val&0xff;
 				(*addr)++;
 
 				/* High? */
 				current_val=pt3->data[(*addr)];
-				a->spec_hi=current_val&0xf;
+				a->spec_hi=current_val&0xff;
 				(*addr)++;
 
 				pt3->envelope_slide_add=(a->spec_hi<<8)|(a->spec_lo&0xff);
 
-				/* in the tracker it's 9 */
-				new_spec=0x9;
+				printf("VMW: envelope down delay=%x slide=%x\n",
+					pt3->envelope_delay,
+					pt3->envelope_slide_add);
 
+				/* in the tracker it's 9 */
+				if (pt3->envelope_slide_add<0x8000) new_spec=0x9;
+				else {
+					signed short new_parm;
+					new_spec=0xa;
+					new_parm=pt3->envelope_slide_add;
+					new_parm=-new_parm;
+					a->spec_hi=new_parm>>8;
+					a->spec_lo=new_parm&0xff;
+				}
 			}
 			/* Set Speed */
 			else  if (a->spec_command==0x9) {
@@ -792,7 +806,8 @@ static void print_note(int which, struct pt3_song_t *pt3,int line) {
 
 
 	/* A note */
-        if (a->note==a_old->note) printf("---");
+	if (!a->new_note) printf("---");
+//        if (a->note==a_old->note)
 	else if (a->note==0xff) printf("R--");
 	else printf("%s",note_names[a->note]);
 	printf(" ");
@@ -807,7 +822,7 @@ static void print_note(int which, struct pt3_song_t *pt3,int line) {
 //	else printf("%X",a->envelope);
 
 //	if ((envelope_period_l==0) || (a->envelope==0)) printf(".");
-	if (a->envelope_enabled) printf("%X",pt3->envelope_type);
+	if ((a->new_note) && (a->envelope_enabled)) printf("%X",pt3->envelope_type);
 	else printf(".");
 
 	/* A ornament */
@@ -1003,10 +1018,11 @@ int pt3_init_song(struct pt3_song_t *pt3) {
 	memset(&pt3->c_old,0,sizeof(struct pt3_note_type));
 
 	/* Some defaults */
-	pt3->speed=3;
 	pt3->noise_period=0;
 	pt3->noise_add=0;
 	pt3->envelope_period=0;
+	pt3->envelope_type=0;
+	pt3->envelope_type_old=0;
 	pt3->current_pattern=0;
 
 	return 0;
@@ -1151,7 +1167,7 @@ void pt3_print_tracker_line(struct pt3_song_t *pt3, int line) {
 	/* envelope */
 	if ((pt3->envelope_period>>8)==0) printf("..");
 	else printf("%02X",pt3->envelope_period>>8);
-	if (pt3->envelope_period&0xff) printf("..");
+	if ((pt3->envelope_period&0xff)==0) printf("..");
 	else printf("%02X",pt3->envelope_period&0xff);
 
 	/* noise */
