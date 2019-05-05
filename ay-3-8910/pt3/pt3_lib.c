@@ -102,6 +102,38 @@ unsigned char PT3VolumeTable_35[16][16]={
   {0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0xA,0xB,0xC,0xD,0xE,0xF},
 };
 
+static void pt3_load_ornament(struct pt3_song_t *pt3, int which, int ornament) {
+
+	struct pt3_note_type *a;
+
+	if (which=='A') a=&(pt3->a);
+	else if (which=='B') a=&(pt3->b);
+	else if (which=='C') a=&(pt3->c);
+	else return;
+
+	a->ornament_pointer=pt3->ornament_patterns[ornament];
+	a->ornament_loop=pt3->data[a->ornament_pointer];
+	a->ornament_pointer++;
+	a->ornament_length=pt3->data[a->ornament_pointer];
+	a->ornament_pointer++;
+}
+
+static void pt3_load_sample(struct pt3_song_t *pt3, int which, int sample) {
+
+	struct pt3_note_type *a;
+
+	if (which=='A') a=&(pt3->a);
+	else if (which=='B') a=&(pt3->b);
+	else if (which=='C') a=&(pt3->c);
+	else return;
+
+	a->sample_pointer=pt3->sample_patterns[sample];
+	a->sample_loop=pt3->data[a->sample_pointer];
+	a->sample_pointer++;
+	a->sample_length=pt3->data[a->sample_pointer];
+	a->sample_pointer++;
+
+}
 
 static int pt3_load_header(int verbose, struct pt3_song_t *pt3) {
 
@@ -167,6 +199,7 @@ static int pt3_load_header(int verbose, struct pt3_song_t *pt3) {
 		i++;
 		pt3->music_len++;
 	}
+
 
 	return 0;
 
@@ -306,8 +339,8 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 			}
 		}
 		a->amplitude+=a->amplitude_sliding;
-//		if (a->which=='B') printf("VMWB: amp sliding %d AMP=%x\n",
-//				a->amplitude_sliding,a->amplitude);
+		if (a->which=='B') printf("VMWB: amp sliding %d AMP=%x\n",
+				a->amplitude_sliding,a->amplitude);
 
 		if (a->amplitude < 0) a->amplitude = 0;
 		else if (a->amplitude > 15) a->amplitude = 15;
@@ -318,6 +351,9 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 //              else {
 			a->amplitude = PT3VolumeTable_35[a->volume][a->amplitude];
 //              }
+
+		if (a->which=='B') printf("VMWB: final=%d volume=%d\n",
+				a->amplitude,a->volume);
 
 		if (((b0 & 0x1) == 0) && ( a->envelope_enabled)) {
 			a->amplitude |= 16;
@@ -451,12 +487,8 @@ static void decode_note(struct pt3_note_type *a,
 				current_val=pt3->data[(*addr)];
 				a->sample=(current_val/2);
 
-				a->sample_pointer=pt3->sample_patterns[a->sample];
+				pt3_load_sample(pt3,a->which,a->sample);
 //				printf("0x1: Sample pointer %d %x\n",a->sample,a->sample_pointer);
-				a->sample_loop=pt3->data[a->sample_pointer];
-				a->sample_pointer++;
-				a->sample_length=pt3->data[a->sample_pointer];
-				a->sample_pointer++;
 				a->ornament_position=0;
 
 				break;
@@ -476,11 +508,7 @@ static void decode_note(struct pt3_note_type *a,
 			case 4:
 //				printf("VMW4: ornament=%x\n",current_val&0xf);
 				a->ornament=(current_val&0xf);
-                                a->ornament_pointer=pt3->ornament_patterns[a->ornament];
-                                a->ornament_loop=pt3->data[a->ornament_pointer];
-                                a->ornament_pointer++;
-                                a->ornament_length=pt3->data[a->ornament_pointer];
-                                a->ornament_pointer++;
+				pt3_load_ornament(pt3,a->which,a->ornament);
 				a->ornament_position=0;
 				break;
 			case 5:
@@ -540,7 +568,7 @@ static void decode_note(struct pt3_note_type *a,
 
                                         a->sample_position=0;
                                         a->amplitude_sliding=0;
-					pt3->noise_period=0;
+					pt3->noise_period=0; // one song needed this to match?
 					a->noise_sliding=0;
                                         a->envelope_sliding=0;
                                         a->ornament_position=0;
@@ -561,24 +589,16 @@ static void decode_note(struct pt3_note_type *a,
 				}
 				else {
 					a->sample=(current_val&0xf);
-					a->sample_pointer=pt3->sample_patterns[a->sample];
+					pt3_load_sample(pt3,a->which,a->sample);
 //					printf("0xd: sample %d sample pointer %x\n",
 //						a->sample,a->sample_pointer);
-					a->sample_loop=pt3->data[a->sample_pointer];
-					a->sample_pointer++;
-					a->sample_length=pt3->data[a->sample_pointer];
-					a->sample_pointer++;
 				}
 				break;
 			case 0xe:
 				a->sample=(current_val-0xd0);
-				a->sample_pointer=pt3->sample_patterns[a->sample];
+				pt3_load_sample(pt3,a->which,a->sample);
 //				printf("0xe: sample %d sample pointer %x\n",
 //					a->sample,a->sample_pointer);
-				a->sample_loop=pt3->data[a->sample_pointer];
-				a->sample_pointer++;
-				a->sample_length=pt3->data[a->sample_pointer];
-				a->sample_pointer++;
 
 				break;
 			case 0xf:
@@ -587,24 +607,17 @@ static void decode_note(struct pt3_note_type *a,
 //				printf("VMWf: ornament=%x\n",current_val&0xf);
 				a->ornament=(current_val&0xf);
 
-                                a->ornament_pointer=pt3->ornament_patterns[a->ornament];
-                                a->ornament_loop=pt3->data[a->ornament_pointer];
-                                a->ornament_pointer++;
-                                a->ornament_length=pt3->data[a->ornament_pointer];
-                                a->ornament_pointer++;
+				pt3_load_ornament(pt3,a->which,a->ornament);
 
 				(*addr)++;
 				current_val=pt3->data[*addr];
 
 				a->sample=current_val/2;
 				a->sample_pointer=pt3->sample_patterns[a->sample];
+				pt3_load_sample(pt3,a->which,a->sample);
 //				printf("0xf: sample pointer[%d] %x\n",
 //						a->sample,
 //						a->sample_pointer);
-                                a->sample_loop=pt3->data[a->sample_pointer];
-                                a->sample_pointer++;
-                                a->sample_length=pt3->data[a->sample_pointer];
-                                a->sample_pointer++;
 
 				break;
 		}
@@ -950,17 +963,44 @@ int pt3_load_song(char *filename, struct pt3_song_t *pt3) {
 	memset(&pt3->a,0,sizeof(struct pt3_note_type));
 	memset(&pt3->b,0,sizeof(struct pt3_note_type));
 	memset(&pt3->c,0,sizeof(struct pt3_note_type));
+
 	pt3->a.which='A';
+	pt3->a.volume=15;
+	pt3->a.tone_sliding=0;
+	pt3->a.enabled=0;
+	pt3->a.envelope_enabled=0;
+	pt3_load_ornament(pt3,'A',0);
+	pt3_load_sample(pt3,'A',1);
+
 	pt3->b.which='B';
+	pt3->b.volume=15;
+	pt3->b.tone_sliding=0;
+	pt3->b.enabled=0;
+	pt3->b.envelope_enabled=0;
+	pt3_load_ornament(pt3,'B',0);
+	pt3_load_sample(pt3,'B',1);
+
 	pt3->c.which='C';
+	pt3->c.volume=15;
+	pt3->c.tone_sliding=0;
+	pt3->c.enabled=0;
+	pt3->c.envelope_enabled=0;
+	pt3_load_ornament(pt3,'C',0);
+	pt3_load_sample(pt3,'C',1);
 
 	memset(&pt3->a_old,0,sizeof(struct pt3_note_type));
 	memset(&pt3->b_old,0,sizeof(struct pt3_note_type));
 	memset(&pt3->c_old,0,sizeof(struct pt3_note_type));
 
+	/* calculate length of song */
+	/* TODO */
+
+	/* Init Fields */
 	/* Some defaults */
 	pt3->speed=3;
 	pt3->noise_period=0;
+	pt3->noise_add=0;
+	pt3->envelope_period=0;
 
 	dump_header(pt3);
 
