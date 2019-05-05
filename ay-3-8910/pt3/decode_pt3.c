@@ -16,7 +16,7 @@
 int main(int argc, char **argv) {
 
 	char filename[BUFSIZ];
-	int result;
+	int result,total_time=0;
 	struct pt3_song_t pt3;
 
 	int i,j;
@@ -45,8 +45,10 @@ int main(int argc, char **argv) {
 
 		pt3_set_pattern(i,&pt3);
 
-		printf("Chunk %d/%d, 00:00/00:00, Pattern #%d\n",
-			i,pt3.music_len-1,pt3.current_pattern);
+		printf("Chunk %d/%d, %02d:%02d/00:00, Pattern #%d\n",
+			i,pt3.music_len-1,
+			(total_time/50/60),(total_time/50)%60,
+			pt3.current_pattern);
 		printf("a_addr: %04x, b_addr: %04x, c_addr: %04x\n",
 				pt3.a_addr,pt3.b_addr,pt3.c_addr);
 
@@ -63,6 +65,7 @@ int main(int argc, char **argv) {
 
 			/* Print line of tracker */
 			pt3_print_tracker_line(&pt3,j);
+			total_time+=pt3.speed;
 
 			printf("\n");
 		}

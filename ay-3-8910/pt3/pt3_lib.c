@@ -387,6 +387,7 @@ static void decode_note(struct pt3_note_type *a,
 	a->spec_lo=0;
 
 	/* Skip decode if note still running */
+	printf("VMW: %c len %d\n",a->which,a->len_count);
 	if (a->len_count>1) {
 		a->len_count--;
 		return;
@@ -405,6 +406,7 @@ static void decode_note(struct pt3_note_type *a,
 			case 0:
 				if (current_val==0x0) {
 					printf("ALL DONE %c\n",a->which);
+					a->len_count=0;
 					a->all_done=1;
 					a_done=1;
 				}
@@ -538,7 +540,8 @@ static void decode_note(struct pt3_note_type *a,
 
                                         a->sample_position=0;
                                         a->amplitude_sliding=0;
-                                        a->noise_sliding=0;
+					pt3->noise_period=0;
+					a->noise_sliding=0;
                                         a->envelope_sliding=0;
                                         a->ornament_position=0;
                                         a->tone_slide_count=0;
@@ -1108,6 +1111,10 @@ void pt3_set_pattern(int i, struct pt3_song_t *pt3) {
 
 	pt3->c_addr=pt3->data[(pt3->current_pattern*6)+4+pt3->pattern_loc] |
 		(pt3->data[(pt3->current_pattern*6)+5+pt3->pattern_loc]<<8);
+
+	pt3->a.all_done=0;
+	pt3->b.all_done=0;
+	pt3->c.all_done=0;
 
 }
 
