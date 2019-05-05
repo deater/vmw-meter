@@ -53,7 +53,7 @@
 //                that that channel will be played 3 rasters, 4 not played, 3 played, ...
 //   $08     $09: Envelope frequency decreasing.
 //   $08     $0A: Envelope frequency increasing.
-//                Has negative value?
+//                Diffrence from previous is it has a negative value?
 //   $09     $0B: Set playing speed (new Delay).
 //                The byte after the note will tell the new delay.
 -

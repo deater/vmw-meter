@@ -362,6 +362,7 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 		}
 
 		/* Frequency slide */
+		/* If b1 top bits are 10 or 11 */
                 if ((b1 & 0x80) != 0) {
                         if ((b0 & 0x20) != 0) {
                                 j = ((b0>>1)|0xF0) + a->envelope_sliding;
@@ -375,11 +376,15 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
                         }
 			pt3->envelope_add+=j;
 		}
+		/* Noise slide */
 		else {
+			printf("VMW before %c: %d %d b0=%x\n",a->which,pt3->noise_add,a->noise_sliding,b0);
 			pt3->noise_add = (b0>>1) + a->noise_sliding;
 			if ((b1 & 0x20) != 0) {
 				a->noise_sliding = pt3->noise_add;
 			}
+			printf("VMW after %c: noise_add=%d noise_sliding=%d\n",a->which,pt3->noise_add,a->noise_sliding);
+
 		}
 
 		pt3->mixer_value = ((b1 >>1) & 0x48) | pt3->mixer_value;
@@ -1113,6 +1118,8 @@ void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame) {
 //	}
 
 	/* Noise */
+	printf("VMW: NOISE period=%d noise_add=%d\n",pt3->noise_period,
+		pt3->noise_add);
 	frame[6]= (pt3->noise_period+pt3->noise_add)&0x1f;
 
 	frame[7]=pt3->mixer_value;
@@ -1217,6 +1224,8 @@ void pt3_set_pattern(int i, struct pt3_song_t *pt3) {
 	pt3->a.all_done=0;
 	pt3->b.all_done=0;
 	pt3->c.all_done=0;
+
+	pt3->noise_period=0;
 
 }
 
