@@ -84,7 +84,6 @@ struct pt3_song_t {
 	int mixer_value;
 
 	int noise_period;
-	int noise_base;
 	int noise_add;
 
 	unsigned char data[MAX_PT3_SIZE];

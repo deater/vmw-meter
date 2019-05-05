@@ -417,6 +417,7 @@ static void decode_note(struct pt3_note_type *a,
 					a->spec_command=0x3;
 				}
 				else if (current_val==0x8) {
+					/* envelope down */
 					a->spec_command=0x9;
 				}
 				else if (current_val==0x9) {
@@ -609,6 +610,7 @@ static void decode_note(struct pt3_note_type *a,
 		/* Note, the AY code has code to make sure these are applied */
 		/* In the same order they appear.  We don't bother? */
 		if (a_done) {
+			if (a->spec_command) printf("VMW: special command $%x\n",a->spec_command);
 			if (a->spec_command==0x1) {
 				current_val=pt3->data[(*addr)];
 				a->spec_delay=current_val;
@@ -676,17 +678,13 @@ static void decode_note(struct pt3_note_type *a,
 //					a->tone_slide_count,a->tone_slide_step);
 			}
 
-			if (a->spec_command==0xb) {
-				current_val=pt3->data[(*addr)];
-				a->spec_lo=current_val;
-				pt3->speed=current_val;
-				(*addr)++;
-			}
+			/* Envelope Down */
 			if (a->spec_command==0x9) {
-
+				printf("VMW: envelope down\n");
 				/* delay? */
 				current_val=pt3->data[(*addr)];
-				a->spec_delay=current_val&0xf;
+				pt3->envelope_delay=current_val;
+				pt3->envelope_delay_orig=current_val;
 				(*addr)++;
 
 				/* Low? */
@@ -698,7 +696,18 @@ static void decode_note(struct pt3_note_type *a,
 				current_val=pt3->data[(*addr)];
 				a->spec_hi=current_val&0xf;
 				(*addr)++;
+
+				pt3->envelope_slide_add=(a->spec_hi<<8)|(a->spec_lo&0xff);
 			}
+
+
+			if (a->spec_command==0xb) {
+				current_val=pt3->data[(*addr)];
+				a->spec_lo=current_val;
+				pt3->speed=current_val;
+				(*addr)++;
+			}
+
 			break;
 		}
 	}
@@ -999,7 +1008,7 @@ void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame) {
 //	}
 
 	/* Noise */
-	frame[6]= (pt3->noise_base+pt3->noise_add)&0x1f;
+	frame[6]= (pt3->noise_period+pt3->noise_add)&0x1f;
 
 	frame[7]=pt3->mixer_value;
 
