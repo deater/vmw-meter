@@ -40,13 +40,13 @@
 //                It's the same as above but the value is rested to $FFFF. Example:
 //                $01,$DD,$FF will rest $23 to the final frequency in every raster.
 //   $02     $03: Tone portamento
-//   ??      $04: Sample Offset
+//   $03     $04: Sample Offset
 //		  Starts playing sample from a particular position/line definition.
 //                Byte indicates from which position.
-//   ??      $05: Ornament offset
+//   $04     $05: Ornament offset
 //		  Starts playing ornament from a particular position/line definition.
 //                Byte indicates from which position.
-//   ??      $06: Vibrato
+//   $05     $06: Vibrato
 //		  Periodic sound off/on in that channel
 //                Two bytes are used here. The first one tells how many rasters will be
 //                played and the second how many will be not. Example. $03,$04 means

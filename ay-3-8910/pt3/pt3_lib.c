@@ -446,22 +446,9 @@ static void decode_note(struct pt3_note_type *a,
 					a->all_done=1;
 					a_done=1;
 				}
-				else if (current_val==0x1) {
-					/* tone down */
-					a->spec_command=0x1;
+				else {
+					a->spec_command=current_val&0xf;
 				}
-				else if (current_val==0x2) {
-					/* port */
-					a->spec_command=0x3;
-				}
-				else if (current_val==0x8) {
-					/* envelope down */
-					a->spec_command=0x9;
-				}
-				else if (current_val==0x9) {
-					a->spec_command=0xb;
-				}
-				else printf("%c UNKNOWN %02X\n",a->which,current_val);
 				break;
 			case 1:
 				if ((current_val&0xf)==0x0) {
@@ -626,7 +613,10 @@ static void decode_note(struct pt3_note_type *a,
 		/* Note, the AY code has code to make sure these are applied */
 		/* In the same order they appear.  We don't bother? */
 		if (a_done) {
+			int new_spec=0;
+
 			if (a->spec_command) printf("VMW: special command $%x\n",a->spec_command);
+			/* Tone Down */
 			if (a->spec_command==0x1) {
 				current_val=pt3->data[(*addr)];
 				a->spec_delay=current_val;
@@ -647,9 +637,10 @@ static void decode_note(struct pt3_note_type *a,
 				a->onoff=0;
 
 				(*addr)++;
+				new_spec=1;
 			}
 			/* port */
-			if (a->spec_command==0x3) {
+			else if (a->spec_command==0x2) {
 				a->simplegliss=0;
 				a->onoff=0;
 
@@ -692,10 +683,43 @@ static void decode_note(struct pt3_note_type *a,
 				}
 //				printf("VMW: slide count: %d newslidestep: %x\n",
 //					a->tone_slide_count,a->tone_slide_step);
-			}
+				/* In the tracker it's 3 */
+				new_spec=0x3;
 
+			}
+			/* Position in Sample */
+			else if (a->spec_command==0x3) {
+				current_val=pt3->data[(*addr)];
+				a->sample_position=current_val;
+				(*addr)++;
+
+				new_spec=0x4;
+			}
+			/* Position in Ornament */
+			else if (a->spec_command==0x4) {
+				current_val=pt3->data[(*addr)];
+				a->ornament_position=current_val;
+				(*addr)++;
+
+				new_spec=0x5;
+			}
+			/* Vibrato */
+			else if (a->spec_command==0x5) {
+				current_val=pt3->data[(*addr)];
+				a->onoff_delay=current_val;
+				(*addr)++;
+				current_val=pt3->data[(*addr)];
+				a->offon_delay=current_val;
+				(*addr)++;
+
+				a->onoff=a->onoff_delay;
+				a->tone_slide_count=0;
+				a->tone_sliding=0;
+
+				new_spec=0x6;
+			}
 			/* Envelope Down */
-			if (a->spec_command==0x9) {
+			else if (a->spec_command==0x8) {
 				printf("VMW: envelope down\n");
 				/* delay? */
 				current_val=pt3->data[(*addr)];
@@ -714,15 +738,25 @@ static void decode_note(struct pt3_note_type *a,
 				(*addr)++;
 
 				pt3->envelope_slide_add=(a->spec_hi<<8)|(a->spec_lo&0xff);
+
+				/* in the tracker it's 9 */
+				new_spec=0x9;
+
 			}
-
-
-			if (a->spec_command==0xb) {
+			/* Set Speed */
+			else  if (a->spec_command==0x9) {
 				current_val=pt3->data[(*addr)];
 				a->spec_lo=current_val;
 				pt3->speed=current_val;
 				(*addr)++;
+				/* in tracker it's B */
+				new_spec=0xb;
 			}
+			else {
+				printf("%c UNKNOWN effect %02X\n",
+					a->which,current_val);
+			}
+			a->spec_command=new_spec;
 
 			break;
 		}
