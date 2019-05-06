@@ -36,7 +36,7 @@
 //                Next 2 bytes will indicate the frequency to add. Example:
 //                $02,$23,$00 will add $23 to the final frequency in that raster
 //                and another $23 every 2 rasters.
-//   ??      $02: Tone Up
+//   01      $02: Tone Up
 //                It's the same as above but the value is rested to $FFFF. Example:
 //                $01,$DD,$FF will rest $23 to the final frequency in every raster.
 //   $02     $03: Tone portamento

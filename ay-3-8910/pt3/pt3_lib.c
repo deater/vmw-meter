@@ -280,27 +280,35 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 	int j,b1,b0; // byte;
 	int w;          // word;
 
-
 	if (a->enabled) {
-		a->tone = pt3->data[a->sample_pointer + a->sample_position * 4 + 2];
-		a->tone += (pt3->data[a->sample_pointer + a->sample_position * 4 + 3])<<8;
-		a->tone += a->tone_accumulator;
 
 		b0 = pt3->data[a->sample_pointer + a->sample_position * 4];
 		b1 = pt3->data[a->sample_pointer + a->sample_position * 4 + 1];
 
+		a->tone = pt3->data[a->sample_pointer + a->sample_position * 4 + 2];
+		a->tone += (pt3->data[a->sample_pointer + a->sample_position * 4 + 3])<<8;
+		a->tone += a->tone_accumulator;
+
 		if ((b1 & 0x40) != 0) {
 			a->tone_accumulator=a->tone;
 		}
+
 		j = a->note + ((pt3->data[a->ornament_pointer + a->ornament_position]<<24)>>24);
-//		if (a->which=='C') printf("VMW: ORN %x %x[%x]=%x j=%x\n",
-//			a->note,a->ornament_pointer,a->ornament_position,
-//				pt3->data[a->ornament_pointer+a->ornament_position],j);
+		if (a->which=='A') printf("VMW: SMP %x/%x ORN %x %x[%x]=%x j=%x\n",
+			a->sample,a->sample_position,
+			a->note,a->ornament_pointer,a->ornament_position,
+				pt3->data[a->ornament_pointer+a->ornament_position],j);
 		if (j < 0) j = 0;
                 else if (j > 95) j = 95;
 		w = GetNoteFreq(j,pt3->frequency_table);
 
+		if (a->which=='A') {
+			printf("VMWQ: %x %x\n",GetNoteFreq(j,1),GetNoteFreq(j,2));
+			printf("VMWA1: tone=%x+sliding %x+w %x slide_count=%x\n",
+				a->tone,a->tone_sliding,w,a->tone_slide_count);
+		}
 		a->tone = (a->tone + a->tone_sliding + w) & 0xfff;
+
                 if (a->tone_slide_count > 0) {
 			a->tone_slide_count--;
 			if (a->tone_slide_count==0) {
@@ -318,6 +326,12 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 				}
 			}
 		}
+
+		if (a->which=='A') {
+			printf("VMWA2: tone=%x\n",
+				a->tone);
+		}
+
 
 		a->amplitude= (b1 & 0xf);
 
@@ -378,12 +392,12 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 		}
 		/* Noise slide */
 		else {
-			printf("VMW before %c: %d %d b0=%x\n",a->which,pt3->noise_add,a->noise_sliding,b0);
+//			printf("VMW before %c: %d %d b0=%x\n",a->which,pt3->noise_add,a->noise_sliding,b0);
 			pt3->noise_add = (b0>>1) + a->noise_sliding;
 			if ((b1 & 0x20) != 0) {
 				a->noise_sliding = pt3->noise_add;
 			}
-			printf("VMW after %c: noise_add=%d noise_sliding=%d\n",a->which,pt3->noise_add,a->noise_sliding);
+//			printf("VMW after %c: noise_add=%d noise_sliding=%d\n",a->which,pt3->noise_add,a->noise_sliding);
 
 		}
 
@@ -423,7 +437,7 @@ static void decode_note(struct pt3_note_type *a,
 	int a_done=0;
 	int current_val;
 	int prev_note;
-//	int prev_sliding;
+	int prev_sliding;
 	a->new_note=0;
 
 	a->spec_command=0;
@@ -437,7 +451,7 @@ static void decode_note(struct pt3_note_type *a,
 	}
 
 	prev_note=a->note;
-//	prev_sliding=a->tone_sliding;
+	prev_sliding=a->tone_sliding;
 
 	while(1) {
 		a->len_count=a->len;
@@ -632,6 +646,7 @@ static void decode_note(struct pt3_note_type *a,
 				a->spec_delay=current_val;
 				a->tone_slide_delay=current_val;
 				a->tone_slide_count=a->tone_slide_delay;
+				printf("VMW: SLIDE DELAY=%x\n",a->tone_slide_delay);
 
 				(*addr)++;
 				current_val=pt3->data[(*addr)];
@@ -642,12 +657,28 @@ static void decode_note(struct pt3_note_type *a,
 				a->spec_hi=(current_val);
 
 				a->tone_slide_step=(a->spec_lo)|(a->spec_hi<<8);
+				/* Sign Extend */
+				a->tone_slide_step=(a->tone_slide_step<<16)>>16;
+
+				printf("VMW: TONE_SLIDE DELAY %x\n",a->tone_slide_delay);
 				//printf("TONE_SLIDE %x\n",a->tone_slide_step);
 				a->simplegliss=1;
 				a->onoff=0;
 
 				(*addr)++;
-				new_spec=1;
+
+				printf("VMW: %x\n",a->tone_slide_step);
+
+				/* in the tracker it's 1 */
+				if (a->tone_slide_step>=0) new_spec=0x1;
+				else {
+					signed short new_parm;
+					new_spec=0x2;
+					new_parm=a->tone_slide_step;
+					new_parm=-new_parm;
+					a->spec_hi=new_parm>>8;
+					a->spec_lo=new_parm&0xff;
+				}
 			}
 			/* port */
 			else if (a->spec_command==0x2) {
@@ -686,8 +717,9 @@ static void decode_note(struct pt3_note_type *a,
 //				printf("VMW: slide_step: %x delta %x sliding %x\n",
 //					a->tone_slide_step,a->tone_delta,
 //					a->tone_sliding);
-//				if (PlParams.PT3.PT3_Version >= 6) {
-//					a->tone_sliding = PrSliding;
+				if (pt3->version >= 6) {
+					a->tone_sliding = prev_sliding;
+				}
 				if ((a->tone_delta - a->tone_sliding) < 0) {
 					a->tone_slide_step = -a->tone_slide_step;
 				}
@@ -750,9 +782,9 @@ static void decode_note(struct pt3_note_type *a,
 
 				pt3->envelope_slide_add=(a->spec_hi<<8)|(a->spec_lo&0xff);
 
-				printf("VMW: envelope down delay=%x slide=%x\n",
-					pt3->envelope_delay,
-					pt3->envelope_slide_add);
+//				printf("VMW: envelope down delay=%x slide=%x\n",
+//					pt3->envelope_delay,
+//					pt3->envelope_slide_add);
 
 				/* in the tracker it's 9 */
 				if (pt3->envelope_slide_add<0x8000) new_spec=0x9;
@@ -861,6 +893,7 @@ void dump_header(struct pt3_song_t *pt3) {
 
 	int i,j,addr,loop,len;
 
+	printf("\tPT Version: %d\n",pt3->version);
 	printf("\tNAME: %s\n",pt3->name);
 	printf("\tBY  : %s\n",pt3->author);
 	printf("\tFreqTable: %d Speed: %d  Patterns: %d Loop: %d\n",
