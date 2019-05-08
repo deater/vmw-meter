@@ -32,6 +32,10 @@ echo "Testing DASCON_MB"
 ../../conversion_tools/ym_to_ym5 dascon_mb > /dev/null
 cmp dascon_mb.ym5 dascon_mb_good.ym5
 
+# NOTE: the DOTD are off very slightly on some notes
+#       for now hoping it's a version difference on Vortex Tracker 3.7 files
+#       and using AYemul29b17 to convert but AYemul30b11 source
+
 # DYA_DOTD_PT1
 echo "Testing DYA_DOTD_PT1"
 ../pt3_to_ym5 dya_dotd_pt1.pt3 dya_dotd_pt1.ym > /dev/null
