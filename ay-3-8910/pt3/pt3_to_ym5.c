@@ -109,8 +109,8 @@ int main(int argc, char **argv) {
 		printf("a_addr: %04x, b_addr: %04x, c_addr: %04x\n",
 				pt3.a_addr,pt3.b_addr,pt3.c_addr);
 
-		printf("Cdata: ");
-		for(j=0;j<32;j++) printf("%02x ",pt3.data[pt3.c_addr+j]);
+		printf("Adata: ");
+		for(j=0;j<32;j++) printf("%02x ",pt3.data[pt3.a_addr+j]);
 		printf("\n");
 
 		for(j=0;j<64;j++) {

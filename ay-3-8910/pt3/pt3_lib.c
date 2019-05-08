@@ -214,42 +214,64 @@ static int pt3_load_header(int verbose, struct pt3_song_t *pt3) {
 
 
 
-static int GetNoteFreq(int j, int freq_table) {
+static int GetNoteFreq(int j, struct pt3_song_t *pt3) {
 
- // case RAM.PT3_TonTableId of
-//  0:if PlParams.PT3.PT3_Version <= 3 then
- //    Result := PT3NoteTable_PT_33_34r[j]
- //   else
- //    Result := PT3NoteTable_PT_34_35[j];
- // 1:
-//	return PT3NoteTable_ST[j];
-//  2:if PlParams.PT3.PT3_Version <= 3 then
-//     Result := PT3NoteTable_ASM_34r[j]
-//    else
- //    Result := PT3NoteTable_ASM_34_35[j];
- // else if PlParams.PT3.PT3_Version <= 3 then
- //       Result := PT3NoteTable_REAL_34r[j]
- //      else
- //       Result := PT3NoteTable_REAL_34_35[j]
- // end
-	if (freq_table==1) {
+	if (pt3->frequency_table==0) {
+		if (pt3->version <= 3) {
+			fprintf(stderr,"ERROR: unhandled freq table %d\n",
+				pt3->frequency_table);
+			exit(-1);
+//			return PT3NoteTable_PT_33_34r[j]
+		}
+		else {
+			fprintf(stderr,"ERROR: unhandled freq table %d\n",
+				pt3->frequency_table);
+			exit(-1);
+//			return PT3NoteTable_PT_34_35[j];
+		}
+	}
+	else if (pt3->frequency_table==1) {
 		return PT3NoteTable_ST[j];
 	}
-
-	if (freq_table==2) {
-		return PT3NoteTable_ASM_34_35[j];
+	else if (pt3->frequency_table==2) {
+		if (pt3->version <= 3) {
+			fprintf(stderr,"ERROR: unhandled freq table %d\n",
+				pt3->frequency_table);
+			exit(-1);
+//			return PT3NoteTable_ASM_34r[j];
+		}
+		else {
+			return PT3NoteTable_ASM_34_35[j];
+		}
 	}
-
-	return PT3NoteTable_ST[j];
-
+	else {
+		if (pt3->version <= 3) {
+			fprintf(stderr,"ERROR: unhandled freq table %d\n",
+				pt3->frequency_table);
+			exit(-1);
+//			return PT3NoteTable_REAL_34r[j];
+		}
+		else {
+			fprintf(stderr,"ERROR: unhandled freq table %d\n",
+				pt3->frequency_table);
+			exit(-1);
+//			return PT3NoteTable_REAL_34_35[j];
+		}
+	}
 }
 
 
 static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
-        // XX YYYYY Z  = X= 10=VOLDOWN 11=VOLUP, Y=NOISE, Z= 0=ENV, 1=NO ENVELOPE
-        // XX YY ZZZZ  = X= FREQ SLIDE YY=NOISE SLIDE ZZ=VOLUME
-        // XXXXXXXX = LOW BYTE FREQ SLIDE
-        // YYYYYYYY = HIGH BYTE FREQ SLIDE
+        // B0: XX YYYYY Z  = X= 10=VOLDOWN 11=VOLUP
+	//                   Y=NOISE, Z= 0=ENV, 1=NO ENVELOPE
+        // B1: X Y Z AAAA  = X= ENVELOPE or NOISE add
+	//                   Z= also make sliding
+	//                    if Envelope slide:
+	//			 B0: Y YYYY = add/sub and slide value
+	//                    if Noise slide:
+	//                       B0: YYYY = noise add
+        //     XXXXXXXX = LOW BYTE FREQ SLIDE
+        //     YYYYYYYY = HIGH BYTE FREQ SLIDE
         //
         // 80 8f 00 00
         // 1000 0000 -- VOLDOWN
@@ -287,7 +309,7 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 
 		/* Look up the note in the frequency table */
 		/* Which technically is a period table */
-		w = GetNoteFreq(j,pt3->frequency_table);
+		w = GetNoteFreq(j,pt3);
 
 		/* Take the sample tone, and combine with sliding */
 		/* and ornament */
@@ -375,12 +397,16 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 			a->amplitude |= 16;
 		}
 
-		/* Frequency slide */
+		/* Envelope slide */
 		/* If b1 top bits are 10 or 11 */
                 if ((b1 & 0x80) != 0) {
-                        if ((b0 & 0x20) != 0) {
-                                j = ((b0>>1)|0xF0) + a->envelope_sliding;
+			/* Slide down? Sign extend? */
+			if ((b0 & 0x20) != 0) {
+                                j = ((b0>>1)|0xF0);
+				j= (j<<24)>>24;
+				j+= a->envelope_sliding;
                         }
+			/* Slide up by bottom 4 bits? */
                         else {
                                 j = ((b0>>1)&0xF) + a->envelope_sliding;
                         }
@@ -400,6 +426,12 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 //			printf("VMW after %c: noise_add=%d noise_sliding=%d\n",a->which,pt3->noise_add,a->noise_sliding);
 
 		}
+
+//		if (a->which=='A') {
+			printf("VMW%c env period=%x slide=%x add=%x\n",
+				a->which,pt3->envelope_period,
+				a->envelope_sliding,pt3->envelope_add);
+//		}
 
 		pt3->mixer_value = ((b1 >>1) & 0x48) | pt3->mixer_value;
 
@@ -576,7 +608,7 @@ static void decode_note(struct pt3_note_type *a,
 
                                         a->sample_position=0;
                                         a->amplitude_sliding=0;
-					pt3->noise_period=0; // one song needed this to match?
+					//pt3->noise_period=0; // one song needed this to match?
 					a->noise_sliding=0;
                                         a->envelope_sliding=0;
                                         a->ornament_position=0;
@@ -709,8 +741,8 @@ static void decode_note(struct pt3_note_type *a,
 				if (a->tone_slide_step<0) a->tone_slide_step=-a->tone_slide_step;
 
 
-				a->tone_delta=GetNoteFreq(a->note,pt3->frequency_table)-
-					GetNoteFreq(prev_note,pt3->frequency_table);
+				a->tone_delta=GetNoteFreq(a->note,pt3)-
+					GetNoteFreq(prev_note,pt3);
 				a->slide_to_note=a->note;
 				a->note=prev_note;
 //				printf("VMW: slide_step: %x delta %x sliding %x\n",
@@ -1075,7 +1107,9 @@ int pt3_init_song(struct pt3_song_t *pt3) {
 	pt3->envelope_period=0;
 	pt3->envelope_type=0;
 	pt3->envelope_type_old=0;
+	pt3->envelope_slide_add=0;
 	pt3->current_pattern=0;
+
 
 	return 0;
 }
@@ -1167,8 +1201,11 @@ void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame) {
 	/* Envelope period */
 
 	temp_envelope=pt3->envelope_period+
-			pt3->envelope_add+
-			pt3->envelope_slide;
+				pt3->envelope_add+
+				pt3->envelope_slide;
+	printf("VMW: envelope=%x period=%x add=%x slide=%x\n",
+			temp_envelope,pt3->envelope_period,pt3->envelope_add,
+			pt3->envelope_slide);
 	frame[11]=(temp_envelope&0xff);
 	frame[12]=(temp_envelope>>8);
 
