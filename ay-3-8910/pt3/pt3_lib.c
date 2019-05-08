@@ -102,7 +102,7 @@ unsigned char PT3VolumeTable_35[16][16]={
   {0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0xA,0xB,0xC,0xD,0xE,0xF},
 };
 
-static void pt3_load_ornament(struct pt3_song_t *pt3, int which, int ornament) {
+static void pt3_load_ornament(struct pt3_song_t *pt3, int which) {
 
 	struct pt3_note_type *a;
 
@@ -111,14 +111,14 @@ static void pt3_load_ornament(struct pt3_song_t *pt3, int which, int ornament) {
 	else if (which=='C') a=&(pt3->c);
 	else return;
 
-	a->ornament_pointer=pt3->ornament_patterns[ornament];
+	a->ornament_pointer=pt3->ornament_patterns[a->ornament];
 	a->ornament_loop=pt3->data[a->ornament_pointer];
 	a->ornament_pointer++;
 	a->ornament_length=pt3->data[a->ornament_pointer];
 	a->ornament_pointer++;
 }
 
-static void pt3_load_sample(struct pt3_song_t *pt3, int which, int sample) {
+static void pt3_load_sample(struct pt3_song_t *pt3, int which) {
 
 	struct pt3_note_type *a;
 
@@ -127,7 +127,7 @@ static void pt3_load_sample(struct pt3_song_t *pt3, int which, int sample) {
 	else if (which=='C') a=&(pt3->c);
 	else return;
 
-	a->sample_pointer=pt3->sample_patterns[sample];
+	a->sample_pointer=pt3->sample_patterns[a->sample];
 	a->sample_loop=pt3->data[a->sample_pointer];
 	a->sample_pointer++;
 	a->sample_length=pt3->data[a->sample_pointer];
@@ -156,7 +156,11 @@ static int pt3_load_header(int verbose, struct pt3_song_t *pt3) {
 	}
 
 	/* version -- byte at offset 0xd */
-	pt3->version=pt3->data[0xd];
+	//pt3->version=pt3->data[0xd];
+	pt3->version=6;
+	if ((pt3->data[0xd]>='0') && (pt3->data[0xd]<='9')) {
+		pt3->version=pt3->data[0xd]-'0';
+	}
 
 	/* Name -- 32 bytes at offset 0x1e */
 	memcpy(&(pt3->name),&(pt3->data[0x1e]),32);
@@ -241,32 +245,6 @@ static int GetNoteFreq(int j, int freq_table) {
 }
 
 
-/*
- Loop: 0 Length: 18
-                        80 8f 00 00
-                        80 8f 00 00
-                        00 8e 00 00
-                        00 8e 00 00
-                        00 8d 00 00
-                        00 8d 00 00
-                        00 8c 00 00
-                        00 8c 00 00
-                        00 8b 00 00
-                        00 8b 00 00
-                        00 8a 00 00
-                        00 8a 00 00
-                        00 89 00 00
-                        00 89 00 00
-                        00 88 00 00
-                        00 88 00 00
-                        00 87 00 00
-                        00 87 00 00
-
-V			01 00 00 00
-			c1 00 00 00
-
-*/
-
 static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
         // XX YYYYY Z  = X= 10=VOLDOWN 11=VOLUP, Y=NOISE, Z= 0=ENV, 1=NO ENVELOPE
         // XX YY ZZZZ  = X= FREQ SLIDE YY=NOISE SLIDE ZZ=VOLUME
@@ -282,33 +260,40 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 
 	if (a->enabled) {
 
+		/* Get first two bytes of 4-byte sample step */
 		b0 = pt3->data[a->sample_pointer + a->sample_position * 4];
 		b1 = pt3->data[a->sample_pointer + a->sample_position * 4 + 1];
 
-		a->tone = pt3->data[a->sample_pointer + a->sample_position * 4 + 2];
-		a->tone += (pt3->data[a->sample_pointer + a->sample_position * 4 + 3])<<8;
+		/* The next two bytes are the freq slide value? */
+		a->tone = pt3->data[a->sample_pointer +
+				a->sample_position*4 + 2];
+		a->tone += (pt3->data[a->sample_pointer +
+					a->sample_position*4+3])<<8;
 		a->tone += a->tone_accumulator;
 
+		/* Accumulate tone if set */
 		if ((b1 & 0x40) != 0) {
 			a->tone_accumulator=a->tone;
 		}
 
-		j = a->note + ((pt3->data[a->ornament_pointer + a->ornament_position]<<24)>>24);
-		if (a->which=='A') printf("VMW: SMP %x/%x ORN %x %x[%x]=%x j=%x\n",
-			a->sample,a->sample_position,
-			a->note,a->ornament_pointer,a->ornament_position,
-				pt3->data[a->ornament_pointer+a->ornament_position],j);
+		/* Get the Note and add in the ornament value */
+		/* It's a single byte, sign-extend it */
+		j = a->note + ((pt3->data[a->ornament_pointer +
+				a->ornament_position]<<24)>>24);
+
+		/* Make sure the note stays in bounds */
 		if (j < 0) j = 0;
                 else if (j > 95) j = 95;
+
+		/* Look up the note in the frequency table */
+		/* Which technically is a period table */
 		w = GetNoteFreq(j,pt3->frequency_table);
 
-		if (a->which=='A') {
-			printf("VMWQ: %x %x\n",GetNoteFreq(j,1),GetNoteFreq(j,2));
-			printf("VMWA1: tone=%x+sliding %x+w %x slide_count=%x\n",
-				a->tone,a->tone_sliding,w,a->tone_slide_count);
-		}
+		/* Take the sample tone, and combine with sliding */
+		/* and ornament */
 		a->tone = (a->tone + a->tone_sliding + w) & 0xfff;
 
+		/* If we are sliding, handle the sliding part */
                 if (a->tone_slide_count > 0) {
 			a->tone_slide_count--;
 			if (a->tone_slide_count==0) {
@@ -327,50 +312,65 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 			}
 		}
 
-		if (a->which=='A') {
-			printf("VMWA2: tone=%x\n",
-				a->tone);
-		}
+		/* Calculate the amplitude */
+		/* First get the value from the sample */
 
+		if (a->which=='A') {
+			printf("VMW sample=%x sample_pos=%x\n",a->sample,
+				a->sample_position);
+		}
 
 		a->amplitude= (b1 & 0xf);
 
-//		if (a->which=='B') {
-//			printf("VMWB: sample=%d ptr=%x b0=%x\n",
-//				a->sample,a->sample_pointer,b0);
-//		}
+		if (a->which=='A') {
+			printf("VMW sample=%x sample_pos=%x amp=%x\n",a->sample,
+				a->sample_position,a->amplitude);
+		}
 
+		/* Top bit indicates sliding */
 		if ((b0 & 0x80)!=0) {
+			/* Next bit high (0b11) means slide up */
 			if ((b0&0x40)!=0) {
-//				if (a->which=='B') printf("VMWB: C0 amp sliding %d\n",a->amplitude_sliding);
 				if (a->amplitude_sliding < 15) {
 					a->amplitude_sliding++;
 				}
 			}
+			/* Next bit low (0b10) means slide down */
 			else {
-//				if (a->which=='B') printf("VMWB: 80 amp sliding %d\n",a->amplitude_sliding);
 				if (a->amplitude_sliding > -15) {
 					a->amplitude_sliding--;
 				}
 			}
 		}
 		a->amplitude+=a->amplitude_sliding;
-//		if (a->which=='B') printf("VMWB: amp sliding %d AMP=%x\n",
-//				a->amplitude_sliding,a->amplitude);
 
+		if (a->which=='A') {
+			printf("VMW amp_sliding=%x final=%x\n",a->amplitude_sliding,
+				a->amplitude);
+		}
+		/* Make sure the amplitude stays in bounds */
 		if (a->amplitude < 0) a->amplitude = 0;
 		else if (a->amplitude > 15) a->amplitude = 15;
 
-//              if PlParams.PT3.PT3_Version <= 4 {
-//			a->amplitude = PT3VolumeTable_33_34[a->volume][a->amplitude];
-//              }
-//              else {
-			a->amplitude = PT3VolumeTable_35[a->volume][a->amplitude];
-//              }
+		if (a->which=='A') {
+			printf("VMW version=%d %x\n",
+				pt3->version,pt3->version);
+		}
 
-//		if (a->which=='B') printf("VMWB: final=%d volume=%d\n",
-//				a->amplitude,a->volume);
+		if (pt3->version <= 4) {
+			a->amplitude = PT3VolumeTable_33_34[a->volume]
+							[a->amplitude];
+		}
+		else {
+			/* This seems to be the more common case */
+			a->amplitude = PT3VolumeTable_35[a->volume]
+							[a->amplitude];
+		}
 
+		/* Bottom bit of b0 indicates our sample has envelope */
+		/* Also make sure envelopes are enabled */
+		/* Bit 4 of the AY-3-8910 amplitude specifies */
+		/* envelope enabled */
 		if (((b0 & 0x1) == 0) && ( a->envelope_enabled)) {
 			a->amplitude |= 16;
 		}
@@ -494,8 +494,7 @@ static void decode_note(struct pt3_note_type *a,
 				(*addr)++;
 				current_val=pt3->data[(*addr)];
 				a->sample=(current_val/2);
-
-				pt3_load_sample(pt3,a->which,a->sample);
+				pt3_load_sample(pt3,a->which);
 //				printf("0x1: Sample pointer %d %x\n",a->sample,a->sample_pointer);
 				a->ornament_position=0;
 
@@ -516,7 +515,7 @@ static void decode_note(struct pt3_note_type *a,
 			case 4:
 //				printf("VMW4: ornament=%x\n",current_val&0xf);
 				a->ornament=(current_val&0xf);
-				pt3_load_ornament(pt3,a->which,a->ornament);
+				pt3_load_ornament(pt3,a->which);
 				a->ornament_position=0;
 				break;
 			case 5:
@@ -598,14 +597,14 @@ static void decode_note(struct pt3_note_type *a,
 				}
 				else {
 					a->sample=(current_val&0xf);
-					pt3_load_sample(pt3,a->which,a->sample);
+					pt3_load_sample(pt3,a->which);
 //					printf("0xd: sample %d sample pointer %x\n",
 //						a->sample,a->sample_pointer);
 				}
 				break;
 			case 0xe:
 				a->sample=(current_val-0xd0);
-				pt3_load_sample(pt3,a->which,a->sample);
+				pt3_load_sample(pt3,a->which);
 //				printf("0xe: sample %d sample pointer %x\n",
 //					a->sample,a->sample_pointer);
 
@@ -616,14 +615,14 @@ static void decode_note(struct pt3_note_type *a,
 //				printf("VMWf: ornament=%x\n",current_val&0xf);
 				a->ornament=(current_val&0xf);
 
-				pt3_load_ornament(pt3,a->which,a->ornament);
+				pt3_load_ornament(pt3,a->which);
 
 				(*addr)++;
 				current_val=pt3->data[*addr];
 
 				a->sample=current_val/2;
 				a->sample_pointer=pt3->sample_patterns[a->sample];
-				pt3_load_sample(pt3,a->which,a->sample);
+				pt3_load_sample(pt3,a->which);
 //				printf("0xf: sample pointer[%d] %x\n",
 //						a->sample,
 //						a->sample_pointer);
@@ -1030,26 +1029,41 @@ int pt3_init_song(struct pt3_song_t *pt3) {
 	pt3->a.which='A';
 	pt3->a.volume=15;
 	pt3->a.tone_sliding=0;
+	pt3->a.amplitude_sliding=0;
 	pt3->a.enabled=0;
 	pt3->a.envelope_enabled=0;
-	pt3_load_ornament(pt3,'A',0);
-	pt3_load_sample(pt3,'A',1);
+	pt3->a.ornament=0;
+	pt3->a.ornament_position=0;
+	pt3_load_ornament(pt3,'A');
+	pt3->a.sample_position=0;
+	pt3->a.sample=1;
+	pt3_load_sample(pt3,'A');
 
 	pt3->b.which='B';
 	pt3->b.volume=15;
 	pt3->b.tone_sliding=0;
+	pt3->b.amplitude_sliding=0;
 	pt3->b.enabled=0;
 	pt3->b.envelope_enabled=0;
-	pt3_load_ornament(pt3,'B',0);
-	pt3_load_sample(pt3,'B',1);
+	pt3->b.ornament=0;
+	pt3->b.ornament_position=0;
+	pt3_load_ornament(pt3,'B');
+	pt3->b.sample_position=0;
+	pt3->b.sample=1;
+	pt3_load_sample(pt3,'B');
 
 	pt3->c.which='C';
 	pt3->c.volume=15;
 	pt3->c.tone_sliding=0;
+	pt3->c.amplitude_sliding=0;
 	pt3->c.enabled=0;
 	pt3->c.envelope_enabled=0;
-	pt3_load_ornament(pt3,'C',0);
-	pt3_load_sample(pt3,'C',1);
+	pt3->c.ornament=0;
+	pt3->c.ornament_position=0;
+	pt3_load_ornament(pt3,'C');
+	pt3->c.sample_position=0;
+	pt3->c.sample=1;
+	pt3_load_sample(pt3,'C');
 
 	memset(&pt3->a_old,0,sizeof(struct pt3_note_type));
 	memset(&pt3->b_old,0,sizeof(struct pt3_note_type));
@@ -1109,20 +1123,14 @@ int pt3_load_song(char *filename, struct pt3_song_t *pt3) {
 
 void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame) {
 
-	/* R0 = A period low */
-	/* R1 = A period high */
-	/* R2 = B period low */
-	/* R3 = B period high */
-	/* R4 = C period low */
-	/* R5 = C period high */
+	/* R0/R1 = A period low/high */
+	/* R2/R3 = B period low/high */
+	/* R4/R5 = C period low/high */
 	/* R6 = Noise period */
-	/* R7 = Enable XX Noise=!CBA Tone=!CBA */
-	/* R8 = Channel A amplitude M3210 */
-	/* R9 = Channel B amplitude M3210 */
-	/* R10 = Channel C amplitude M3210 */
-	/* R11 = Envelope Period L */
-	/* R12 = Envelope Period H */
-	/* R13 = Envelope Shape */
+	/* R7 Mixer Enable: XX Noise=!CBA Tone=!CBA */
+	/* R8/R9/R10 = Channel A/B/C amplitude E3210 */
+	/* R11/R12 = Envelope Period low/high */
+	/* R13 = Envelope Shape (tracker: 0xff means no change) */
 	/* R14/R15 = I/O (ignored) */
 
 	int temp_envelope;
@@ -1137,35 +1145,24 @@ void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame) {
 	calculate_note(&pt3->b,pt3);
 	calculate_note(&pt3->c,pt3);
 
-//	if (a.enabled) {
-		frame[0]=pt3->a.tone&0xff;
-		frame[1]=(pt3->a.tone>>8)&0xff;
-//	}
-//	if (b.enabled) {
-		frame[2]=pt3->b.tone&0xff;
-		frame[3]=(pt3->b.tone>>8)&0xff;
-//	}
-//	if (c.enabled) {
-		frame[4]=pt3->c.tone&0xff;
-		frame[5]=(pt3->c.tone>>8)&0xff;
-//	}
+	/* Set Period for the 3 channels */
+	frame[0]=pt3->a.tone&0xff;
+	frame[1]=(pt3->a.tone>>8)&0xff;
+	frame[2]=pt3->b.tone&0xff;
+	frame[3]=(pt3->b.tone>>8)&0xff;
+	frame[4]=pt3->c.tone&0xff;
+	frame[5]=(pt3->c.tone>>8)&0xff;
 
 	/* Noise */
-	printf("VMW: NOISE period=%d noise_add=%d\n",pt3->noise_period,
-		pt3->noise_add);
 	frame[6]= (pt3->noise_period+pt3->noise_add)&0x1f;
 
+	/* Mixer Value */
 	frame[7]=pt3->mixer_value;
 
-//	if (a.enabled) {
-		frame[8]=pt3->a.amplitude;
-//	}
-//	if (b.enabled) {
-		frame[9]=pt3->b.amplitude;
-//	}
-//	if (c.enabled) {
-		frame[10]=pt3->c.amplitude;
-//	}
+	/* Amplitude/Volume */
+	frame[8]=pt3->a.amplitude;
+	frame[9]=pt3->b.amplitude;
+	frame[10]=pt3->c.amplitude;
 
 	/* Envelope period */
 
@@ -1174,10 +1171,6 @@ void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame) {
 			pt3->envelope_slide;
 	frame[11]=(temp_envelope&0xff);
 	frame[12]=(temp_envelope>>8);
-
-//	printf("VMW ENV %x, period=%x add=%x slide=%x\n",
-//			temp_envelope,
-//			pt3->envelope_period,pt3->envelope_add,pt3->envelope_slide);
 
 	/* Envelope shape */
 	if (pt3->envelope_type==pt3->envelope_type_old) {
@@ -1188,6 +1181,7 @@ void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame) {
 	}
 	pt3->envelope_type_old=pt3->envelope_type;
 
+	/* Update envelope delay */
 	if (pt3->envelope_delay > 0) {
 		pt3->envelope_delay--;
 		if (pt3->envelope_delay==0) {
