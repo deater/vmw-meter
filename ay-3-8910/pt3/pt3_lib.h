@@ -5,10 +5,10 @@
 
 struct pt3_note_type {
 	char which;
-	int note;
-	int sample;
-	int ornament;
-	int volume;
+	unsigned char note;
+	char sample;
+	char ornament;
+	char volume;
 	int spec_command;
 	int spec_delay;
 	int spec_hi;
