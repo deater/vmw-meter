@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 	}
 
 	if (argc>2) {
-		strncpy(filename,argv[2],BUFSIZ-1);
+		strncpy(out_filename,argv[2],BUFSIZ-1);
 	}
 	else {
 		strncpy(out_filename,"out.ym",BUFSIZ-1);
