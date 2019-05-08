@@ -65,8 +65,12 @@ int main(int argc, char **argv) {
 		strncpy(filename,"ea.pt3",BUFSIZ-1);
 	}
 
-	strncpy(out_filename,"out.ym",BUFSIZ-1);
-
+	if (argc>2) {
+		strncpy(filename,argv[2],BUFSIZ-1);
+	}
+	else {
+		strncpy(out_filename,"out.ym",BUFSIZ-1);
+	}
 
 	/* Load song */
 	result=pt3_load_song(filename, &pt3);
