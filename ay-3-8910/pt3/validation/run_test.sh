@@ -1,6 +1,33 @@
 #!/bin/sh
 
+echo
+
 # EA
+echo "Testing EA"
 ../pt3_to_ym5 ea.pt3 ea.ym > /dev/null
 ../../conversion_tools/ym_to_ym5 ea > /dev/null
 cmp ea.ym5 ea_good.ym5
+
+# AR_IT
+echo "Testing AR_IT"
+../pt3_to_ym5 ar_it.pt3 ar_it.ym > /dev/null
+../../conversion_tools/ym_to_ym5 ar_it > /dev/null
+cmp ar_it.ym5 ar_it_good.ym5
+
+# MMCM_OS
+echo "Testing MMCM_OS"
+../pt3_to_ym5 ar_it.pt3 mmcm_os.ym > /dev/null
+../../conversion_tools/ym_to_ym5 mmcm_os > /dev/null
+cmp mmcm_os.ym5 mmcm_os_good.ym5
+
+# MMCM_SR
+echo "Testing MMCM_SR"
+../pt3_to_ym5 mmcm_sr.pt3 mmcm_sr.ym > /dev/null
+../../conversion_tools/ym_to_ym5 mmcm_sr > /dev/null
+cmp mmcm_sr.ym5 mmcm_sr_good.ym5
+
+# DASCON_MB
+echo "Testing DASCON_MB"
+../pt3_to_ym5 dascon_mb.pt3 dascon_mb.ym > /dev/null
+../../conversion_tools/ym_to_ym5 dascon_mb > /dev/null
+cmp dascon_mb.ym5 dascon_mb_good.ym5
