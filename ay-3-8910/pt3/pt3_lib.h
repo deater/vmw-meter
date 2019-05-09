@@ -6,53 +6,53 @@
 struct pt3_note_type {
 	char which;
 	unsigned char note;
-	char sample;
-	char ornament;
-	char volume;
-	int spec_command;
-	int spec_delay;
-	int spec_hi;
-	int spec_lo;
+	unsigned char sample;
+	unsigned char ornament;
+	unsigned char volume;
+	unsigned char spec_command;
+	unsigned char spec_delay;
+	unsigned char spec_hi;
+	unsigned char spec_lo;
 
-	int len;
-	int len_count;
+	unsigned char len;
+	unsigned char len_count;
 
-	int all_done;
+	unsigned char all_done;
 
-        int ornament_pointer;
-        int ornament_length;
-        int ornament_loop;
-        int ornament_position;
+	unsigned short ornament_pointer;
+	unsigned char ornament_length;
+	unsigned char ornament_loop;
+	unsigned char ornament_position;
 
-        int sample_pointer;
-        int sample_length;
-        int sample_loop;
-        int sample_position;
+	unsigned short sample_pointer;
+        unsigned char sample_length;
+        unsigned char sample_loop;
+        unsigned char sample_position;
 
-        int envelope_enabled;
+        unsigned envelope_enabled;
 
-	int amplitude;
-        int amplitude_sliding;
-        int noise_sliding;
-        int envelope_sliding;
+	char amplitude;
+        char amplitude_sliding;
+        char noise_sliding;
+        char envelope_sliding;
 
-        int tone_slide_count;
-        int tone_sliding;
-	int tone_slide_step;
-	int tone_slide_delay;
-	int tone_delta;
-	int slide_to_note;
+        char tone_slide_count;
+        short tone_sliding;		// error if less
+	short tone_slide_step;
+	char tone_slide_delay;
+	short tone_delta;
+	char slide_to_note;
 
-	int simplegliss;
+	unsigned char simplegliss;
 
-        int tone_accumulator;
-        int onoff;
-	int onoff_delay;
-	int offon_delay;
-	int tone;
-        int enabled;
+        short tone_accumulator;
+        char onoff;
+	char onoff_delay;
+	char offon_delay;
+	short tone;
+        char enabled;
 
-	int new_note;
+	unsigned char new_note;
 
 };
 
@@ -61,10 +61,10 @@ struct pt3_song_t {
 	char version;
 	char name[32+1];
 	char author[32+1];
-	int frequency_table;
-	int speed;
-	int num_patterns;
-	int loop;
+	char frequency_table;
+	char speed;
+	char num_patterns;
+	char loop;
 	unsigned short pattern_loc;
 	unsigned short sample_patterns[32];
 	unsigned short ornament_patterns[16];
@@ -72,22 +72,22 @@ struct pt3_song_t {
 	unsigned short a_addr,b_addr,c_addr;
 	struct pt3_note_type a,b,c;
 	struct pt3_note_type a_old,b_old,c_old;
-	int music_len;
-	int current_pattern;
+	char music_len;
+	char current_pattern;
 
-	int envelope_type;
-	int envelope_type_old;
-	int envelope_period;
-	int envelope_period_old;
-	int envelope_slide;
-	int envelope_slide_add;
-	int envelope_add;
-	int envelope_delay;
-	int envelope_delay_orig;
-	int mixer_value;
+	char envelope_type;
+	char envelope_type_old;
+	short envelope_period;
+	short envelope_period_old;
+	short envelope_slide;
+	short envelope_slide_add;
+	char envelope_add;
+	char envelope_delay;
+	char envelope_delay_orig;
+	char mixer_value;
 
-	int noise_period;
-	int noise_add;
+	char noise_period;
+	char noise_add;
 
 	unsigned char data[MAX_PT3_SIZE];
 };

@@ -28,7 +28,7 @@ pt3_to_ym5.o:	pt3_to_ym5.c pt3_lib.h
 
 ###
 
-pt3_lib.o:	pt3_lib.c
+pt3_lib.o:	pt3_lib.c pt3_lib.h
 	$(CC) $(CFLAGS) -c pt3_lib.c
 
 

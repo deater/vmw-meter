@@ -309,14 +309,14 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 	if (a->enabled) {
 
 		/* Get first two bytes of 4-byte sample step */
-		b0 = pt3->data[a->sample_pointer + a->sample_position * 4];
-		b1 = pt3->data[a->sample_pointer + a->sample_position * 4 + 1];
+		b0 = pt3->data[a->sample_pointer + (short)(a->sample_position)* 4];
+		b1 = pt3->data[a->sample_pointer + (short)(a->sample_position)* 4 + 1];
 
 		/* The next two bytes are the freq slide value? */
 		a->tone = pt3->data[a->sample_pointer +
-				a->sample_position*4 + 2];
+				(a->sample_position)*4 + 2];
 		a->tone += (pt3->data[a->sample_pointer +
-					a->sample_position*4+3])<<8;
+					(a->sample_position)*4+3])<<8;
 		a->tone += a->tone_accumulator;
 
 		/* Accumulate tone if set */
@@ -387,12 +387,12 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 
 		if (pt3->version <= 4) {
 			a->amplitude = PT3VolumeTable_33_34[a->volume]
-							[a->amplitude];
+							[(unsigned char)a->amplitude];
 		}
 		else {
 			/* This seems to be the more common case */
 			a->amplitude = PT3VolumeTable_35[a->volume]
-							[a->amplitude];
+							[(unsigned char)a->amplitude];
 		}
 
 		/* Bottom bit of b0 indicates our sample has envelope */
@@ -467,6 +467,8 @@ static void decode_note(struct pt3_note_type *a,
 	int current_val;
 	int prev_note;
 	int prev_sliding;
+	int new_spec=0;
+
 	a->new_note=0;
 
 	a->spec_command=0;
@@ -646,7 +648,6 @@ static void decode_note(struct pt3_note_type *a,
 		/* Note, the AY code has code to make sure these are applied */
 		/* In the same order they appear.  We don't bother? */
 		if (a_done) {
-			int new_spec=0;
 
 			if (a->spec_command==0x0) {
 			}
@@ -667,7 +668,7 @@ static void decode_note(struct pt3_note_type *a,
 
 				a->tone_slide_step=(a->spec_lo)|(a->spec_hi<<8);
 				/* Sign Extend */
-				a->tone_slide_step=(a->tone_slide_step<<16)>>16;
+				//a->tone_slide_step=(a->tone_slide_step<<16)>>16;
 
 				a->simplegliss=1;
 				a->onoff=0;
@@ -710,7 +711,7 @@ static void decode_note(struct pt3_note_type *a,
 
 				a->tone_slide_step=(a->spec_hi<<8)|(a->spec_lo);
 				/* sign extend */
-				a->tone_slide_step=(a->tone_slide_step<<16)>>16;
+				//a->tone_slide_step=(a->tone_slide_step<<16)>>16;
 				/* abs() */
 				if (a->tone_slide_step<0) a->tone_slide_step=-a->tone_slide_step;
 
@@ -731,6 +732,8 @@ static void decode_note(struct pt3_note_type *a,
 			}
 			/* Position in Sample */
 			else if (a->spec_command==0x3) {
+				/* Note, unclear what to do here if */
+				/* offset is out of bounds */
 				current_val=pt3->data[(*addr)];
 				a->sample_position=current_val;
 				(*addr)++;
