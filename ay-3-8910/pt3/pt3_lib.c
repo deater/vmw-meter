@@ -465,8 +465,8 @@ static void decode_note(struct pt3_note_type *a,
 
 	int a_done=0;
 	int current_val;
-	int prev_note;
-	int prev_sliding;
+	unsigned char prev_note;
+	signed short prev_sliding;
 	int new_spec=0;
 
 	a->new_note=0;
