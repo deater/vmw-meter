@@ -84,7 +84,7 @@ struct pt3_song_t {
 	char envelope_add;
 	char envelope_delay;
 	char envelope_delay_orig;
-	char mixer_value;
+	unsigned char mixer_value;
 
 	char noise_period;
 	char noise_add;

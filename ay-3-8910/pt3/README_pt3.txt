@@ -31,12 +31,12 @@
 //      $00           -- nul teminate
 //      $01-$0f       -- effects
 // OnDisk  InTracker
-//   01      $01: Tone Down
+//   $01     $01: Tone Down
 //                First byte indicates the delay used to add the new frequency.
 //                Next 2 bytes will indicate the frequency to add. Example:
 //                $02,$23,$00 will add $23 to the final frequency in that raster
 //                and another $23 every 2 rasters.
-//   01      $02: Tone Up
+//   $01     $02: Tone Up
 //                It's the same as above but the value is rested to $FFFF. Example:
 //                $01,$DD,$FF will rest $23 to the final frequency in every raster.
 //   $02     $03: Tone portamento
@@ -56,7 +56,10 @@
 //                Diffrence from previous is it has a negative value?
 //   $09     $0B: Set playing speed (new Delay).
 //                The byte after the note will tell the new delay.
--
+//
+//
+//
+//
 //      $10-$1f       -- envelope.   (1-E, F=envelope off)
 //	$20-$3f       -- set noise
 //      $40-$4f       -- set ornament 0-F
