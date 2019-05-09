@@ -4,7 +4,7 @@
 
 
 struct pt3_note_type {
-	char which;
+	signed char which;
 	unsigned char note;
 	unsigned char sample;
 	unsigned char ornament;
@@ -29,28 +29,28 @@ struct pt3_note_type {
         unsigned char sample_loop;
         unsigned char sample_position;
 
-        unsigned envelope_enabled;
+        unsigned char envelope_enabled;
 
-	char amplitude;
-        char amplitude_sliding;
-        char noise_sliding;
-        char envelope_sliding;
+	signed char amplitude;
+        signed char amplitude_sliding;
+        signed char noise_sliding;
+        signed char envelope_sliding;
 
-        char tone_slide_count;
-        short tone_sliding;		// error if less
-	short tone_slide_step;
-	char tone_slide_delay;
-	short tone_delta;
-	char slide_to_note;
+        signed char tone_slide_count;
+        signed short tone_sliding;		// error if less
+	signed short tone_slide_step;
+	signed char tone_slide_delay;
+	signed short tone_delta;
+	signed char slide_to_note;
 
 	unsigned char simplegliss;
 
-        short tone_accumulator;
-        char onoff;
-	char onoff_delay;
-	char offon_delay;
-	short tone;
-        char enabled;
+        signed short tone_accumulator;
+        signed char onoff;
+	signed char onoff_delay;
+	signed char offon_delay;
+	signed short tone;
+	signed char enabled;
 
 	unsigned char new_note;
 
