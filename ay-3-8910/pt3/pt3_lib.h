@@ -72,22 +72,22 @@ struct pt3_song_t {
 	unsigned short a_addr,b_addr,c_addr;
 	struct pt3_note_type a,b,c;
 	struct pt3_note_type a_old,b_old,c_old;
-	char music_len;
-	char current_pattern;
+	unsigned char music_len;
+	unsigned char current_pattern;
 
-	char envelope_type;
-	char envelope_type_old;
-	short envelope_period;
-	short envelope_period_old;
+	unsigned char envelope_type;
+	unsigned char envelope_type_old;
+	unsigned short envelope_period;
+	unsigned short envelope_period_old;
 	short envelope_slide;
 	short envelope_slide_add;
-	char envelope_add;
-	char envelope_delay;
-	char envelope_delay_orig;
+	unsigned char envelope_add;
+	unsigned char envelope_delay;
+	unsigned char envelope_delay_orig;
 	unsigned char mixer_value;
 
-	char noise_period;
-	char noise_add;
+	unsigned char noise_period;
+	unsigned char noise_add;
 
 	unsigned char data[MAX_PT3_SIZE];
 };
