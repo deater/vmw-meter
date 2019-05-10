@@ -460,7 +460,6 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 }
 
 static void decode_note(struct pt3_note_type *a,
-			unsigned short *addr,
 			struct pt3_song_t *pt3) {
 
 	int a_done=0;
@@ -487,7 +486,7 @@ static void decode_note(struct pt3_note_type *a,
 	while(1) {
 		a->len_count=a->len;
 
-		current_val=pt3->data[*addr];
+		current_val=pt3->data[a->addr];
 		//printf("%02X\n",current_val);
 
 		switch((current_val>>4)&0xf) {
@@ -510,20 +509,20 @@ static void decode_note(struct pt3_note_type *a,
 					pt3->envelope_type_old=0x78;
 					pt3->envelope_type=(current_val&0xf);
 
-					(*addr)++;
-					current_val=pt3->data[*addr];
+					a->addr++;
+					current_val=pt3->data[a->addr];
 					pt3->envelope_period=(current_val<<8);
 
-					(*addr)++;
-					current_val=pt3->data[(*addr)];
+					a->addr++;
+					current_val=pt3->data[a->addr];
 					pt3->envelope_period|=(current_val&0xff);
 
 					a->envelope_enabled=1;
 					pt3->envelope_slide=0;
 					pt3->envelope_delay=0;
 				}
-				(*addr)++;
-				current_val=pt3->data[(*addr)];
+				a->addr++;
+				current_val=pt3->data[a->addr];
 				a->sample=(current_val/2);
 				pt3_load_sample(pt3,a->which);
 //				printf("0x1: Sample pointer %d %x\n",a->sample,a->sample_pointer);
@@ -569,8 +568,8 @@ static void decode_note(struct pt3_note_type *a,
 				}
 				/* set len */
 				else if (current_val==0xb1) {
-					(*addr)++;
-					current_val=pt3->data[(*addr)];
+					a->addr++;
+					current_val=pt3->data[a->addr];
 					a->len=current_val;
 					a->len_count=a->len;
 				}
@@ -579,12 +578,12 @@ static void decode_note(struct pt3_note_type *a,
 					pt3->envelope_type_old=0x78;
 					pt3->envelope_type=(current_val&0xf)-1;
 
-					(*addr)++;
-					current_val=pt3->data[(*addr)];
+					a->addr++;
+					current_val=pt3->data[a->addr];
 					pt3->envelope_period=(current_val<<8);
 
-					(*addr)++;
-					current_val=pt3->data[(*addr)];
+					a->addr++;
+					current_val=pt3->data[a->addr];
 					pt3->envelope_period|=(current_val&0xff);
 
 					a->ornament_position=0;
@@ -635,8 +634,8 @@ static void decode_note(struct pt3_note_type *a,
 
 				pt3_load_ornament(pt3,a->which);
 
-				(*addr)++;
-				current_val=pt3->data[*addr];
+				a->addr++;
+				current_val=pt3->data[a->addr];
 
 				a->sample=current_val/2;
 				a->sample_pointer=pt3->sample_patterns[a->sample];
@@ -644,7 +643,7 @@ static void decode_note(struct pt3_note_type *a,
 				break;
 		}
 
-		(*addr)++;
+		a->addr++;
 		/* Note, the AY code has code to make sure these are applied */
 		/* In the same order they appear.  We don't bother? */
 		if (a_done) {
@@ -653,17 +652,17 @@ static void decode_note(struct pt3_note_type *a,
 			}
 			/* Tone Down */
 			else if (a->spec_command==0x1) {
-				current_val=pt3->data[(*addr)];
+				current_val=pt3->data[a->addr];
 				a->spec_delay=current_val;
 				a->tone_slide_delay=current_val;
 				a->tone_slide_count=a->tone_slide_delay;
 
-				(*addr)++;
-				current_val=pt3->data[(*addr)];
+				a->addr++;
+				current_val=pt3->data[a->addr];
 				a->spec_lo=(current_val);
 
-				(*addr)++;
-				current_val=pt3->data[(*addr)];
+				a->addr++;
+				current_val=pt3->data[a->addr];
 				a->spec_hi=(current_val);
 
 				a->tone_slide_step=(a->spec_lo)|(a->spec_hi<<8);
@@ -673,7 +672,7 @@ static void decode_note(struct pt3_note_type *a,
 				a->simplegliss=1;
 				a->onoff=0;
 
-				(*addr)++;
+				a->addr++;
 
 				/* in the tracker it's 1 */
 				if (a->tone_slide_step>=0) new_spec=0x1;
@@ -691,23 +690,23 @@ static void decode_note(struct pt3_note_type *a,
 				a->simplegliss=0;
 				a->onoff=0;
 
-				current_val=pt3->data[(*addr)];
+				current_val=pt3->data[a->addr];
 				a->spec_delay=current_val;
 
 				a->tone_slide_delay=current_val;
 				a->tone_slide_count=a->tone_slide_delay;
 
-				(*addr)++;
-				(*addr)++;
-				(*addr)++;
-				current_val=pt3->data[(*addr)];
+				a->addr++;
+				a->addr++;
+				a->addr++;
+				current_val=pt3->data[a->addr];
 				a->spec_lo=current_val;
 
-				(*addr)++;
-				current_val=pt3->data[(*addr)];
+				a->addr++;
+				current_val=pt3->data[a->addr];
 				a->spec_hi=current_val;
 
-				(*addr)++;
+				a->addr++;
 
 				a->tone_slide_step=(a->spec_hi<<8)|(a->spec_lo);
 				/* sign extend */
@@ -734,28 +733,28 @@ static void decode_note(struct pt3_note_type *a,
 			else if (a->spec_command==0x3) {
 				/* Note, unclear what to do here if */
 				/* offset is out of bounds */
-				current_val=pt3->data[(*addr)];
+				current_val=pt3->data[a->addr];
 				a->sample_position=current_val;
-				(*addr)++;
+				a->addr++;
 
 				new_spec=0x4;
 			}
 			/* Position in Ornament */
 			else if (a->spec_command==0x4) {
-				current_val=pt3->data[(*addr)];
+				current_val=pt3->data[a->addr];
 				a->ornament_position=current_val;
-				(*addr)++;
+				a->addr++;
 
 				new_spec=0x5;
 			}
 			/* Vibrato */
 			else if (a->spec_command==0x5) {
-				current_val=pt3->data[(*addr)];
+				current_val=pt3->data[a->addr];
 				a->onoff_delay=current_val;
-				(*addr)++;
-				current_val=pt3->data[(*addr)];
+				a->addr++;
+				current_val=pt3->data[a->addr];
 				a->offon_delay=current_val;
-				(*addr)++;
+				a->addr++;
 
 				a->onoff=a->onoff_delay;
 				a->tone_slide_count=0;
@@ -767,21 +766,21 @@ static void decode_note(struct pt3_note_type *a,
 			else if (a->spec_command==0x8) {
 
 				/* delay? */
-				current_val=pt3->data[(*addr)];
+				current_val=pt3->data[a->addr];
 				pt3->envelope_delay=current_val;
 				pt3->envelope_delay_orig=current_val;
 				a->spec_delay=current_val;
-				(*addr)++;
+				a->addr++;
 
 				/* Low? */
-				current_val=pt3->data[(*addr)];
+				current_val=pt3->data[a->addr];
 				a->spec_lo=current_val&0xff;
-				(*addr)++;
+				a->addr++;
 
 				/* High? */
-				current_val=pt3->data[(*addr)];
+				current_val=pt3->data[a->addr];
 				a->spec_hi=current_val&0xff;
-				(*addr)++;
+				a->addr++;
 
 				pt3->envelope_slide_add=(a->spec_hi<<8)|(a->spec_lo&0xff);
 
@@ -798,10 +797,10 @@ static void decode_note(struct pt3_note_type *a,
 			}
 			/* Set Speed */
 			else  if (a->spec_command==0x9) {
-				current_val=pt3->data[(*addr)];
+				current_val=pt3->data[a->addr];
 				a->spec_lo=current_val;
 				pt3->speed=current_val;
-				(*addr)++;
+				a->addr++;
 				/* in tracker it's B */
 				new_spec=0xb;
 			}
@@ -1226,9 +1225,9 @@ void pt3_print_tracker_line(struct pt3_song_t *pt3, int line) {
 
 int pt3_decode_line(struct pt3_song_t *pt3) {
 
-	decode_note(&pt3->a,&(pt3->a_addr),pt3);
-	decode_note(&pt3->b,&(pt3->b_addr),pt3);
-	decode_note(&pt3->c,&(pt3->c_addr),pt3);
+	decode_note(&pt3->a,pt3);
+	decode_note(&pt3->b,pt3);
+	decode_note(&pt3->c,pt3);
 
 
 	if (pt3->a.all_done && pt3->b.all_done && pt3->c.all_done) {
@@ -1242,13 +1241,13 @@ void pt3_set_pattern(int i, struct pt3_song_t *pt3) {
 
 	pt3->current_pattern=pt3->data[0xc9+i]/3;
 
-	pt3->a_addr=pt3->data[(pt3->current_pattern*6)+0+pt3->pattern_loc] |
+	pt3->a.addr=pt3->data[(pt3->current_pattern*6)+0+pt3->pattern_loc] |
 		(pt3->data[(pt3->current_pattern*6)+1+pt3->pattern_loc]<<8);
 
-	pt3->b_addr=pt3->data[(pt3->current_pattern*6)+2+pt3->pattern_loc] |
+	pt3->b.addr=pt3->data[(pt3->current_pattern*6)+2+pt3->pattern_loc] |
 		(pt3->data[(pt3->current_pattern*6)+3+pt3->pattern_loc]<<8);
 
-	pt3->c_addr=pt3->data[(pt3->current_pattern*6)+4+pt3->pattern_loc] |
+	pt3->c.addr=pt3->data[(pt3->current_pattern*6)+4+pt3->pattern_loc] |
 		(pt3->data[(pt3->current_pattern*6)+5+pt3->pattern_loc]<<8);
 
 	pt3->a.all_done=0;

@@ -54,6 +54,7 @@ struct pt3_note_type {
 
 	unsigned char new_note;
 
+	unsigned short addr;
 };
 
 struct pt3_song_t {
