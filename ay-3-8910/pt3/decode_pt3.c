@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 			(total_time/50/60),(total_time/50)%60,
 			pt3.current_pattern);
 		printf("a_addr: %04x, b_addr: %04x, c_addr: %04x\n",
-				pt3.a_addr,pt3.b_addr,pt3.c_addr);
+				pt3.a.addr,pt3.b.addr,pt3.c.addr);
 
 //		printf("Cdata: ");
 //		for(j=0;j<32;j++) printf("%02x ",pt3.data[pt3.c_addr+j]);

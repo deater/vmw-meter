@@ -70,7 +70,6 @@ struct pt3_song_t {
 	unsigned short sample_patterns[32];
 	unsigned short ornament_patterns[16];
 	unsigned short pattern_order;
-	unsigned short a_addr,b_addr,c_addr;
 	struct pt3_note_type a,b,c;
 	struct pt3_note_type a_old,b_old,c_old;
 	unsigned char music_len;
