@@ -638,7 +638,6 @@ static void decode_note(struct pt3_note_type *a,
 				current_val=pt3->data[a->addr];
 
 				a->sample=current_val/2;
-				a->sample_pointer=pt3->sample_patterns[a->sample];
 				pt3_load_sample(pt3,a->which);
 				break;
 		}
