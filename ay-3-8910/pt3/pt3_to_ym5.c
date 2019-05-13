@@ -112,6 +112,12 @@ int main(int argc, char **argv) {
 		printf("Adata: ");
 		for(j=0;j<32;j++) printf("%02x ",pt3.data[pt3.a.addr+j]);
 		printf("\n");
+		printf("Bdata: ");
+		for(j=0;j<32;j++) printf("%02x ",pt3.data[pt3.b.addr+j]);
+		printf("\n");
+		printf("Cdata: ");
+		for(j=0;j<32;j++) printf("%02x ",pt3.data[pt3.c.addr+j]);
+		printf("\n");
 
 		for(j=0;j<64;j++) {
 
