@@ -9,7 +9,7 @@ all:	dump_xm xm_to_text \
 	dump_ed text_to_ed \
 	raw_to_ym text_to_ym ym_to_ym5 \
 	ym5_to_raw ym5_to_mockingboard ym5_to_krg ym5_to_krw ym5_to_kr4 \
-	ym5_to_tfv ym5_to_mega ym5_to_kf
+	ym5_to_tfv ym5_to_mega ym5_to_kf apple_dump_ym5
 
 ../ymlib/ym_lib.o:	
 	cd ../ymlib && make
@@ -50,6 +50,16 @@ dump_ym5:	dump_ym5.o ../ymlib/ym_lib.o
 
 dump_ym5.o:	dump_ym5.c
 	$(CC) $(CFLAGS) $(YMLIB_INCLUDE) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c dump_ym5.c
+
+######
+
+
+apple_dump_ym5:	apple_dump_ym5.o ../ymlib/ym_lib.o
+	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o apple_dump_ym5 apple_dump_ym5.o ../ymlib/ym_lib.o
+
+apple_dump_ym5.o:	apple_dump_ym5.c
+	$(CC) $(CFLAGS) $(YMLIB_INCLUDE) $(LIBLHASA_INCLUDEDIR) $(USE_LIBLHASA) -c apple_dump_ym5.c
+
 
 
 ###

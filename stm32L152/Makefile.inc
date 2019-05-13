@@ -13,7 +13,7 @@ OBJDUMP = objdump
 else
 
 AS = arm-linux-gnueabihf-as
-CC = arm-linux-gnueabihf-gcc-4.7
+CC = arm-linux-gnueabihf-gcc
 LD = arm-linux-gnueabihf-ld
 OBJCOPY = arm-linux-gnueabihf-objcopy
 OBJDUMP = arm-linux-gnueabihf-objdump

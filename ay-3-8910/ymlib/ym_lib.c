@@ -903,3 +903,21 @@ int ym_return_frame(struct ym_song_t *ym_song, int frame_num,
 
 	return 0;
 }
+
+int ym_return_frame_raw(struct ym_song_t *ym_song, int frame_num,
+	unsigned char *frame,
+	unsigned char *frame2) {
+
+	unsigned char ourframe[YM5_FRAME_SIZE];
+	unsigned char ourframe2[YM5_FRAME_SIZE];
+
+	ym_make_frame(ym_song,ym_song->frame_data,frame_num,ourframe,1);
+	if (frame) memcpy(frame,ourframe,YM5_FRAME_SIZE);
+
+	if (ym_song->channels==6) {
+		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,ourframe2,1);
+		if (frame2) memcpy(frame2,ourframe,YM5_FRAME_SIZE);
+	}
+
+	return 0;
+}
