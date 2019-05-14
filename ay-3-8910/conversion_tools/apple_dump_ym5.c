@@ -83,7 +83,7 @@ static int dump_song(char *filename, int debug) {
 			frame[7]);
 		printf("      V:%02X   V:%02X   V:%02X   E:%02X%02X,%02X\n",
 			frame[8],frame[9],frame[10],
-			frame[11],frame[12],frame[13]);
+			frame[12],frame[11],frame[13]);
 
 		frame_num++;
 
