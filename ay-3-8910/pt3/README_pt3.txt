@@ -1,5 +1,9 @@
 How to decode a Vortex Tracker II "PT3" File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+	by Vince "Deater" Weaver, <vince@deater.net>
+	http://www.deater.net/weave/vmwprod/pt3_player/
+	14 May 2019
 
 Background:
 ~~~~~~~~~~~
@@ -29,7 +33,8 @@ The PT3 Format
 
 	Note: 16-bit values are little-endian
 
-	Offset      Size       Description    Contents
+	Offset    : Size     : Description  : Contents
+	---------- ---------- -------------- ----------------
 	$00 - $0C : 13 bytes : Magic        : "ProTracker 3."
 	$0D       :  1 byte  : Version      : '5' for Vortex Tracker II
 	$0E - $1D : 16 bytes : String       : " compilation of "
@@ -66,18 +71,33 @@ The PT3 Format
 	The pt3 file allows for 32 samples.  These samples contain
 	values that are applied to the music notes as they are playing.
 
-	The sample pointer will point to this 
+	The 16-bit address of a sample X can be found by getting the
+		16-bit little-endian address at offsets
+		$6A+(X*2) and $6B+(X*2) in the header.
 
-	// Sample format
+	Byte 0:	 LOOP VALUE -- sample offset to return to once hit the end
+	Byte 1:  LENGTH     -- number of 32-bit sample values
+	Byte 2+: VALUES     -- list of 4-byte (32-bit samples)
 
-	// XX YYYYY Z  = X= 10=VOLDOWN 11=VOLUP, Y=NOISE, Z= 0=ENV, 1=NO ENVELO$
-        // XX YY ZZZZ  = X= FREQ SLIDE YY=NOISE SLIDE ZZ=VOLUME
-        // XXXXXXXX = LOW BYTE FREQ SLIDE
-        // YYYYYYYY = HIGH BYTE FREQ SLIDE
-        //
-        // 80 8f 00 00
-        // 1000 0000 -- VOLDOWN
-        // 10 00 1111 --FREQ_SLIDE, VOLUME
+	* Sample format
+
+		+ Byte 0 --- 7 6 5 4321 0
+				Bit 7 - Amplitude sliding
+				Bit 6 - 1/0 amplitude slide up/down
+				Bit 5 - 1/0 envelope slide up/down
+				Bits 4321 - sign extend, envelope slide value
+				Bit 0 - Sample has envelope
+
+		+ Byte 1 --- 7 6 5 4 3210
+				Bit 7     - Envelope sliding
+				Bit 6     - Accumulate Tone
+				Bit 5     - parameter to envelope sliding?
+				Bit 4     - Bit 6+4 used to set Noise/Channel
+					    mixer value
+				Bits 3210 - Amplitude
+
+		+ Byte 2 --- Freq Low -\
+		+ Byte 3 --- Freq High----- Used as base tone
 
 * Ornaments
 
@@ -85,77 +105,136 @@ The PT3 Format
 	to the note.  This can be used for ?? effects.
 
 	The 16-bit address of an ornament X can be found by getting the
-		16-bit little-endian address at offset
-		$A9+(X*2) in the header.
+		16-bit little-endian address at offsets
+		$A9+(X*2) and $AA+(X*2) in the header.
 
 	Byte 0:	 LOOP VALUE -- ornament offset to return to once hit the end
 	Byte 1:  LENGTH     -- number of ornament values
-	Byte 2+: VALUES     -- list of byte values applied to the notes
+	Byte 2+: VALUES     -- list of single-byte values applied to the notes
 
 
 * Pattern data
 
-// Actual Pattern Data, Stream of bytes, null terminated
-//      $00           -- nul teminate
-//      $01-$0f       -- effects
-// OnDisk  InTracker
-//   $01     $01: Tone Down
-//                First byte indicates the delay used to add the new frequency.
-//                Next 2 bytes will indicate the frequency to add. Example:
-//                $02,$23,$00 will add $23 to the final frequency in that raster
-//                and another $23 every 2 rasters.
-//   $01     $02: Tone Up
-//                It's the same as above but the value is rested to $FFFF. Example:
-//                $01,$DD,$FF will rest $23 to the final frequency in every raster.
-//   $02     $03: Tone portamento
-//   $03     $04: Sample Offset
-//		  Starts playing sample from a particular position/line definition.
-//                Byte indicates from which position.
-//   $04     $05: Ornament offset
-//		  Starts playing ornament from a particular position/line definition.
-//                Byte indicates from which position.
-//   $05     $06: Vibrato
-//		  Periodic sound off/on in that channel
-//                Two bytes are used here. The first one tells how many rasters will be
-//                played and the second how many will be not. Example. $03,$04 means
-//                that that channel will be played 3 rasters, 4 not played, 3 played, ...
-//   $08     $09: Envelope frequency decreasing.
-//   $08     $0A: Envelope frequency increasing.
-//                Diffrence from previous is it has a negative value?
-//   $09     $0B: Set playing speed (new Delay).
-//                The byte after the note will tell the new delay.
-//
-//
-//
-//
-//      $10-$1f       -- envelope.   (1-E, F=envelope off)
-//	$20-$3f       -- set noise
-//      $40-$4f       -- set ornament 0-F
-//		Ornament 0 can't be set directly, instead $40
-//		is reported as envelope off (F)?
-//      $50-$ad       -- play note, see below
-//	$b0           -- env=$f, ornament=saved ornament
-//	$b1, arg1     -- set skip value to arg1 (how long note plays)
-//	$b2-$bf,arg1/2-- envelope?
-//      $c0-$cf       -- set volume, value-$c0.  $c0 means sound off
-//	$d0           -- do nothing?
-//      $d1-$ef       -- set sample, value-$d0.
-//	$f0-$ff, arg1 -- Initialize?
-//               Envelope=15, Ornament=low byte, Sample=arg1/2
--
-// if you reach a note, a 0xd0, a 0xc0 then done this note.
--
-// f0 10 cf b1 40 74 00
--
--
-// 50-AF = notes
-//      0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
-//50: C-1 C#1 D-1 D#1 E-1 F-1 F#1 G-1 G#1 A-1 A#1 B-1 C-2 C#2 D-2 D#2
-//60: E-2 F-2 F#2 G-2 G#2 A-2 A#2 B-2 C-3 C#3 D-3 D#3 E-3 F-3 F#3 G-3
-//70: G#3 A-3 A#3 B-3 C-4 C#4 D-4 D#4 E-4 F-2 F#4 G-4 G#4 A-4 A#4 B-4
-//80: C-5 C#5 D-5 D#5 E-5 F-5 F#5 G-5 G#5 A-5 A#5 B-5 C-6 C#6 D-6 D#6
-//90: E-6 F-6 F#6 G-6 G#6 A-6 A#6 B-6 C-7 C#7 D-7 D#7 E-7 F-7 F#7 G-7
-//a0: G#7 A-7 A#7 B-7 C-8 C#8 D-8 D#8 E-8 F-8 F#8 G-8 G#8 A-8 A#8 B-8
+	For each of three channels (A,B,C) there is a nul-terminated
+	stream of bytes that gives the pattern data.
+
+	To find the pattern data for a pattern, look it up in 
+
+	A 6-byte chunk with the 16-bit addresses for A,B,C for pattern
+	X can be found by
+		a_addr_l = [address in ($68/$67)] + (X*6)+0
+		a_addr_h = [address in ($68/$67)] + (X*6)+1
+		b_addr_l = [address in ($68/$67)] + (X*6)+2
+		b_addr_h = [address in ($68/$67)] + (X*6)+3
+		c_addr_l = [address in ($68/$67)] + (X*6)+4
+		c_addr_h = [address in ($68/$67)] + (X*6)+5
+
+	Follow that address to find the nul-terminated pattern data.
+
+	The data can be interpreted this way:
+
+	+ $00         - NUL termination, end of pattern
+	+ $01-$0f     - effects, see later.
+			Note that parameters to the effect appear in the
+			bytestream *after* the note to play
+	+ $10-$1f     - set envelope type
+			+ $10 means disable envelope
+				- sample number is next byte
+			+ $11-$1F 
+				- envelope type is bottom 4 bits
+				- envelope period is next 2 bytes (big endian)
+				- envelope delay is next 1 byte
+				- sample number is next byte
+
+	+ $20-$3f     - set noise
+				- Noise set to the $20 to $3F byte - $20
+	+ $40-$4f     - set ornament
+				- ornament sent to bottom 4 bits
+				- possibly setting 0 counts as disabling
+	+ $50-$af     - play note
+
+                0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
+          50: C-1 C#1 D-1 D#1 E-1 F-1 F#1 G-1 G#1 A-1 A#1 B-1 C-2 C#2 D-2 D#2
+          60: E-2 F-2 F#2 G-2 G#2 A-2 A#2 B-2 C-3 C#3 D-3 D#3 E-3 F-3 F#3 G-3
+          70: G#3 A-3 A#3 B-3 C-4 C#4 D-4 D#4 E-4 F-2 F#4 G-4 G#4 A-4 A#4 B-4
+          80: C-5 C#5 D-5 D#5 E-5 F-5 F#5 G-5 G#5 A-5 A#5 B-5 C-6 C#6 D-6 D#6
+          90: E-6 F-6 F#6 G-6 G#6 A-6 A#6 B-6 C-7 C#7 D-7 D#7 E-7 F-7 F#7 G-7
+          a0: G#7 A-7 A#7 B-7 C-8 C#8 D-8 D#8 E-8 F-8 F#8 G-8 G#8 A-8 A#8 B-8
+
+	+ $b0         - disable envelope, reset ornament position
+	+ $b1         - set skip value
+				- next byte is how many lines to skip for
+				  this note
+	+ $b2-$bf     - set envelope
+				- envelope type to bottom 4 bits - 1
+				- envelope period next 2 bytes (big endian)
+
+
+	+ $c0         - turn off note (volume=0 and disable everything)
+	+ $c1-$cf     - set volume
+				- volume set to bottom 4 bits
+
+	+ $d0         - done processing this note (end note)
+	+ $d1-$ef     - set sample
+				- sample set to value-$d0.
+	+ f0-$ff      - initialize ornament/sample.  Envelope is disabled
+				- ornament is bottom 4 bits
+				- next byte is sample*2
+
+	Note when parsing if you reach a note, a $D0 or a $C0 then you
+	are done parsing the note for this line and should move on
+	to parsing the effects.
+
+	Effects
+	~~~~~~~
+
+	AY_emul supports having up to one of each effect for each line, and
+	tracks the order in which to apply them.  However in the wild
+	I have not seen more than one effect applied per line/channel
+	(I don't think Vortex Tracker lets you add multiple?)
+
+	The bytes for the effects follow after the byte that ended the note.
+
+	On	In
+	Disk  Tracker
+	~~~~  ~~~~~~~
+
+	$01     $01:	Tone Down
+
+			First byte: delay
+			Next 2 bytes: frequency to add (is negative)
+
+	$01     $02:	Tone Up
+
+			This appears differently in tracker, but is just
+			the same as above but with a positive frequency.
+
+	$02     $03:	Tone portamento
+
+			First byte: delay
+			Next 2 bytes: ignored?
+			Next 2 bytes: slide step (little-endian)
+			
+	$03     $04:	Sample Offset
+			First byte: value to set the sample position offset
+
+	$04     $05:	Ornament offset
+			First byte: value to set the ornament offset
+
+	$05     $06:	Vibrato
+			Periodic sound off/on in that channel
+			First byte: OffOn delay (frames to stay off)
+			Second byte: OnOff delay (frames to stay on)
+
+	$08	$09:	Envelope frequency decreasing
+			First byte: delay
+			Next two bytes: Slide add (little-endian)
+
+	$08     $0A:	Envelope frequency increasing.
+			Like previous but with sign switched?
+
+	$09	$0B:	Set playing speed (new Delay).
+			First byte: new delay (global number of frames per line)
 
 
 * Frequency Tables
@@ -168,3 +247,9 @@ The PT3 Format
 	These seem to have changed with different versions of Vortex Tracker
 	so to be complete you need to contain them all and use the proper
 	one at run time
+
+
+* Corner cases seen in the wild:
+	+ What to do if the delay on an effect is set to zero?
+
+
