@@ -56,3 +56,31 @@ echo "Testing VC_IFR"
 ../../conversion_tools/ym_to_ym5 vc_ifr > /dev/null
 cmp vc_ifr.ym5 vc_ifr_good.ym5
 
+
+#BA.PT3  -- 6 channel
+#echo "Testing BA.PT3"
+#../pt3_to_ym5 BA.PT3 ba.ym > /dev/null
+#../../conversion_tools/ym_to_ym5 ba > /dev/null
+#cmp ba.ym5 BA_good.ym5
+
+
+#CR.PT3
+echo "Testing CR.PT3"
+../pt3_to_ym5 CR.PT3 cr.ym > /dev/null
+../../conversion_tools/ym_to_ym5 cr > /dev/null
+cmp cr.ym5 CR_good.ym5
+
+
+#DF.PT3
+#EA.PT3
+#F4.PT3
+#FC.PT3
+#HI.PT3
+#I2.PT3
+#IT.PT3
+#MB.PT3
+#OS.PT3
+#RI.PT3
+#SD.PT3
+#SR.PT3
+
