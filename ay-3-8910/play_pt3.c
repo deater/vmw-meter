@@ -467,6 +467,7 @@ static int play_song(char *filename) {
 
 	int i,j,f,length_seconds;
 	double s,n,hz,diff;
+	int temp_scale;
 
 	int result;
 	int frame_num=0,frames_elapsed=0;
@@ -527,6 +528,38 @@ static int play_song(char *filename) {
                         for(f=0;f<pt3.speed;f++) {
 
 				pt3_make_frame(&pt3,frame);
+
+				/* pt3 files typically assume 1.77MHz! */
+
+				/* A */
+				temp_scale=frame[0]|(frame[1]<<8);
+				temp_scale=(temp_scale*9)/16;
+				frame[0]=(temp_scale&0xff);
+				frame[1]=(temp_scale>>8)&0xf;
+
+				/* B */
+				temp_scale=frame[2]|(frame[3]<<8);
+				temp_scale=(temp_scale*9)/16;
+				frame[2]=(temp_scale&0xff);
+				frame[3]=(temp_scale>>8)&0xf;
+
+				/* C */
+				temp_scale=frame[4]|(frame[5]<<8);
+				temp_scale=(temp_scale*9)/16;
+				frame[4]=(temp_scale&0xff);
+				frame[5]=(temp_scale>>8)&0xf;
+
+				/* N */
+				temp_scale=frame[6];
+				temp_scale=(temp_scale*9)/16;
+				frame[6]=(temp_scale&0x1f);
+
+				/* E */
+				temp_scale=frame[11]|(frame[12]<<8);
+				temp_scale=(temp_scale*9)/16;
+				frame[11]=(temp_scale&0xff);
+				frame[12]=(temp_scale>>8)&0xf;
+
 
 				ym_play_frame(frame,shift_size,
 					&ds, diff_mode,play_music,mute_channel);
