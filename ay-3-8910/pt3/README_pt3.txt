@@ -241,6 +241,7 @@ The PT3 Format
 
 	You can select between various frequency tables.
 	I'm not sure why?
+	How to calculate?
 
 * Amplitude Tables
 	There are multiple 256-byte amplitude/volume lookup tables
@@ -253,3 +254,15 @@ The PT3 Format
 	+ What to do if the delay on an effect is set to zero?
 
 
+* 6-channel PT3 Files
+
+	In the Protracker 3.7 format you can look for a turbosound header
+	at the very end of the file.
+
+	Type1 (4 bytes), Size (16-bits, little-endian)
+	Type2 (4 bytes), Size (16-bits, little endian)
+	TSID: (4 bytes) 02TS
+
+	If the type of these files is PT3! then these are describing
+	PT3 subfiles, and can be read as two 3-channel files which can
+	be interpreted together as 1 6-channel file.
