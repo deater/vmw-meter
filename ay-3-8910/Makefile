@@ -70,7 +70,8 @@ play_pt3:	play_pt3.o ./chiptune_audio/audio.a ./pt3/pt3_lib.o \
 			noteslib/notes.o \
 			$(LIBBCM2835)
 
-play_pt3.o:	play_pt3.c ./chiptune_display/display.h ./chiptune_audio/ay-3-8910.h
+play_pt3.o:	play_pt3.c ./chiptune_display/display.h \
+		./chiptune_audio/ay-3-8910.h ./pt3/pt3_lib.h
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) $(AUDIO_INCLUDE) \
 		$(VISUAL_INCLUDE) $(PT3_INCLUDE) \
 		-c play_pt3.c

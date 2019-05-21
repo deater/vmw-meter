@@ -93,7 +93,8 @@ struct pt3_song_t {
 };
 
 void dump_header(struct pt3_song_t *pt3);
-int pt3_load_song(char *filename, struct pt3_song_t *pt3);
+int pt3_load_song(char *filename,
+	struct pt3_song_t *pt3, struct pt3_song_t *pt3_2);
 void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame);
 void pt3_print_tracker_line(struct pt3_song_t *pt3, int line);
 int pt3_decode_line(struct pt3_song_t *pt3);

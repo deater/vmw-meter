@@ -231,6 +231,7 @@ static int pt3_load_header(int verbose, struct pt3_song_t *pt3) {
 	pt3->pattern_order=(pt3->data[0xca]<<8)|pt3->data[0xc9];
 
 	/* Calculate number of patterns in song */
+	/* This isn't really necessary */
 	i=0;
 	while(1) {
 		if (pt3->data[0xc9+i]==0xff) break;
@@ -1080,7 +1081,8 @@ int pt3_init_song(struct pt3_song_t *pt3) {
 	return 0;
 }
 
-int pt3_load_song(char *filename, struct pt3_song_t *pt3) {
+int pt3_load_song(char *filename,
+	struct pt3_song_t *pt3, struct pt3_song_t *pt3_2) {
 
 	int fd;
 	int result;

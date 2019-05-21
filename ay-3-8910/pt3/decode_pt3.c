@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
 
 	char filename[BUFSIZ];
 	int result,current_time=0;
-	struct pt3_song_t pt3;
+	struct pt3_song_t pt3,pt3_2;
 	int total_time,loop;
 
 	int i,j;
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 
 
 	/* Load song */
-	result=pt3_load_song(filename, &pt3);
+	result=pt3_load_song(filename, &pt3,&pt3_2);
 	if (result<0) {
 		fprintf(stderr,"Error opening file %s\n",filename);
 		return -1;
