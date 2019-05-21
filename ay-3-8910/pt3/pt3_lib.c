@@ -1086,6 +1086,7 @@ int pt3_load_song(char *filename, struct pt3_image_t *pt3_image,
 
 	int fd;
 	int result;
+	int offset1=0,offset2=0;
 
 	/* Clean up the incoming song structs */
 
@@ -1129,32 +1130,40 @@ int pt3_load_song(char *filename, struct pt3_image_t *pt3_image,
 	/* close the file */
 	close(fd);
 
-	/* Point first song to to beginning of data */
-	pt3->valid=1;
-	pt3->data=pt3_image->data;
+
+	/* See if we have a ProTracker 3.7 format with 6-channels */
+	if (!memcmp("02TS",pt3_image->data+(pt3_image->length-4),4)) {
+		printf("6-channels!\n");
+
+		if (!memcmp("PT3!",pt3_image->data+(pt3_image->length-16),4)) {
+			pt3->valid=1;
+			pt3->data=pt3_image->data;
+			offset1=*(pt3_image->data+(pt3_image->length-12));
+			offset1|=(*(pt3_image->data+(pt3_image->length-11)))<<8;
+		}
+
+		if (!memcmp("PT3!",pt3_image->data+(pt3_image->length-10),4)) {
+			pt3_2->valid=1;
+			pt3_2->data=pt3_image->data+offset1;
+			offset2=*(pt3_image->data+(pt3_image->length-6));
+			offset2|=(*(pt3_image->data+(pt3_image->length-5)))<<8;
+			(void)offset2;	/* not needed for now */
+		}
+	}
+	else {
+		/* Point first song to to beginning of data */
+		pt3->valid=1;
+		pt3->data=pt3_image->data;
+	}
 
 	/* Init Data */
 	result=pt3_init_song(pt3);
 	if (result<0) return result;
 
-	dump_header(pt3);
-
-#if 0
-
-	if (pt3_2!=NULL) {
-
-		/* Point first song to to beginning of data */
-		pt3->data=pt3_image->data;
-
-		/* Init Data */
-		result=pt3_init_song(pt3);
+	if (pt3_2->valid) {
+		result=pt3_init_song(pt3_2);
 		if (result<0) return result;
-
-		dump_header(pt3);
-
 	}
-
-#endif
 
 	return 0;
 }
