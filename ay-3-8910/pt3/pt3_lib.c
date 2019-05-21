@@ -1081,14 +1081,32 @@ int pt3_init_song(struct pt3_song_t *pt3) {
 	return 0;
 }
 
-int pt3_load_song(char *filename,
+int pt3_load_song(char *filename, struct pt3_image_t *pt3_image,
 	struct pt3_song_t *pt3, struct pt3_song_t *pt3_2) {
 
 	int fd;
 	int result;
 
-	/* Clear out the struct */
-	memset(pt3,0,sizeof(struct pt3_song_t));
+	/* Clean up the incoming song structs */
+
+	if (pt3==NULL) {
+		return -1;
+	}
+	else {
+		/* Clear out the struct */
+		memset(pt3,0,sizeof(struct pt3_song_t));
+	}
+
+	if (pt3_2==NULL) {
+		return -1;
+	}
+	else {
+		/* Clear out the struct */
+		memset(pt3_2,0,sizeof(struct pt3_song_t));
+	}
+
+	/* Clear out our data */
+	memset(&pt3_image->data,0,MAX_PT3_SIZE);
 
 	/* Open file */
 	fd=open(filename,O_RDONLY);
@@ -1099,26 +1117,44 @@ int pt3_load_song(char *filename,
 
 	}
 
-	/* Clear out our data */
-	memset(&pt3->data,0,MAX_PT3_SIZE);
-
 	/* Read entire file into memory (probably not that big) */
-	result=read(fd,pt3->data,MAX_PT3_SIZE);
+	result=read(fd,&pt3_image->data,MAX_PT3_SIZE);
 	if (result<0) {
 		fprintf(stderr,"Error reading file: %s\n",
 			strerror(errno));
 		return -1;
 	}
+	pt3_image->length=result;
 
 	/* close the file */
 	close(fd);
+
+	/* Point first song to to beginning of data */
+	pt3->valid=1;
+	pt3->data=pt3_image->data;
 
 	/* Init Data */
 	result=pt3_init_song(pt3);
 	if (result<0) return result;
 
-
 	dump_header(pt3);
+
+#if 0
+
+	if (pt3_2!=NULL) {
+
+		/* Point first song to to beginning of data */
+		pt3->data=pt3_image->data;
+
+		/* Init Data */
+		result=pt3_init_song(pt3);
+		if (result<0) return result;
+
+		dump_header(pt3);
+
+	}
+
+#endif
 
 	return 0;
 }

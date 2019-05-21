@@ -474,6 +474,7 @@ static int play_song(char *filename) {
 
 	struct timeval start,next;
 
+	struct pt3_image_t pt3_image;
 	struct pt3_song_t pt3,pt3_2;
 	struct display_stats ds;
 	char string[13];
@@ -491,7 +492,7 @@ static int play_song(char *filename) {
 
 	printf("\nPlaying song %s\n",filename);
 
-	result=pt3_load_song(filename,&pt3,&pt3_2);
+	result=pt3_load_song(filename,&pt3_image,&pt3,&pt3_2);
 	if (result<0) {
 		return -1;
 	}
@@ -632,7 +633,7 @@ static int play_song(char *filename) {
 
 int main(int argc, char **argv) {
 
-	char filename[BUFSIZ]="intro2.ym";
+	char filename[BUFSIZ]="ea.pt3";
 	int result;
 	int c;
 	int next_song,first_song;

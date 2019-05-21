@@ -55,9 +55,12 @@ struct pt3_note_type {
 	unsigned char new_note;
 
 	unsigned short addr;
+
 };
 
 struct pt3_song_t {
+	int valid;
+
 	char magic[13+1];
 	char version;
 	char name[32+1];
@@ -89,11 +92,16 @@ struct pt3_song_t {
 	unsigned char noise_period;
 	unsigned char noise_add;
 
+	unsigned char *data;
+};
+
+struct pt3_image_t {
+	int length;
 	unsigned char data[MAX_PT3_SIZE];
 };
 
 void dump_header(struct pt3_song_t *pt3);
-int pt3_load_song(char *filename,
+int pt3_load_song(char *filename, struct pt3_image_t *pt3_image,
 	struct pt3_song_t *pt3, struct pt3_song_t *pt3_2);
 void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame);
 void pt3_print_tracker_line(struct pt3_song_t *pt3, int line);
