@@ -42,7 +42,9 @@ static int amp_disable=0;
 
 #define YM5_FRAME_SIZE	16
 
-int ym_play_frame(unsigned char *frame, int shift_size,
+int ym_play_frame(unsigned char *frame,
+			unsigned char *frame2,
+			int shift_size,
 			struct display_stats *ds,
 			int diff_mode,
 			int play_music,
@@ -50,22 +52,13 @@ int ym_play_frame(unsigned char *frame, int shift_size,
 
 	int j;
 
-	unsigned char frame2[YM5_FRAME_SIZE];
-
 	int left_a_period,left_b_period,left_c_period;
 	int right_a_period,right_b_period,right_c_period;
 
 	double left_a_freq=0.0, left_b_freq=0.0, left_c_freq=0.0;
 	double right_a_freq=0.0, right_b_freq=0.0, right_c_freq=0.0;
 
-	int channels=3;
 	int master_clock=1777000;
-
-	if (channels==3) {
-		memcpy(frame2,frame,sizeof(frame2));
-	} else {
-//		ym_make_frame(ym_song,ym_song->frame_data2,frame_num,frame2,0);
-	}
 
 	left_a_period=((frame[1]&0xf)<<8)|frame[0];
 	left_b_period=((frame[3]&0xf)<<8)|frame[2];
@@ -480,6 +473,7 @@ static int play_song(char *filename) {
 	char string[13];
 
 	unsigned char frame[16];
+	unsigned char frame2[16];
 
 #define TIMING_DEBUG	0
 
@@ -519,11 +513,13 @@ static int play_song(char *filename) {
 	for(i=0;i < pt3.music_len;i++) {
 
 		pt3_set_pattern(i,&pt3);
+		if (pt3_2.valid) pt3_set_pattern(i,&pt3_2);
 
 		for(j=0;j<64;j++) {
 
 			/* decode line. 1 if done early */
 			if (pt3_decode_line(&pt3)) break;
+			if (pt3_2.valid) pt3_decode_line(&pt3_2);
 
                         /* Dump out subframes of line */
                         for(f=0;f<pt3.speed;f++) {
@@ -561,8 +557,46 @@ static int play_song(char *filename) {
 				frame[11]=(temp_scale&0xff);
 				frame[12]=(temp_scale>>8)&0xf;
 
+				if (pt3_2.valid) {
 
-				ym_play_frame(frame,shift_size,
+					pt3_make_frame(&pt3_2,frame2);
+
+					/* pt3 files typically assume 1.77MHz! */
+
+					/* A */
+					temp_scale=frame2[0]|(frame2[1]<<8);
+					temp_scale=(temp_scale*9)/16;
+					frame2[0]=(temp_scale&0xff);
+					frame2[1]=(temp_scale>>8)&0xf;
+
+					/* B */
+					temp_scale=frame2[2]|(frame2[3]<<8);
+					temp_scale=(temp_scale*9)/16;
+					frame2[2]=(temp_scale&0xff);
+					frame2[3]=(temp_scale>>8)&0xf;
+
+					/* C */
+					temp_scale=frame2[4]|(frame2[5]<<8);
+					temp_scale=(temp_scale*9)/16;
+					frame2[4]=(temp_scale&0xff);
+					frame2[5]=(temp_scale>>8)&0xf;
+
+					/* N */
+					temp_scale=frame2[6];
+					temp_scale=(temp_scale*9)/16;
+					frame2[6]=(temp_scale&0x1f);
+
+					/* E */
+					temp_scale=frame2[11]|(frame2[12]<<8);
+					temp_scale=(temp_scale*9)/16;
+					frame2[11]=(temp_scale&0xff);
+					frame2[12]=(temp_scale>>8)&0xf;
+				}
+				else {
+					memcpy(frame2,frame,sizeof(frame2));
+				}
+
+				ym_play_frame(frame,frame2,shift_size,
 					&ds, diff_mode,play_music,mute_channel);
 
 				if (visualize) {
@@ -584,10 +618,29 @@ static int play_song(char *filename) {
 				frames_elapsed++;
 				frame_num++;
 
-				sprintf(string,"%s %s %s",
-					pt3_current_note('A',&pt3),
-					pt3_current_note('B',&pt3),
-					pt3_current_note('C',&pt3));
+
+				if (pt3_2.valid) {
+					sprintf(string,"%c%c%c%c%c%c%c%c%c%c%c%cmake",
+						pt3_current_note('A',&pt3)[0],
+						pt3_current_note('A',&pt3)[2],
+						pt3_current_note('B',&pt3)[0],
+						pt3_current_note('B',&pt3)[2],
+						pt3_current_note('C',&pt3)[0],
+						pt3_current_note('C',&pt3_2)[2],
+						pt3_current_note('A',&pt3_2)[0],
+						pt3_current_note('A',&pt3_2)[2],
+						pt3_current_note('B',&pt3_2)[0],
+						pt3_current_note('B',&pt3_2)[2],
+						pt3_current_note('C',&pt3_2)[0],
+						pt3_current_note('C',&pt3_2)[2]);
+				}
+				else {
+					sprintf(string,"%s %s %s",
+						pt3_current_note('A',&pt3),
+						pt3_current_note('B',&pt3),
+						pt3_current_note('C',&pt3));
+				}
+
 
 				music_visualize(frames_elapsed,frame_num,
 					filename,
