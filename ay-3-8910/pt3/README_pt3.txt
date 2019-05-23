@@ -3,7 +3,7 @@ How to decode a Vortex Tracker II "PT3" File
 
 	by Vince "Deater" Weaver, <vince@deater.net>
 	http://www.deater.net/weave/vmwprod/pt3_player/
-	14 May 2019
+	22 May 2019
 
 Background:
 ~~~~~~~~~~~
@@ -199,17 +199,17 @@ The PT3 Format
 	Disk  Tracker
 	~~~~  ~~~~~~~
 
-	$01     $01:	Tone Down
+	$01     $01:	Glissando (slide through discrete notes) / Tone Down
 
 			First byte: delay
 			Next 2 bytes: frequency to add (is negative)
 
-	$01     $02:	Tone Up
+	$01     $02:	Glissando (slide) / Tone Up
 
 			This appears differently in tracker, but is just
 			the same as above but with a positive frequency.
 
-	$02     $03:	Tone portamento
+	$02     $03:	Tone portamento (continuous slide)
 
 			First byte: delay
 			Next 2 bytes: ignored?
@@ -226,11 +226,11 @@ The PT3 Format
 			First byte: OffOn delay (frames to stay off)
 			Second byte: OnOff delay (frames to stay on)
 
-	$08	$09:	Envelope frequency decreasing
+	$08	$09:	Envelope Glissando -- Frequency decreasing
 			First byte: delay
 			Next two bytes: Slide add (little-endian)
 
-	$08     $0A:	Envelope frequency increasing.
+	$08     $0A:	Envelope Glissando -- Frequency increasing.
 			Like previous but with sign switched?
 
 	$09	$0B:	Set playing speed (new Delay).
@@ -243,7 +243,8 @@ The PT3 Format
 	I'm not sure why?
 	How to calculate?
 
-* Amplitude Tables
+* Volume Tables
+
 	There are multiple 256-byte amplitude/volume lookup tables
 	These seem to have changed with different versions of Vortex Tracker
 	so to be complete you need to contain them all and use the proper
