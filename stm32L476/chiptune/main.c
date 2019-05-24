@@ -26,14 +26,31 @@ static ayemu_ay_reg_frame_t frame;
 
 #define MAX_SONGS 1
 static int which_song=0;
-
+static int title_len;
 
 void exit(int status) {
 	LCD_Display_String("ERROR");
 	while(1);
 }
 
-void change_song(int i) {
+struct pt3_image_t pt3_image[MAX_SONGS] = {
+	[0] = {	.data=__I2_PT3,	.length=__I2_PT3_len, },
+};
+
+
+static void change_song(void) {
+
+	if (which_song>=MAX_SONGS) {
+		which_song=0;
+	}
+
+	pt3_load_song("ignored", &pt3_image[which_song], &pt3, &pt3_2);
+	title_len=32;
+	while(pt3_image[which_song].data[0x1e + title_len]==' ') {
+		title_len--;
+		if (title_len==0) break;
+	}
+	if (title_len<6) title_len=6;
 
 }
 
@@ -68,7 +85,8 @@ static void TIM4_IRQHandler(void) {
 			/* Decode next frame */
 			if ((line==0) && (subframe==0)) {
 				if (current_pattern==pt3.music_len) {
-					change_song(1);
+					which_song++;
+					change_song();
 				}
 				pt3_set_pattern(current_pattern,&pt3);
 			}
@@ -325,9 +343,7 @@ static void GPIOA_Pin_Input_Init(int pin) {
 
 int main(void) {
 
-	struct pt3_image_t pt3_image;
 
-	int title_len;
 	char buffer[7];
 	int scrolling=0,scrolldir=1;
 	volatile int d;
@@ -358,16 +374,7 @@ int main(void) {
 	asm volatile ( "cpsie i" );
 
 	/* Init first song */
-	change_song(0);
-	pt3_image.data=__I2_PT3;
-	pt3_image.length=__I2_PT3_len;
-	pt3_load_song("ignored", &pt3_image, &pt3, &pt3_2);
-	title_len=32;
-	while(pt3_image.data[0x1e + title_len]==' ') {
-		title_len--;
-		if (title_len==0) break;
-	}
-	if (title_len<6) title_len=6;
+	change_song();
 
 	/* Init ay code */
 
@@ -385,7 +392,7 @@ int main(void) {
 	while(1) {
 
 		/* output title */
-		memcpy(buffer,&pt3_image.data[0x1e + scrolling],6);
+		memcpy(buffer,&pt3_image[which_song].data[0x1e + scrolling],6);
 		buffer[6]=0;
 		LCD_Display_String(buffer);
 		for(d=0;d<400000;d++);
@@ -399,10 +406,7 @@ int main(void) {
 		/* Change song based on joystick */
 		if (GPIOA->IDR & (1<<3)) {
 			which_song++;
-			if (which_song>=MAX_SONGS) {
-				which_song=0;
-			}
-			change_song(which_song);
+			change_song();
 		}
 
 		/* Blink RED LED (GPIOB2) based on note A */
