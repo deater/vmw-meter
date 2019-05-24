@@ -97,7 +97,7 @@ struct pt3_song_t {
 
 struct pt3_image_t {
 	int length;
-	unsigned char data[MAX_PT3_SIZE];
+	unsigned char *data;
 };
 
 void dump_header(struct pt3_song_t *pt3);

@@ -1,8 +1,10 @@
 /* Play PT3 chiptunes out the DAC port on the stm32l476 */
 
+/* Outputs audio on pin PA5 */
+
 #include <stdint.h>
 #include "stm32l476xx.h"
-#include <stdio.h>
+#include "string.h"
 
 #include "lcd.h"
 
@@ -11,11 +13,7 @@
 
 /* global variables */
 volatile uint32_t TimeDelay;
-volatile uint32_t pulse_width=0;
-volatile uint32_t last_captured=0;
-volatile uint32_t signal_polarity=0;
 volatile uint32_t overflows=0;
-static int song_offset=0;
 
 #define MAX_SONGS 1
 static int which_song=0;
@@ -252,6 +250,12 @@ static void GPIOA_Pin_Input_Init(int pin) {
 
 int main(void) {
 
+	struct pt3_image_t pt3_image;
+	struct pt3_song_t pt3,pt3_2;
+	int title_len;
+	char buffer[7];
+	int scrolling=0,scrolldir=1;
+
 	System_Clock_Init();
 
 	/* Enable GPIO-PA3 -- up on joystick */
@@ -282,20 +286,30 @@ int main(void) {
 
 	asm volatile ( "cpsie i" );
 
+	/* Init first song */
+	pt3_image.data=__I2_PT3;
+	pt3_image.length=__I2_PT3_len;
+	pt3_load_song("ignored", &pt3_image, &pt3, &pt3_2);
+	title_len=32;
+	while(pt3_image.data[0x1e + title_len]==' ') {
+		title_len--;
+		if (title_len==0) break;
+	}
+	if (title_len<6) title_len=6;
+
 	while(1) {
 
-		if (which_song==0) {
-
-			LCD_Display_String("STILL");
-			for(d=0;d<1000000;d++) ;
-
-			LCD_Display_String("MORE");
-			for(d=0;d<1000000;d++) ;
-
-			LCD_Display_String("FIGHTNG");
-			for(d=0;d<1000000;d++) ;
+		/* output title */
+		memcpy(buffer,&pt3_image.data[0x1e + scrolling],6);
+		buffer[6]=0;
+		LCD_Display_String(buffer);
+		for(d=0;d<400000;d++);
+		scrolling+=scrolldir;
+		if ((scrolling>title_len-5) || (scrolling==-1)) {
+			for(d=0;d<800000;d++);
+			scrolldir=-scrolldir;
+			scrolling+=scrolldir;
 		}
-
 
 		if (GPIOA->IDR & (1<<3)) {
 			which_song++;
