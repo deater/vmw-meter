@@ -9,7 +9,7 @@
 
 #include "lcd.h"
 
-#include "i2_pt3.h"
+
 
 #include "pt3_lib.h"
 #include "ayemu.h"
@@ -24,9 +24,16 @@ static struct pt3_song_t pt3,pt3_2;
 static ayemu_ay_reg_frame_t frame;
 //static unsigned char frame[14];
 
-#define MAX_SONGS 1
+#define MAX_SONGS 4
+#include "i2_pt3.h"
+#include "ba_pt3.h"
+#include "ea_pt3.h"
+#include "vc_pt3.h"
+
 static int which_song=0;
 static int title_len;
+static int scrolling=0,scrolldir=1;
+
 
 void exit(int status) {
 	LCD_Display_String("ERROR");
@@ -35,10 +42,18 @@ void exit(int status) {
 
 struct pt3_image_t pt3_image[MAX_SONGS] = {
 	[0] = {	.data=__I2_PT3,	.length=__I2_PT3_len, },
+	[3] = {	.data=__BA_PT3,	.length=__BA_PT3_len, },
+	[1] = {	.data=__EA_PT3,	.length=__EA_PT3_len, },
+	[2] = {	.data=__VC_PT3,	.length=__VC_PT3_len, },
 };
 
 
+static int line=0,subframe=0,current_pattern=0;
+
 static void change_song(void) {
+
+	scrolling=0;
+	scrolldir=1;
 
 	if (which_song>=MAX_SONGS) {
 		which_song=0;
@@ -52,6 +67,9 @@ static void change_song(void) {
 	}
 	if (title_len<6) title_len=6;
 
+	current_pattern=0;
+	line=0;
+	subframe=0;
 }
 
 
@@ -61,19 +79,33 @@ void NVIC_SetPriority(int irq, int priority);
 void NVIC_EnableIRQ(int irq);
 
 static int interrupt_countdown=0;
-static int line=0,subframe=0,current_pattern=0;
 
 #define FREQ	40000
 
-/* mono (1 channel), 16-bit (2 bytes), play at 50Hz */
+/* mono (2 channel), 16-bit (2 bytes), play at 50Hz */
 #define AUDIO_BUFSIZ (FREQ*1*2 / 50)
 static unsigned char audio_buf[AUDIO_BUFSIZ];
 static int output_pointer=0;
+
+static int led_count=0,led_on=0;
 
 /* Interrupt Handlers */
 static void TIM4_IRQHandler(void) {
 
 	int line_decode_result=0;
+
+	led_count++;
+	if (led_count==800*50) {
+		if (led_on) {
+			led_on=0;
+			GPIOB->ODR &= ~(1<<2);
+		}
+		else {
+			led_on=1;
+			GPIOB->ODR |= (1<<2);
+		}
+		led_count=0;
+	}
 
 	/* Check if countdown interrupt happened */
 	if ((TIM4->SR & TIM_SR_CC1IF)!=0) {
@@ -124,7 +156,7 @@ static void TIM4_IRQHandler(void) {
 			output_pointer=0;
 		}
 
-
+#if 1
 		/* Write out to DAC */
 		/* left aligned so can write 16-bit value to it */
 		DAC->DHR12L2=(audio_buf[output_pointer]|
@@ -134,7 +166,18 @@ static void TIM4_IRQHandler(void) {
 			exit(-1);
 		}
 
+		DAC->SWTRIGR |= DAC_SWTRIGR_SWTRIG2;
+#else
+		/* Write out to DAC */
+		/* left aligned so can write 16-bit value to it */
+		DAC->DHR8R2=audio_buf[output_pointer];
+		output_pointer+=1;
+		if (output_pointer>AUDIO_BUFSIZ) {
+			exit(-1);
+		}
 
+
+#endif
 		/* ACK interrupt */
 		TIM4->SR &= ~TIM_SR_CC1IF;
 		interrupt_countdown--;
@@ -222,13 +265,13 @@ void DAC2_Channel2_Init(void) {
 	/* Enable trigger for DAC channel 2 */
 	DAC->CR |= DAC_CR_TEN2;
 
-#if 0
+#if 1
 	/* Select software trigger */
 	DAC->CR |= DAC_CR_TSEL2;
 #endif
 	/* Select TIM4_TRG0) as the trigger for DAC channel 2 */
-	DAC->CR &= ~DAC_CR_TSEL2;
-	DAC->CR |= (DAC_CR_TSEL2_0 | DAC_CR_TSEL2_2);
+//	DAC->CR &= ~DAC_CR_TSEL2;
+//	DAC->CR |= (DAC_CR_TSEL2_0 | DAC_CR_TSEL2_2);
 
 	/* Enable DAC Channel 2 */
 	DAC->CR |= DAC_CR_EN2;
@@ -334,7 +377,7 @@ static void GPIOA_Pin_Input_Init(int pin) {
         //GPIOA->OSPEEDR &= ~(3UL<<(pin*2));
 
         /* Set pin 2 as pull-down */
-/* 00 = no pull-up, no pull-down
+	/* 00 = no pull-up, no pull-down
            01 = pull-up
            10 = pull-down
            11 = reserved */
@@ -346,7 +389,6 @@ int main(void) {
 
 
 	char buffer[7];
-	int scrolling=0,scrolldir=1;
 	volatile int d;
 
 	System_Clock_Init();
@@ -370,25 +412,26 @@ int main(void) {
 	LCD_Pin_Init();
 	LCD_Configure();
 
-
-
-	asm volatile ( "cpsie i" );
-
 	/* Init first song */
 	change_song();
 
 	/* Init ay code */
 
 	ayemu_init(&ay);
+	// 44100, 1, 16 -- freq, channels, bits
+	ayemu_set_sound_format(&ay, FREQ, 1, 16);
 
 	ayemu_reset(&ay);
 	ayemu_set_chip_type(&ay, AYEMU_AY, NULL);
 	/* Assume mockingboard/VMW-chiptune freq */
 	/* pt3_lib assumes output is 1773400 of zx spectrum */
 	ayemu_set_chip_freq(&ay, 1773400);
+//	ayemu_set_chip_freq(&ay, 1000000);
 	ayemu_set_stereo(&ay, AYEMU_MONO, NULL);
 
+
 	TIM4_Init();
+	asm volatile ( "cpsie i" );
 
 	while(1) {
 
@@ -406,10 +449,13 @@ int main(void) {
 
 		/* Change song based on joystick */
 		if (GPIOA->IDR & (1<<3)) {
+			/* disable interrupt to be safe */
+			asm volatile ( "cpsid i" );
 			which_song++;
 			change_song();
+			asm volatile ( "cpsie i" );
 		}
-
+#if 0
 		/* Blink RED LED (GPIOB2) based on note A */
 		if (pt3.a.new_note) {
 			GPIOB->ODR |= (1<<2);
@@ -417,6 +463,7 @@ int main(void) {
 		else {
 			GPIOB->ODR &= ~(1<<2);
 		}
+#endif
 
 		/* Blink GREEN LED (GPIOE8) based on note B */
 		if (pt3.b.new_note) {
@@ -438,6 +485,7 @@ int main(void) {
 void System_Clock_Init(void) {
 
 	/* Note, this code initializes the HSI 16MHz clock */
+	/* Also multplies it by ??? for the system clock */
 
         /* Enable the HSI clock, the DAC needs this */
         RCC->CR |= RCC_CR_HSION;
@@ -445,12 +493,20 @@ void System_Clock_Init(void) {
 	/* Wait until HSI is ready */
 	while ( (RCC->CR & RCC_CR_HSIRDY) == 0 );
 
+#if 1
 	/* set up the PLL */
 
-	RCC->PLLCFGR &= RCC_PLLCFGR_PLLN;		// set to input*4
-	RCC->PLLCFGR |= 4<<8;
+	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLR;		// clear, div by 2
 
-	RCC->PLLCFGR &= RCC_PLLCFGR_PLLSRC;
+
+	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLN;		// set to HSI*4=64MHz
+	RCC->PLLCFGR |= 25<<8;
+
+	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLM;		// set to HSI*4=64MHz
+	RCC->PLLCFGR |= 4<<4;
+
+
+	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLSRC;
 	RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSI;
 
 	RCC->CR |= RCC_CR_PLLON;
@@ -461,12 +517,14 @@ void System_Clock_Init(void) {
 	/* Select PLL as system clock source  */
 	RCC->CFGR &= ~RCC_CFGR_SW;
 	RCC->CFGR |= RCC_CFGR_SW_PLL;  /* 11: PLL used as sys clock */
+	while ((RCC->CFGR & RCC_CFGR_SWS) == 0 );
 
+#else
 
 	/* Select HSI as system clock source  */
-//	RCC->CFGR &= ~RCC_CFGR_SW;
-//	RCC->CFGR |= RCC_CFGR_SW_HSI;  /* 01: HSI16 oscillator used as system clock */
-
+	RCC->CFGR &= ~RCC_CFGR_SW;
+	RCC->CFGR |= RCC_CFGR_SW_HSI;  /* 01: HSI16 oscillator used as system clock */
+#endif
 	/* Wait till HSI is used as system clock source */
 //	while ((RCC->CFGR & RCC_CFGR_SWS) == 0 );
 
