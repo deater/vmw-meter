@@ -631,6 +631,8 @@ static void decode_note(struct pt3_note_type *a,
 				break;
 			case 0xf:
                                 a->envelope_enabled=0;
+				a->ornament_position=0;
+
 				a->ornament=(current_val&0xf);
 
 				pt3_load_ornament(pt3,a->which);
