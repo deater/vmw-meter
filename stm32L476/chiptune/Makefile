@@ -1,3 +1,4 @@
+AS = arm-none-eabi-as
 CC = arm-none-eabi-gcc
 LD = arm-none-eabi-ld
 OBJCOPY = arm-none-eabi-objcopy
@@ -17,13 +18,24 @@ all:	chiptune.bin
 chiptune.bin:	chiptune.elf
 	$(OBJCOPY) -Obinary chiptune.elf chiptune.bin
 
-chiptune.elf:	main.o lcd.o pt3_lib.o string.o
-	$(LD) $(LINKER_SCRIPT) -nostartfiles -o chiptune.elf main.o lcd.o pt3_lib.o string.o
+chiptune.elf:	main.o lcd.o pt3_lib.o string.o ay8912.o ldivmod.o uldivmod.o
+	$(LD) $(LINKER_SCRIPT) -nostartfiles -o chiptune.elf main.o lcd.o pt3_lib.o string.o ay8912.o ldivmod.o uldivmod.o
+
+####
+
+ldivmod.o:	ldivmod.s
+	$(AS) -c -o ldivmod.o ldivmod.s
+
+uldivmod.o:	uldivmod.s
+	$(AS) -c -o uldivmod.o uldivmod.s
 
 ####
 
 string.o:	string.c string.h
 	$(CC) $(CFLAGS)  -c -o string.o string.c
+
+ay8192.o:	ay8912.c ay8912.h
+	$(CC) $(CFLAGS)  -c -o ay8912.o ay8912.c
 
 pt3_lib.o:	pt3_lib.c pt3_lib.h
 	$(CC) $(CFLAGS)  -c -o pt3_lib.o pt3_lib.c
