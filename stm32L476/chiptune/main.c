@@ -5,15 +5,24 @@
 #include <stdint.h>
 #include "stm32l476xx.h"
 #include "string.h"
+#include "stdlib.h"
 
 #include "lcd.h"
 
 #include "i2_pt3.h"
+
 #include "pt3_lib.h"
+#include "ayemu.h"
 
 /* global variables */
 volatile uint32_t TimeDelay;
 volatile uint32_t overflows=0;
+
+static ayemu_ay_t ay;
+static struct pt3_song_t pt3,pt3_2;
+
+static ayemu_ay_reg_frame_t frame;
+//static unsigned char frame[14];
 
 #define MAX_SONGS 1
 static int which_song=0;
@@ -34,16 +43,61 @@ void System_Clock_Init(void);
 void NVIC_SetPriority(int irq, int priority);
 void NVIC_EnableIRQ(int irq);
 
-int angle=0,count=0,which=0,countdown=22100;
-
-
+static int interrupt_countdown=0;
+static int line=0,subframe=0,current_pattern=0;
 
 /* Interrupt Handlers */
-void TIM4_IRQHandler(void) {
+static void TIM4_IRQHandler(void) {
+
+	int line_decode_result=0;
 
 	/* Check if countdown interrupt happened */
 	if ((TIM4->SR & TIM_SR_CC1IF)!=0) {
 
+		/* We hit 50Hz */
+		if (interrupt_countdown==0) {
+			interrupt_countdown=882;  /* 44.1kHz / 50 */
+
+			/* Decode next frame */
+			if ((line==0) && (subframe==0)) {
+				if (current_pattern==pt3.music_len) {
+					change_song(1);
+				}
+				pt3_set_pattern(current_pattern,&pt3);
+			}
+
+			if (subframe==0) {
+				line_decode_result=pt3_decode_line(&pt3);
+			}
+			if (line_decode_result==1) {
+				/* line done early? */
+				current_pattern++;
+				line=0;
+				subframe=0;
+			}
+			else {
+				subframe++;
+				if (subframe==pt3.speed) {
+					subframe=0;
+					line++;
+					if (line==64) {
+						current_pattern++;
+						line=0;
+					}
+				}
+			}
+
+
+			pt3_make_frame(&pt3,frame);
+		}
+
+		/* Update AY buffer */
+
+		/* Write out to DAC */
+
+		/* ACK interrupt */
+		TIM4->SR &= ~TIM_SR_CC1IF;
+		interrupt_countdown--;
 	}
 
 	/* Check if overflow happened */
@@ -251,7 +305,7 @@ static void GPIOA_Pin_Input_Init(int pin) {
 int main(void) {
 
 	struct pt3_image_t pt3_image;
-	struct pt3_song_t pt3,pt3_2;
+
 	int title_len;
 	char buffer[7];
 	int scrolling=0,scrolldir=1;
@@ -272,10 +326,6 @@ int main(void) {
 
 	DAC2_Channel2_Init();
 
-	change_song(0);
-
-	TIM4_Init();
-
 	/* Set up LCD */
 	LCD_Clock_Init();
 	LCD_Pin_Init();
@@ -287,6 +337,7 @@ int main(void) {
 	asm volatile ( "cpsie i" );
 
 	/* Init first song */
+	change_song(0);
 	pt3_image.data=__I2_PT3;
 	pt3_image.length=__I2_PT3_len;
 	pt3_load_song("ignored", &pt3_image, &pt3, &pt3_2);
@@ -296,6 +347,19 @@ int main(void) {
 		if (title_len==0) break;
 	}
 	if (title_len<6) title_len=6;
+
+	/* Init ay code */
+
+	ayemu_init(&ay);
+
+	ayemu_reset(&ay);
+	ayemu_set_chip_type(&ay, AYEMU_AY, NULL);
+	/* Assume mockingboard/VMW-chiptune freq */
+	/* pt3_lib assumes output is 1773400 of zx spectrum */
+	ayemu_set_chip_freq(&ay, 1773400);
+	ayemu_set_stereo(&ay, AYEMU_MONO, NULL);
+
+	TIM4_Init();
 
 	while(1) {
 
