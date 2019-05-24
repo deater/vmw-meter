@@ -309,6 +309,7 @@ int main(void) {
 	int title_len;
 	char buffer[7];
 	int scrolling=0,scrolldir=1;
+	volatile int d;
 
 	System_Clock_Init();
 
@@ -331,7 +332,6 @@ int main(void) {
 	LCD_Pin_Init();
 	LCD_Configure();
 
-	volatile int d;
 
 
 	asm volatile ( "cpsie i" );
@@ -375,12 +375,29 @@ int main(void) {
 			scrolling+=scrolldir;
 		}
 
+		/* Change song based on joystick */
 		if (GPIOA->IDR & (1<<3)) {
 			which_song++;
 			if (which_song>=MAX_SONGS) {
 				which_song=0;
 			}
 			change_song(which_song);
+		}
+
+		/* Blink RED LED (GPIOB2) based on note A */
+		if (pt3.a.new_note) {
+			GPIOB->ODR |= (1<<2);
+		}
+		else {
+			GPIOB->ODR &= ~(1<<2);
+		}
+
+		/* Blink GREEN LED (GPIOE8) based on note B */
+		if (pt3.b.new_note) {
+			GPIOE->ODR |= (1<<8);
+		}
+		else {
+			GPIOE->ODR &= ~(1<<8);
 		}
 
 	}
