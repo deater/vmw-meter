@@ -46,6 +46,13 @@ void NVIC_EnableIRQ(int irq);
 static int interrupt_countdown=0;
 static int line=0,subframe=0,current_pattern=0;
 
+#define FREQ	40000
+
+/* mono (1 channel), 16-bit (2 bytes), play at 50Hz */
+#define AUDIO_BUFSIZ (FREQ*1*2 / 50)
+static unsigned char audio_buf[AUDIO_BUFSIZ];
+static int output_pointer=0;
+
 /* Interrupt Handlers */
 static void TIM4_IRQHandler(void) {
 
@@ -56,7 +63,7 @@ static void TIM4_IRQHandler(void) {
 
 		/* We hit 50Hz */
 		if (interrupt_countdown==0) {
-			interrupt_countdown=882;  /* 44.1kHz / 50 */
+			interrupt_countdown=FREQ/50;  /* 40000 / 50 == 800*/
 
 			/* Decode next frame */
 			if ((line==0) && (subframe==0)) {
@@ -89,11 +96,25 @@ static void TIM4_IRQHandler(void) {
 
 
 			pt3_make_frame(&pt3,frame);
+
+			/* Update AY buffer */
+			ayemu_set_regs(&ay,frame);
+
+			/* Generate sound buffer */
+			ayemu_gen_sound (&ay, audio_buf, AUDIO_BUFSIZ);
+			output_pointer=0;
 		}
 
-		/* Update AY buffer */
 
 		/* Write out to DAC */
+		/* left aligned so can write 16-bit value to it */
+		DAC->DHR12L2=(audio_buf[output_pointer]|
+				audio_buf[output_pointer+1]<<8);
+		output_pointer+=2;
+		if (output_pointer>AUDIO_BUFSIZ) {
+			exit(-1);
+		}
+
 
 		/* ACK interrupt */
 		TIM4->SR &= ~TIM_SR_CC1IF;
@@ -142,13 +163,13 @@ static void TIM4_Init(void) {
 
 	/* FIXME */
 	/* Prescaler. slow down the input clock by a factor of (1+prescaler) */
-	TIM4->PSC=31;		// 16MHz / (1+15) = 1MHz
+	TIM4->PSC=3;		// 16MHz / (1+3) = 4MHz
 
 	/* Auto-reload, max */
-	TIM4->ARR=24;		// 1MHz /25 = 40kHz
+	TIM4->ARR=99;		// 4MHz /(100) = roughly 40kHz, 40000
 
 	/* Duty Ratio */
-	TIM4->CCR1 = 12;	// 50%
+	TIM4->CCR1 = 50;	// 50%
 
 	/* OC1 signal output on the corresponding output pin*/
 	TIM4->CCER |= TIM_CCER_CC1E;
