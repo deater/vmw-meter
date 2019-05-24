@@ -447,23 +447,25 @@ void System_Clock_Init(void) {
 
 	/* set up the PLL */
 
-	RCC->PLLCFGR &= RCC_PLLCFGR_PLLN;
-	RCC->PLLCFGR |= 40<<8;
+	RCC->PLLCFGR &= RCC_PLLCFGR_PLLN;		// set to input*4
+	RCC->PLLCFGR |= 4<<8;
 
-#if 0
-VMW
-	RCC->PLLCFGR .PLLQ = 1;
-	RCC_PLLCFGRbits.PLLSRC = 1;
-	PLLON_bit = 1;
-	while (!PLLRDY_bit);
-	RCC_PLLCFGRbits.PLLREN = 1;
-	RCC_CFGRbits.SW = 3;
-	while (RCC_CFGRbits.SWS != 3);
-#endif
+	RCC->PLLCFGR &= RCC_PLLCFGR_PLLSRC;
+	RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSI;
+
+	RCC->CR |= RCC_CR_PLLON;
+	while (!(RCC->CR & RCC_CR_PLLRDY)) ;
+
+	RCC->PLLCFGR |= RCC_PLLCFGR_PLLREN;
+
+	/* Select PLL as system clock source  */
+	RCC->CFGR &= ~RCC_CFGR_SW;
+	RCC->CFGR |= RCC_CFGR_SW_PLL;  /* 11: PLL used as sys clock */
+
 
 	/* Select HSI as system clock source  */
-	RCC->CFGR &= ~RCC_CFGR_SW;
-	RCC->CFGR |= RCC_CFGR_SW_HSI;  /* 01: HSI16 oscillator used as system clock */
+//	RCC->CFGR &= ~RCC_CFGR_SW;
+//	RCC->CFGR |= RCC_CFGR_SW_HSI;  /* 01: HSI16 oscillator used as system clock */
 
 	/* Wait till HSI is used as system clock source */
 //	while ((RCC->CFGR & RCC_CFGR_SWS) == 0 );

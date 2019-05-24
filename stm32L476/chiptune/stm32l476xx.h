@@ -82,12 +82,20 @@ __IO uint32_t CSR;		/* 0x94 */
 #define RCC_CFGR_SWS		(0x3<<2)
 #define RCC_CFGR_SWS_PLL	(0x3<<2)
 
-#define RCC_PLLCFGR_PLLSRC	(0x3)
-#define RCC_PLLCFGR_PLLSRC_HSI	(0x2)
+#define RCC_PLLCFGR_PLLPDIV	(0x1f<<27)
+#define RCC_PLLCFGR_PLLR	(0x3<<25)
+#define RCC_PLLCFGR_PLLREN	(0x1<<24)
+#define RCC_PLLCFGR_PLLQ	(0x3<<21)
+#define RCC_PLLCFGR_PLLQEN	(0x1<<20)
+#define RCC_PLLCFGR_PLLP	(0x1<<17)
+#define RCC_PLLCFGR_PLLPEN	(0x1<<16)
 #define RCC_PLLCFGR_PLLN	(0xff<<8)
 #define RCC_PLLCFGR_PLLM	(0x7<<4)
-#define RCC_PLLCFGR_PLLR	(0x3<<25)
-#define RCC_PLLCFGR_PLLREN	(1<<24)
+
+#define RCC_PLLCFGR_PLLSRC	(0x3)
+#define RCC_PLLCFGR_PLLSRC_HSI	(0x2)
+
+
 
 
 /* p251 */
