@@ -87,6 +87,7 @@ static void TIM4_IRQHandler(void) {
 				if (current_pattern==pt3.music_len) {
 					which_song++;
 					change_song();
+					current_pattern=0;
 				}
 				pt3_set_pattern(current_pattern,&pt3);
 			}
@@ -438,11 +439,27 @@ void System_Clock_Init(void) {
 
 	/* Note, this code initializes the HSI 16MHz clock */
 
-        /* Enable the HSI clock */
+        /* Enable the HSI clock, the DAC needs this */
         RCC->CR |= RCC_CR_HSION;
 
 	/* Wait until HSI is ready */
 	while ( (RCC->CR & RCC_CR_HSIRDY) == 0 );
+
+	/* set up the PLL */
+
+	RCC->PLLCFGR &= RCC_PLLCFGR_PLLN;
+	RCC->PLLCFGR |= 40<<8;
+
+#if 0
+VMW
+	RCC->PLLCFGR .PLLQ = 1;
+	RCC_PLLCFGRbits.PLLSRC = 1;
+	PLLON_bit = 1;
+	while (!PLLRDY_bit);
+	RCC_PLLCFGRbits.PLLREN = 1;
+	RCC_CFGRbits.SW = 3;
+	while (RCC_CFGRbits.SWS != 3);
+#endif
 
 	/* Select HSI as system clock source  */
 	RCC->CFGR &= ~RCC_CFGR_SW;
