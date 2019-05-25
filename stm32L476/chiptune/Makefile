@@ -9,9 +9,13 @@ CFLAGS = -g -O2 -Wall
 CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m4
 CFLAGS += -fno-common
 
+CFLAGS_NATIVE = -g -O2 -Wall
+
 #CLIB = /usr/lib/arm-none-eabi/newlib/libc.a /usr/lib/gcc/arm-none-eabi/7.3.1/thumb/libgcc.a
 
-all:	chiptune.bin
+CC_NATIVE = gcc
+
+all:	chiptune.bin test_pt3
 
 -include ../Makefile.lib
 
@@ -20,6 +24,17 @@ chiptune.bin:	chiptune.elf
 
 chiptune.elf:	main.o lcd.o pt3_lib.o string.o ay8912.o ldivmod.o uldivmod.o
 	$(LD) $(LINKER_SCRIPT) -nostartfiles -o chiptune.elf main.o lcd.o pt3_lib.o string.o ay8912.o ldivmod.o uldivmod.o
+
+####
+
+test_pt3:	test_pt3.o ay8912_native.o
+	$(CC_NATIVE) -o test_pt3 test_pt3.o ay8912_native.o
+
+test_pt3.o:	test_pt3.c
+	$(CC_NATIVE) $(CFLAGS_NATIVE) -c test_pt3.c
+
+ay8912_native.o:	ay8912.c
+	$(CC_NATIVE) $(CFLAGS_NATIVE) -o ay8912_native.o -c ay8912.c
 
 ####
 
@@ -61,4 +76,4 @@ disassem:	chiptune.elf
 	$(OBJDUMP) --disassemble-all chiptune.elf > chiptune.dis
 
 clean:	
-	rm -f *~ *.o *.bin *.elf *.dis
+	rm -f *~ *.o *.bin *.elf *.dis test_pt3
