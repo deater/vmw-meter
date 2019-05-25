@@ -1,3 +1,5 @@
+/* padsp ./test_pt3 */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -59,7 +61,7 @@ struct pt3_image_t pt3_image= {
 	.data=__EA_PT3,	.length=__EA_PT3_len, };
 
 static int line=0,subframe=0,current_pattern=0;
-#define FREQ	40000
+#define FREQ	44100
 
 /* mono (2 channel), 16-bit (2 bytes), play at 50Hz */
 #define AUDIO_BUFSIZ (FREQ*2*2 / 50)
@@ -154,7 +156,7 @@ int main (int argc, char **argv) {
 
 	ayemu_init(&ay);
 	// 44100, 1, 16 -- freq, channels, bits
-	ayemu_set_sound_format(&ay, FREQ, 1, 16);
+	ayemu_set_sound_format(&ay, FREQ, 2, 16);
 
 	ayemu_reset(&ay);
 	ayemu_set_chip_type(&ay, AYEMU_AY, NULL);

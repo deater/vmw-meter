@@ -384,7 +384,7 @@ static void prepare_generation(ayemu_ay_t *ay)
     for (n = 0; n < 32; n++) {
       vol = ay->table[n];
       for (m=0; m < 6; m++)
-	ay->vols[m][n] = (int) (((long long) vol * ay->eq[m]) / 100);
+	ay->vols[m][n] = (int) (((double) vol * ay->eq[m]) / 100);
     }
   }
 
