@@ -1,4 +1,4 @@
-int32_t strncmp(const char *s1, const char *s2, uint32_t n);
+int strncmp(const char *s1, const char *s2, uint32_t n);
 int32_t strlen(const char *s);
 int32_t atoi(char *string);
 void *memset(void *s, int c, uint32_t n);

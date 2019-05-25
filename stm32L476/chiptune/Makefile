@@ -27,14 +27,17 @@ chiptune.elf:	main.o lcd.o pt3_lib.o string.o ay8912.o ldivmod.o uldivmod.o
 
 ####
 
-test_pt3:	test_pt3.o ay8912_native.o
-	$(CC_NATIVE) -o test_pt3 test_pt3.o ay8912_native.o
+test_pt3:	test_pt3.o ay8912_native.o pt3_lib_native.o
+	$(CC_NATIVE) -o test_pt3 test_pt3.o ay8912_native.o pt3_lib_native.o
 
 test_pt3.o:	test_pt3.c
 	$(CC_NATIVE) $(CFLAGS_NATIVE) -c test_pt3.c
 
 ay8912_native.o:	ay8912.c
 	$(CC_NATIVE) $(CFLAGS_NATIVE) -o ay8912_native.o -c ay8912.c
+
+pt3_lib_native.o:	pt3_lib.c
+	$(CC_NATIVE) $(CFLAGS_NATIVE) -o pt3_lib_native.o -c pt3_lib.c
 
 ####
 

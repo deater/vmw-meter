@@ -11,6 +11,9 @@
 
 #include "ayemu.h"
 
+#include "ea_pt3.h"
+#include "pt3_lib.h"
+
 #define VERSION "0.0.9"
 
 static const int DEBUG = 0;
@@ -18,10 +21,8 @@ static const int DEBUG = 0;
 #define DEVICE_NAME "/dev/dsp"
 
 static ayemu_ay_t ay;
-static ayemu_ay_reg_frame_t regs;
+//static ayemu_ay_reg_frame_t regs;
 
-static void *audio_buf;
-static int audio_bufsize;
 static int audio_fd;
 
 static int  freq = 44100;
@@ -48,36 +49,93 @@ void init_oss(void)
   exit(1);
 }
 
+
+static ayemu_ay_t ay;
+static struct pt3_song_t pt3,pt3_2;
+static ayemu_ay_reg_frame_t frame;
+
+
+struct pt3_image_t pt3_image= {
+	.data=__EA_PT3,	.length=__EA_PT3_len, };
+
+static int line=0,subframe=0,current_pattern=0;
+#define FREQ	40000
+
+/* mono (2 channel), 16-bit (2 bytes), play at 50Hz */
+#define AUDIO_BUFSIZ (FREQ*2*2 / 50)
+static unsigned char audio_buf[AUDIO_BUFSIZ];
+static int output_pointer=0;
+
 void play (void) {
 
-  int len;
-#if 0
-  int audio_bufsize = freq * chans * (bits >> 3) / vtx->playerFreq;
-  if ((audio_buf = malloc (audio_bufsize)) == NULL) {
-    fprintf (stderr, "Can't allocate sound buffer\n");
-    goto free_vtx;
-  }
+	int len,line_decode_result=0;
 
-  ayemu_reset(&ay);
-  ayemu_set_chip_type(&ay, vtx->chiptype, NULL);
-  ayemu_set_chip_freq(&ay, vtx->chipFreq);
-  ayemu_set_stereo(&ay, vtx->stereo, NULL);
+	pt3_load_song("ignored", &pt3_image, &pt3, &pt3_2);
+	current_pattern=0;
+	line=0;
+	subframe=0;
 
-  size_t pos = 0;
+	while(1) {
 
-  while (pos++ < vtx->frames) {
-    ayemu_vtx_getframe (vtx, pos, regs);
-    ayemu_set_regs (&ay, regs);
-    ayemu_gen_sound (&ay, audio_buf, audio_bufsize);
-    if ((len = write(audio_fd, audio_buf, audio_bufsize)) == -1) {
-      fprintf (stderr, "Error writting to sound device, break.\n");
-      break;
-    }
-  }
+		/* Decode next frame */
+		if ((line==0) && (subframe==0)) {
+			if (current_pattern==pt3.music_len) {
+				exit(1);
+			}
+			pt3_set_pattern(current_pattern,&pt3);
+		}
 
- free_vtx:
-  ayemu_vtx_free(vtx);
-#endif
+		if (subframe==0) {
+			line_decode_result=pt3_decode_line(&pt3);
+		}
+		if (line_decode_result==1) {
+			/* line done early? */
+			current_pattern++;
+			line=0;
+			subframe=0;
+		}
+		else {
+			subframe++;
+			if (subframe==pt3.speed) {
+				subframe=0;
+				line++;
+				if (line==64) {
+					current_pattern++;
+					line=0;
+				}
+			}
+		}
+
+
+		pt3_make_frame(&pt3,frame);
+
+		/* Update AY buffer */
+		ayemu_set_regs(&ay,frame);
+
+		/* Generate sound buffer */
+		ayemu_gen_sound (&ay, audio_buf, AUDIO_BUFSIZ);
+		output_pointer=0;
+
+		if ((len = write(audio_fd, audio_buf, AUDIO_BUFSIZ)) == -1) {
+			fprintf (stderr, "Error writting to sound device, break.\n");
+			break;
+		}
+
+	}
+
+
+//  int audio_bufsize = freq * chans * (bits >> 3) / vtx->playerFreq;
+//  if ((audio_buf = malloc (audio_bufsize)) == NULL) {
+//    fprintf (stderr, "Can't allocate sound buffer\n");
+//    goto free_vtx;
+//  }
+//
+
+//  while (pos++ < vtx->frames) {
+//    ayemu_vtx_getframe (vtx, pos, regs);
+//    ayemu_set_regs (&ay, regs);
+//    ayemu_gen_sound (&ay, audio_buf, audio_bufsize);
+
 }
 
 
@@ -89,8 +147,22 @@ int main (int argc, char **argv) {
 		"bits=%d, chans=%d, freq=%d\n",bits, chans, freq);
 	}
 
+	/* Init ay code */
+
 	ayemu_init(&ay);
 	ayemu_set_sound_format(&ay, freq, chans, bits);
+
+	ayemu_init(&ay);
+	// 44100, 1, 16 -- freq, channels, bits
+	ayemu_set_sound_format(&ay, FREQ, 1, 16);
+
+	ayemu_reset(&ay);
+	ayemu_set_chip_type(&ay, AYEMU_AY, NULL);
+	/* Assume mockingboard/VMW-chiptune freq */
+	/* pt3_lib assumes output is 1773400 of zx spectrum */
+	ayemu_set_chip_freq(&ay, 1773400);
+//	ayemu_set_chip_freq(&ay, 1000000);
+	ayemu_set_stereo(&ay, AYEMU_MONO, NULL);
 
 	play ();
 

@@ -5,7 +5,7 @@
 #include "string.h"
 
 
-int32_t strncmp(const char *s1, const char *s2, uint32_t n) {
+int strncmp(const char *s1, const char *s2, uint32_t n) {
 
 	int i=0,r;
 
