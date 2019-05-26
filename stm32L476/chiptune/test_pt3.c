@@ -22,14 +22,18 @@ static const int DEBUG = 0;
 
 #define DEVICE_NAME "/dev/dsp"
 
+#define FREQ	44100
+#define CHANS	2
+#define BITS	16
+
 static ayemu_ay_t ay;
 //static ayemu_ay_reg_frame_t regs;
 
 static int audio_fd;
 
-static int  freq = 44100;
-static int  chans = 2;
-static int  bits = 16;
+static int  freq = FREQ;
+static int  chans = CHANS;
+static int  bits = BITS;
 
 void init_oss(void)
 {
@@ -61,10 +65,9 @@ struct pt3_image_t pt3_image= {
 	.data=__EA_PT3,	.length=__EA_PT3_len, };
 
 static int line=0,subframe=0,current_pattern=0;
-#define FREQ	44100
 
 /* mono (2 channel), 16-bit (2 bytes), play at 50Hz */
-#define AUDIO_BUFSIZ (FREQ*2*2 / 50)
+#define AUDIO_BUFSIZ (FREQ*CHANS*(BITS/8) / 50)
 static unsigned char audio_buf[AUDIO_BUFSIZ];
 static int output_pointer=0;
 
