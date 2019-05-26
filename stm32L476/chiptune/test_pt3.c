@@ -155,11 +155,8 @@ int main (int argc, char **argv) {
 	/* Init ay code */
 
 	ayemu_init(&ay);
-	ayemu_set_sound_format(&ay, freq, chans, bits);
-
-	ayemu_init(&ay);
 	// 44100, 1, 16 -- freq, channels, bits
-	ayemu_set_sound_format(&ay, FREQ, 2, 16);
+	ayemu_set_sound_format(&ay, FREQ, CHANS, BITS);
 
 	ayemu_reset(&ay);
 	ayemu_set_chip_type(&ay, AYEMU_AY, NULL);
