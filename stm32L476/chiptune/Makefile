@@ -9,7 +9,11 @@ CFLAGS = -g -O2 -Wall
 CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m4
 CFLAGS += -fno-common
 
+#CFLAGS_NATIVE = -g -O2 -Wall -m32
+#LFLAGS_NATIVE = -m32
+
 CFLAGS_NATIVE = -g -O2 -Wall
+LFLAGS_NATIVE =
 
 #CLIB = /usr/lib/arm-none-eabi/newlib/libc.a /usr/lib/gcc/arm-none-eabi/7.3.1/thumb/libgcc.a
 
@@ -22,13 +26,13 @@ all:	chiptune.bin test_pt3
 chiptune.bin:	chiptune.elf
 	$(OBJCOPY) -Obinary chiptune.elf chiptune.bin
 
-chiptune.elf:	main.o lcd.o pt3_lib.o string.o ay8912.o ldivmod.o uldivmod.o
-	$(LD) $(LINKER_SCRIPT) -nostartfiles -o chiptune.elf main.o lcd.o pt3_lib.o string.o ay8912.o ldivmod.o uldivmod.o
+chiptune.elf:	chiptune.o lcd.o pt3_lib.o string.o ay8912.o ldivmod.o uldivmod.o
+	$(LD) $(LINKER_SCRIPT) -nostartfiles -o chiptune.elf chiptune.o lcd.o pt3_lib.o string.o ay8912.o ldivmod.o uldivmod.o
 
 ####
 
 test_pt3:	test_pt3.o ay8912_native.o pt3_lib_native.o
-	$(CC_NATIVE) -o test_pt3 test_pt3.o ay8912_native.o pt3_lib_native.o
+	$(CC_NATIVE) $(LFLAGS_NATIVE) -o test_pt3 test_pt3.o ay8912_native.o pt3_lib_native.o
 
 test_pt3.o:	test_pt3.c
 	$(CC_NATIVE) $(CFLAGS_NATIVE) -c test_pt3.c
@@ -61,8 +65,8 @@ pt3_lib.o:	pt3_lib.c pt3_lib.h
 lcd.o:	lcd.c stm32l476xx.h
 	$(CC) $(CFLAGS)  -c -o lcd.o lcd.c
 
-main.o:	main.c stm32l476xx.h
-	$(CC) $(CFLAGS)  -c -o main.o main.c
+chiptune.o:	chiptune.c stm32l476xx.h
+	$(CC) $(CFLAGS)  -c -o chiptune.o chiptune.c
 
 
 

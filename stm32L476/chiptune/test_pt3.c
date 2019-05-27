@@ -23,7 +23,7 @@ static const int DEBUG = 0;
 #define DEVICE_NAME "/dev/dsp"
 
 #define FREQ	44100
-#define CHANS	2
+#define CHANS	1
 #define BITS	16
 
 static ayemu_ay_t ay;

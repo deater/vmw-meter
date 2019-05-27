@@ -9,10 +9,13 @@
 
 #include "lcd.h"
 
-
-
 #include "pt3_lib.h"
 #include "ayemu.h"
+
+#define FREQ	40000
+#define CHANS	1
+#define BITS	16
+
 
 /* global variables */
 volatile uint32_t TimeDelay;
@@ -80,10 +83,12 @@ void NVIC_EnableIRQ(int irq);
 
 static int interrupt_countdown=0;
 
-#define FREQ	40000
+
 
 /* mono (2 channel), 16-bit (2 bytes), play at 50Hz */
-#define AUDIO_BUFSIZ (FREQ*1*2 / 50)
+#define AUDIO_BUFSIZ (FREQ*CHANS*(BITS/8) / 50)
+#define COUNTDOWN_RESET (FREQ/50)
+
 static unsigned char audio_buf[AUDIO_BUFSIZ];
 static int output_pointer=0;
 
@@ -95,7 +100,7 @@ static void TIM4_IRQHandler(void) {
 	int line_decode_result=0;
 
 	led_count++;
-	if (led_count==800*50) {
+	if (led_count==FREQ) {
 		if (led_on) {
 			led_on=0;
 			GPIOB->ODR &= ~(1<<2);
@@ -112,7 +117,7 @@ static void TIM4_IRQHandler(void) {
 
 		/* We hit 50Hz */
 		if (interrupt_countdown==0) {
-			interrupt_countdown=FREQ/50;  /* 40000 / 50 == 800*/
+			interrupt_countdown=COUNTDOWN_RESET;
 
 			/* Decode next frame */
 			if ((line==0) && (subframe==0)) {
@@ -419,7 +424,7 @@ int main(void) {
 
 	ayemu_init(&ay);
 	// 44100, 1, 16 -- freq, channels, bits
-	ayemu_set_sound_format(&ay, FREQ, 1, 16);
+	ayemu_set_sound_format(&ay, FREQ, CHANS, BITS);
 
 	ayemu_reset(&ay);
 	ayemu_set_chip_type(&ay, AYEMU_AY, NULL);
@@ -499,10 +504,10 @@ void System_Clock_Init(void) {
 	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLR;		// clear, div by 2
 
 
-	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLN;		// set to HSI*4=64MHz
+	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLN;		// set to HSI*25=400MHz
 	RCC->PLLCFGR |= 25<<8;
 
-	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLM;		// set to HSI*4=64MHz
+	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLM;		// set to PLL/5=80MHz
 	RCC->PLLCFGR |= 4<<4;
 
 
