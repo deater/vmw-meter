@@ -26,8 +26,8 @@ all:	chiptune.bin test_pt3
 chiptune.bin:	chiptune.elf
 	$(OBJCOPY) -Obinary chiptune.elf chiptune.bin
 
-chiptune.elf:	chiptune.o i2c.o lcd.o pt3_lib.o string.o ay8912.o ldivmod.o uldivmod.o
-	$(LD) $(LINKER_SCRIPT) -nostartfiles -o chiptune.elf chiptune.o i2c.o lcd.o pt3_lib.o string.o ay8912.o ldivmod.o uldivmod.o
+chiptune.elf:	chiptune.o i2c.o cs43l22.o lcd.o pt3_lib.o string.o ay8912.o ldivmod.o uldivmod.o
+	$(LD) $(LINKER_SCRIPT) -nostartfiles -o chiptune.elf chiptune.o i2c.o cs43l22.o lcd.o pt3_lib.o string.o ay8912.o ldivmod.o uldivmod.o
 
 ####
 
@@ -65,8 +65,11 @@ pt3_lib.o:	pt3_lib.c pt3_lib.h
 lcd.o:	lcd.c stm32l476xx.h
 	$(CC) $(CFLAGS)  -c -o lcd.o lcd.c
 
-i2c.o:	i2c.c stm32l476xx.h
+i2c.o:	i2c.c stm32l476xx.h i2c.h
 	$(CC) $(CFLAGS)  -c -o i2c.o i2c.c
+
+cs43l22.o:	cs43l22.c
+	$(CC) $(CFLAGS)  -c -o cs43l22.o cs43l22.c
 
 chiptune.o:	chiptune.c stm32l476xx.h
 	$(CC) $(CFLAGS)  -c -o chiptune.o chiptune.c

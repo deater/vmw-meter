@@ -10,6 +10,7 @@
 #include "lcd.h"
 
 #include "i2c.h"
+#include "cs43l22.h"
 
 #include "pt3_lib.h"
 #include "ayemu.h"
@@ -447,6 +448,9 @@ int main(void) {
 	uint8_t data_send[6];
 	int slave_addr;
 	i2c_init(I2C1);
+
+	/* Set up cs43l22 */
+	cs43l22_init();
 
 	slave_addr=0x94<<1;
 	data_send[0]=1;
