@@ -10,12 +10,46 @@ void i2c_init(I2C_TypeDef *I2Cx) {
 
 	uint32_t own_addr=0x52;	/* ??? */
 
-	RCC->APB1ENR1 |= RCC_APB1ENR1_I2C1EN;	/* I2C1 clock enable */
-	RCC->CCIPR &= ~RCC_CCIPR_I2C1SEL;
-	RCC->CCIPR |= RCC_CCIPR_I2C1SEL_0;	/* select SYSCLK */
+	if (I2Cx==I2C1) {
 
-	RCC->APB1RSTR1 |= RCC_APB1RSTR1_I2C1RST;	/* reset i2c1 */
-	RCC->APB1RSTR1 &= ~RCC_APB1RSTR1_I2C1RST;	/* finish reset */
+		RCC->APB1ENR1 |= RCC_APB1ENR1_I2C1EN;	/* I2C1 clock enable */
+		RCC->CCIPR &= ~RCC_CCIPR_I2C1SEL;
+		RCC->CCIPR |= RCC_CCIPR_I2C1SEL_0;	/* select SYSCLK */
+
+		RCC->APB1RSTR1 |= RCC_APB1RSTR1_I2C1RST;	/* reset i2c1 */
+		RCC->APB1RSTR1 &= ~RCC_APB1RSTR1_I2C1RST;	/* finish reset */
+
+		/* I2C1 GPIO Configuration */
+		/* See UM1879.book p 32 */
+		/* I2C1_SCL = PB6 */
+		/* I2C1_SDA = PB7 */
+
+		RCC->AHB2ENR |= RCC_AHB2ENR_GPIOBEN;
+
+		/* Set mode of pins as alternate function */
+		/* 00 = input, 01 = output, 10 = alternate, 11 = analog (def) */
+		GPIOB->MODER &= ~(3UL<<(6*2));
+		GPIOB->MODER |= 2UL<<(6*2);
+		GPIOB->MODER &= ~(3UL<<(7*2));
+		GPIOB->MODER |= 2UL<<(7*2);
+
+		/* set alternate function 4 (I2C1_SCL/I2C1_SDA) */
+		/* this is AF0 =  (appendix I of book) */
+		GPIOB->AFR[0] &= ~0x0f000000;
+		GPIOB->AFR[0] |=  0x04000000;
+		GPIOB->AFR[0] &= ~0xf00000f0;
+		GPIOB->AFR[0] |=  0x40000040;
+
+		/* Set as pull-up */
+		/* 00 = no pull-up, no pull-down, 01 = pull-up, 10 = pull-down */
+		GPIOB->PUPDR &=~(3UL<<(6*2));
+		GPIOB->PUPDR &=~(3UL<<(7*2));
+		GPIOB->PUPDR |= (1UL<<(6*2));
+		GPIOB->PUPDR |= (1UL<<(7*2));
+
+		/* Set speed freq to low? */
+
+	}
 
 	/* i2c CR1 Config */
 	/* When i2c is disabled (PE=0) the i2c hardware is reset */

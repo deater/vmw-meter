@@ -3,6 +3,7 @@
 
 
 void i2c_init(I2C_TypeDef *I2Cx);
-void i2c_start(I2C_TypeDef *I2Cx, uint32_t dev_addr,
-                uint8_t size, uint8_t direction);
-
+int8_t  i2c_send_data(I2C_TypeDef *I2Cx, uint8_t slave_addr,
+                uint8_t *data, uint8_t size);
+int8_t i2c_receive_data(I2C_TypeDef *I2Cx, uint8_t slave_addr,
+                uint8_t *data, uint8_t size);

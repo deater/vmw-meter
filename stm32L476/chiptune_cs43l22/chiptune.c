@@ -442,7 +442,16 @@ int main(void) {
 	LCD_Configure();
 
 	/* Set up i2c */
+
+	uint8_t data_receive[6];
+	uint8_t data_send[6];
+	int slave_addr;
 	i2c_init(I2C1);
+
+	slave_addr=0x94<<1;
+	data_send[0]=1;
+	i2c_send_data(I2C1,slave_addr,data_send,1);
+	i2c_receive_data(I2C1,slave_addr,data_receive,1);
 
 	/* Init first song */
 	change_song();
