@@ -1,0 +1,17 @@
+UM1879 book:
+An audio stereo DAC CS43L22 (U13) is connected to SAI interface of
+STM32L476VGT6.
+
+The STM32L476VGT6 controls the audio DAC via the I2C1 bus which
+is shared with the I 2 C extension connector CN2.
+I2C1 is also available on the connector P1, pins labeled ‘PB6’ 
+(I2C1_SCL) and ‘PB7’ (I2C1_SDA).
+The stereo output jack connector is CN6.
+Note:
+I 2 C address of CS43L22 is 0x94.
+
+
+Useful things found:
++ https://electronics.stackexchange.com/questions/272813/i2c-problem-on-stm32f4-discovery-connecting-to-cs43l22
+https://github.com/tueytoma/Hardware_Lab_Project
+https://github.com/deadsy/googoomuck/tree/master/soc/st/stm32f4/lib
