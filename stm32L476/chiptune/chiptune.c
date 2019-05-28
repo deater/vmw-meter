@@ -16,6 +16,7 @@
 #define CHANS	1
 #define BITS	16
 
+#define SWTRIG	1
 
 /* global variables */
 volatile uint32_t TimeDelay;
@@ -99,6 +100,12 @@ static void TIM4_IRQHandler(void) {
 
 	int line_decode_result=0;
 
+
+
+	/* Check if countdown interrupt happened */
+	if ((TIM4->SR & TIM_SR_CC1IF)!=0) {
+
+
 	led_count++;
 	if (led_count==FREQ) {
 		if (led_on) {
@@ -111,9 +118,6 @@ static void TIM4_IRQHandler(void) {
 		}
 		led_count=0;
 	}
-
-	/* Check if countdown interrupt happened */
-	if ((TIM4->SR & TIM_SR_CC1IF)!=0) {
 
 		/* We hit 50Hz */
 		if (interrupt_countdown==0) {
@@ -132,6 +136,7 @@ static void TIM4_IRQHandler(void) {
 			if (subframe==0) {
 				line_decode_result=pt3_decode_line(&pt3);
 			}
+
 			if (line_decode_result==1) {
 				/* line done early? */
 				current_pattern++;
@@ -164,14 +169,30 @@ static void TIM4_IRQHandler(void) {
 #if 1
 		/* Write out to DAC */
 		/* left aligned so can write 16-bit value to it */
-		DAC->DHR12L2=(audio_buf[output_pointer]|
-				audio_buf[output_pointer+1]<<8);
-		output_pointer+=2;
+//		DAC->DHR12R2=((audio_buf[output_pointer]|
+//				audio_buf[output_pointer+1]<<8))>>4;
+
+
+
+
+		{ static int op=0;
+		op++;
+		if (op==2) {
+			output_pointer+=2;
+			op=0;
+
+		DAC->DHR12R2=(((audio_buf[output_pointer]&0xff)|
+				(audio_buf[output_pointer+1]&0xff)<<8))>>4;
+
+		DAC->SWTRIGR |= DAC_SWTRIGR_SWTRIG2;
+		}
+		}
+
 		if (output_pointer>AUDIO_BUFSIZ) {
 			exit(-1);
 		}
 
-		DAC->SWTRIGR |= DAC_SWTRIGR_SWTRIG2;
+
 #else
 		/* Write out to DAC */
 		/* left aligned so can write 16-bit value to it */
@@ -270,13 +291,14 @@ void DAC2_Channel2_Init(void) {
 	/* Enable trigger for DAC channel 2 */
 	DAC->CR |= DAC_CR_TEN2;
 
-#if 1
+#if SWTRIG
 	/* Select software trigger */
 	DAC->CR |= DAC_CR_TSEL2;
-#endif
+#else
 	/* Select TIM4_TRG0) as the trigger for DAC channel 2 */
-//	DAC->CR &= ~DAC_CR_TSEL2;
-//	DAC->CR |= (DAC_CR_TSEL2_0 | DAC_CR_TSEL2_2);
+	DAC->CR &= ~DAC_CR_TSEL2;
+	DAC->CR |= (DAC_CR_TSEL2_0 | DAC_CR_TSEL2_2);
+#endif
 
 	/* Enable DAC Channel 2 */
 	DAC->CR |= DAC_CR_EN2;

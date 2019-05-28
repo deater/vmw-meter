@@ -14,6 +14,7 @@
 #include "ayemu.h"
 
 #include "ea_pt3.h"
+#include "i2_pt3.h"
 #include "pt3_lib.h"
 
 #define VERSION "0.0.9"
@@ -62,7 +63,13 @@ static ayemu_ay_reg_frame_t frame;
 
 
 struct pt3_image_t pt3_image= {
-	.data=__EA_PT3,	.length=__EA_PT3_len, };
+	.data=__I2_PT3,	.length=__I2_PT3_len,
+};
+
+//struct pt3_image_t pt3_image= {
+//	.data=__EA_PT3,	.length=__EA_PT3_len,
+//};
+
 
 static int line=0,subframe=0,current_pattern=0;
 
