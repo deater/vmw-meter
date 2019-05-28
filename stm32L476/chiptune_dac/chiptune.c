@@ -12,7 +12,7 @@
 #include "pt3_lib.h"
 #include "ayemu.h"
 
-#define FREQ	40000
+#define FREQ	44100
 #define CHANS	1
 #define BITS	16
 
@@ -45,10 +45,10 @@ void exit(int status) {
 }
 
 struct pt3_image_t pt3_image[MAX_SONGS] = {
-	[0] = {	.data=__I2_PT3,	.length=__I2_PT3_len, },
+	[2] = {	.data=__I2_PT3,	.length=__I2_PT3_len, },
 	[3] = {	.data=__BA_PT3,	.length=__BA_PT3_len, },
-	[1] = {	.data=__EA_PT3,	.length=__EA_PT3_len, },
-	[2] = {	.data=__VC_PT3,	.length=__VC_PT3_len, },
+	[0] = {	.data=__EA_PT3,	.length=__EA_PT3_len, },
+	[1] = {	.data=__VC_PT3,	.length=__VC_PT3_len, },
 };
 
 
@@ -102,23 +102,22 @@ static void TIM4_IRQHandler(void) {
 
 
 
-	/* Check if countdown interrupt happened */
-	if ((TIM4->SR & TIM_SR_CC1IF)!=0) {
+	/* Check if update interrupt happened */
+	if ((TIM4->SR & TIM_SR_UIF)!=0) {
 
-
-	led_count++;
-	if (led_count==FREQ) {
-		if (led_on) {
-			led_on=0;
-			GPIOB->ODR &= ~(1<<2);
+		led_count++;
+		if (led_count==FREQ) {
+			if (led_on) {
+				led_on=0;
+				GPIOB->ODR &= ~(1<<2);
+			}
+			else {
+				led_on=1;
+				GPIOB->ODR |= (1<<2);
+			}
+			led_count=0;
 		}
-		else {
-			led_on=1;
-			GPIOB->ODR |= (1<<2);
-		}
-		led_count=0;
-	}
-
+#if 0
 		/* We hit 50Hz */
 		if (interrupt_countdown==0) {
 			interrupt_countdown=COUNTDOWN_RESET;
@@ -164,7 +163,12 @@ static void TIM4_IRQHandler(void) {
 			/* Generate sound buffer */
 			ayemu_gen_sound (&ay, audio_buf, AUDIO_BUFSIZ);
 			output_pointer=0;
+
+
 		}
+		#endif
+
+#if 0
 
 #if 1
 		/* Write out to DAC */
@@ -174,7 +178,7 @@ static void TIM4_IRQHandler(void) {
 
 
 
-
+#if 0
 		{ static int op=0;
 		op++;
 		if (op==2) {
@@ -187,6 +191,15 @@ static void TIM4_IRQHandler(void) {
 		DAC->SWTRIGR |= DAC_SWTRIGR_SWTRIG2;
 		}
 		}
+
+#endif
+		DAC->DHR12L2=(((audio_buf[output_pointer]&0xff)|
+				(audio_buf[output_pointer+1]&0xff)<<8));
+
+		DAC->SWTRIGR |= DAC_SWTRIGR_SWTRIG2;
+		output_pointer+=2;
+
+
 
 		if (output_pointer>AUDIO_BUFSIZ) {
 			exit(-1);
@@ -204,15 +217,12 @@ static void TIM4_IRQHandler(void) {
 
 
 #endif
+#endif
 		/* ACK interrupt */
-		TIM4->SR &= ~TIM_SR_CC1IF;
+		TIM4->SR &= ~TIM_SR_UIF;
 		interrupt_countdown--;
 	}
 
-	/* Check if overflow happened */
-	if ((TIM4->SR & TIM_SR_UIF)!=0) {
-		TIM4->SR &= ~TIM_SR_UIF;
-	}
 }
 
 void SysTick_Handler(void) {
@@ -233,34 +243,36 @@ static void TIM4_Init(void) {
 	/* Counting direction: 0=up, 1=down */
 	TIM4->CR1 &= ~TIM_CR1_DIR; // up-counting
 
+	TIM4->CR1 &= ~TIM_CR1_UDIS; // enable update
+
 	/* Master mode selection */
 	/* 100 = OC1REF as TRGO */
-	TIM4->CR2 &= ~TIM_CR2_MMS;
-	TIM4->CR2 |= TIM_CR2_MMS_2;
+//	TIM4->CR2 &= ~TIM_CR2_MMS;
+//	TIM4->CR2 |= TIM_CR2_MMS_2;
 
 	/* Trigger interrupt enable */
-	TIM4->DIER |= TIM_DIER_TIE;
+//	TIM4->DIER |= TIM_DIER_TIE;
 
 	/* Update interrupt enable */
 	TIM4->DIER |= TIM_DIER_UIE;
 
 	/* OC1M: Output Compare 1 mode */
 	/* 0110 = PWM mode 1 */
-	TIM4->CCMR1 &= ~TIM_CCMR1_OC1M;
-	TIM4->CCMR1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2;
+//	TIM4->CCMR1 &= ~TIM_CCMR1_OC1M;
+//	TIM4->CCMR1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2;
 
 	/* FIXME */
 	/* Prescaler. slow down the input clock by a factor of (1+prescaler) */
-	TIM4->PSC=3;		// 16MHz / (1+3) = 4MHz
+	TIM4->PSC=54;		// 16MHz / (1+10) = 1.454MHz
 
 	/* Auto-reload, max */
-	TIM4->ARR=99;		// 4MHz /(100) = roughly 40kHz, 40000
+	TIM4->ARR=32;		// 1.454MHz /(33) = roughly 44kHz, 44077
 
 	/* Duty Ratio */
-	TIM4->CCR1 = 50;	// 50%
+//	TIM4->CCR1 = 50;	// 50%
 
 	/* OC1 signal output on the corresponding output pin*/
-	TIM4->CCER |= TIM_CCER_CC1E;
+//	TIM4->CCER |= TIM_CCER_CC1E;
 
 	/* Enable Timer */
 	TIM4->CR1 |= TIM_CR1_CEN;
@@ -293,6 +305,7 @@ void DAC2_Channel2_Init(void) {
 
 #if SWTRIG
 	/* Select software trigger */
+	DAC->CR &= ~DAC_CR_TSEL2;
 	DAC->CR |= DAC_CR_TSEL2;
 #else
 	/* Select TIM4_TRG0) as the trigger for DAC channel 2 */
@@ -307,7 +320,7 @@ void DAC2_Channel2_Init(void) {
 	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
 
 	/* Set I/O mode of pin A5 as analog */
-	GPIOA->MODER |= 3U<<(2*5);
+	GPIOA->MODER |= 3U<<(5*2);
 
 }
 
@@ -507,6 +520,7 @@ int main(void) {
 
 /* Note: no need to touch the code beyond this point */
 
+unsigned int krg=0;
 
 /* Set 16MHz HSI clock */
 void System_Clock_Init(void) {
@@ -514,27 +528,56 @@ void System_Clock_Init(void) {
 	/* Note, this code initializes the HSI 16MHz clock */
 	/* Also multplies it by ??? for the system clock */
 
-        /* Enable the HSI clock, the DAC needs this */
+        /* Enable the HSI clock */
         RCC->CR |= RCC_CR_HSION;
 
 	/* Wait until HSI is ready */
 	while ( (RCC->CR & RCC_CR_HSIRDY) == 0 );
 
-#if 1
-	/* set up the PLL */
-
-	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLR;		// clear, div by 2
-
-
-	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLN;		// set to HSI*25=400MHz
-	RCC->PLLCFGR |= 25<<8;
-
-	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLM;		// set to PLL/5=80MHz
-	RCC->PLLCFGR |= 4<<4;
-
+	RCC->CR &= ~RCC_CR_PLLON;
+	while((RCC->CR & RCC_CR_PLLRDY) == RCC_CR_PLLRDY);
 
 	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLSRC;
 	RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSI;
+
+#if 1
+	/* set up the PLL */
+/*
+	The system Clock is configured as follows :
+            System Clock source            = PLL (HSI)
+            AHB Prescaler                  = 1
+            APB1 Prescaler                 = 1
+            APB2 Prescaler                 = 1
+            PLL_M                          = 2
+            PLL_N                          = 20
+            PLL_R                          = 2
+	( SYSCLK = PLLCLK = VCO=(16MHz)*N = 320 /M/R = 80 MHz )
+            PLL_P                          = 7 (No reason for this...)
+            PLL_Q                          = 8
+		 ( PLL48M1CLK = VCO /M/Q) = 40 MHz ?! )
+            Flash Latency(WS)              = 4
+*/
+
+	// SYSCLK = (IN*N)/M
+
+	/* PLL_N=20 --- VCO=IN*PLL_N */
+	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLN;		// set to HSI*20=320MHz
+	RCC->PLLCFGR |= 20<<8;
+
+	/* PLL_M=2 (00:M=1 01:M=2, 10:M=3, etc) */
+	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLM;		// 320MHz/2 = 160MHz
+	RCC->PLLCFGR |= 1<<4;
+
+	/* PLL_R =2 (00=2, 01=4 10=6 11=8) */
+	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLR;		// 160MHz/2 = 80MHz
+	RCC->PLLCFGR |= 1<<25;
+
+	/* PLL_P=7 (register=0 means 7, 1=17) for SAI1/SAI2 clock */
+//	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLP;
+
+	/* PLL_Q=8 (11) sets 48MHz clock to 320/8=40? */
+//	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLQ;
+//	RCC->PLLCFGR |= 3<<21;
 
 	RCC->CR |= RCC_CR_PLLON;
 	while (!(RCC->CR & RCC_CR_PLLRDY)) ;
@@ -554,6 +597,8 @@ void System_Clock_Init(void) {
 #endif
 	/* Wait till HSI is used as system clock source */
 //	while ((RCC->CFGR & RCC_CFGR_SWS) == 0 );
+
+	krg=RCC->PLLCFGR;
 
 }
 

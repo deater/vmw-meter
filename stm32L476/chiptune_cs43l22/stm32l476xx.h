@@ -93,7 +93,11 @@ __IO uint32_t CSR;		/* 0x94 */
 #define RCC_PLLCFGR_PLLM	(0x7<<4)
 
 #define RCC_PLLCFGR_PLLSRC	(0x3)
+#define RCC_PLLCFGR_PLLSRC_NONE	(0x0)
+#define RCC_PLLCFGR_PLLSRC_MSI	(0x1)
 #define RCC_PLLCFGR_PLLSRC_HSI	(0x2)
+#define RCC_PLLCFGR_PLLSRC_HSE	(0x3)
+
 
 /* 6.4.13 p246 */
 #define RCC_APB1RSTR1_LPTIM1RST	(1<<31)

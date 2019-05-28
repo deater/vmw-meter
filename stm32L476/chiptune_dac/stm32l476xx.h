@@ -93,10 +93,36 @@ __IO uint32_t CSR;		/* 0x94 */
 #define RCC_PLLCFGR_PLLM	(0x7<<4)
 
 #define RCC_PLLCFGR_PLLSRC	(0x3)
+#define RCC_PLLCFGR_PLLSRC_NONE	(0x0)
+#define RCC_PLLCFGR_PLLSRC_MSI	(0x1)
 #define RCC_PLLCFGR_PLLSRC_HSI	(0x2)
+#define RCC_PLLCFGR_PLLSRC_HSE	(0x3)
 
 
-
+/* 6.4.13 p246 */
+#define RCC_APB1RSTR1_LPTIM1RST	(1<<31)
+#define RCC_APB1RSTR1_OPAMPRST	(1<<30)
+#define RCC_APB1RSTR1_DAC1RST	(1<<29)
+#define RCC_APB1RSTR1_PWRRST	(1<<28)
+#define RCC_APB1RSTR1_CAN2RST	(1<<26)
+#define RCC_APB1RSTR1_CAN1RST	(1<<25)
+#define RCC_APB1RSTR1_CRSRST	(1<<24)
+#define RCC_APB1RSTR1_I2C3RST	(1<<23)
+#define RCC_APB1RSTR1_I2C2RST	(1<<22)
+#define RCC_APB1RSTR1_I2C1RST	(1<<21)
+#define RCC_APB1RSTR1_UART5RST	(1<<20)
+#define RCC_APB1RSTR1_UART4RST	(1<<19)
+#define RCC_APB1RSTR1_UART3RST	(1<<18)
+#define RCC_APB1RSTR1_UART2RST	(1<<17)
+#define RCC_APB1RSTR1_SPI3RST	(1<<15)
+#define RCC_APB1RSTR1_SPI2RST	(1<<14)
+#define RCC_APB1RSTR1_LCDRST	(1<<9)
+#define RCC_APB1RSTR1_TIM7RST	(1<<5)
+#define RCC_APB1RSTR1_TIM6RST	(1<<4)
+#define RCC_APB1RSTR1_TIM5RST	(1<<3)
+#define RCC_APB1RSTR1_TIM4RST	(1<<2)
+#define RCC_APB1RSTR1_TIM3RST	(1<<1)
+#define RCC_APB1RSTR1_TIM2RST	(1<<0)
 
 /* p251 */
 #define RCC_AHB2ENR_RNGEN	(1<<18)
@@ -154,6 +180,16 @@ __IO uint32_t CSR;		/* 0x94 */
 #define RCC_APB2ENR_SAI1EN	(1<<21)
 #define RCC_APB2ENR_SAI2EN	(1<<22)
 #define RCC_APB2ENR_DFSDM1EN	(1<<24)
+
+/* 6.4.28, p269 */
+#define RCC_CCIPR_I2C2SEL	(0x3<<14)
+#define RCC_CCIPR_I2C1SEL	(0x3<<12)
+
+#define RCC_CCIPR_I2C1SEL_0	(1<<12)
+#define RCC_CCIPR_I2C1SEL_1	(1<<13)
+#define RCC_CCIPR_I2C2SEL_0	(1<<14)
+#define RCC_CCIPR_I2C2SEL_1	(1<<15)
+
 
 /* 6.4.29, p272 */
 #define RCC_BDCR_LSEON		(0x1<<0)	/* LSE Oscillator Enable */
@@ -896,12 +932,6 @@ __IO uint32_t	OR3;		// 0x64 TIM1 Option Register 3
 #define TIM_BDTR_AOE	(1<<14) // automatic output enable
 #define TIM_BDTR_MOE	(1<<15)	// main output enable
 
-
-
-
-
-
-
 /* Advanced timers: TIM2/TIM3/TIM4/TIM5 */
 /* Chapter 31, page 1013 */
 /* TIM3/TIM4 are 16bit, TIM2/TIM5 are 32 bit */
@@ -948,3 +978,121 @@ __IO uint32_t	OR2;		// 0x60 TIM2 Option Register 2
 #define TIM5		((TIM2_TypeDef *)TIM5_BASE)
 
 
+
+
+
+/* i2c */
+/* Chapter 39, page ??? */
+/* Registers start Chapter 39.7, p1316 */
+typedef struct {
+__IO uint32_t	CR1;		// 0x00 I2C Control Register
+__IO uint32_t	CR2;		// 0x04 I2C Control Register 2
+__IO uint32_t	OAR1;		// 0x08 I2C Own Address 1 Register
+__IO uint32_t	OAR2;		// 0x0C I2C Own Address 2 Register
+__IO uint32_t	TIMINGR;	// 0x10 I2C Timing Register
+__IO uint32_t	TIMEOUTR;	// 0x14 I2C Timeout Register
+__IO uint32_t	ISR;		// 0x18 I2C Interrupt and Status Register
+__IO uint32_t	ICR;		// 0x1C I2C Interrupt Clear Register
+__IO uint32_t	PECR;		// 0x20 I2C PEC Register
+__IO uint32_t	RXDR;		// 0x24 I2C Receive Data Register
+__IO uint32_t	TXDR;		// 0x28 I2C Transmit Data Register
+} I2C_TypeDef;
+
+// p 80
+#define I2C1_BASE	(APB1PERIPH_BASE + 0x5400)
+#define I2C1		((I2C_TypeDef *)I2C1_BASE)
+
+#define I2C2_BASE	(APB1PERIPH_BASE + 0x5800)
+#define I2C2		((I2C_TypeDef *)I2C1_BASE)
+
+#define I2C3_BASE	(APB1PERIPH_BASE + 0x5C00)
+#define I2C3		((I2C_TypeDef *)I2C1_BASE)
+
+/* 39.7.1 p1316 */
+#define I2C_CR1_PECEN		(1<<23)
+#define I2C_CR1_ALERTEN		(1<<22)
+#define I2C_CR1_SMBDEN		(1<<21)
+#define I2C_CR1_SMBHEN		(1<<20)
+#define I2C_CR1_GCEN		(1<<19)
+#define I2C_CR1_WUPEN		(1<<18)
+#define I2C_CR1_NOSTRETCH	(1<<17)
+#define I2C_CR1_SBC		(1<<16)
+#define I2C_CR1_RXDMAEN		(1<<15)
+#define I2C_CR1_TXDMAEN		(1<<14)
+#define I2C_CR1_ANFOFF		(1<<12)
+#define I2C_CR1_DNF		(0xf<<8)
+#define I2C_CR1_ERRIE		(1<<7)
+#define I2C_CR1_TCIE		(1<<6)
+#define I2C_CR1_STOPIE		(1<<5)
+#define I2C_CR1_NACKIE		(1<<4)
+#define I2C_CR1_ADDRIE		(1<<3)
+#define I2C_CR1_RXIE		(1<<2)
+#define I2C_CR1_TXIE		(1<<1)
+#define I2C_CR1_PE		(1<<0)
+
+/* 39.7.2 p1319 */
+#define I2C_CR2_PECBYTE		(1<<26)
+#define I2C_CR2_AUTOEND		(1<<25)
+#define I2C_CR2_RELOAD		(1<<24)
+#define I2C_CR2_NBYTES		(0xff<<16)
+#define I2C_CR2_NACK		(1<<15)
+#define I2C_CR2_STOP		(1<<14)
+#define I2C_CR2_START		(1<<13)
+#define I2C_CR2_HEAD10R		(1<<12)
+#define I2C_CR2_ADD10		(1<<11)
+#define I2C_CR2_RD_WRN		(1<<10)
+#define I2C_CR2_SADD		(0x3ff<<0)
+
+/* 39.7.3 p1322 */
+#define I2C_OAR1_OA1EN		(1<<15)
+#define I2C_OAR1_OA1MODE	(1<<10)
+#define I2C_OAR1_OA1		(0x7f<<0)
+
+/* 39.7.4 p1323 */
+#define I2C_OAR2_OA2EN		(1<<15)
+#define I2C_OAR2_OA2MODE	(1<<10)
+#define I2C_OAR2_OA2MSK		(0x7<<8)
+#define I2C_OAR2_OA2		(0x7f<<1)
+
+/* 39.7.5 p1324 */
+#define I2C_TIMINGR_PRESC	(0xf<<28)
+#define I2C_TIMINGR_SCLDEL	(0xf<<20)
+#define I2C_TIMINGR_SDADEL	(0xf<<16)
+#define I2C_TIMINGR_SCLH	(0xff<<8)
+#define I2C_TIMINGR_SCLL	(0xff<<0)
+
+/* 39.7.7 p1326 */
+#define I2C_ISR_ADDCODE		(0x7f<<17)
+#define I2C_ISR_DIR		(1<<16)
+#define I2C_ISR_BUSY		(1<<15)
+#define I2C_ISR_ALERT		(1<<13)
+#define I2C_ISR_TIMEOUT		(1<<12)
+#define I2C_ISR_PECERR		(1<<11)
+#define I2C_ISR_OVR		(1<<10)
+#define I2C_ISR_ARLO		(1<<9)
+#define I2C_ISR_BERR		(1<<8)
+#define I2C_ISR_TCR		(1<<7)
+#define I2C_ISR_TC		(1<<6)
+#define I2C_ISR_STOPF		(1<<5)
+#define I2C_ISR_NACKF		(1<<4)
+#define I2C_ISR_ADDR		(1<<3)
+#define I2C_ISR_RXNE		(1<<2)
+#define I2C_ISR_TXIS		(1<<1)
+#define I2C_ISR_TXE		(1<<0)
+
+/* 39.7.8 p1328 */
+#define I2C_ICR_ALERTCF		(1<<13)
+#define I2C_ICR_TIMEOUTCF	(1<<12)
+#define I2C_ICR_PECCF		(1<<11)
+#define I2C_ICR_OVRCF		(1<<10)
+#define I2C_ICR_ARLOCF		(1<<9)
+#define I2C_ICR_BERRCF		(1<<8)
+#define I2C_ICR_STOPCF		(1<<5)
+#define I2C_ICR_NACKCF		(1<<4)
+#define I2C_ICR_ADDRCF		(1<<3)
+
+/* 39.7.10 p1330 */
+#define I2C_RXDR_RXDATA		(0xff<<0)
+
+/* 39.7.11 p1330 */
+#define I2C_TXDR_TXDATA		(0xff<<0)

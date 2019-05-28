@@ -447,15 +447,31 @@ int main(void) {
 	uint8_t data_receive[6];
 	uint8_t data_send[6];
 	int slave_addr;
+
+	data_receive[0]=0;
+
 	i2c_init(I2C1);
 
 	/* Set up cs43l22 */
 	cs43l22_init();
 
-	slave_addr=0x94<<1;
+	slave_addr=0x94;
 	data_send[0]=1;
 	i2c_send_data(I2C1,slave_addr,data_send,1);
 	i2c_receive_data(I2C1,slave_addr,data_receive,1);
+
+	if ((data_receive[0]&0xf8)==0xe0) {
+		memcpy(buffer,"CS43",4);
+		buffer[4]=(data_receive[0]&0x7)+'0';
+		buffer[5]=0;
+	}
+	else {
+		memcpy(buffer,"BLAH",4);
+		buffer[4]=0;
+	}
+	LCD_Display_String(buffer);
+
+	while(1);
 
 	/* Init first song */
 	change_song();

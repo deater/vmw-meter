@@ -76,3 +76,17 @@ int32_t memcmp(const void *s1, const void *s2, uint32_t n) {
 
 	return 0;
 }
+
+	/* Not optimized */
+void *memcpy(void *dest, const void *src, uint32_t n) {
+
+	int i;
+	char *ptr_src=(char *)src;
+	char *ptr_dest=(char *)dest;
+
+	for(i=0;i<n;i++) {
+		ptr_dest[i]=ptr_src[i];
+	}
+
+	return ptr_dest;
+}

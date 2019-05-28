@@ -15,3 +15,6 @@ Program:
         openocd -f board/stm32l4discovery.cfg \
                         -c "program blinky.elf verify" \
                         -c "reset run"
+gdb-multiarch ./lcd_display.elf
+target remote localhost:3333
+monitor reset halt

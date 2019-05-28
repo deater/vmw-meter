@@ -37,8 +37,8 @@ void i2c_init(I2C_TypeDef *I2Cx) {
 		/* this is AF0 =  (appendix I of book) */
 		GPIOB->AFR[0] &= ~0x0f000000;
 		GPIOB->AFR[0] |=  0x04000000;
-		GPIOB->AFR[0] &= ~0xf00000f0;
-		GPIOB->AFR[0] |=  0x40000040;
+		GPIOB->AFR[0] &= ~0xf0000000;
+		GPIOB->AFR[0] |=  0x40000000;
 
 		/* Set as pull-up */
 		/* 00 = no pull-up, no pull-down, 01 = pull-up, 10 = pull-down */
@@ -84,6 +84,7 @@ void i2c_init(I2C_TypeDef *I2Cx) {
 
 	/* Enable I2c */
 	I2Cx->CR1 |= I2C_CR1_PE;
+
 }
 
 void i2c_wait_line_idle(I2C_TypeDef *I2Cx) {
@@ -131,6 +132,8 @@ void i2c_stop(I2C_TypeDef *I2Cx) {
 	I2Cx->ICR |= I2C_ICR_STOPCF;
 
 }
+
+
 
 int8_t	i2c_send_data(I2C_TypeDef *I2Cx, uint8_t slave_addr,
 		uint8_t *data, uint8_t size) {
