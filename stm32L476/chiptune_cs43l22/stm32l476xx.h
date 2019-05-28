@@ -1004,7 +1004,7 @@ __IO uint32_t	TXDR;		// 0x28 I2C Transmit Data Register
 #define I2C3_BASE	(APB1PERIPH_BASE + 0x5C00)
 #define I2C3		((I2C_TypeDef *)I2C1_BASE)
 
-/* p1316 */
+/* 39.7.1 p1316 */
 #define I2C_CR1_PECEN		(1<<23)
 #define I2C_CR1_ALERTEN		(1<<22)
 #define I2C_CR1_SMBDEN		(1<<21)
@@ -1026,7 +1026,7 @@ __IO uint32_t	TXDR;		// 0x28 I2C Transmit Data Register
 #define I2C_CR1_TXIE		(1<<1)
 #define I2C_CR1_PE		(1<<0)
 
-/* p1319 */
+/* 39.7.2 p1319 */
 #define I2C_CR2_PECBYTE		(1<<26)
 #define I2C_CR2_AUTOEND		(1<<25)
 #define I2C_CR2_RELOAD		(1<<24)
@@ -1039,23 +1039,56 @@ __IO uint32_t	TXDR;		// 0x28 I2C Transmit Data Register
 #define I2C_CR2_RD_WRN		(1<<10)
 #define I2C_CR2_SADD		(0x3ff<<0)
 
-
-/* p1322 */
+/* 39.7.3 p1322 */
 #define I2C_OAR1_OA1EN		(1<<15)
 #define I2C_OAR1_OA1MODE	(1<<10)
 #define I2C_OAR1_OA1		(0x7f<<0)
 
-/* p1323 */
+/* 39.7.4 p1323 */
 #define I2C_OAR2_OA2EN		(1<<15)
 #define I2C_OAR2_OA2MODE	(1<<10)
 #define I2C_OAR2_OA2MSK		(0x7<<8)
 #define I2C_OAR2_OA2		(0x7f<<1)
 
-/* p1324 */
+/* 39.7.5 p1324 */
 #define I2C_TIMINGR_PRESC	(0xf<<28)
 #define I2C_TIMINGR_SCLDEL	(0xf<<20)
 #define I2C_TIMINGR_SDADEL	(0xf<<16)
 #define I2C_TIMINGR_SCLH	(0xff<<8)
 #define I2C_TIMINGR_SCLL	(0xff<<0)
 
+/* 39.7.7 p1326 */
+#define I2C_ISR_ADDCODE		(0x7f<<17)
+#define I2C_ISR_DIR		(1<<16)
+#define I2C_ISR_BUSY		(1<<15)
+#define I2C_ISR_ALERT		(1<<13)
+#define I2C_ISR_TIMEOUT		(1<<12)
+#define I2C_ISR_PECERR		(1<<11)
+#define I2C_ISR_OVR		(1<<10)
+#define I2C_ISR_ARLO		(1<<9)
+#define I2C_ISR_BERR		(1<<8)
+#define I2C_ISR_TCR		(1<<7)
+#define I2C_ISR_TC		(1<<6)
+#define I2C_ISR_STOPF		(1<<5)
+#define I2C_ISR_NACKF		(1<<4)
+#define I2C_ISR_ADDR		(1<<3)
+#define I2C_ISR_RXNE		(1<<2)
+#define I2C_ISR_TXIS		(1<<1)
+#define I2C_ISR_TXE		(1<<0)
 
+/* 39.7.8 p1328 */
+#define I2C_ICR_ALERTCF		(1<<13)
+#define I2C_ICR_TIMEOUTCF	(1<<12)
+#define I2C_ICR_PECCF		(1<<11)
+#define I2C_ICR_OVRCF		(1<<10)
+#define I2C_ICR_ARLOCF		(1<<9)
+#define I2C_ICR_BERRCF		(1<<8)
+#define I2C_ICR_STOPCF		(1<<5)
+#define I2C_ICR_NACKCF		(1<<4)
+#define I2C_ICR_ADDRCF		(1<<3)
+
+/* 39.7.10 p1330 */
+#define I2C_RXDR_RXDATA		(0xff<<0)
+
+/* 39.7.11 p1330 */
+#define I2C_TXDR_TXDATA		(0xff<<0)

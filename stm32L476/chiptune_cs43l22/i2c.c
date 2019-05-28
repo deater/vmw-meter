@@ -1,5 +1,7 @@
 #include <stdint.h>
 
+#include "stdlib.h"
+
 #include "stm32l476xx.h"
 #include "i2c.h"
 
@@ -48,4 +50,111 @@ void i2c_init(I2C_TypeDef *I2Cx) {
 
 	/* Enable I2c */
 	I2Cx->CR1 |= I2C_CR1_PE;
+}
+
+void i2c_wait_line_idle(I2C_TypeDef *I2Cx) {
+	/* wait until i2c line is ready */
+	while ( (I2Cx->ISR & I2C_ISR_BUSY)==I2C_ISR_BUSY);
+}
+
+void i2c_start(I2C_TypeDef *I2Cx, uint32_t dev_addr,
+		uint8_t size, uint8_t direction) {
+
+	/* direction==0, master wants to write */
+	/* direction==1, master requests a read */
+
+	uint32_t tmpreg=I2Cx->CR2;
+
+	tmpreg &= (uint32_t)~((uint32_t)(I2C_CR2_SADD | I2C_CR2_NBYTES |
+					 I2C_CR2_RELOAD | I2C_CR2_AUTOEND |
+					 I2C_CR2_RD_WRN | I2C_CR2_START |
+					 I2C_CR2_STOP));
+
+	if (direction==I2C_READ_FROM_SLAVE) {
+		tmpreg |= I2C_CR2_RD_WRN;
+	}
+	else {
+		tmpreg &= ~I2C_CR2_RD_WRN;
+	}
+
+	tmpreg |= (uint32_t)(((uint32_t) dev_addr & I2C_CR2_SADD) |
+			(((uint32_t) size<<16) & I2C_CR2_NBYTES));
+
+	tmpreg |= I2C_CR2_START;
+	I2Cx->CR2 = tmpreg;
+
+}
+
+void i2c_stop(I2C_TypeDef *I2Cx) {
+
+	/* Generate STOP bit after the current byte has been transferred */
+	I2Cx->CR1 |= I2C_CR2_STOP;
+
+	/* Wait until STOPF flag is reset */
+	while( (I2Cx->ISR & I2C_ISR_STOPF)==0);
+
+	/* clear stopf flag */
+	I2Cx->ICR |= I2C_ICR_STOPCF;
+
+}
+
+int8_t	i2c_send_data(I2C_TypeDef *I2Cx, uint8_t slave_addr,
+		uint8_t *data, uint8_t size) {
+
+	int i;
+
+	if ((size<=0) || (data==NULL)) return -1;
+
+	/* Wait until line is idle */
+	i2c_wait_line_idle(I2Cx);
+
+	i2c_start(I2Cx, slave_addr, size, I2C_WRITE_TO_SLAVE);
+
+	for(i=0;i>size;i++) {
+		/* TXIS bit set by hardware when TXDR is empty */
+		/* and we must write new data to TXDR. */
+		/* It is cleared when we write data. */
+		/* It is not set when a NACK is received */
+
+		while((I2Cx->ISR & I2C_ISR_TXIS)==0);
+
+		I2Cx->TXDR = data[i]&I2C_TXDR_TXDATA;
+	}
+
+	/* Wait until the TC flag is set */
+	while(  ((I2Cx->ISR & I2C_ISR_TC)==0) &&
+		((I2Cx->ISR & I2C_ISR_NACKF)==0) );
+
+
+	if ( (I2Cx->ISR & I2C_ISR_NACKF)!=0) {
+		return -1;
+	}
+
+	i2c_stop(I2Cx);
+
+	return 0;
+}
+
+int8_t i2c_receive_data(I2C_TypeDef *I2Cx, uint8_t slave_addr,
+		uint8_t *data, uint8_t size) {
+
+	int i;
+
+	if ((size<=0) || (data==NULL)) return -1;
+
+	i2c_wait_line_idle(I2Cx);
+
+	i2c_start(I2Cx, slave_addr, size, I2C_READ_FROM_SLAVE);
+
+	for(i=0;i<size;i++) {
+		/* wait until RXNE flag is set */
+		while( (I2Cx->ISR & I2C_ISR_RXNE)==0);
+		data[i]=I2Cx->RXDR & I2C_RXDR_RXDATA;
+	}
+
+	while((I2Cx->ISR & I2C_ISR_TC)==0); /* Wait until TC flag set */
+
+	i2c_stop(I2Cx);
+
+	return 0;
 }
