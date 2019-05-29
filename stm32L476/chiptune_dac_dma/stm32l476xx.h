@@ -417,6 +417,35 @@ __IO uint32_t CSELR;	/* 0xA8 = Channel Selection Register */
 #define DMA_CCR_PSIZE_16	(1<<8)
 #define DMA_CCR_PSIZE_32	(2<<8)
 
+/* 11.6.2 p353 */
+#define DMA_IFCR_CTEIF7		(1<<27)
+#define DMA_IFCR_CHTIF7		(1<<26)
+#define DMA_IFCR_CTCIF7		(1<<25)
+#define DMA_IFCR_CGIF7		(1<<24)
+#define DMA_IFCR_CTEIF6		(1<<23)
+#define DMA_IFCR_CHTIF6		(1<<22)
+#define DMA_IFCR_CTCIF6		(1<<21)
+#define DMA_IFCR_CGIF6		(1<<20)
+#define DMA_IFCR_CTEIF5		(1<<19)
+#define DMA_IFCR_CHTIF5		(1<<18)
+#define DMA_IFCR_CTCIF5		(1<<17)
+#define DMA_IFCR_CGIF5		(1<<16)
+#define DMA_IFCR_CTEIF4		(1<<15)
+#define DMA_IFCR_CHTIF4		(1<<14)
+#define DMA_IFCR_CTCIF4		(1<<13)
+#define DMA_IFCR_CGIF4		(1<<12)
+#define DMA_IFCR_CTEIF3		(1<<11)
+#define DMA_IFCR_CHTIF3		(1<<10)
+#define DMA_IFCR_CTCIF3		(1<<9)
+#define DMA_IFCR_CGIF3		(1<<8)
+#define DMA_IFCR_CTEIF2		(1<<7)
+#define DMA_IFCR_CHTIF2		(1<<6)
+#define DMA_IFCR_CTCIF2		(1<<5)
+#define DMA_IFCR_CGIF2		(1<<4)
+#define DMA_IFCR_CTEIF1		(1<<3)
+#define DMA_IFCR_CHTIF1		(1<<2)
+#define DMA_IFCR_CTCIF1		(1<<1)
+#define DMA_IFCR_CGIF1		(1<<0)
 
 #define DMA_CSELR_C1S		(0xf<<0)
 #define DMA_CSELR_C2S		(0xf<<4)
@@ -835,10 +864,13 @@ __I  uint32_t CALIB;	/* Calibration register */
 
 /* STM32L476xx interrupt numbers */
 /* See Table 57 on page 396 of manual */
+#define DMA1_CH4_IRQn		14	// dma1 channel4 interrupt
 #define TIM1_CC_IRQn		27	// tim1 capture/compare interrupt
 #define TIM2_IRQn		28	// tim2 global interrupt
 #define TIM3_IRQn		29	// tim3 global interrupt
 #define TIM4_IRQn		30	// tim4 global interrupt
+#define TIM7_IRQn		55	// tim7 global interrupt
+
 
 /* Cortex-M4 Processor Exceptions Numbers */
 #define NonMaskableInt_IRQn	-14	// Non Maskable Interrupt

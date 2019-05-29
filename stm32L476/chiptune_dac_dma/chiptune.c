@@ -82,8 +82,6 @@ void System_Clock_Init(void);
 void NVIC_SetPriority(int irq, int priority);
 void NVIC_EnableIRQ(int irq);
 
-static int interrupt_countdown=0;
-
 
 
 /* mono (2 channel), 16-bit (2 bytes), play at 50Hz */
@@ -91,9 +89,6 @@ static int interrupt_countdown=0;
 #define COUNTDOWN_RESET (FREQ/50)
 
 static unsigned char audio_buf[AUDIO_BUFSIZ*2];
-static int output_pointer=0;
-
-static int led_count=0,led_on=0;
 
 /* Interrupt Handlers */
 static void NextBuffer(void) {
@@ -142,11 +137,17 @@ static void NextBuffer(void) {
 	ayemu_gen_sound (&ay, audio_buf, AUDIO_BUFSIZ);
 }
 
+static int led_count=0,led_on=0;
 
-static void TIM4_IRQHandler(void) {
+static void DMA_IRQHandler(void) {
 
+	NextBuffer();
+
+	/* This should happen at roughly 50Hz */
 	led_count++;
-	if (led_count==FREQ) {
+
+	if (led_count==50) {
+
 		if (led_on) {
 			led_on=0;
 			GPIOB->ODR &= ~(1<<2);
@@ -159,7 +160,8 @@ static void TIM4_IRQHandler(void) {
 	}
 
 	/* ACK interrupt */
-	TIM4->SR &= ~TIM_SR_UIF;
+	/* Set to 1 to clear */
+	DMA1->IFCR |= DMA_IFCR_CGIF4;
 
 }
 
@@ -171,68 +173,6 @@ void SysTick_Handler(void) {
 	if (TimeDelay > 0) TimeDelay--;
 }
 
-
-#if 0
-static void TIM4_Init(void) {
-
-	/* enable Timer 4 clock */
-	RCC->APB1ENR1 |= RCC_APB1ENR1_TIM4EN;
-
-	/* Edge aligned mode */
-	TIM4->CR1 &= ~TIM_CR1_CMS;
-
-	/* Counting direction: 0=up, 1=down */
-	TIM4->CR1 &= ~TIM_CR1_DIR; // up-counting
-
-	TIM4->CR1 &= ~TIM_CR1_UDIS; // enable update
-
-	/* Trigger DMA */
-	TIM4->DIER |= TIM_DIER_TDE;
-
-	/* Trigger DMA on update event */
-	TIM4->CR2 |= TIM_CR2_CCDS;
-
-	/* Master mode selection */
-	/* 100 = OC1REF as TRGO */
-	TIM4->CR2 &= ~TIM_CR2_MMS;
-	TIM4->CR2 |= TIM_CR2_MMS_2;
-
-	/* Trigger interrupt enable */
-//	TIM4->DIER |= TIM_DIER_TIE;
-
-	/* Update interrupt enable */
-	TIM4->DIER |= TIM_DIER_UIE;
-
-	/* OC1M: Output Compare 1 mode */
-	/* 0110 = PWM mode 1 */
-//	TIM4->CCMR1 &= ~TIM_CCMR1_OC1M;
-//	TIM4->CCMR1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2;
-
-	/* FIXME */
-	/* Prescaler. slow down the input clock by a factor of (1+prescaler) */
-	TIM4->PSC=54;		// 16MHz / (1+10) = 1.454MHz
-
-	/* Auto-reload, max */
-	TIM4->ARR=32;		// 1.454MHz /(33) = roughly 44kHz, 44077
-
-	/* Duty Ratio */
-//	TIM4->CCR1 = 50;	// 50%
-
-	/* OC1 signal output on the corresponding output pin*/
-//	TIM4->CCER |= TIM_CCER_CC1E;
-
-	/* Enable Timer */
-	TIM4->CR1 |= TIM_CR1_CEN;
-
-	/* Set highest priority intterupt */
-	NVIC_SetPriority(TIM4_IRQn, 0);
-
-	/* Set highest priority intterupt */
-	NVIC_EnableIRQ(TIM4_IRQn);
-
-}
-#endif
-
 static void TIM7_Init(void) {
 
 	/* enable Timer 7 clock */
@@ -241,7 +181,7 @@ static void TIM7_Init(void) {
 	/* Trigger DMA */
 	TIM7->DIER |= TIM_DIER_UDE;
 
-	/* Master Mode */
+	/* Master Mode Update Trigger */
 	TIM7->CR2 |= 2<<4;
 
 	/* Prescaler. slow down the input clock by a factor of (1+prescaler) */
@@ -254,10 +194,10 @@ static void TIM7_Init(void) {
 	TIM7->CR1 |= TIM_CR1_CEN;
 
 	/* Set highest priority intterupt */
-//	NVIC_SetPriority(TIM4_IRQn, 0);
+//	NVIC_SetPriority(TIM7_IRQn, 0);
 
 	/* Set highest priority intterupt */
-//	NVIC_EnableIRQ(TIM4_IRQn);
+//	NVIC_EnableIRQ(TIM7_IRQn);
 
 }
 
@@ -267,6 +207,15 @@ static void TIM7_Init(void) {
 
 /* DAC Channel 2: DAC_OUT2 = PA5 */
 void DAC2_Channel2_Init(void) {
+
+
+	/* Enable the clock of GPIO port A */
+	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
+
+	/* Set I/O mode of pin A5 as analog */
+	GPIOA->MODER |= 3U<<(5*2);
+
+
 
 	/* Enable DAC clock */
 	RCC->APB1ENR1 |= RCC_APB1ENR1_DAC1EN;
@@ -288,15 +237,8 @@ void DAC2_Channel2_Init(void) {
 	/* Enable DMA */
 	DAC->CR |= DAC_CR_DMAEN2;
 
-
 	/* Enable DAC Channel 2 */
 	DAC->CR |= DAC_CR_EN2;
-
-	/* Enable the clock of GPIO port A */
-	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
-
-	/* Set I/O mode of pin A5 as analog */
-	GPIOA->MODER |= 3U<<(5*2);
 
 }
 
@@ -440,13 +382,23 @@ void DMA_Init(void) {
 
 	/* Set up Channel Select */
 	DMA1->CSELR &=~DMA_CSELR_C4S;
-	/* TIM4 CH2 */
-//	DMA1->CSELR |= 6<<12;
+
 	/* TIM7_UP/DAC_CH2 */
 	DMA1->CSELR |= 5<<12;
 
+	/* Enable Half-done interrupt */
+	DMA1->CCR4 |= DMA_CCR_HTIE;
+	/* Enable Transder complete  interrupt */
+	DMA1->CCR4 |= DMA_CCR_TCIE;
+
 	/* Enable DMA1 Channel 4 */
 	DMA1->CCR4 |= DMA_CCR_EN;
+
+	/* Set highest priority interrupt */
+	NVIC_SetPriority(DMA1_CH4_IRQn, 0);
+
+	/* Enable Interrupt */
+	NVIC_EnableIRQ(DMA1_CH4_IRQn);
 
 	return;
 }
@@ -707,7 +659,7 @@ __attribute__ ((section(".isr_vector"))) = {
 	(uint32_t *) nmi_handler,	/*  11:6C = DMA1_CH1		*/
 	(uint32_t *) nmi_handler,	/*  12:70 = DMA1_CH2		*/
 	(uint32_t *) nmi_handler,	/*  13:74 = DMA1_CH3		*/
-	(uint32_t *) nmi_handler,	/*  14:78 = DMA1_CH4		*/
+	(uint32_t *) DMA_IRQHandler,	/*  14:78 = DMA1_CH4		*/
 	(uint32_t *) nmi_handler,	/*  15:7c = DMA1_CH5		*/
 	(uint32_t *) nmi_handler,	/*  16:80 = DMA1_CH6		*/
 	(uint32_t *) nmi_handler,	/*  17:84 = DMA1_CH7		*/
@@ -723,7 +675,7 @@ __attribute__ ((section(".isr_vector"))) = {
 	(uint32_t *) nmi_handler,	/*  27:AC = TIM1_CC		*/
 	(uint32_t *) nmi_handler,	/*  28:B0 = TIM2		*/
 	(uint32_t *) nmi_handler,	/*  29:B4 = TIM3		*/
-	(uint32_t *) TIM4_IRQHandler,	/*  30:B8 = TIM4		*/
+	(uint32_t *) nmi_handler,	/*  30:B8 = TIM4		*/
 	(uint32_t *) nmi_handler,	/*  31:BC = I2C1_EV		*/
 	(uint32_t *) nmi_handler,	/*  32:C0 = I2C1_ER		*/
 	(uint32_t *) nmi_handler,	/*  33:C4 = I2C2_EV		*/
