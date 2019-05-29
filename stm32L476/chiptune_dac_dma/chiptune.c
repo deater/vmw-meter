@@ -86,12 +86,13 @@ void NVIC_EnableIRQ(int irq);
 
 /* mono (2 channel), 16-bit (2 bytes), play at 50Hz */
 #define AUDIO_BUFSIZ (FREQ*CHANS*(BITS/8) / 50)
+#define NUM_SAMPLES (AUDIO_BUFSIZ/CHANS/(BITS/8))
 #define COUNTDOWN_RESET (FREQ/50)
 
 static unsigned char audio_buf[AUDIO_BUFSIZ*2];
 
 /* Interrupt Handlers */
-static void NextBuffer(void) {
+static void NextBuffer(int which_half) {
 
 	int line_decode_result=0;
 
@@ -134,30 +135,53 @@ static void NextBuffer(void) {
 	ayemu_set_regs(&ay,frame);
 
 	/* Generate sound buffer */
-	ayemu_gen_sound (&ay, audio_buf, AUDIO_BUFSIZ);
+	if (which_half==0) {
+		ayemu_gen_sound (&ay, audio_buf, AUDIO_BUFSIZ);
+	}
+	else {
+		ayemu_gen_sound (&ay, audio_buf+AUDIO_BUFSIZ, AUDIO_BUFSIZ);
+	}
 }
 
-static int led_count=0,led_on=0;
+
+
 
 static void DMA_IRQHandler(void) {
 
-	NextBuffer();
+	/* This is called at both half-full and full DMA */
+	/* We double buffer */
 
-	/* This should happen at roughly 50Hz */
-	led_count++;
+	/* At half full, we should load next buffer at start */
+	/* At full, we should load next buffer to end */
 
-	if (led_count==50) {
+	if ((DMA1->ISR&DMA_ISR_TCIF4)==DMA_ISR_TCIF4) {
+		NextBuffer(1);
+#if 0
+		static int led_count=0,led_on=0;
 
-		if (led_on) {
-			led_on=0;
-			GPIOB->ODR &= ~(1<<2);
+		/* This should happen at roughly 50Hz */
+		led_count++;
+
+		if (led_count==50) {
+
+			if (led_on) {
+				led_on=0;
+				GPIOB->ODR &= ~(1<<2);
+			}
+			else {
+				led_on=1;
+				GPIOB->ODR |= (1<<2);
+			}
+			led_count=0;
 		}
-		else {
-			led_on=1;
-			GPIOB->ODR |= (1<<2);
-		}
-		led_count=0;
+#endif
 	}
+
+	if ((DMA1->ISR&DMA_ISR_HTIF4)==DMA_ISR_HTIF4) {
+		NextBuffer(0);
+	}
+
+
 
 	/* ACK interrupt */
 	/* Set to 1 to clear */
@@ -372,7 +396,7 @@ void DMA_Init(void) {
 	DMA1->CCR4 |= DMA_CCR_CIRC;
 
 	/* Amount of data to transfer */
-	DMA1->CNDTR4 = 800;
+	DMA1->CNDTR4 = NUM_SAMPLES*2;
 
 	/* Peripheral Address */
 	DMA1->CPAR4 = (uint32_t)&(DAC->DHR12L2);
@@ -452,7 +476,8 @@ int main(void) {
 	TIM7_Init();
 	asm volatile ( "cpsie i" );
 
-	NextBuffer();
+	NextBuffer(0);
+	NextBuffer(1);
 
 	DMA_Init();
 
@@ -478,18 +503,17 @@ int main(void) {
 			change_song();
 			asm volatile ( "cpsie i" );
 		}
-#if 0
+
 		/* Blink RED LED (GPIOB2) based on note A */
-		if (pt3.a.new_note) {
+		if ((pt3.a.new_note) || (pt3.b.new_note)) {
 			GPIOB->ODR |= (1<<2);
 		}
 		else {
 			GPIOB->ODR &= ~(1<<2);
 		}
-#endif
 
 		/* Blink GREEN LED (GPIOE8) based on note B */
-		if (pt3.b.amplitude>10) {
+		if (pt3.c.new_note) {
 			GPIOE->ODR |= (1<<8);
 		}
 		else {

@@ -171,6 +171,14 @@ __IO uint32_t CSR;		/* 0x94 */
 #define RCC_APB1RSTR1_TIM3RST	(1<<1)
 #define RCC_APB1RSTR1_TIM2RST	(1<<0)
 
+/* p250 */
+#define RCC_AHB1ENR_DMA2DEN	(1<<17)
+#define RCC_AHB1ENR_TSCEN	(1<<16)
+#define RCC_AHB1ENR_CRCEN	(1<<12)
+#define RCC_AHB1ENR_FLASHEN	(1<<8)
+#define RCC_AHB1ENR_DMA2EN	(1<<1)
+#define RCC_AHB1ENR_DMA1EN	(1<<0)
+
 /* p251 */
 #define RCC_AHB2ENR_RNGEN	(1<<18)
 #define RCC_AHB2ENR_HASHEN	(1<<17)
@@ -331,6 +339,154 @@ __IO uint32_t SWPR2;	/* 0x28 = SRAM2 write protect register 2 */
 #define SYSCFG_BASE	(APB2PERIPH_BASE + 0x0)
 #define SYSCFG		((SYSCFG_TypeDef *)(SYSCFG_BASE))
 
+
+
+
+/* DMA -- Chapter 11 starting p337 */
+/*	register definitions start in 11.5 on p349 */
+typedef struct {
+__IO uint32_t ISR;	/* 0x00 = Interrupt and Status Register */
+__IO uint32_t IFCR;	/* 0x04 = Interrupt Flag and Clear Register */
+__IO uint32_t CCR1;	/* 0x08 = DMA Channel 1 Config Register */
+__IO uint32_t CNDTR1;	/* 0x0c = DMA Channel 1 Number of Data to Transfer */
+__IO uint32_t CPAR1;	/* 0x10 = DMA Channel 1 Peripheral Address */
+__IO uint32_t CMAR1;	/* 0x14 = DMA Channel 1 Memory Address */
+__IO uint32_t RESERVED1;/* 0x18 */
+__IO uint32_t CCR2;	/* 0x1c = DMA Channel 2 Config Register */
+__IO uint32_t CNDTR2;	/* 0x20 = DMA Channel 2 Number of Data to Transfer */
+__IO uint32_t CPAR2;	/* 0x24 = DMA Channel 2 Peripheral Address */
+__IO uint32_t CMAR2;	/* 0x28 = DMA Channel 2 Memory Address */
+__IO uint32_t RESERVED2;/* 0x2c */
+__IO uint32_t CCR3;	/* 0x30 = DMA Channel 2 Config Register */
+__IO uint32_t CNDTR3;	/* 0x34 = DMA Channel 2 Number of Data to Transfer */
+__IO uint32_t CPAR3;	/* 0x38 = DMA Channel 2 Peripheral Address */
+__IO uint32_t CMAR3;	/* 0x3c = DMA Channel 2 Memory Address */
+__IO uint32_t RESERVED3;/* 0x40 */
+__IO uint32_t CCR4;	/* 0x44 = DMA Channel 2 Config Register */
+__IO uint32_t CNDTR4;	/* 0x48 = DMA Channel 2 Number of Data to Transfer */
+__IO uint32_t CPAR4;	/* 0x4c = DMA Channel 2 Peripheral Address */
+__IO uint32_t CMAR4;	/* 0x50 = DMA Channel 2 Memory Address */
+__IO uint32_t RESERVED4;/* 0x54 */
+__IO uint32_t CC53;	/* 0x58 = DMA Channel 2 Config Register */
+__IO uint32_t CNDTR5;	/* 0x5c = DMA Channel 2 Number of Data to Transfer */
+__IO uint32_t CPAR5;	/* 0x60 = DMA Channel 2 Peripheral Address */
+__IO uint32_t CMAR5;	/* 0x64 = DMA Channel 2 Memory Address */
+__IO uint32_t RESERVED5;/* 0x68 */
+__IO uint32_t CCR6;	/* 0x6c = DMA Channel 2 Config Register */
+__IO uint32_t CNDTR6;	/* 0x70 = DMA Channel 2 Number of Data to Transfer */
+__IO uint32_t CPAR6;	/* 0x74 = DMA Channel 2 Peripheral Address */
+__IO uint32_t CMAR6;	/* 0x78 = DMA Channel 2 Memory Address */
+__IO uint32_t RESERVED6;/* 0x7c */
+__IO uint32_t CCR7;	/* 0x80 = DMA Channel 2 Config Register */
+__IO uint32_t CNDTR7;	/* 0x84 = DMA Channel 2 Number of Data to Transfer */
+__IO uint32_t CPAR7;	/* 0x88 = DMA Channel 2 Peripheral Address */
+__IO uint32_t CMAR7;	/* 0x8c = DMA Channel 2 Memory Address */
+__IO uint32_t RESERVED7;/* 0x90 */
+__IO uint32_t RESERVED8;/* 0x94 */
+__IO uint32_t RESERVED9;/* 0x98 */
+__IO uint32_t RESERVED10;/*0x9C */
+__IO uint32_t RESERVED11;/*0xA0 */
+__IO uint32_t RESERVED12;/*0xA4 */
+__IO uint32_t CSELR;	/* 0xA8 = Channel Selection Register */
+} DMA_TypeDef;
+
+#define DMA1_BASE		(AHB1PERIPH_BASE + 0x0000)
+#define DMA2_BASE		(AHB1PERIPH_BASE + 0x0400)
+#define DMA1 ((DMA_TypeDef *)DMA1_BASE)
+#define DMA2 ((DMA_TypeDef *)DMA2_BASE)
+
+/* p354 */
+#define DMA_CCR_MEM2MEM		(1<<14)
+#define DMA_CCR_PL		(3<<12)
+#define DMA_CCR_MSIZE		(3<<10)
+#define DMA_CCR_PSIZE		(3<<8)
+#define DMA_CCR_MINC		(1<<7)
+#define DMA_CCR_PINC		(1<<6)
+#define DMA_CCR_CIRC		(1<<5)
+#define DMA_CCR_DIR		(1<<4)
+#define DMA_CCR_TEIE		(1<<3)
+#define DMA_CCR_HTIE		(1<<2)
+#define DMA_CCR_TCIE		(1<<1)
+#define DMA_CCR_EN		(1<<0)
+
+#define DMA_CCR_MSIZE_8		(0<<10)
+#define DMA_CCR_MSIZE_16	(1<<10)
+#define DMA_CCR_MSIZE_32	(2<<10)
+
+#define DMA_CCR_PSIZE_8		(0<<8)
+#define DMA_CCR_PSIZE_16	(1<<8)
+#define DMA_CCR_PSIZE_32	(2<<8)
+
+/* 11.6.1 p350 */
+#define DMA_ISR_TEIF7		(1<<27)
+#define DMA_ISR_HTIF7		(1<<26)
+#define DMA_ISR_TCIF7		(1<<25)
+#define DMA_ISR_GIF7		(1<<24)
+#define DMA_ISR_TEIF6		(1<<23)
+#define DMA_ISR_HTIF6		(1<<22)
+#define DMA_ISR_TCIF6		(1<<21)
+#define DMA_ISR_GIF6		(1<<20)
+#define DMA_ISR_TEIF5		(1<<19)
+#define DMA_ISR_HTIF5		(1<<18)
+#define DMA_ISR_TCIF5		(1<<17)
+#define DMA_ISR_GIF5		(1<<16)
+#define DMA_ISR_TEIF4		(1<<15)
+#define DMA_ISR_HTIF4		(1<<14)
+#define DMA_ISR_TCIF4		(1<<13)
+#define DMA_ISR_GIF4		(1<<12)
+#define DMA_ISR_TEIF3		(1<<11)
+#define DMA_ISR_HTIF3		(1<<10)
+#define DMA_ISR_TCIF3		(1<<9)
+#define DMA_ISR_GIF3		(1<<8)
+#define DMA_ISR_TEIF2		(1<<7)
+#define DMA_ISR_HTIF2		(1<<6)
+#define DMA_ISR_TCIF2		(1<<5)
+#define DMA_ISR_GIF2		(1<<4)
+#define DMA_ISR_TEIF1		(1<<3)
+#define DMA_ISR_HTIF1		(1<<2)
+#define DMA_ISR_TCIF1		(1<<1)
+#define DMA_ISR_GIF1		(1<<0)
+
+/* 11.6.2 p353 */
+#define DMA_IFCR_CTEIF7		(1<<27)
+#define DMA_IFCR_CHTIF7		(1<<26)
+#define DMA_IFCR_CTCIF7		(1<<25)
+#define DMA_IFCR_CGIF7		(1<<24)
+#define DMA_IFCR_CTEIF6		(1<<23)
+#define DMA_IFCR_CHTIF6		(1<<22)
+#define DMA_IFCR_CTCIF6		(1<<21)
+#define DMA_IFCR_CGIF6		(1<<20)
+#define DMA_IFCR_CTEIF5		(1<<19)
+#define DMA_IFCR_CHTIF5		(1<<18)
+#define DMA_IFCR_CTCIF5		(1<<17)
+#define DMA_IFCR_CGIF5		(1<<16)
+#define DMA_IFCR_CTEIF4		(1<<15)
+#define DMA_IFCR_CHTIF4		(1<<14)
+#define DMA_IFCR_CTCIF4		(1<<13)
+#define DMA_IFCR_CGIF4		(1<<12)
+#define DMA_IFCR_CTEIF3		(1<<11)
+#define DMA_IFCR_CHTIF3		(1<<10)
+#define DMA_IFCR_CTCIF3		(1<<9)
+#define DMA_IFCR_CGIF3		(1<<8)
+#define DMA_IFCR_CTEIF2		(1<<7)
+#define DMA_IFCR_CHTIF2		(1<<6)
+#define DMA_IFCR_CTCIF2		(1<<5)
+#define DMA_IFCR_CGIF2		(1<<4)
+#define DMA_IFCR_CTEIF1		(1<<3)
+#define DMA_IFCR_CHTIF1		(1<<2)
+#define DMA_IFCR_CTCIF1		(1<<1)
+#define DMA_IFCR_CGIF1		(1<<0)
+
+#define DMA_CSELR_C1S		(0xf<<0)
+#define DMA_CSELR_C2S		(0xf<<4)
+#define DMA_CSELR_C3S		(0xf<<8)
+#define DMA_CSELR_C4S		(0xf<<12)
+#define DMA_CSELR_C5S		(0xf<<16)
+#define DMA_CSELR_C6S		(0xf<<20)
+#define DMA_CSELR_C7S		(0xf<<24)
+
+
+
 /* ADC -- Chapter 18 starting p504 */
 /*	register definitions start in 18.6 on p585 */
 typedef struct {
@@ -371,7 +527,6 @@ __IO uint32_t RESERVED8;/* 0xA8 */
 __IO uint32_t RESERVED9;/* 0x4C */
 __IO uint32_t DIFSEL;	/* 0xB0 = Differential mode select register */
 __IO uint32_t CALFACT;	/* 0xB4 = Calibration Factors */
-
 } ADC_TypeDef;
 
 #define ADC1_BASE		(AHB2PERIPH_BASE + 0x8040000)
@@ -739,10 +894,13 @@ __I  uint32_t CALIB;	/* Calibration register */
 
 /* STM32L476xx interrupt numbers */
 /* See Table 57 on page 396 of manual */
+#define DMA1_CH4_IRQn		14	// dma1 channel4 interrupt
 #define TIM1_CC_IRQn		27	// tim1 capture/compare interrupt
 #define TIM2_IRQn		28	// tim2 global interrupt
 #define TIM3_IRQn		29	// tim3 global interrupt
 #define TIM4_IRQn		30	// tim4 global interrupt
+#define TIM7_IRQn		55	// tim7 global interrupt
+
 
 /* Cortex-M4 Processor Exceptions Numbers */
 #define NonMaskableInt_IRQn	-14	// Non Maskable Interrupt
@@ -844,6 +1002,7 @@ __IO uint32_t	OR3;		// 0x64 TIM1 Option Register 3
 
 // p???? for TIM1/TIM8
 // p1058 for TIM2/3/4/5
+// p1175 for TIM6/7
 #define TIM_CR1_CEN	(1<<0)		// Counter Enable
 #define TIM_CR1_UDIS	(1<<1)		// Update disable
 #define TIM_CR1_URS	(1<<2)		// Update request source
@@ -1025,6 +1184,33 @@ __IO uint32_t	OR2;		// 0x60 TIM2 Option Register 2
 #define TIM5		((TIM2_TypeDef *)TIM5_BASE)
 
 
+
+
+/* Basic (DAC) Timers: TIM6/TIM7 */
+/* Chapter 33, page 1168 */
+/* TIM6/TIM7 are 16bit */
+/* Registers start Chapter 33.4, p1175 */
+typedef struct {
+__IO uint32_t	CR1;		// 0x00 Control Register
+__IO uint32_t	CR2;		// 0x04 Control Register 2
+__IO uint32_t	RESERVED1;	// 0x08
+__IO uint32_t	DIER;		// 0x0C DMA/interrupt enable register
+__IO uint32_t	SR;		// 0x10 Status Register
+__IO uint32_t	EGR;		// 0x14 Event Generation Register
+__IO uint32_t	RESERVED2;	// 0x18
+__IO uint32_t	RESERVED3;	// 0x1C
+__IO uint32_t	RESERVED4;	// 0x20
+__IO uint32_t	CNT;		// 0x24 Counter Register
+__IO uint32_t	PSC;		// 0x28 Prescaler
+__IO uint32_t	ARR;		// 0x2C Auto-reload
+} TIM6_TypeDef;
+
+// p 81
+#define TIM6_BASE	(APB1PERIPH_BASE + 0x1000)
+#define TIM6		((TIM6_TypeDef *)TIM6_BASE)
+
+#define TIM7_BASE	(APB1PERIPH_BASE + 0x1400)
+#define TIM7		((TIM6_TypeDef *)TIM7_BASE)
 
 
 
