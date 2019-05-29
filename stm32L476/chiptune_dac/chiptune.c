@@ -100,8 +100,6 @@ static void TIM4_IRQHandler(void) {
 
 	int line_decode_result=0;
 
-
-
 	/* Check if update interrupt happened */
 	if ((TIM4->SR & TIM_SR_UIF)!=0) {
 
@@ -117,7 +115,7 @@ static void TIM4_IRQHandler(void) {
 			}
 			led_count=0;
 		}
-#if 0
+
 		/* We hit 50Hz */
 		if (interrupt_countdown==0) {
 			interrupt_countdown=COUNTDOWN_RESET;
@@ -162,62 +160,22 @@ static void TIM4_IRQHandler(void) {
 
 			/* Generate sound buffer */
 			ayemu_gen_sound (&ay, audio_buf, AUDIO_BUFSIZ);
+
 			output_pointer=0;
 
 
 		}
-		#endif
 
-#if 0
-
-#if 1
-		/* Write out to DAC */
-		/* left aligned so can write 16-bit value to it */
-//		DAC->DHR12R2=((audio_buf[output_pointer]|
-//				audio_buf[output_pointer+1]<<8))>>4;
-
-
-
-#if 0
-		{ static int op=0;
-		op++;
-		if (op==2) {
-			output_pointer+=2;
-			op=0;
-
-		DAC->DHR12R2=(((audio_buf[output_pointer]&0xff)|
-				(audio_buf[output_pointer+1]&0xff)<<8))>>4;
-
-		DAC->SWTRIGR |= DAC_SWTRIGR_SWTRIG2;
-		}
-		}
-
-#endif
 		DAC->DHR12L2=(((audio_buf[output_pointer]&0xff)|
 				(audio_buf[output_pointer+1]&0xff)<<8));
 
 		DAC->SWTRIGR |= DAC_SWTRIGR_SWTRIG2;
 		output_pointer+=2;
 
-
-
 		if (output_pointer>AUDIO_BUFSIZ) {
 			exit(-1);
 		}
 
-
-#else
-		/* Write out to DAC */
-		/* left aligned so can write 16-bit value to it */
-		DAC->DHR8R2=audio_buf[output_pointer];
-		output_pointer+=1;
-		if (output_pointer>AUDIO_BUFSIZ) {
-			exit(-1);
-		}
-
-
-#endif
-#endif
 		/* ACK interrupt */
 		TIM4->SR &= ~TIM_SR_UIF;
 		interrupt_countdown--;
