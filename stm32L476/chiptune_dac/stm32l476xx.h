@@ -12,6 +12,53 @@
 #define AHB1PERIPH_BASE	(PERIPH_BASE + 0x00020000)
 #define AHB2PERIPH_BASE	(PERIPH_BASE + 0x08000000)
 
+/* FLASH registers */
+/* 3.7, p124 */
+typedef struct {
+__IO uint32_t ACR;		/* 0x00 -- Access Control Register */
+__IO uint32_t PDKEYR;		/* 0x04 -- Power Down Key Register */
+__IO uint32_t KEYR;		/* 0x08 -- Key Register */
+__IO uint32_t OPTKEYR;		/* 0x0C -- Option Key Register */
+__IO uint32_t SR;		/* 0x10 -- Status Register */
+__IO uint32_t CR;		/* 0x14 -- Control Register */
+__IO uint32_t ECCR;		/* 0x18 -- ECC Register */
+__IO uint32_t RESERVED1;	/* 0x1c */
+__IO uint32_t OPTR;		/* 0x20 -- Option Register */
+__IO uint32_t PCROP1SR;		/* 0x24 -- */
+__IO uint32_t PCROP1ER;		/* 0x28 -- */
+__IO uint32_t WRP1AR;		/* 0x2c -- */
+__IO uint32_t WRP1BR;		/* 0x30 -- */
+__IO uint32_t RESERVED2;	/* 0x34 */
+__IO uint32_t RESERVED3;	/* 0x38 */
+__IO uint32_t RESERVED4;	/* 0x3c */
+__IO uint32_t RESERVED5;	/* 0x40 */
+__IO uint32_t PCROP2SR;		/* 0x44 -- */
+__IO uint32_t PCROP2ER;		/* 0x28 -- */
+__IO uint32_t WRP2AR;		/* 0x2c -- */
+__IO uint32_t WRP2BR;		/* 0x30 -- */
+} FLASH_TypeDef;
+
+/* p83 */
+#define FLASH_CONFIG_BASE	(AHB1PERIPH_BASE + 0x2000)
+#define FLASH			((FLASH_TypeDef *)(FLASH_CONFIG_BASE))
+
+/* p124 */
+#define FLASH_ACR_SLEEP_PD	(1<<14)
+#define FLASH_ACR_RUN_PD	(1<<13)
+#define FLASH_ACR_DCRST		(1<<12)
+#define FLASH_ACR_ICRST		(1<<11)
+#define FLASH_ACR_DCEN		(1<<10)
+#define FLASH_ACR_ICEN		(1<<9)
+#define FLASH_ACR_PRFTEN	(1<<8)
+#define FLASH_ACR_LATENCY	(7<<0)
+
+#define FLASH_ACR_LATENCY_0	0x00
+#define FLASH_ACR_LATENCY_1	0x01
+#define FLASH_ACR_LATENCY_2	0x02
+#define FLASH_ACR_LATENCY_3	0x03
+#define FLASH_ACR_LATENCY_4	0x04
+
+
 /* 6.4 p223 */
 /* Reset and Clock Control */
 typedef struct {

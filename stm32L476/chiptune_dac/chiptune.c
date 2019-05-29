@@ -522,11 +522,8 @@ int main(void) {
 
 unsigned int krg=0;
 
-/* Set 16MHz HSI clock */
+/* Set 80MHz PLL based on 16MHz HSI clock */
 void System_Clock_Init(void) {
-
-	/* Note, this code initializes the HSI 16MHz clock */
-	/* Also multplies it by ??? for the system clock */
 
         /* Enable the HSI clock */
         RCC->CR |= RCC_CR_HSION;
@@ -534,14 +531,18 @@ void System_Clock_Init(void) {
 	/* Wait until HSI is ready */
 	while ( (RCC->CR & RCC_CR_HSIRDY) == 0 );
 
+	/* Set the FLASH latency to 4 (BLARGH!) */
+	/* Need to set *some* wait states if you are running >16MHz */
+	/* See 3.3.3 (p100) in manual */
+        FLASH->ACR|=FLASH_ACR_LATENCY_4;
+
+	/* Configure PLL */
 	RCC->CR &= ~RCC_CR_PLLON;
 	while((RCC->CR & RCC_CR_PLLRDY) == RCC_CR_PLLRDY);
 
 	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLSRC;
 	RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSI;
 
-#if 1
-	/* set up the PLL */
 /*
 	The system Clock is configured as follows :
             System Clock source            = PLL (HSI)
@@ -570,7 +571,6 @@ void System_Clock_Init(void) {
 
 	/* PLL_R =2 (00=2, 01=4 10=6 11=8) */
 	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLR;		// 160MHz/2 = 80MHz
-	RCC->PLLCFGR |= 1<<25;
 
 	/* PLL_P=7 (register=0 means 7, 1=17) for SAI1/SAI2 clock */
 //	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLP;
@@ -588,15 +588,6 @@ void System_Clock_Init(void) {
 	RCC->CFGR &= ~RCC_CFGR_SW;
 	RCC->CFGR |= RCC_CFGR_SW_PLL;  /* 11: PLL used as sys clock */
 	while ((RCC->CFGR & RCC_CFGR_SWS) == 0 );
-
-#else
-
-	/* Select HSI as system clock source  */
-	RCC->CFGR &= ~RCC_CFGR_SW;
-	RCC->CFGR |= RCC_CFGR_SW_HSI;  /* 01: HSI16 oscillator used as system clock */
-#endif
-	/* Wait till HSI is used as system clock source */
-//	while ((RCC->CFGR & RCC_CFGR_SWS) == 0 );
 
 	krg=RCC->PLLCFGR;
 
