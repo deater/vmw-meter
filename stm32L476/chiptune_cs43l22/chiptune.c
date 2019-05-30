@@ -381,6 +381,8 @@ void DMA_Init(void) {
 	return;
 }
 
+int krg2=0;
+
 	/* Set up SAI for 16-bit steroe i2s */
 void SAI_Init(void) {
 
@@ -418,10 +420,10 @@ void SAI_Init(void) {
 	SAI1->AFRCR|= SAI_FRCR_FSOFF;
 
 	/* hsai->FrameInit.FrameLength = 32U * (nbslot / 2U); */
-	SAI1->AFRCR|= 32;  /* two 16-bit values */
+	SAI1->AFRCR|= (32-1);  /* two 16-bit values */
 
 	/* hsai->FrameInit.ActiveFrameLength = 16U * (nbslot / 2U); */
-	SAI1->AFRCR|=16<<8;
+	SAI1->AFRCR|=(16-1)<<8;
 
 	/* Slot number = 2 (stereo) */
 	/* ??? manual says +1 ? */
@@ -438,10 +440,10 @@ void SAI_Init(void) {
 	/* Slot first bit offset = 0 */
 	SAI1->ASLOTR&=~SAI_SLOTR_FBOFF;
 
-
 	/* Enable */
 	SAI1->ACR1 |= SAI_CR1_SAIEN;
 
+	krg2=SAI1->ACR1;
 }
 
 /* Blocking transmit */
@@ -455,7 +457,19 @@ int i2s_transmit(uint8_t *data, uint16_t size) {
 
 	/* If not enabled, fill FIFO and enable */
 	if ((SAI1->ACR1 & SAI_CR1_SAIEN)==0) {
-		//SAI_FillFifo(hsai);
+		while (((SAI1->ASR & SAI_SR_FLVL) != SAI_FIFOSTATUS_FULL)
+			&& (count > 0U)) {
+			temp = (uint32_t)(*pdata);
+			pdata++;
+			temp |= ((uint32_t)(*pdata) << 8);
+			pdata++;
+			temp |= ((uint32_t)(*pdata) << 16);
+			pdata++;
+			temp |= ((uint32_t)(*pdata) << 24);
+			pdata++;
+			SAI1->ADR = temp;
+			count--;
+		}
 		SAI1->ACR1 |= SAI_CR1_SAIEN;
 	}
 
@@ -471,8 +485,8 @@ int i2s_transmit(uint8_t *data, uint16_t size) {
 			temp |= ((uint32_t)(*pdata) << 24);
 			pdata++;
 			SAI1->ADR = temp;
+			count--;
 		}
-		count--;
 	}
 
 	/* Check for the Timeout */
@@ -561,6 +575,8 @@ int main(void) {
 	NextBuffer(0);
 	NextBuffer(1);
 
+	cs43l22_play();
+
 	int led_on=0,led_count=0;
 
 	while(1) {
@@ -579,6 +595,22 @@ int main(void) {
 				GPIOB->ODR |= (1<<2);
 				led_on=1;
 			}
+
+			data_send[0]=0x2e;
+			i2c_send_data(I2C1,slave_addr,data_send,1);
+			i2c_receive_data(I2C1,slave_addr,data_receive,1);
+
+			if (data_receive[0]==0x0) {
+				memcpy(buffer,"GOOD",4);
+				buffer[4]=0;
+			}
+			else {
+				memcpy(buffer,"BADC",4);
+				buffer[4]=0;
+			}
+			LCD_Display_String(buffer);
+
+
 		}
 		led_count++;
 	}

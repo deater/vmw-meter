@@ -2,6 +2,7 @@
 
 #include "stm32l476xx.h"
 #include "i2c.h"
+#include "cs43l22.h"
 
 void cs43l22_init(void) {
 
@@ -100,14 +101,94 @@ void cs43l22_init(void) {
 	GPIOE->OTYPER |= (1<<sd_pin);
 	GPIOE->OTYPER |= (1<<fs_pin);
 
-	/* Set speed to fast */
+	/* Set speed to fast (high) */
 	GPIOE->OSPEEDR |= (2<<(mclk_pin*2));
 	GPIOE->OSPEEDR |= (2<<(sclk_pin*2));
 	GPIOE->OSPEEDR |= (2<<(sd_pin*2));
 	GPIOE->OSPEEDR |= (2<<(fs_pin*2));
 
+
+	/* Clock configuration: Auto detection */
+	sound_data[0]=0x05;
+	sound_data[1]=0x81;
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
+
+	/* Set the Slave Mode and the audio Standard */
+	/* CODEC_STANDARD??? 04 = i2s, 32-bit?? */
+	/* my calc 07 = slave, not inv, dsp disabled, i2s, 16-bit */
+	sound_data[0]=0x06;
+	sound_data[1]=0x04;
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
+
+	/* Set the Master volume */
+	cs43l22_set_volume(128);
+
+	/* Setup ramp, which lets the codec power down gracefully */
+	/* Otherwise you might be stuck with high-pitch noise */
+#if 0
+	/* Disable the analog soft ramp */
+	counter += CODEC_IO_Write(DeviceAddr, 0x0A, 0x00);
+	/* Disable the digital soft ramp */
+	counter += CODEC_IO_Write(DeviceAddr, 0x0E, 0x04);
+	/* Disable the limiter attack level */
+	counter += CODEC_IO_Write(DeviceAddr, 0x27, 0x00);
+	/* Adjust Bass and Treble levels */
+	counter += CODEC_IO_Write(DeviceAddr, 0x1F, 0x0F);
+	/* Adjust PCM volume level */
+	counter += CODEC_IO_Write(DeviceAddr, 0x1A, 0x0A);
+	counter += CODEC_IO_Write(DeviceAddr, 0x1B, 0x0A);
+#endif
+
+
 }
 
+void cs43l22_set_volume(int volume) {
+
+	int slave_addr=0x94;
+	unsigned char sound_data[2];
+
+	uint8_t convertedvol = (((volume) > 100)? 100:((uint8_t)(((volume) * 255) / 100)));
+
+
+	if (volume > 0xe6) {
+		sound_data[0]=0x20;
+		sound_data[1]=convertedvol-0xe7;
+		i2c_send_data(I2C1,slave_addr,sound_data,2);
+
+		sound_data[0]=0x21;
+		sound_data[1]=convertedvol-0xe7;
+		i2c_send_data(I2C1,slave_addr,sound_data,2);
+	} else {
+		sound_data[0]=0x20;
+		sound_data[1]=convertedvol+0x19;
+		i2c_send_data(I2C1,slave_addr,sound_data,2);
+
+		sound_data[0]=0x21;
+		sound_data[1]=convertedvol+0x19;
+		i2c_send_data(I2C1,slave_addr,sound_data,2);
+	}
+}
+
+
+void cs43l22_play(void) {
+
+	unsigned char sound_data[2];
+	int slave_addr=0x94;
+
+	/* Enable Output device, register 4 */
+	/* Headphones always on, speaker always off: write 10101111 */
+	sound_data[0]=0x04;
+	sound_data[1]=0xaf;
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
+
+	/* Power on the Codec */
+	/* Write 0x9e to register 0x02 */
+	sound_data[0]=0x02;
+	sound_data[1]=0x9e;
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
+
+
+}
 
 void cs43l22_disable(void) {
 
