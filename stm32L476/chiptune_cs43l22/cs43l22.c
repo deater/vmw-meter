@@ -8,6 +8,7 @@ void cs43l22_init(void) {
 	volatile int delay;
 	int slave_addr=0x94;
 	unsigned char sound_data[2];
+	int pin=3;
 
 	/* PB6/PB7 is SCL/SDA.  Those are initialized in i2c.c */
 	/* PE3 is Reset */
@@ -16,44 +17,48 @@ void cs43l22_init(void) {
 	/* Enable GPIOE */
 	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOEEN;
 
+	/* Set to output */
+	GPIOE->MODER &= ~(3UL<<(pin*2));
+        GPIOE->MODER |= 1UL<<(pin*2);
+
+
 	/* p31 of document */
 
 	/* Hold |reset low until power supplies are stable */
 
-	GPIOE->ODR&=~(1<<3);
-	for(delay=0;delay<1000;delay++);
+	GPIOE->ODR&=~(1<<pin);
+	for(delay=0;delay<4000;delay++);
 
 	/* Bring |reset high */
-	GPIOE->ODR|= (1<<3);
-	for(delay=0;delay<1000;delay++);
+	GPIOE->ODR|= (1<<pin);
+	for(delay=0;delay<4000;delay++);
 
 	/* 4.11 required settings */
 
 	/* Write 0x99 to register 0x00 */
 	sound_data[0]=0x00;
 	sound_data[1]=0x99;
-        i2c_send_data(I2C1,slave_addr,sound_data,2);
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
 
 	/* Write 0x80 to register 0x47 */
 	sound_data[0]=0x47;
 	sound_data[1]=0x80;
-        i2c_send_data(I2C1,slave_addr,sound_data,2);
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
 
 	/* Write 1 to bit 7 in register 0x32 */
 	sound_data[0]=0x32;
 	sound_data[1]=0x80;
-        i2c_send_data(I2C1,slave_addr,sound_data,2);
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
 
 	/* Write 0 to bit 7 in register 0x32 */
 	sound_data[0]=0x32;
 	sound_data[1]=0x00;
-        i2c_send_data(I2C1,slave_addr,sound_data,2);
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
 
 	/* Write 0 to regsiter 0x00 */
 	sound_data[0]=0x00;
 	sound_data[1]=0x00;
-        i2c_send_data(I2C1,slave_addr,sound_data,2);
-
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
 }
 
 

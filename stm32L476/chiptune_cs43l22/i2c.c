@@ -9,6 +9,7 @@
 void i2c_init(I2C_TypeDef *I2Cx) {
 
 	uint32_t own_addr=0x52;	/* ??? */
+	int pin1=6,pin2=7;
 
 	if (I2Cx==I2C1) {
 
@@ -19,6 +20,7 @@ void i2c_init(I2C_TypeDef *I2Cx) {
 		RCC->APB1RSTR1 |= RCC_APB1RSTR1_I2C1RST;	/* reset i2c1 */
 		RCC->APB1RSTR1 &= ~RCC_APB1RSTR1_I2C1RST;	/* finish reset */
 
+
 		/* I2C1 GPIO Configuration */
 		/* See UM1879.book p 32 */
 		/* I2C1_SCL = PB6 */
@@ -28,10 +30,10 @@ void i2c_init(I2C_TypeDef *I2Cx) {
 
 		/* Set mode of pins as alternate function */
 		/* 00 = input, 01 = output, 10 = alternate, 11 = analog (def) */
-		GPIOB->MODER &= ~(3UL<<(6*2));
-		GPIOB->MODER |= 2UL<<(6*2);
-		GPIOB->MODER &= ~(3UL<<(7*2));
-		GPIOB->MODER |= 2UL<<(7*2);
+		GPIOB->MODER &= ~(3UL<<(pin1*2));
+		GPIOB->MODER |= 2UL<<(pin1*2);
+		GPIOB->MODER &= ~(3UL<<(pin2*2));
+		GPIOB->MODER |= 2UL<<(pin2*2);
 
 		/* set alternate function 4 (I2C1_SCL/I2C1_SDA) */
 		/* this is AF0 =  (appendix I of book) */
@@ -40,14 +42,19 @@ void i2c_init(I2C_TypeDef *I2Cx) {
 		GPIOB->AFR[0] &= ~0xf0000000;
 		GPIOB->AFR[0] |=  0x40000000;
 
-		/* Set as pull-up */
+		/* Set as no pull-up/pull-down */
 		/* 00 = no pull-up, no pull-down, 01 = pull-up, 10 = pull-down */
-		GPIOB->PUPDR &=~(3UL<<(6*2));
-		GPIOB->PUPDR &=~(3UL<<(7*2));
-		GPIOB->PUPDR |= (1UL<<(6*2));
-		GPIOB->PUPDR |= (1UL<<(7*2));
+		GPIOB->PUPDR &=~(3UL<<(pin1*2));
+		GPIOB->PUPDR &=~(3UL<<(pin2*2));
 
-		/* Set speed freq to low? */
+		/* Set output as open drain */
+		GPIOB->OTYPER |= (1<<pin1);
+		GPIOB->OTYPER |= (1<<pin2);
+
+		/* Set speed to fast */
+		GPIOB->OSPEEDR |= (2<<(pin1*2));
+		GPIOB->OSPEEDR |= (2<<(pin2*2));
+
 
 	}
 
@@ -92,6 +99,8 @@ void i2c_wait_line_idle(I2C_TypeDef *I2Cx) {
 	while ( (I2Cx->ISR & I2C_ISR_BUSY)==I2C_ISR_BUSY);
 }
 
+unsigned int krg=0;
+
 void i2c_start(I2C_TypeDef *I2Cx, uint32_t dev_addr,
 		uint8_t size, uint8_t direction) {
 
@@ -100,22 +109,29 @@ void i2c_start(I2C_TypeDef *I2Cx, uint32_t dev_addr,
 
 	uint32_t tmpreg=I2Cx->CR2;
 
-	tmpreg &= (uint32_t)~((uint32_t)(I2C_CR2_SADD | I2C_CR2_NBYTES |
-					 I2C_CR2_RELOAD | I2C_CR2_AUTOEND |
-					 I2C_CR2_RD_WRN | I2C_CR2_START |
-					 I2C_CR2_STOP));
+	tmpreg &=~I2C_CR2_SADD;		// clear out address
+	tmpreg &=~I2C_CR2_NBYTES;	// clear out number of bytes
+	tmpreg &=~I2C_CR2_RELOAD;	// reload=0, transfer ends after N bytes
+	tmpreg &=~I2C_CR2_AUTOEND;	// 0, do not auto-send stop when done
+	tmpreg &=~I2C_CR2_RD_WRN;	// clear read/write
+	tmpreg &=~I2C_CR2_START;	// clear start flag
+	tmpreg &=~I2C_CR2_STOP;		// clear stop flag
+	tmpreg &=~I2C_CR2_ADD10;	// 7-bit address
 
 	if (direction==I2C_READ_FROM_SLAVE) {
-		tmpreg |= I2C_CR2_RD_WRN;
+		tmpreg |= I2C_CR2_RD_WRN;	// 1=read
 	}
 	else {
-		tmpreg &= ~I2C_CR2_RD_WRN;
+		tmpreg &= ~I2C_CR2_RD_WRN;	// 0=write
 	}
 
-	tmpreg |= (uint32_t)(((uint32_t) dev_addr & I2C_CR2_SADD) |
-			(((uint32_t) size<<16) & I2C_CR2_NBYTES));
+	tmpreg |= (dev_addr & I2C_CR2_SADD);		// set address
+	tmpreg |= ((size<<16) & I2C_CR2_NBYTES);	// set num bytes
 
-	tmpreg |= I2C_CR2_START;
+	tmpreg |= I2C_CR2_START;			// set start flag
+
+	krg=tmpreg;
+
 	I2Cx->CR2 = tmpreg;
 
 }
@@ -123,7 +139,7 @@ void i2c_start(I2C_TypeDef *I2Cx, uint32_t dev_addr,
 void i2c_stop(I2C_TypeDef *I2Cx) {
 
 	/* Generate STOP bit after the current byte has been transferred */
-	I2Cx->CR1 |= I2C_CR2_STOP;
+	I2Cx->CR2 |= I2C_CR2_STOP;
 
 	/* Wait until STOPF flag is reset */
 	while( (I2Cx->ISR & I2C_ISR_STOPF)==0);
@@ -147,7 +163,7 @@ int8_t	i2c_send_data(I2C_TypeDef *I2Cx, uint8_t slave_addr,
 
 	i2c_start(I2Cx, slave_addr, size, I2C_WRITE_TO_SLAVE);
 
-	for(i=0;i>size;i++) {
+	for(i=0;i<size;i++) {
 		/* TXIS bit set by hardware when TXDR is empty */
 		/* and we must write new data to TXDR. */
 		/* It is cleared when we write data. */

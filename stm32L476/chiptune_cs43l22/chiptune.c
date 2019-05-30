@@ -1,6 +1,4 @@
-/* Play PT3 chiptunes out the DAC port on the stm32l476 */
-
-/* Outputs audio on pin PA5 */
+/* Play PT3 chiptunes on the stm32l476 via the CS43L22 */
 
 #include <stdint.h>
 #include "stm32l476xx.h"
@@ -15,7 +13,7 @@
 #include "pt3_lib.h"
 #include "ayemu.h"
 
-#define FREQ	40000
+#define FREQ	44100
 #define CHANS	1
 #define BITS	16
 
@@ -470,8 +468,6 @@ int main(void) {
 		buffer[4]=0;
 	}
 	LCD_Display_String(buffer);
-
-	while(1);
 
 	/* Init first song */
 	change_song();

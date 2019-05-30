@@ -264,7 +264,10 @@ __IO uint32_t CSR;		/* 0x94 */
 #define RCC_BASE	(AHB1PERIPH_BASE + 0x1000)
 #define RCC		((RCC_TypeDef *)(RCC_BASE))
 
+
 /* General Purpose IO */
+/* Chapter 8, p294 */
+/* Registers start 8.4 p303 */
 typedef struct {
 __IO uint32_t MODER;	/* 0x00 = Mode Register */
 __IO uint32_t OTYPER;   /* 0x04 = Output Type Register */
@@ -300,8 +303,6 @@ __IO uint32_t ASCR;
 #define MODER_ANALOG	0x03
 
 #define MODER_SET(_s,_v)	(((_v&0x3) << (_s*2))
-
-#define FLASH_BASE	((uint32_t)0x08000000U)
 
 #define RESET	0
 
@@ -1329,3 +1330,11 @@ __IO uint32_t	TXDR;		// 0x28 I2C Transmit Data Register
 
 /* 39.7.11 p1330 */
 #define I2C_TXDR_TXDATA		(0xff<<0)
+
+
+
+
+
+/* Should this be a in a different include? */
+#define FLASH_BASE	((uint32_t)0x08000000U)
+
