@@ -561,10 +561,26 @@ int main(void) {
 	NextBuffer(0);
 	NextBuffer(1);
 
+	int led_on=0,led_count=0;
+
 	while(1) {
-		i2s_transmit(audio_buf,AUDIO_BUFSIZ/4);
+		i2s_transmit(audio_buf,AUDIO_BUFSIZ*2/4);
 		NextBuffer(0);
 		NextBuffer(1);
+
+		/* Blink RED LED (GPIOB2) based on note A */
+		if (led_count==50) {
+			led_count=0;
+			if (led_on) {
+				GPIOB->ODR &= ~(1<<2);
+				led_on=0;
+			}
+			else {
+				GPIOB->ODR |= (1<<2);
+				led_on=1;
+			}
+		}
+		led_count++;
 	}
 
 //	DMA_Init();

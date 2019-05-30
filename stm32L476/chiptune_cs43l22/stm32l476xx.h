@@ -929,7 +929,7 @@ __IO uint32_t BDR;		/* 0x40 = Data Register */
 #define SAI_SLOTR_FBOFF		(0x1f<<0)
 
 /* 43.5.12 p 1523 */
-#define SAI_SR_FLVL		(0x3<<16)
+#define SAI_SR_FLVL		(0x7<<16)
 #define SAI_SR_LFSDET		(1<<6)
 #define SAI_SR_AFSDET		(1<<5)
 #define SAI_SR_CNRDY		(1<<4)
