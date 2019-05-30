@@ -1,4 +1,4 @@
-/* Play PT3 chiptunes out the DAC port on the stm32l476 */
+/* Play PT3 chiptunes out the DAC port on the stm32l476 using DMA */
 
 /* Outputs audio on pin PA5 */
 
@@ -15,8 +15,6 @@
 #define FREQ	44100
 #define CHANS	1
 #define BITS	16
-
-#define SWTRIG	1
 
 /* global variables */
 volatile uint32_t TimeDelay;

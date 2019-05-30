@@ -17,8 +17,6 @@
 #define CHANS	1
 #define BITS	16
 
-#define SWTRIG	1
-
 /* global variables */
 volatile uint32_t TimeDelay;
 volatile uint32_t overflows=0;
@@ -27,7 +25,6 @@ static ayemu_ay_t ay;
 static struct pt3_song_t pt3,pt3_2;
 
 static ayemu_ay_reg_frame_t frame;
-//static unsigned char frame[14];
 
 #define MAX_SONGS 4
 #include "i2_pt3.h"
@@ -83,235 +80,146 @@ void System_Clock_Init(void);
 void NVIC_SetPriority(int irq, int priority);
 void NVIC_EnableIRQ(int irq);
 
-static int interrupt_countdown=0;
-
-
-
 /* mono (2 channel), 16-bit (2 bytes), play at 50Hz */
 #define AUDIO_BUFSIZ (FREQ*CHANS*(BITS/8) / 50)
+#define NUM_SAMPLES (AUDIO_BUFSIZ/CHANS/(BITS*8))
 #define COUNTDOWN_RESET (FREQ/50)
 
-static unsigned char audio_buf[AUDIO_BUFSIZ];
-static int output_pointer=0;
-
-static int led_count=0,led_on=0;
+static unsigned char audio_buf[AUDIO_BUFSIZ*2];
 
 /* Interrupt Handlers */
-static void TIM4_IRQHandler(void) {
+static void NextBuffer(int which_half) {
 
 	int line_decode_result=0;
 
-
-
-	/* Check if countdown interrupt happened */
-	if ((TIM4->SR & TIM_SR_CC1IF)!=0) {
-
-
-	led_count++;
-	if (led_count==FREQ) {
-		if (led_on) {
-			led_on=0;
-			GPIOB->ODR &= ~(1<<2);
+	/* Decode next frame */
+	if ((line==0) && (subframe==0)) {
+		if (current_pattern==pt3.music_len) {
+			which_song++;
+			change_song();
+			current_pattern=0;
 		}
-		else {
-			led_on=1;
-			GPIOB->ODR |= (1<<2);
-		}
-		led_count=0;
+		pt3_set_pattern(current_pattern,&pt3);
 	}
 
-		/* We hit 50Hz */
-		if (interrupt_countdown==0) {
-			interrupt_countdown=COUNTDOWN_RESET;
+	if (subframe==0) {
+		line_decode_result=pt3_decode_line(&pt3);
+	}
 
-			/* Decode next frame */
-			if ((line==0) && (subframe==0)) {
-				if (current_pattern==pt3.music_len) {
-					which_song++;
-					change_song();
-					current_pattern=0;
-				}
-				pt3_set_pattern(current_pattern,&pt3);
-			}
-
-			if (subframe==0) {
-				line_decode_result=pt3_decode_line(&pt3);
-			}
-
-			if (line_decode_result==1) {
-				/* line done early? */
+	if (line_decode_result==1) {
+		/* line done early? */
+		current_pattern++;
+		line=0;
+		subframe=0;
+	}
+	else {
+		subframe++;
+		if (subframe==pt3.speed) {
+			subframe=0;
+			line++;
+			if (line==64) {
 				current_pattern++;
 				line=0;
-				subframe=0;
 			}
-			else {
-				subframe++;
-				if (subframe==pt3.speed) {
-					subframe=0;
-					line++;
-					if (line==64) {
-						current_pattern++;
-						line=0;
-					}
-				}
-			}
-
-
-			pt3_make_frame(&pt3,frame);
-
-			/* Update AY buffer */
-			ayemu_set_regs(&ay,frame);
-
-			/* Generate sound buffer */
-			ayemu_gen_sound (&ay, audio_buf, AUDIO_BUFSIZ);
-			output_pointer=0;
 		}
-
-#if 1
-		/* Write out to DAC */
-		/* left aligned so can write 16-bit value to it */
-//		DAC->DHR12R2=((audio_buf[output_pointer]|
-//				audio_buf[output_pointer+1]<<8))>>4;
-
-
-
-
-		{ static int op=0;
-		op++;
-		if (op==2) {
-			output_pointer+=2;
-			op=0;
-
-		DAC->DHR12R2=(((audio_buf[output_pointer]&0xff)|
-				(audio_buf[output_pointer+1]&0xff)<<8))>>4;
-
-		DAC->SWTRIGR |= DAC_SWTRIGR_SWTRIG2;
-		}
-		}
-
-		if (output_pointer>AUDIO_BUFSIZ) {
-			exit(-1);
-		}
-
-
-#else
-		/* Write out to DAC */
-		/* left aligned so can write 16-bit value to it */
-		DAC->DHR8R2=audio_buf[output_pointer];
-		output_pointer+=1;
-		if (output_pointer>AUDIO_BUFSIZ) {
-			exit(-1);
-		}
-
-
-#endif
-		/* ACK interrupt */
-		TIM4->SR &= ~TIM_SR_CC1IF;
-		interrupt_countdown--;
 	}
 
-	/* Check if overflow happened */
-	if ((TIM4->SR & TIM_SR_UIF)!=0) {
-		TIM4->SR &= ~TIM_SR_UIF;
+
+	pt3_make_frame(&pt3,frame);
+
+	/* Update AY buffer */
+	ayemu_set_regs(&ay,frame);
+
+	/* Generate sound buffer */
+	if (which_half==0) {
+		ayemu_gen_sound (&ay, audio_buf, AUDIO_BUFSIZ);
+	}
+	else {
+		ayemu_gen_sound (&ay, audio_buf+AUDIO_BUFSIZ, AUDIO_BUFSIZ);
 	}
 }
+
+
+
+
+static void DMA_IRQHandler(void) {
+
+	/* This is called at both half-full and full DMA */
+	/* We double buffer */
+
+	/* At half full, we should load next buffer at start */
+	/* At full, we should load next buffer to end */
+
+	if ((DMA1->ISR&DMA_ISR_TCIF4)==DMA_ISR_TCIF4) {
+		NextBuffer(1);
+#if 0
+		static int led_count=0,led_on=0;
+
+		/* This should happen at roughly 50Hz */
+		led_count++;
+
+		if (led_count==50) {
+
+			if (led_on) {
+				led_on=0;
+				GPIOB->ODR &= ~(1<<2);
+			}
+			else {
+				led_on=1;
+				GPIOB->ODR |= (1<<2);
+			}
+			led_count=0;
+		}
+#endif
+	}
+
+	if ((DMA1->ISR&DMA_ISR_HTIF4)==DMA_ISR_HTIF4) {
+		NextBuffer(0);
+	}
+
+
+
+	/* ACK interrupt */
+	/* Set to 1 to clear */
+	DMA1->IFCR |= DMA_IFCR_CGIF4;
+
+}
+
+
+
 
 void SysTick_Handler(void) {
 
 	if (TimeDelay > 0) TimeDelay--;
 }
 
+static void TIM7_Init(void) {
 
+	/* enable Timer 7 clock */
+	RCC->APB1ENR1 |= RCC_APB1ENR1_TIM7EN;
 
-static void TIM4_Init(void) {
+	/* Trigger DMA */
+	TIM7->DIER |= TIM_DIER_UDE;
 
-	/* enable Timer 4 clock */
-	RCC->APB1ENR1 |= RCC_APB1ENR1_TIM4EN;
+	/* Master Mode Update Trigger */
+	TIM7->CR2 |= 2<<4;
 
-	/* Edge aligned mode */
-	TIM4->CR1 &= ~TIM_CR1_CMS;
-
-	/* Counting direction: 0=up, 1=down */
-	TIM4->CR1 &= ~TIM_CR1_DIR; // up-counting
-
-	/* Master mode selection */
-	/* 100 = OC1REF as TRGO */
-	TIM4->CR2 &= ~TIM_CR2_MMS;
-	TIM4->CR2 |= TIM_CR2_MMS_2;
-
-	/* Trigger interrupt enable */
-	TIM4->DIER |= TIM_DIER_TIE;
-
-	/* Update interrupt enable */
-	TIM4->DIER |= TIM_DIER_UIE;
-
-	/* OC1M: Output Compare 1 mode */
-	/* 0110 = PWM mode 1 */
-	TIM4->CCMR1 &= ~TIM_CCMR1_OC1M;
-	TIM4->CCMR1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2;
-
-	/* FIXME */
 	/* Prescaler. slow down the input clock by a factor of (1+prescaler) */
-	TIM4->PSC=3;		// 16MHz / (1+3) = 4MHz
+	TIM7->PSC=54;		// 16MHz / (1+10) = 1.454MHz
 
 	/* Auto-reload, max */
-	TIM4->ARR=99;		// 4MHz /(100) = roughly 40kHz, 40000
-
-	/* Duty Ratio */
-	TIM4->CCR1 = 50;	// 50%
-
-	/* OC1 signal output on the corresponding output pin*/
-	TIM4->CCER |= TIM_CCER_CC1E;
+	TIM7->ARR=32;		// 1.454MHz /(33) = roughly 44kHz, 44077
 
 	/* Enable Timer */
-	TIM4->CR1 |= TIM_CR1_CEN;
+	TIM7->CR1 |= TIM_CR1_CEN;
 
 	/* Set highest priority intterupt */
-	NVIC_SetPriority(TIM4_IRQn, 0);
+//	NVIC_SetPriority(TIM7_IRQn, 0);
 
 	/* Set highest priority intterupt */
-	NVIC_EnableIRQ(TIM4_IRQn);
+//	NVIC_EnableIRQ(TIM7_IRQn);
 
 }
-
-/* Example 21-5 in book */
-
-/* DAC Channel 2: DAC_OUT2 = PA5 */
-void DAC2_Channel2_Init(void) {
-
-	/* Enable DAC clock */
-	RCC->APB1ENR1 |= RCC_APB1ENR1_DAC1EN;
-
-	/* Disable DACs so we can program them */
-	DAC->CR &= ~(DAC_CR_EN1 | DAC_CR_EN2);
-
-	/* DAC mode control register */
-	/* 000 = conected to external pin with buffer enabled */
-	DAC->MCR &= ~DAC_MCR_MODE2;
-
-	/* Enable trigger for DAC channel 2 */
-	DAC->CR |= DAC_CR_TEN2;
-
-#if SWTRIG
-	/* Select software trigger */
-	DAC->CR |= DAC_CR_TSEL2;
-#else
-	/* Select TIM4_TRG0) as the trigger for DAC channel 2 */
-	DAC->CR &= ~DAC_CR_TSEL2;
-	DAC->CR |= (DAC_CR_TSEL2_0 | DAC_CR_TSEL2_2);
-#endif
-
-	/* Enable DAC Channel 2 */
-	DAC->CR |= DAC_CR_EN2;
-
-	/* Enable the clock of GPIO port A */
-	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
-
-	/* Set I/O mode of pin A5 as analog */
-	GPIOA->MODER |= 3U<<(2*5);
-
-}
-
 
 static void GPIOB_Clock_Enable(void) {
         RCC->AHB2ENR |= RCC_AHB2ENR_GPIOBEN;
@@ -413,6 +321,66 @@ static void GPIOA_Pin_Input_Init(int pin) {
         GPIOA->PUPDR |= (2UL<<(pin*2));
 }
 
+void DMA_Init(void) {
+
+	/* Enable DMA1 clock */
+	RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
+
+	/* Disable DMA1 Channel 4 */
+	DMA1->CCR4 &=~DMA_CCR_EN;
+
+	/* Peripheral data size = 32 bits */
+	DMA1->CCR4 &=~DMA_CCR_PSIZE;
+	DMA1->CCR4 |= DMA_CCR_PSIZE_32;
+
+	/* Memory data size = 16 bits */
+	DMA1->CCR4 &=~DMA_CCR_MSIZE;
+	DMA1->CCR4 |= DMA_CCR_MSIZE_16;
+
+	/* Disable peripheral increment mode */
+	DMA1->CCR4 &=~DMA_CCR_PINC;
+
+	/* Enable memory increment mode */
+	DMA1->CCR4 |= DMA_CCR_MINC;
+
+	/* Transfer Direction: to perihpheral */
+	DMA1->CCR4 |= DMA_CCR_DIR;
+
+	/* Circular Buffer */
+	DMA1->CCR4 |= DMA_CCR_CIRC;
+
+	/* Amount of data to transfer */
+	DMA1->CNDTR4 = NUM_SAMPLES*2;
+
+	/* Peripheral Address */
+	DMA1->CPAR4 = (uint32_t)&(DAC->DHR12L2);
+
+	/* Memory Address */
+	DMA1->CMAR4 = (uint32_t)&(audio_buf);
+
+	/* Set up Channel Select */
+	DMA1->CSELR &=~DMA_CSELR_C4S;
+
+	/* TIM7_UP/DAC_CH2 */
+	DMA1->CSELR |= 5<<12;
+
+	/* Enable Half-done interrupt */
+	DMA1->CCR4 |= DMA_CCR_HTIE;
+	/* Enable Transder complete  interrupt */
+	DMA1->CCR4 |= DMA_CCR_TCIE;
+
+	/* Enable DMA1 Channel 4 */
+	DMA1->CCR4 |= DMA_CCR_EN;
+
+	/* Set highest priority interrupt */
+	NVIC_SetPriority(DMA1_CH4_IRQn, 0);
+
+	/* Enable Interrupt */
+	NVIC_EnableIRQ(DMA1_CH4_IRQn);
+
+	return;
+}
+
 int main(void) {
 
 
@@ -432,8 +400,6 @@ int main(void) {
         /* GREEN LED is GPIO-PE8 */
         GPIOE_Clock_Enable();
         GPIOE_Pin_Output_Init(8);
-
-	DAC2_Channel2_Init();
 
 	/* Set up LCD */
 	LCD_Clock_Init();
@@ -486,8 +452,7 @@ int main(void) {
 //	ayemu_set_chip_freq(&ay, 1000000);
 	ayemu_set_stereo(&ay, AYEMU_MONO, NULL);
 
-
-	TIM4_Init();
+//	TIM4_Init();
 	asm volatile ( "cpsie i" );
 
 	while(1) {
@@ -564,14 +529,16 @@ void System_Clock_Init(void) {
             AHB Prescaler                  = 1
             APB1 Prescaler                 = 1
             APB2 Prescaler                 = 1
+            Flash Latency(WS)              = 4
             PLL_M                          = 2
             PLL_N                          = 20
             PLL_R                          = 2
 	( SYSCLK = PLLCLK = VCO=(16MHz)*N = 320 /M/R = 80 MHz )
             PLL_P                          = 7 (No reason for this...)
+	( PLLSAI3CLK = VCO /M/P) = 320/2/7 = 22.857MHz )
             PLL_Q                          = 8
-		 ( PLL48M1CLK = VCO /M/Q) = 40 MHz ?! )
-            Flash Latency(WS)              = 4
+	( PLL48M1CLK = VCO /Q) = 40 MHz ?! )
+
 */
 
 	// SYSCLK = (IN*N)/M
@@ -588,7 +555,7 @@ void System_Clock_Init(void) {
 	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLR;		// 160MHz/2 = 80MHz
 
 	/* PLL_P=7 (register=0 means 7, 1=17) for SAI1/SAI2 clock */
-//	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLP;
+	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLP;
 
 	/* PLL_Q=8 (11) sets 48MHz clock to 320/8=40? */
 //	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLQ;
@@ -597,7 +564,11 @@ void System_Clock_Init(void) {
 	RCC->CR |= RCC_CR_PLLON;
 	while (!(RCC->CR & RCC_CR_PLLRDY)) ;
 
+	/* Enable PLL clock output */
 	RCC->PLLCFGR |= RCC_PLLCFGR_PLLREN;
+
+	/* Enable SAI clock output */
+	RCC->PLLCFGR |= RCC_PLLCFGR_PLLPEN;
 
 	/* Select PLL as system clock source  */
 	RCC->CFGR &= ~RCC_CFGR_SW;
@@ -709,7 +680,7 @@ __attribute__ ((section(".isr_vector"))) = {
 	(uint32_t *) nmi_handler,	/*  27:AC = TIM1_CC		*/
 	(uint32_t *) nmi_handler,	/*  28:B0 = TIM2		*/
 	(uint32_t *) nmi_handler,	/*  29:B4 = TIM3		*/
-	(uint32_t *) TIM4_IRQHandler,	/*  30:B8 = TIM4		*/
+	(uint32_t *) nmi_handler,	/*  30:B8 = TIM4		*/
 	(uint32_t *) nmi_handler,	/*  31:BC = I2C1_EV		*/
 	(uint32_t *) nmi_handler,	/*  32:C0 = I2C1_ER		*/
 	(uint32_t *) nmi_handler,	/*  33:C4 = I2C2_EV		*/
