@@ -381,6 +381,106 @@ void DMA_Init(void) {
 	return;
 }
 
+	/* Set up SAI for 16-bit steroe i2s */
+void SAI_Init(void) {
+
+	/* Enable the clock for SAI1 */
+	RCC->APB2ENR |= RCC_APB2ENR_SAI1EN;
+
+	/* Enable i2s mode */
+
+	/* Disable SAI while configuring */
+	SAI1->ACR1&=~SAI_CR1_SAIEN;
+
+	/* Set "Free" Protocol */
+	SAI1->ACR1&=~SAI_CR1_PRTCFG;
+
+	/* Set Master Transmitter */
+	SAI1->ACR1&=~SAI_CR1_MODE;
+
+	/* Set first bit MSB */
+	SAI1->ACR1&=~SAI_CR1_LSBFIRST;
+
+	/* Transmit, so set clock strobing to falling edge */
+	SAI1->ACR1|= SAI_CR1_CKSTR;
+
+	/* Set datasize to 16 */
+	SAI1->ACR1&=~SAI_CR1_DS;
+	SAI1->ACR1|= 4<<5;
+
+	/* SAI_FS_CHANNEL_IDENTIFICATION */
+	SAI1->AFRCR|= SAI_FRCR_FSDEF;
+
+	/* Frame Polarity active low*/
+	SAI1->AFRCR&=~SAI_FRCR_FSPOL;
+
+	/* Frame offset before first bit */
+	SAI1->AFRCR|= SAI_FRCR_FSOFF;
+
+	/* hsai->FrameInit.FrameLength = 32U * (nbslot / 2U); */
+	SAI1->AFRCR|= 32;  /* two 16-bit values */
+
+	/* hsai->FrameInit.ActiveFrameLength = 16U * (nbslot / 2U); */
+	SAI1->AFRCR|=16<<8;
+
+	/* Slot number = 2 (stereo) */
+	/* ??? manual says +1 ? */
+	SAI1->ASLOTR&=~SAI_SLOTR_NBSLOT;
+	SAI1->ASLOTR|= (2-1)<<8;
+
+	/* Slot size = 16bits */
+	SAI1->ASLOTR&=~SAI_SLOTR_SLOTSZ;
+	SAI1->ASLOTR|= 1<<6;
+
+	/* SAI_SLOTACTIVE_ALL */
+	SAI1->ASLOTR|= (0xffff<<16);
+
+	/* Slot first bit offset = 0 */
+	SAI1->ASLOTR&=~SAI_SLOTR_FBOFF;
+
+
+	/* Enable */
+	SAI1->ACR1 |= SAI_CR1_SAIEN;
+
+}
+
+/* Blocking transmit */
+int i2s_transmit(uint8_t *data, uint16_t size) {
+
+	uint32_t count=size;
+	uint32_t temp;
+	uint8_t *pdata=data;
+
+	if ((data==NULL) || (size==0)) return -1;
+
+	/* If not enabled, fill FIFO and enable */
+	if ((SAI1->ACR1 & SAI_CR1_SAIEN)==0) {
+		//SAI_FillFifo(hsai);
+		SAI1->ACR1 |= SAI_CR1_SAIEN;
+	}
+
+	while (count > 0U) {
+		/* Write data if the FIFO is not full */
+		if ((SAI1->ASR & SAI_SR_FLVL) != SAI_FIFOSTATUS_FULL) {
+			temp = (uint32_t)(*pdata);
+			pdata++;
+			temp |= ((uint32_t)(*pdata) << 8);
+			pdata++;
+			temp |= ((uint32_t)(*pdata) << 16);
+			pdata++;
+			temp |= ((uint32_t)(*pdata) << 24);
+			pdata++;
+			SAI1->ADR = temp;
+		}
+		count--;
+	}
+
+	/* Check for the Timeout */
+
+	return 0;
+}
+
+
 int main(void) {
 
 
@@ -452,8 +552,22 @@ int main(void) {
 //	ayemu_set_chip_freq(&ay, 1000000);
 	ayemu_set_stereo(&ay, AYEMU_MONO, NULL);
 
+
+	SAI_Init();
+
 //	TIM4_Init();
 	asm volatile ( "cpsie i" );
+
+	NextBuffer(0);
+	NextBuffer(1);
+
+	while(1) {
+		i2s_transmit(audio_buf,AUDIO_BUFSIZ/4);
+		NextBuffer(0);
+		NextBuffer(1);
+	}
+
+//	DMA_Init();
 
 	while(1) {
 

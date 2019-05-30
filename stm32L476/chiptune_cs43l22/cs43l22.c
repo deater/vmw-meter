@@ -61,10 +61,6 @@ void cs43l22_init(void) {
 	sound_data[1]=0x00;
 	i2c_send_data(I2C1,slave_addr,sound_data,2);
 
-
-	/* Enable the clock for SAI1 */
-	RCC->APB2ENR |= RCC_APB2ENR_SAI1EN;
-
 	/* Configure GPIOE for PE2(MCLK), PE5(SCLK) and PE6(SDIN) on I2S */
 	/* PE4=fs??? */
 	/* Alternate function 13 */

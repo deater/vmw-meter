@@ -342,6 +342,22 @@ __IO uint32_t SWPR2;	/* 0x28 = SRAM2 write protect register 2 */
 
 
 
+/* Power -- 5.4 p184 */
+typedef struct {
+__IO uint32_t CR1;	/* 0x00 = Control Register 1 */
+__IO uint32_t CR2;	/* 0x04 = Control Register 2 */
+__IO uint32_t CR3;	/* 0x08 = Control Register 3 */
+__IO uint32_t CR4;	/* 0x0C = Control Register 4 */
+} PWR_TypeDef;
+
+/* Table 1 p80 */
+#define PWR_BASE	(APB1PERIPH_BASE + 0x7000)
+#define PWR ((PWR_TypeDef *)PWR_BASE)
+
+#define PWR_CR1_DBP	(1<<8)	/* Disable Backup Write Protection */
+
+
+
 
 /* DMA -- Chapter 11 starting p337 */
 /*	register definitions start in 11.5 on p349 */
@@ -855,20 +871,74 @@ __IO uint32_t RAM[16];		/* 0x14 - 0x50 */
 
 
 
-
-/* Power -- 5.4 p184 */
+/* SAI -- Serial Audio Interface */
+/* Chapter 43 (p????) */
+/* Registers start 43.5 p1507 */
 typedef struct {
-__IO uint32_t CR1;	/* 0x00 = Control Register 1 */
-__IO uint32_t CR2;	/* 0x04 = Control Register 2 */
-__IO uint32_t CR3;	/* 0x08 = Control Register 3 */
-__IO uint32_t CR4;	/* 0x0C = Control Register 4 */
-} PWR_TypeDef;
+__IO uint32_t GCR;		/* 0x00 = Global Control Register */
+__IO uint32_t ACR1;		/* 0x04 = Config Register 1 */
+__IO uint32_t ACR2;		/* 0x08 = Config Register 2 */
+__IO uint32_t AFRCR;		/* 0x0C = Frame Config Register */
+__IO uint32_t ASLOTR;		/* 0x10 = Slot Register */
+__IO uint32_t AIM;		/* 0x14 = Interrupt Mask 2 */
+__IO uint32_t ASR;		/* 0x18 = Status Register */
+__IO uint32_t ACLRFLR;		/* 0x1C = Clear Flag Register */
+__IO uint32_t ADR;		/* 0x20 = Data Register */
+__IO uint32_t BCR1;		/* 0x24 = Config Register 1 */
+__IO uint32_t BCR2;		/* 0x28 = Config Register 2 */
+__IO uint32_t BFRCR;		/* 0x2C = Frame Config Register */
+__IO uint32_t BSLOTR;		/* 0x30 = Slot Register */
+__IO uint32_t BIM;		/* 0x34 = Interrupt Mask 2 */
+__IO uint32_t BSR;		/* 0x38 = Status Register */
+__IO uint32_t BCLRFLR;		/* 0x3C = Clear Flag Register */
+__IO uint32_t BDR;		/* 0x40 = Data Register */
+} SAI_TypeDef;
 
-/* Table 1 p80 */
-#define PWR_BASE	(APB1PERIPH_BASE + 0x7000)
-#define PWR ((PWR_TypeDef *)PWR_BASE)
+/* p84 */
+#define SAI1_BASE	(APB2PERIPH_BASE + 0x5400)
+#define SAI1 ((SAI_TypeDef *)SAI1_BASE)
 
-#define PWR_CR1_DBP	(1<<8)	/* Disable Backup Write Protection */
+#define SAI2_BASE	(APB2PERIPH_BASE + 0x5800)
+#define SAI2 ((SAI_TypeDef *)SAI2_BASE)
+
+/* 43.5.2 p1507 */
+#define SAI_CR1_MCKDIV		(0xf<<20)
+#define SAI_CR1_NODIV		(1<<19)
+#define SAI_CR1_DMAEN		(1<<17)
+#define SAI_CR1_SAIEN		(1<<16)
+#define SAI_CR1_OUTDRIV		(1<<13)
+#define SAI_CR1_MONO		(1<<12)
+#define SAI_CR1_SYNCEN		(3<<10)
+#define SAI_CR1_CKSTR		(1<<9)
+#define SAI_CR1_LSBFIRST	(1<<8)
+#define SAI_CR1_DS		(7<<5)
+#define SAI_CR1_PRTCFG		(3<<2)
+#define SAI_CR1_MODE		(3<<0)
+
+/* 43.5.6 p 1516 */
+#define SAI_FRCR_FSOFF		(1<<18)
+#define SAI_FRCR_FSPOL		(1<<17)
+#define SAI_FRCR_FSDEF		(1<<16)
+#define SAI_FRCR_FSALL		(0x7f<<8)
+#define SAI_FRCR_FRL		(0xff<<0)
+
+/* 43.5.8 p 1519 */
+#define SAI_SLOTR_SLOTEN	(0xffff<<16)
+#define SAI_SLOTR_NBSLOT	(0xf<<8)
+#define SAI_SLOTR_SLOTSZ	(0x3<<6)
+#define SAI_SLOTR_FBOFF		(0x1f<<0)
+
+/* 43.5.12 p 1523 */
+#define SAI_SR_FLVL		(0x3<<16)
+#define SAI_SR_LFSDET		(1<<6)
+#define SAI_SR_AFSDET		(1<<5)
+#define SAI_SR_CNRDY		(1<<4)
+#define SAI_SR_FREQ		(1<<3)
+#define SAI_SR_WCKCFG		(1<<2)
+#define SAI_SR_MUTEDET		(1<<1)
+#define SAI_SR_OVRUDR		(1<<0)
+
+#define SAI_FIFOSTATUS_FULL	(5<<16)
 
 
 /************************************************************/
