@@ -416,6 +416,10 @@ void SAI_Init(void) {
 		SAI1->ACR1&=~SAI_CR1_DS;
 		SAI1->ACR1|= 4<<5;
 
+		/* Set MCKDIV */
+		SAI1->ACR1&=~(SAI_CR1_MCKDIV);
+		SAI1->ACR1|= (1<<20);
+
 	/* CR2 register */
 
 		/* Disable compounding */
