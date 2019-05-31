@@ -391,54 +391,78 @@ void SAI_Init(void) {
 
 	/* Enable i2s mode */
 
-	/* Disable SAI while configuring */
-	SAI1->ACR1&=~SAI_CR1_SAIEN;
+	/* GCR register */
+		/* ASYNCHRONOUS */
+		/* SYNCEXT_DISABLE */
 
-	/* Set "Free" Protocol */
-	SAI1->ACR1&=~SAI_CR1_PRTCFG;
+	/* CR1 register */
 
-	/* Set Master Transmitter */
-	SAI1->ACR1&=~SAI_CR1_MODE;
+		/* Disable SAI while configuring */
+		SAI1->ACR1&=~SAI_CR1_SAIEN;
 
-	/* Set first bit MSB */
-	SAI1->ACR1&=~SAI_CR1_LSBFIRST;
+		/* Set "Free" Protocol */
+		SAI1->ACR1&=~SAI_CR1_PRTCFG;
 
-	/* Transmit, so set clock strobing to falling edge */
-	SAI1->ACR1|= SAI_CR1_CKSTR;
+		/* Set Master Transmitter */
+		SAI1->ACR1&=~SAI_CR1_MODE;
 
-	/* Set datasize to 16 */
-	SAI1->ACR1&=~SAI_CR1_DS;
-	SAI1->ACR1|= 4<<5;
+		/* Set first bit MSB */
+		SAI1->ACR1&=~SAI_CR1_LSBFIRST;
 
-	/* SAI_FS_CHANNEL_IDENTIFICATION */
-	SAI1->AFRCR|= SAI_FRCR_FSDEF;
+		/* Transmit, so set clock strobing to falling edge */
+		SAI1->ACR1|= SAI_CR1_CKSTR;
 
-	/* Frame Polarity active low*/
-	SAI1->AFRCR&=~SAI_FRCR_FSPOL;
+		/* Set datasize to 16 */
+		SAI1->ACR1&=~SAI_CR1_DS;
+		SAI1->ACR1|= 4<<5;
 
-	/* Frame offset before first bit */
-	SAI1->AFRCR|= SAI_FRCR_FSOFF;
+	/* CR2 register */
 
-	/* hsai->FrameInit.FrameLength = 32U * (nbslot / 2U); */
-	SAI1->AFRCR|= (32-1);  /* two 16-bit values */
+		/* Disable compounding */
+		/* Disable tristate */
 
-	/* hsai->FrameInit.ActiveFrameLength = 16U * (nbslot / 2U); */
-	SAI1->AFRCR|=(16-1)<<8;
+		/* Set FIFO Threshold to 1/4 full */
+		SAI1->ACR2&=~SAI_CR2_FTH;
+		SAI1->ACR2|=1;
 
-	/* Slot number = 2 (stereo) */
-	/* ??? manual says +1 ? */
-	SAI1->ASLOTR&=~SAI_SLOTR_NBSLOT;
-	SAI1->ASLOTR|= (2-1)<<8;
 
-	/* Slot size = 16bits */
-	SAI1->ASLOTR&=~SAI_SLOTR_SLOTSZ;
-	SAI1->ASLOTR|= 1<<6;
+	/* FRCR register */
 
-	/* SAI_SLOTACTIVE_ALL */
-	SAI1->ASLOTR|= (0xffff<<16);
+		/* Frame Length = 32, manual says subtract 1 */
+		SAI1->AFRCR|= (32-1);  /* two 16-bit values */
 
-	/* Slot first bit offset = 0 */
-	SAI1->ASLOTR&=~SAI_SLOTR_FBOFF;
+		/* Frame offset before first bit */
+		SAI1->AFRCR|= SAI_FRCR_FSOFF;
+
+		/* SAI_FS_CHANNEL_IDENTIFICATION */
+		SAI1->AFRCR|= SAI_FRCR_FSDEF;
+
+		/* Frame Polarity active low*/
+		SAI1->AFRCR&=~SAI_FRCR_FSPOL;
+
+		/* ActiveFrameLength = 16, manual says subtract 1*/
+		SAI1->AFRCR|=(16-1)<<8;
+
+	/* SLOTR register */
+
+		/* Slot first bit offset = 0 */
+		SAI1->ASLOTR&=~SAI_SLOTR_FBOFF;
+
+		/* Slot size = 16bits */
+		SAI1->ASLOTR&=~SAI_SLOTR_SLOTSZ;
+		SAI1->ASLOTR|= 1<<6;
+
+		/* Slot active = 0x3 */
+		/* we had? SAI_SLOTACTIVE_ALL */
+		//SAI1->ASLOTR|= (0xffff<<16);
+		SAI1->ASLOTR|= (0x3<<16);
+
+
+		/* Slot number = 2 (stereo) */
+		/* ??? manual says +1 ? */
+		SAI1->ASLOTR&=~SAI_SLOTR_NBSLOT;
+		SAI1->ASLOTR|= (2-1)<<8;
+
 
 	/* Enable */
 	SAI1->ACR1 |= SAI_CR1_SAIEN;
@@ -486,6 +510,10 @@ int i2s_transmit(uint8_t *data, uint16_t size) {
 			pdata++;
 			SAI1->ADR = temp;
 			count--;
+			GPIOE->ODR &= ~(1<<8);
+		}
+		else {
+			GPIOE->ODR |= (1<<8);
 		}
 	}
 

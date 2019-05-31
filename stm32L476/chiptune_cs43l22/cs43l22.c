@@ -63,7 +63,7 @@ void cs43l22_init(void) {
 	i2c_send_data(I2C1,slave_addr,sound_data,2);
 
 	/* Configure GPIOE for PE2(MCLK), PE5(SCLK) and PE6(SDIN) on I2S */
-	/* PE4=fs??? */
+	/* PE4=(FS) */
 	/* Alternate function 13 */
 
 	/* Set mode of pins as alternate function */
@@ -95,28 +95,28 @@ void cs43l22_init(void) {
 	GPIOE->PUPDR &=~(3UL<<(sd_pin*2));
 	GPIOE->PUPDR &=~(3UL<<(fs_pin*2));
 
-	/* Set output as open drain */
-	GPIOE->OTYPER |= (1<<mclk_pin);
-	GPIOE->OTYPER |= (1<<sclk_pin);
-	GPIOE->OTYPER |= (1<<sd_pin);
-	GPIOE->OTYPER |= (1<<fs_pin);
+	/* Set output as push/pull  */
+	GPIOE->OTYPER &=~(1<<mclk_pin);
+	GPIOE->OTYPER &=~(1<<sclk_pin);
+	GPIOE->OTYPER &=~(1<<sd_pin);
+	GPIOE->OTYPER &=~(1<<fs_pin);
 
-	/* Set speed to fast (high) */
-	GPIOE->OSPEEDR |= (2<<(mclk_pin*2));
-	GPIOE->OSPEEDR |= (2<<(sclk_pin*2));
-	GPIOE->OSPEEDR |= (2<<(sd_pin*2));
-	GPIOE->OSPEEDR |= (2<<(fs_pin*2));
+	/* Set speed to (very high) */
+	GPIOE->OSPEEDR |= (3<<(mclk_pin*2));
+	GPIOE->OSPEEDR |= (3<<(sclk_pin*2));
+	GPIOE->OSPEEDR |= (3<<(sd_pin*2));
+	GPIOE->OSPEEDR |= (3<<(fs_pin*2));
 
 
 	/* Clock configuration: Auto detection */
-	sound_data[0]=0x05;
+	sound_data[0]=CS43L22_REG_CLOCKING_CTL;		/* 0x05 */
 	sound_data[1]=0x81;
 	i2c_send_data(I2C1,slave_addr,sound_data,2);
 
 	/* Set the Slave Mode and the audio Standard */
 	/* CODEC_STANDARD??? 04 = i2s, 32-bit?? */
 	/* my calc 07 = slave, not inv, dsp disabled, i2s, 16-bit */
-	sound_data[0]=0x06;
+	sound_data[0]=CS43L22_REG_INTERFACE_CTL1;	/* 0x06 */
 	sound_data[1]=0x04;
 	i2c_send_data(I2C1,slave_addr,sound_data,2);
 
@@ -177,13 +177,13 @@ void cs43l22_play(void) {
 
 	/* Enable Output device, register 4 */
 	/* Headphones always on, speaker always off: write 10101111 */
-	sound_data[0]=0x04;
+	sound_data[0]=CS43L22_REG_POWER_CTL2;		/* 0x04 */
 	sound_data[1]=0xaf;
 	i2c_send_data(I2C1,slave_addr,sound_data,2);
 
 	/* Power on the Codec */
 	/* Write 0x9e to register 0x02 */
-	sound_data[0]=0x02;
+	sound_data[0]=CS43L22_REG_POWER_CTL1;		/* 0x02 */
 	sound_data[1]=0x9e;
 	i2c_send_data(I2C1,slave_addr,sound_data,2);
 

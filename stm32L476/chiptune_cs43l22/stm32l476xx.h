@@ -915,6 +915,16 @@ __IO uint32_t BDR;		/* 0x40 = Data Register */
 #define SAI_CR1_PRTCFG		(3<<2)
 #define SAI_CR1_MODE		(3<<0)
 
+/* 43.5.4 p 1513 */
+#define SAI_CR2_COMP		(0x3<<14)
+#define SAI_CR2_CPL		(1<<13)
+#define SAI_CR2_MUTECNT		(0x3f<<7)
+#define SAI_CR2_MUTEVAL		(1<<6)
+#define SAI_CR2_MUTE		(1<<5)
+#define SAI_CR2_TRIS		(1<<4)
+#define SAI_CR2_FFLUSH		(1<<3)
+#define SAI_CR2_FTH		(0x7<<0)
+
 /* 43.5.6 p 1516 */
 #define SAI_FRCR_FSOFF		(1<<18)
 #define SAI_FRCR_FSPOL		(1<<17)
@@ -938,7 +948,7 @@ __IO uint32_t BDR;		/* 0x40 = Data Register */
 #define SAI_SR_MUTEDET		(1<<1)
 #define SAI_SR_OVRUDR		(1<<0)
 
-#define SAI_FIFOSTATUS_FULL	(5<<16)
+#define SAI_FIFOSTATUS_FULL	(0x5<<16)
 
 
 /************************************************************/
