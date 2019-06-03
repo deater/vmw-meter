@@ -612,7 +612,7 @@ int main(void) {
 
 	cs43l22_beep();
 
-	data_send[0]=5; //CS43L22_REG_BEEP_TONE_CFG;
+	data_send[0]=CS43L22_REG_BEEP_TONE_CFG;
 	i2c_send_data(I2C1,slave_addr,data_send,1);
 	i2c_receive_data(I2C1,slave_addr,data_receive,1);
 	buffer[0]=((data_receive[0]>>4)&0xf)+'0';
@@ -625,7 +625,7 @@ int main(void) {
 	LCD_Display_String(buffer);
 
 
-	while(1);
+//	while(1);
 
 	int led_on=0,led_count=0;
 
@@ -782,10 +782,35 @@ void System_Clock_Init(void) {
 	/* Enable SAI clock output */
 	RCC->PLLCFGR |= RCC_PLLCFGR_PLLPEN;
 
+
+	/******************************************/
+	/* SAI1CLK				*/
+	/******************************************/
+	/* PLL_N=24 --- VCO=IN */
+	RCC->PLLSAI1CFGR &= ~RCC_PLLSAI1CFGR_PLLSAI1N;		// set to HSI*20=320MHz
+	RCC->PLLSAI1CFGR |= 12<<8;
+
+	RCC->PLLSAI1CFGR |= RCC_PLLSAI1CFGR_PLLSAI1P;
+
+	/* Enable SAI clock output */
+	RCC->PLLSAI1CFGR |= RCC_PLLSAI1CFGR_PLLSAI1PEN;
+
+	/* 00 -- PLLSAI1 P clock */
+	/* 01 -- PLLSAI2 P clock */
+	/* 02 -- PLLSAI3 P clock */
+	/* 03 -- External clock */
+	RCC->CCIPR&=~RCC_CCIPR_SAI1SEL;
+	RCC->CCIPR|= 2<<22;
+
+
+	/***************************************/
 	/* Select PLL as system clock source  */
+	/**************************************/
 	RCC->CFGR &= ~RCC_CFGR_SW;
 	RCC->CFGR |= RCC_CFGR_SW_PLL;  /* 11: PLL used as sys clock */
 	while ((RCC->CFGR & RCC_CFGR_SWS) == 0 );
+
+
 
 }
 
