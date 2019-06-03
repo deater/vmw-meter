@@ -13,7 +13,8 @@
 #include "pt3_lib.h"
 #include "ayemu.h"
 
-#define FREQ	44100
+#define FREQ	48000
+//#define FREQ	44100
 #define CHANS	1
 #define BITS	16
 
@@ -610,7 +611,7 @@ int main(void) {
 
 	cs43l22_play();
 
-	cs43l22_beep();
+//	cs43l22_beep();
 
 	data_send[0]=CS43L22_REG_BEEP_TONE_CFG;
 	i2c_send_data(I2C1,slave_addr,data_send,1);
@@ -768,6 +769,7 @@ void System_Clock_Init(void) {
 
 	/* PLL_P=7 (register=0 means 7, 1=17) for SAI1/SAI2 clock */
 	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLP;
+	RCC->PLLCFGR |= RCC_PLLCFGR_PLLP;
 
 	/* PLL_Q=8 (11) sets 48MHz clock to 320/8=40? */
 //	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLQ;
@@ -787,6 +789,7 @@ void System_Clock_Init(void) {
 	/* SAI1CLK				*/
 	/******************************************/
 	/* PLL_N=24 --- VCO=IN */
+#if 0
 	RCC->PLLSAI1CFGR &= ~RCC_PLLSAI1CFGR_PLLSAI1N;		// set to HSI*20=320MHz
 	RCC->PLLSAI1CFGR |= 12<<8;
 
@@ -794,7 +797,7 @@ void System_Clock_Init(void) {
 
 	/* Enable SAI clock output */
 	RCC->PLLSAI1CFGR |= RCC_PLLSAI1CFGR_PLLSAI1PEN;
-
+#endif
 	/* 00 -- PLLSAI1 P clock */
 	/* 01 -- PLLSAI2 P clock */
 	/* 02 -- PLLSAI3 P clock */

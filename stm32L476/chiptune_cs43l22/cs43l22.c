@@ -150,7 +150,7 @@ void cs43l22_init(void) {
 
 
 	/* Set the Master volume */
-	cs43l22_set_volume(128);
+	cs43l22_set_volume(50);
 
 	/* Setup ramp, which lets the codec power down gracefully */
 	/* Otherwise you might be stuck with high-pitch noise */
@@ -177,11 +177,11 @@ void cs43l22_init(void) {
 
 	/* Adjust PCM volume level */
 	sound_data[0]=CS43L22_REG_PCMA_VOL;		/* 0x1a */
-	sound_data[1]=0x0a;
+	sound_data[1]=0xf;
 	i2c_send_data(I2C1,slave_addr,sound_data,2);
 
 	sound_data[0]=CS43L22_REG_PCMB_VOL;		/* 0x1b */
-	sound_data[1]=0x0a;
+	sound_data[1]=0xf;
 	i2c_send_data(I2C1,slave_addr,sound_data,2);
 
 }
@@ -214,11 +214,11 @@ void cs43l22_set_volume(int volume) {
 
 	/* be sure headphone is unmuted */
 	sound_data[0]=CS43L22_REG_HEADPHONE_A_VOL;		/* 0x22 */
-	sound_data[1]=0;
+	sound_data[1]=0x00;
 	i2c_send_data(I2C1,slave_addr,sound_data,2);
 
 	sound_data[0]=CS43L22_REG_HEADPHONE_B_VOL;		/* 0x23 */
-	sound_data[1]=0;
+	sound_data[1]=0x00;
 	i2c_send_data(I2C1,slave_addr,sound_data,2);
 }
 
