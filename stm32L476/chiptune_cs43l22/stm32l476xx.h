@@ -117,6 +117,10 @@ __IO uint32_t CSR;		/* 0x94 */
 #define RCC_CR_HSEBYP		(1<<18)
 #define RCC_CR_PLLON		(1<<24)
 #define RCC_CR_PLLRDY		(1<<25)
+#define RCC_CR_PLLSAI1ON	(1<<26)
+#define RCC_CR_PLLSAI1RDY	(1<<27)
+#define RCC_CR_PLLSAI2ON	(1<<28)
+#define RCC_CR_PLLSAI2RDY	(1<<29)
 
 
 #define RCC_CFGR_SW		(0x3)
@@ -153,8 +157,7 @@ __IO uint32_t CSR;		/* 0x94 */
 #define RCC_PLLSAI1CFGR_PLLSAI1QEN	(0x1<<20)
 #define RCC_PLLSAI1CFGR_PLLSAI1P	(0x1<<17)
 #define RCC_PLLSAI1CFGR_PLLSAI1PEN	(0x1<<16)
-#define RCC_PLLSAI1CFGR_PLLSAI1N	(0xff<<8)
-#define RCC_PLLSAI1CFGR_PLLSAI1M	(0x7<<4)
+#define RCC_PLLSAI1CFGR_PLLSAI1N	(0x7f<<8)
 
 /* 6.4.13 p246 */
 #define RCC_APB1RSTR1_LPTIM1RST	(1<<31)

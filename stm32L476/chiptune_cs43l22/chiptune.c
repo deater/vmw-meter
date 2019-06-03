@@ -13,8 +13,8 @@
 #include "pt3_lib.h"
 #include "ayemu.h"
 
-#define FREQ	48000
-//#define FREQ	44100
+//#define FREQ	48000
+#define FREQ	44100
 #define CHANS	1
 #define BITS	16
 
@@ -419,7 +419,7 @@ void SAI_Init(void) {
 
 		/* Set MCKDIV */
 		SAI1->ACR1&=~(SAI_CR1_MCKDIV);
-		SAI1->ACR1|= (1<<20);
+		//SAI1->ACR1|= (1<<20);
 
 	/* CR2 register */
 
@@ -476,27 +476,37 @@ void SAI_Init(void) {
 }
 
 /* Blocking transmit */
-int i2s_transmit(uint8_t *data, uint16_t size) {
+int i2s_transmit(uint8_t *datal, uint8_t *datar, uint16_t size) {
 
 	uint32_t count=size;
 	uint32_t temp;
-	uint8_t *pdata=data;
+	uint8_t *left_data=datal;
+	uint8_t *right_data=datar;
+	int left=1;
 
-	if ((data==NULL) || (size==0)) return -1;
+	if ((datar==NULL) || (datal==NULL) || (size==0)) return -1;
 
 	/* If not enabled, fill FIFO and enable */
 	if ((SAI1->ACR1 & SAI_CR1_SAIEN)==0) {
 		while (((SAI1->ASR & SAI_SR_FLVL) != SAI_FIFOSTATUS_FULL)
 			&& (count > 0U)) {
-			temp = (uint32_t)(*pdata);
-			pdata++;
-			temp |= ((uint32_t)(*pdata) << 8);
-			pdata++;
-			temp |= ((uint32_t)(*pdata) << 16);
-			pdata++;
-			temp |= ((uint32_t)(*pdata) << 24);
-			pdata++;
+
+			if (left) {
+				temp = (uint32_t)(*left_data);
+				left_data++;
+				temp |= ((uint32_t)(*left_data) << 8);
+				left_data++;
+				left=0;
+			}
+			else {
+				temp = ((uint32_t)(*right_data));
+				right_data++;
+				temp |= ((uint32_t)(*right_data) << 8);
+				right_data++;
+				left=1;
+			}
 			SAI1->ADR = temp;
+
 			count--;
 		}
 		SAI1->ACR1 |= SAI_CR1_SAIEN;
@@ -505,14 +515,20 @@ int i2s_transmit(uint8_t *data, uint16_t size) {
 	while (count > 0U) {
 		/* Write data if the FIFO is not full */
 		if ((SAI1->ASR & SAI_SR_FLVL) != SAI_FIFOSTATUS_FULL) {
-			temp = (uint32_t)(*pdata);
-			pdata++;
-			temp |= ((uint32_t)(*pdata) << 8);
-			pdata++;
-			temp |= ((uint32_t)(*pdata) << 16);
-			pdata++;
-			temp |= ((uint32_t)(*pdata) << 24);
-			pdata++;
+			if (left) {
+				temp = (uint32_t)(*left_data);
+				left_data++;
+				temp |= ((uint32_t)(*left_data) << 8);
+				left_data++;
+				left=0;
+			}
+			else {
+				temp = (uint32_t)(*right_data);
+				right_data++;
+				temp |= ((uint32_t)(*right_data) << 8);
+				right_data++;
+				left=1;
+			}
 			SAI1->ADR = temp;
 			count--;
 			GPIOE->ODR &= ~(1<<8);
@@ -607,7 +623,7 @@ int main(void) {
 	asm volatile ( "cpsie i" );
 
 	NextBuffer(0);
-	NextBuffer(1);
+//	NextBuffer(1);
 
 	cs43l22_play();
 
@@ -631,9 +647,9 @@ int main(void) {
 	int led_on=0,led_count=0;
 
 	while(1) {
-		i2s_transmit(audio_buf,AUDIO_BUFSIZ*2/4);
+		i2s_transmit(audio_buf,audio_buf,AUDIO_BUFSIZ);
 		NextBuffer(0);
-		NextBuffer(1);
+//		NextBuffer(1);
 
 		/* Blink RED LED (GPIOB2) based on note A */
 		if (led_count==50) {
@@ -647,19 +663,19 @@ int main(void) {
 				led_on=1;
 			}
 
-			data_send[0]=0x2e;
-			i2c_send_data(I2C1,slave_addr,data_send,1);
-			i2c_receive_data(I2C1,slave_addr,data_receive,1);
-
-			if (data_receive[0]==0x0) {
-				memcpy(buffer,"GOOD",4);
-				buffer[4]=0;
-			}
-			else {
-				memcpy(buffer,"BADC",4);
-				buffer[4]=0;
-			}
-			LCD_Display_String(buffer);
+//			data_send[0]=0x2e;
+//			i2c_send_data(I2C1,slave_addr,data_send,1);
+//			i2c_receive_data(I2C1,slave_addr,data_receive,1);
+//
+//			if (data_receive[0]==0x0) {
+//				memcpy(buffer,"GOOD",4);
+//				buffer[4]=0;
+//			}
+//			else {
+//				memcpy(buffer,"BADC",4);
+//				buffer[4]=0;
+//			}
+//			LCD_Display_String(buffer);
 
 
 		}
@@ -747,8 +763,8 @@ void System_Clock_Init(void) {
             PLL_N                          = 20
             PLL_R                          = 2
 	( SYSCLK = PLLCLK = VCO=(16MHz)*N = 320 /M/R = 80 MHz )
-            PLL_P                          = 7 (No reason for this...)
-	( PLLSAI3CLK = VCO /M/P) = 320/2/7 = 22.857MHz )
+            PLL_P                          = 7 
+	( PLLSAI3CLK = VCO /M/P) = 320/7 = 22.857MHz )
             PLL_Q                          = 8
 	( PLL48M1CLK = VCO /Q) = 40 MHz ?! )
 
@@ -769,7 +785,7 @@ void System_Clock_Init(void) {
 
 	/* PLL_P=7 (register=0 means 7, 1=17) for SAI1/SAI2 clock */
 	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLP;
-	RCC->PLLCFGR |= RCC_PLLCFGR_PLLP;
+//	RCC->PLLCFGR |= RCC_PLLCFGR_PLLP;
 
 	/* PLL_Q=8 (11) sets 48MHz clock to 320/8=40? */
 //	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLQ;
@@ -781,30 +797,8 @@ void System_Clock_Init(void) {
 	/* Enable PLL clock output */
 	RCC->PLLCFGR |= RCC_PLLCFGR_PLLREN;
 
-	/* Enable SAI clock output */
+	/* Enable SAI3 clock output */
 	RCC->PLLCFGR |= RCC_PLLCFGR_PLLPEN;
-
-
-	/******************************************/
-	/* SAI1CLK				*/
-	/******************************************/
-	/* PLL_N=24 --- VCO=IN */
-#if 0
-	RCC->PLLSAI1CFGR &= ~RCC_PLLSAI1CFGR_PLLSAI1N;		// set to HSI*20=320MHz
-	RCC->PLLSAI1CFGR |= 12<<8;
-
-	RCC->PLLSAI1CFGR |= RCC_PLLSAI1CFGR_PLLSAI1P;
-
-	/* Enable SAI clock output */
-	RCC->PLLSAI1CFGR |= RCC_PLLSAI1CFGR_PLLSAI1PEN;
-#endif
-	/* 00 -- PLLSAI1 P clock */
-	/* 01 -- PLLSAI2 P clock */
-	/* 02 -- PLLSAI3 P clock */
-	/* 03 -- External clock */
-	RCC->CCIPR&=~RCC_CCIPR_SAI1SEL;
-	RCC->CCIPR|= 2<<22;
-
 
 	/***************************************/
 	/* Select PLL as system clock source  */
@@ -814,7 +808,34 @@ void System_Clock_Init(void) {
 	while ((RCC->CFGR & RCC_CFGR_SWS) == 0 );
 
 
+	/****************************************/
+	/* SAI1CLK				*/
+	/****************************************/
+	/* VCO = 16MHz HSI/PLLM = 8MHz		*/
+	/* PLL_N=24 --- 192MHz/7=11.29MHz	*/
 
+	/* Configure PLL */
+	RCC->CR &= ~RCC_CR_PLLSAI1ON;
+	while((RCC->CR & RCC_CR_PLLSAI1RDY) == RCC_CR_PLLSAI1RDY);
+
+	RCC->PLLSAI1CFGR &= ~RCC_PLLSAI1CFGR_PLLSAI1N;
+	RCC->PLLSAI1CFGR |= 24<<8;
+
+	/* (8*24)/17 = 11.29MHz */
+	RCC->PLLSAI1CFGR |= RCC_PLLSAI1CFGR_PLLSAI1P;
+
+	/* Enable SAI clock output */
+	RCC->PLLSAI1CFGR |= RCC_PLLSAI1CFGR_PLLSAI1PEN;
+
+	/* 00 -- PLLSAI1 P clock */
+	/* 01 -- PLLSAI2 P clock */
+	/* 02 -- PLLSAI3 P clock */
+	/* 03 -- External clock */
+	RCC->CCIPR&=~RCC_CCIPR_SAI1SEL;
+//	RCC->CCIPR|= 2<<22;
+
+	RCC->CR |= RCC_CR_PLLSAI1ON;
+	while (!(RCC->CR & RCC_CR_PLLSAI1RDY)) ;
 }
 
 void NVIC_SetPriority(int irq, int priority) {

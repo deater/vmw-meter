@@ -134,10 +134,9 @@ void cs43l22_init(void) {
 
 	/* Clock configuration: Auto detection */
 	sound_data[0]=CS43L22_REG_CLOCKING_CTL;		/* 0x05 */
-	sound_data[1]=0x81;
+//	sound_data[1]=0x81;
+	sound_data[1]=0x80;
 
-//	sound_data[1]=0x80;
-//	sound_data[1]=0x01;
 	i2c_send_data(I2C1,slave_addr,sound_data,2);
 
 	/* Set the Slave Mode and the audio Standard */
