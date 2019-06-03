@@ -562,11 +562,13 @@ int main(void) {
 
 	i2c_init(I2C1);
 
+	SAI_Init();
+
 	/* Set up cs43l22 */
 	cs43l22_init();
 
 	slave_addr=0x94;
-	data_send[0]=1;
+	data_send[0]=CS43L22_REG_ID;
 	i2c_send_data(I2C1,slave_addr,data_send,1);
 	i2c_receive_data(I2C1,slave_addr,data_receive,1);
 
@@ -599,12 +601,9 @@ int main(void) {
 	ayemu_set_stereo(&ay, AYEMU_MONO, NULL);
 
 
-	SAI_Init();
 
 //	TIM4_Init();
 	asm volatile ( "cpsie i" );
-
-
 
 	NextBuffer(0);
 	NextBuffer(1);
@@ -612,6 +611,21 @@ int main(void) {
 	cs43l22_play();
 
 	cs43l22_beep();
+
+	data_send[0]=5; //CS43L22_REG_BEEP_TONE_CFG;
+	i2c_send_data(I2C1,slave_addr,data_send,1);
+	i2c_receive_data(I2C1,slave_addr,data_receive,1);
+	buffer[0]=((data_receive[0]>>4)&0xf)+'0';
+	if (buffer[0]>'9') buffer[0]+='A'-'9'-1;
+	buffer[1]=(data_receive[0]&0xf)+'0';
+	if (buffer[1]>'9') buffer[1]+='A'-'9'-1;
+	buffer[2]=' ';
+	buffer[3]=0;
+
+	LCD_Display_String(buffer);
+
+
+	while(1);
 
 	int led_on=0,led_count=0;
 
