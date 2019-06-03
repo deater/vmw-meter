@@ -604,10 +604,14 @@ int main(void) {
 //	TIM4_Init();
 	asm volatile ( "cpsie i" );
 
+
+
 	NextBuffer(0);
 	NextBuffer(1);
 
 	cs43l22_play();
+
+	cs43l22_beep();
 
 	int led_on=0,led_count=0;
 

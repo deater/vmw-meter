@@ -151,22 +151,31 @@ void cs43l22_set_volume(int volume) {
 
 
 	if (volume > 0xe6) {
-		sound_data[0]=0x20;
+		sound_data[0]=CS43L22_REG_MASTER_A_VOL;		/* 0x20 */
 		sound_data[1]=convertedvol-0xe7;
 		i2c_send_data(I2C1,slave_addr,sound_data,2);
 
-		sound_data[0]=0x21;
+		sound_data[0]=CS43L22_REG_MASTER_B_VOL;		/* 0x21 */
 		sound_data[1]=convertedvol-0xe7;
 		i2c_send_data(I2C1,slave_addr,sound_data,2);
 	} else {
-		sound_data[0]=0x20;
+		sound_data[0]=CS43L22_REG_MASTER_A_VOL;
 		sound_data[1]=convertedvol+0x19;
 		i2c_send_data(I2C1,slave_addr,sound_data,2);
 
-		sound_data[0]=0x21;
+		sound_data[0]=CS43L22_REG_MASTER_B_VOL;
 		sound_data[1]=convertedvol+0x19;
 		i2c_send_data(I2C1,slave_addr,sound_data,2);
 	}
+
+	/* be sure headphone is unmuted */
+	sound_data[0]=CS43L22_REG_HEADPHONE_A_VOL;		/* 0x22 */
+	sound_data[1]=0;
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
+
+	sound_data[0]=CS43L22_REG_HEADPHONE_B_VOL;		/* 0x23 */
+	sound_data[1]=0;
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
 }
 
 
@@ -205,3 +214,46 @@ void cs43l22_disable(void) {
 
 }
 
+void cs43l22_beep(void) {
+
+	unsigned char sound_data[2];
+	int slave_addr=0x94;
+
+	// MSTxVOL	p51
+
+
+	// PCMxVOL	p47
+	/* unmute, set volume to middle */
+	sound_data[0]=CS43L22_REG_PCMA_VOL;		/* 0x1a */
+	sound_data[1]=0x00;
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
+
+	/* unmute, set volume to middle */
+	sound_data[0]=CS43L22_REG_PCMB_VOL;		/* 0x1b */
+	sound_data[1]=0x00;
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
+
+	// OFFTIME	p48
+	// BPVOL	p49
+	/* beep volume and off time */
+	/* regular volume, off 1.2s */
+	sound_data[0]=CS43L22_REG_BEEP_VOL_OFF_TIME;		/* 0x1d */
+	sound_data[1]=(0x0<<5)|(0);
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
+
+	// ONTIME	p48
+	// FREQ		p47
+	sound_data[0]=CS43L22_REG_BEEP_FREQ_ON_TIME;		/* 0x1C */
+	/* 1kHz, on 1.2s */
+	sound_data[1]=(0x7<<4)|(0x3);
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
+
+
+	// BEEP		p49
+	// BEEPMIXDIS	p49
+	sound_data[0]=CS43L22_REG_BEEP_FREQ_ON_TIME;		/* 0x1E */
+	sound_data[1]=(0x3<<6)|(0x0);
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
+
+
+}

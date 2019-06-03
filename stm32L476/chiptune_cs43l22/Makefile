@@ -68,7 +68,7 @@ lcd.o:	lcd.c stm32l476xx.h
 i2c.o:	i2c.c stm32l476xx.h i2c.h
 	$(CC) $(CFLAGS)  -c -o i2c.o i2c.c
 
-cs43l22.o:	cs43l22.c
+cs43l22.o:	cs43l22.c cs43l22.h
 	$(CC) $(CFLAGS)  -c -o cs43l22.o cs43l22.c
 
 chiptune.o:	chiptune.c stm32l476xx.h
