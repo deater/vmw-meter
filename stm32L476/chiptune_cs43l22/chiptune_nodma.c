@@ -151,9 +151,9 @@ static void DMA_IRQHandler(void) {
 	/* At half full, we should load next buffer at start */
 	/* At full, we should load next buffer to end */
 
-	if ((DMA2->ISR&DMA_ISR_TCIF6)==DMA_ISR_TCIF6) {
+	if ((DMA1->ISR&DMA_ISR_TCIF4)==DMA_ISR_TCIF4) {
 		NextBuffer(1);
-#if 1
+#if 0
 		static int led_count=0,led_on=0;
 
 		/* This should happen at roughly 50Hz */
@@ -174,7 +174,7 @@ static void DMA_IRQHandler(void) {
 #endif
 	}
 
-	if ((DMA2->ISR&DMA_ISR_HTIF6)==DMA_ISR_HTIF6) {
+	if ((DMA1->ISR&DMA_ISR_HTIF4)==DMA_ISR_HTIF4) {
 		NextBuffer(0);
 	}
 
@@ -182,13 +182,44 @@ static void DMA_IRQHandler(void) {
 
 	/* ACK interrupt */
 	/* Set to 1 to clear */
-	DMA2->IFCR |= DMA_IFCR_CGIF6;
+	DMA1->IFCR |= DMA_IFCR_CGIF4;
 
 }
+
+
+
 
 void SysTick_Handler(void) {
 
 	if (TimeDelay > 0) TimeDelay--;
+}
+
+static void TIM7_Init(void) {
+
+	/* enable Timer 7 clock */
+	RCC->APB1ENR1 |= RCC_APB1ENR1_TIM7EN;
+
+	/* Trigger DMA */
+	TIM7->DIER |= TIM_DIER_UDE;
+
+	/* Master Mode Update Trigger */
+	TIM7->CR2 |= 2<<4;
+
+	/* Prescaler. slow down the input clock by a factor of (1+prescaler) */
+	TIM7->PSC=54;		// 16MHz / (1+10) = 1.454MHz
+
+	/* Auto-reload, max */
+	TIM7->ARR=32;		// 1.454MHz /(33) = roughly 44kHz, 44077
+
+	/* Enable Timer */
+	TIM7->CR1 |= TIM_CR1_CEN;
+
+	/* Set highest priority intterupt */
+//	NVIC_SetPriority(TIM7_IRQn, 0);
+
+	/* Set highest priority intterupt */
+//	NVIC_EnableIRQ(TIM7_IRQn);
+
 }
 
 static void GPIOB_Clock_Enable(void) {
@@ -291,66 +322,67 @@ static void GPIOA_Pin_Input_Init(int pin) {
         GPIOA->PUPDR |= (2UL<<(pin*2));
 }
 
-	/* Set up DMA for SAI1_A (Controller 2 Trigger 1 Channel 6) */
 void DMA_Init(void) {
 
-	/* Enable DMA2 clock */
-	RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
+	/* Enable DMA1 clock */
+	RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
 
 	/* Disable DMA1 Channel 4 */
-	DMA2->CCR6 &=~DMA_CCR_EN;
+	DMA1->CCR4 &=~DMA_CCR_EN;
 
-	/* Peripheral data size = 16 bits */
-	DMA2->CCR6 &=~DMA_CCR_PSIZE;
-	DMA2->CCR6 |= DMA_CCR_PSIZE_16;
+	/* Peripheral data size = 32 bits */
+	DMA1->CCR4 &=~DMA_CCR_PSIZE;
+	DMA1->CCR4 |= DMA_CCR_PSIZE_32;
 
 	/* Memory data size = 16 bits */
-	DMA2->CCR6 &=~DMA_CCR_MSIZE;
-	DMA2->CCR6 |= DMA_CCR_MSIZE_16;
+	DMA1->CCR4 &=~DMA_CCR_MSIZE;
+	DMA1->CCR4 |= DMA_CCR_MSIZE_16;
 
 	/* Disable peripheral increment mode */
-	DMA2->CCR6 &=~DMA_CCR_PINC;
+	DMA1->CCR4 &=~DMA_CCR_PINC;
 
 	/* Enable memory increment mode */
-	DMA2->CCR6 |= DMA_CCR_MINC;
+	DMA1->CCR4 |= DMA_CCR_MINC;
 
 	/* Transfer Direction: to perihpheral */
-	DMA2->CCR6 |= DMA_CCR_DIR;
+	DMA1->CCR4 |= DMA_CCR_DIR;
 
 	/* Circular Buffer */
-	DMA2->CCR6 |= DMA_CCR_CIRC;
+	DMA1->CCR4 |= DMA_CCR_CIRC;
 
 	/* Amount of data to transfer */
-	DMA2->CNDTR6 = NUM_SAMPLES*2;
+	DMA1->CNDTR4 = NUM_SAMPLES*2;
 
 	/* Peripheral Address */
-	DMA2->CPAR6 = (uint32_t)&(SAI1->ADR);
+	DMA1->CPAR4 = (uint32_t)&(DAC->DHR12L2);
 
 	/* Memory Address */
-	DMA2->CMAR6 = (uint32_t)&(audio_buf);
+	DMA1->CMAR4 = (uint32_t)&(audio_buf);
 
 	/* Set up Channel Select */
-	DMA2->CSELR &=~DMA_CSELR_C6S;
+	DMA1->CSELR &=~DMA_CSELR_C4S;
 
-	/* SAI1_A */
-	DMA2->CSELR |= 1<<20;
+	/* TIM7_UP/DAC_CH2 */
+	DMA1->CSELR |= 5<<12;
 
 	/* Enable Half-done interrupt */
-	DMA2->CCR6 |= DMA_CCR_HTIE;
-	/* Enable Transfer complete interrupt */
-	DMA2->CCR6 |= DMA_CCR_TCIE;
+	DMA1->CCR4 |= DMA_CCR_HTIE;
+	/* Enable Transder complete  interrupt */
+	DMA1->CCR4 |= DMA_CCR_TCIE;
 
-	/* Enable DMA2 Channel 6 */
-	DMA2->CCR6 |= DMA_CCR_EN;
+	/* Enable DMA1 Channel 4 */
+	DMA1->CCR4 |= DMA_CCR_EN;
 
 	/* Set highest priority interrupt */
-	NVIC_SetPriority(DMA2_CH6_IRQn, 0);
+	NVIC_SetPriority(DMA1_CH4_IRQn, 0);
 
 	/* Enable Interrupt */
-	NVIC_EnableIRQ(DMA2_CH6_IRQn);
+	NVIC_EnableIRQ(DMA1_CH4_IRQn);
 
 	return;
 }
+
+int krg2=0;
 
 	/* Set up SAI for 16-bit steroe i2s */
 void SAI_Init(void) {
@@ -436,11 +468,11 @@ void SAI_Init(void) {
 		SAI1->ASLOTR&=~SAI_SLOTR_NBSLOT;
 		SAI1->ASLOTR|= (2-1)<<8;
 
-	/* DMA */
-	SAI1->ACR1 |= SAI_CR1_DMAEN;
 
 	/* Enable */
 	SAI1->ACR1 |= SAI_CR1_SAIEN;
+
+	krg2=SAI1->ACR1;
 }
 
 /* Blocking transmit */
@@ -587,15 +619,15 @@ int main(void) {
 
 
 
+//	TIM4_Init();
 	asm volatile ( "cpsie i" );
 
 	NextBuffer(0);
-	NextBuffer(1);
+//	NextBuffer(1);
 
 	cs43l22_play();
 
-#if 0
-	cs43l22_beep();
+//	cs43l22_beep();
 
 	data_send[0]=CS43L22_REG_BEEP_TONE_CFG;
 	i2c_send_data(I2C1,slave_addr,data_send,1);
@@ -609,6 +641,8 @@ int main(void) {
 
 	LCD_Display_String(buffer);
 
+
+//	while(1);
 
 	int led_on=0,led_count=0;
 
@@ -647,9 +681,8 @@ int main(void) {
 		}
 		led_count++;
 	}
-#endif
 
-	DMA_Init();
+//	DMA_Init();
 
 	while(1) {
 
@@ -946,7 +979,7 @@ __attribute__ ((section(".isr_vector"))) = {
 	(uint32_t *) nmi_handler,	/*  65:144 = LPTIM1		*/
 	(uint32_t *) nmi_handler,	/*  66:148 = LPTIM2		*/
 	(uint32_t *) nmi_handler,	/*  67:14C = OTG_FS		*/
-	(uint32_t *) DMA_IRQHandler,	/*  68:150 = DMA2_CH6		*/
+	(uint32_t *) nmi_handler,	/*  68:150 = DMA2_CH6		*/
 	(uint32_t *) nmi_handler,	/*  69:154 = DMA2_CH7		*/
 	(uint32_t *) nmi_handler,	/*  70:158 = LPUART1		*/
 	(uint32_t *) nmi_handler,	/*  71:15C = QUADSPI		*/

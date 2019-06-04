@@ -997,7 +997,7 @@ __I  uint32_t CALIB;	/* Calibration register */
 #define TIM3_IRQn		29	// tim3 global interrupt
 #define TIM4_IRQn		30	// tim4 global interrupt
 #define TIM7_IRQn		55	// tim7 global interrupt
-
+#define DMA2_CH6_IRQn		68	// dma2 channel6 interrupt
 
 /* Cortex-M4 Processor Exceptions Numbers */
 #define NonMaskableInt_IRQn	-14	// Non Maskable Interrupt
