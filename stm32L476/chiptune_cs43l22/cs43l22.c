@@ -149,7 +149,13 @@ void cs43l22_init(void) {
 
 
 	/* Set the Master volume */
-	cs43l22_set_volume(50);
+	cs43l22_set_volume(60);
+
+	/* Set the Headphone Gain */
+	sound_data[0]=CS43L22_REG_PLAYBACK_CTL1;	/* 0x0d */
+	sound_data[1]=(6<<5);
+	i2c_send_data(I2C1,slave_addr,sound_data,2);
+
 
 	/* Setup ramp, which lets the codec power down gracefully */
 	/* Otherwise you might be stuck with high-pitch noise */
