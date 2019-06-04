@@ -81,12 +81,13 @@ void System_Clock_Init(void);
 void NVIC_SetPriority(int irq, int priority);
 void NVIC_EnableIRQ(int irq);
 
-/* mono (2 channel), 16-bit (2 bytes), play at 50Hz */
+/* mono (1 channel), 16-bit (2 bytes), play at 50Hz */
 #define AUDIO_BUFSIZ (FREQ*CHANS*(BITS/8) / 50)
-#define NUM_SAMPLES (AUDIO_BUFSIZ/CHANS/(BITS*8))
+#define NUM_SAMPLES (AUDIO_BUFSIZ/CHANS/(BITS/8))
 #define COUNTDOWN_RESET (FREQ/50)
 
 static unsigned char audio_buf[AUDIO_BUFSIZ*2];
+static unsigned char temp_buf[AUDIO_BUFSIZ*2];
 
 /* Interrupt Handlers */
 static void NextBuffer(int which_half) {
@@ -134,9 +135,24 @@ static void NextBuffer(int which_half) {
 	/* Generate sound buffer */
 	if (which_half==0) {
 		ayemu_gen_sound (&ay, audio_buf, AUDIO_BUFSIZ);
+#if 0
+		int j=0;
+		for(j=0;j<AUDIO_BUFSIZ;j+=2) {
+			audio_buf[j]=temp_buf[j+1];
+			audio_buf[j+1]=temp_buf[j];
+		}
+#endif
 	}
 	else {
+
 		ayemu_gen_sound (&ay, audio_buf+AUDIO_BUFSIZ, AUDIO_BUFSIZ);
+#if 0
+		int j=0;
+		for(j=0;j<AUDIO_BUFSIZ;j+=2) {
+			audio_buf[AUDIO_BUFSIZ+j]=temp_buf[j+1];
+			audio_buf[AUDIO_BUFSIZ+j+1]=temp_buf[j];
+		}
+#endif
 	}
 }
 
@@ -144,6 +160,9 @@ static void NextBuffer(int which_half) {
 
 
 static void DMA_IRQHandler(void) {
+
+	static int led_count=0,led_on=0;
+	static int led_count2=0,led_on2=0;
 
 	/* This is called at both half-full and full DMA */
 	/* We double buffer */
@@ -153,8 +172,6 @@ static void DMA_IRQHandler(void) {
 
 	if ((DMA2->ISR&DMA_ISR_TCIF6)==DMA_ISR_TCIF6) {
 		NextBuffer(1);
-#if 1
-		static int led_count=0,led_on=0;
 
 		/* This should happen at roughly 50Hz */
 		led_count++;
@@ -171,14 +188,29 @@ static void DMA_IRQHandler(void) {
 			}
 			led_count=0;
 		}
-#endif
+
 	}
 
 	if ((DMA2->ISR&DMA_ISR_HTIF6)==DMA_ISR_HTIF6) {
 		NextBuffer(0);
+
+		/* This should happen at roughly 50Hz */
+		led_count2++;
+
+		if (led_count2==50) {
+
+			if (led_on2) {
+				led_on2=0;
+				GPIOE->ODR &= ~(1<<8);
+			}
+			else {
+				led_on2=1;
+				GPIOE->ODR |= (1<<8);
+			}
+			led_count2=0;
+		}
+
 	}
-
-
 
 	/* ACK interrupt */
 	/* Set to 1 to clear */
@@ -297,10 +329,10 @@ void DMA_Init(void) {
 	/* Enable DMA2 clock */
 	RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
 
-	/* Disable DMA1 Channel 4 */
+	/* Disable DMA2 Channel 6 */
 	DMA2->CCR6 &=~DMA_CCR_EN;
 
-	/* Peripheral data size = 16 bits */
+	/* Peripheral data size = 32 bits */
 	DMA2->CCR6 &=~DMA_CCR_PSIZE;
 	DMA2->CCR6 |= DMA_CCR_PSIZE_16;
 
@@ -321,7 +353,7 @@ void DMA_Init(void) {
 	DMA2->CCR6 |= DMA_CCR_CIRC;
 
 	/* Amount of data to transfer */
-	DMA2->CNDTR6 = NUM_SAMPLES*2;
+	DMA2->CNDTR6 = AUDIO_BUFSIZ;
 
 	/* Peripheral Address */
 	DMA2->CPAR6 = (uint32_t)&(SAI1->ADR);
@@ -331,7 +363,6 @@ void DMA_Init(void) {
 
 	/* Set up Channel Select */
 	DMA2->CSELR &=~DMA_CSELR_C6S;
-
 	/* SAI1_A */
 	DMA2->CSELR |= 1<<20;
 
@@ -352,7 +383,7 @@ void DMA_Init(void) {
 	return;
 }
 
-	/* Set up SAI for 16-bit steroe i2s */
+	/* Set up SAI for 16-bit stereo i2s */
 void SAI_Init(void) {
 
 	/* Enable the clock for SAI1 */
@@ -437,12 +468,12 @@ void SAI_Init(void) {
 		SAI1->ASLOTR|= (2-1)<<8;
 
 	/* DMA */
-	SAI1->ACR1 |= SAI_CR1_DMAEN;
+		SAI1->ACR1 |= SAI_CR1_DMAEN;
 
 	/* Enable */
 	SAI1->ACR1 |= SAI_CR1_SAIEN;
 }
-
+#if 0
 /* Blocking transmit */
 int i2s_transmit(uint8_t *datal, uint8_t *datar, uint16_t size) {
 
@@ -510,7 +541,7 @@ int i2s_transmit(uint8_t *datal, uint8_t *datar, uint16_t size) {
 
 	return 0;
 }
-
+#endif
 
 int main(void) {
 
@@ -681,7 +712,7 @@ int main(void) {
 		else {
 			GPIOB->ODR &= ~(1<<2);
 		}
-#endif
+
 
 		/* Blink GREEN LED (GPIOE8) based on note B */
 		if (pt3.b.new_note) {
@@ -690,7 +721,7 @@ int main(void) {
 		else {
 			GPIOE->ODR &= ~(1<<8);
 		}
-
+#endif
 	}
 
 
