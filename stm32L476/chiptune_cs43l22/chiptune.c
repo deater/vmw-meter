@@ -15,17 +15,17 @@
 
 //#define FREQ	48000
 #define FREQ	44100
-#define CHANS	1
+#define CHANS	2
 #define BITS	16
 
 /* global variables */
 volatile uint32_t TimeDelay;
 volatile uint32_t overflows=0;
 
-static ayemu_ay_t ay;
+static ayemu_ay_t ay,ay2;
 static struct pt3_song_t pt3,pt3_2;
 
-static ayemu_ay_reg_frame_t frame;
+static ayemu_ay_reg_frame_t frame,frame2;
 
 #define MAX_SONGS 4
 #include "i2_pt3.h"
@@ -92,7 +92,7 @@ static unsigned char temp_buf[AUDIO_BUFSIZ*2];
 /* Interrupt Handlers */
 static void NextBuffer(int which_half) {
 
-	int line_decode_result=0;
+	int line_decode_result=0,j;
 
 	/* Decode next frame */
 	if ((line==0) && (subframe==0)) {
@@ -102,10 +102,12 @@ static void NextBuffer(int which_half) {
 			current_pattern=0;
 		}
 		pt3_set_pattern(current_pattern,&pt3);
+		if (pt3_2.valid) pt3_set_pattern(current_pattern,&pt3_2);
 	}
 
 	if (subframe==0) {
 		line_decode_result=pt3_decode_line(&pt3);
+		if (pt3_2.valid) pt3_decode_line(&pt3_2);
 	}
 
 	if (line_decode_result==1) {
@@ -128,31 +130,34 @@ static void NextBuffer(int which_half) {
 
 
 	pt3_make_frame(&pt3,frame);
+	if (pt3_2.valid) {
+		pt3_make_frame(&pt3_2,frame2);
+	}
 
 	/* Update AY buffer */
 	ayemu_set_regs(&ay,frame);
+	ayemu_set_regs(&ay2,frame2);
 
 	/* Generate sound buffer */
 	if (which_half==0) {
 		ayemu_gen_sound (&ay, audio_buf, AUDIO_BUFSIZ);
-#if 0
-		int j=0;
-		for(j=0;j<AUDIO_BUFSIZ;j+=2) {
-			audio_buf[j]=temp_buf[j+1];
-			audio_buf[j+1]=temp_buf[j];
+		if (pt3_2.valid) {
+			ayemu_gen_sound (&ay2, temp_buf, AUDIO_BUFSIZ);
+			for(j=0;j<AUDIO_BUFSIZ;j+=4) {
+				audio_buf[j+2]=temp_buf[j+2];
+				audio_buf[j+3]=temp_buf[j+3];
+			}
 		}
-#endif
 	}
 	else {
-
 		ayemu_gen_sound (&ay, audio_buf+AUDIO_BUFSIZ, AUDIO_BUFSIZ);
-#if 0
-		int j=0;
-		for(j=0;j<AUDIO_BUFSIZ;j+=2) {
-			audio_buf[AUDIO_BUFSIZ+j]=temp_buf[j+1];
-			audio_buf[AUDIO_BUFSIZ+j+1]=temp_buf[j];
+		if (pt3_2.valid) {
+			ayemu_gen_sound (&ay2, temp_buf+AUDIO_BUFSIZ, AUDIO_BUFSIZ);
+			for(j=0;j<AUDIO_BUFSIZ;j+=4) {
+				audio_buf[AUDIO_BUFSIZ+j+2]=temp_buf[AUDIO_BUFSIZ+j+2];
+				audio_buf[AUDIO_BUFSIZ+j+3]=temp_buf[AUDIO_BUFSIZ+j+3];
+			}
 		}
-#endif
 	}
 }
 
@@ -216,11 +221,6 @@ static void DMA_IRQHandler(void) {
 	/* Set to 1 to clear */
 	DMA2->IFCR |= DMA_IFCR_CGIF6;
 
-}
-
-void SysTick_Handler(void) {
-
-	if (TimeDelay > 0) TimeDelay--;
 }
 
 static void GPIOB_Clock_Enable(void) {
@@ -605,16 +605,23 @@ int main(void) {
 	/* Init ay code */
 
 	ayemu_init(&ay);
+	ayemu_init(&ay2);
 	// 44100, 1, 16 -- freq, channels, bits
 	ayemu_set_sound_format(&ay, FREQ, CHANS, BITS);
+	ayemu_set_sound_format(&ay2, FREQ, CHANS, BITS);
 
 	ayemu_reset(&ay);
+	ayemu_reset(&ay2);
+
 	ayemu_set_chip_type(&ay, AYEMU_AY, NULL);
+	ayemu_set_chip_type(&ay2, AYEMU_AY, NULL);
 	/* Assume mockingboard/VMW-chiptune freq */
 	/* pt3_lib assumes output is 1773400 of zx spectrum */
 	ayemu_set_chip_freq(&ay, 1773400);
+	ayemu_set_chip_freq(&ay2, 1773400);
 //	ayemu_set_chip_freq(&ay, 1000000);
 	ayemu_set_stereo(&ay, AYEMU_MONO, NULL);
+	ayemu_set_stereo(&ay2, AYEMU_MONO, NULL);
 
 
 
@@ -624,61 +631,6 @@ int main(void) {
 	NextBuffer(1);
 
 	cs43l22_play();
-
-#if 0
-	cs43l22_beep();
-
-	data_send[0]=CS43L22_REG_BEEP_TONE_CFG;
-	i2c_send_data(I2C1,slave_addr,data_send,1);
-	i2c_receive_data(I2C1,slave_addr,data_receive,1);
-	buffer[0]=((data_receive[0]>>4)&0xf)+'0';
-	if (buffer[0]>'9') buffer[0]+='A'-'9'-1;
-	buffer[1]=(data_receive[0]&0xf)+'0';
-	if (buffer[1]>'9') buffer[1]+='A'-'9'-1;
-	buffer[2]=' ';
-	buffer[3]=0;
-
-	LCD_Display_String(buffer);
-
-
-	int led_on=0,led_count=0;
-
-	while(1) {
-		i2s_transmit(audio_buf,audio_buf,AUDIO_BUFSIZ);
-		NextBuffer(0);
-//		NextBuffer(1);
-
-		/* Blink RED LED (GPIOB2) based on note A */
-		if (led_count==50) {
-			led_count=0;
-			if (led_on) {
-				GPIOB->ODR &= ~(1<<2);
-				led_on=0;
-			}
-			else {
-				GPIOB->ODR |= (1<<2);
-				led_on=1;
-			}
-
-//			data_send[0]=0x2e;
-//			i2c_send_data(I2C1,slave_addr,data_send,1);
-//			i2c_receive_data(I2C1,slave_addr,data_receive,1);
-//
-//			if (data_receive[0]==0x0) {
-//				memcpy(buffer,"GOOD",4);
-//				buffer[4]=0;
-//			}
-//			else {
-//				memcpy(buffer,"BADC",4);
-//				buffer[4]=0;
-//			}
-//			LCD_Display_String(buffer);
-
-
-		}
-		led_count++;
-	}
-#endif
 
 	DMA_Init();
 
@@ -908,7 +860,7 @@ __attribute__ ((section(".isr_vector"))) = {
 	(uint32_t *) nmi_handler,	/*  -4:30 = Debugmon		*/
 	(uint32_t *) nmi_handler,	/*  -3:34 = Reserved		*/
 	(uint32_t *) nmi_handler,	/*  -2:38 = PendSV		*/
-	(uint32_t *) SysTick_Handler,	/*  -1:3c = SysTick		*/
+	(uint32_t *) nmi_handler,	/*  -1:3c = SysTick		*/
 	(uint32_t *) nmi_handler,	/*   0:40 = WWDG		*/
 	(uint32_t *) nmi_handler,	/*   1:44 = PVD_PVM		*/
 	(uint32_t *) nmi_handler,	/*   2:48 = RTC_TAMP_STAMP	*/
