@@ -1,5 +1,17 @@
 #!/bin/sh
 
+# HOWTO set one of these up
+# Run Ay_Emul, convert to YM6
+# manually convert using ../dump
+#	../../conversion_tools/dump_ym5 -d RI.ym > RI.ay
+# manually convert the output of pt3_to_ym5
+#	../pt3_to_ym5 RI.pt3 ri.ym
+#	../../conversion_tools/dump_ym5 -d ri.ym5 > RI.ay2
+#	diff
+# if they match, make it the "correct" output
+#	mv ri.ym5 ri_good.ym5
+
+
 echo
 
 # EA
@@ -72,7 +84,6 @@ cmp cr.ym5 CR_good.ym5
 
 
 #DF.PT3
-#EA.PT3
 #F4.PT3
 #FC.PT3
 #HI.PT3
@@ -80,7 +91,13 @@ cmp cr.ym5 CR_good.ym5
 #IT.PT3
 #MB.PT3
 #OS.PT3
+
 #RI.PT3
+echo "Testing RI.PT3"
+../pt3_to_ym5 RI.PT3 ri.ym > /dev/null
+../../conversion_tools/ym_to_ym5 ri > /dev/null
+cmp ri.ym5 RI_good.ym5
+
 #SD.PT3
 #SR.PT3
 
