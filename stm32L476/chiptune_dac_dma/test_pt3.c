@@ -62,9 +62,8 @@ static struct pt3_song_t pt3,pt3_2;
 static ayemu_ay_reg_frame_t frame;
 
 
-struct pt3_image_t pt3_image= {
-	.data=__I2_PT3,	.length=__I2_PT3_len,
-};
+struct pt3_image_t pt3_image;
+
 
 //struct pt3_image_t pt3_image= {
 //	.data=__EA_PT3,	.length=__EA_PT3_len,
@@ -152,6 +151,37 @@ void play (void) {
 
 
 int main (int argc, char **argv) {
+
+	unsigned char *pt3_data;
+	int fd,size;
+
+	if (argc<2) {
+		pt3_image.data=__I2_PT3;
+		pt3_image.length=__I2_PT3_len;
+	}
+	else {
+		pt3_data=calloc(16384,sizeof(unsigned char));
+		if (pt3_data==NULL) {
+			fprintf(stderr,"Error allocating space!\n");
+			return -1;
+		}
+		fd=open(argv[1],O_RDONLY);
+		if (fd<0) {
+			fprintf(stderr,"Error opening file %s!\n",argv[1]);
+			return -1;
+		}
+		size=read(fd,pt3_data,16384);
+		if (size==16384) {
+			fprintf(stderr,"File too big %s!\n",argv[1]);
+			return -1;
+		}
+		if (size<0) {
+			fprintf(stderr,"Error reading file %s!\n",argv[1]);
+			return -1;
+		}
+		pt3_image.data=pt3_data;
+		pt3_image.length=size;
+	}
 
 	init_oss();
 	if (DEBUG) {
