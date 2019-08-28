@@ -424,6 +424,10 @@ void *ayemu_gen_sound(ayemu_ay_t *ay, void *buff, int32_t sound_bufsize)
     mix_l = mix_r = 0;
 
     for (m = 0 ; m < ay->ChipTacts_per_outcount ; m++) {
+
+
+	/* Test out glitch maybe seeing on Mockingboard with AY-3-8912 */
+#if 1
       if (++ay->cnt_a >= ay->regs.tone_a) {
 	ay->cnt_a = 0;
 	ay->bit_a = ! ay->bit_a;
@@ -444,6 +448,48 @@ void *ayemu_gen_sound(ayemu_ay_t *ay, void *buff, int32_t sound_bufsize)
 	  (((ay->Cur_Seed >> 16) ^ (ay->Cur_Seed >> 13)) & 1);
 	ay->bit_n = ((ay->Cur_Seed >> 16) & 1);
       }
+#else
+
+/* 2^12 */
+#define GLITCH_LENGTH 4096
+      if (++ay->cnt_a == ay->regs.tone_a) {
+	ay->cnt_a = 0;
+	ay->bit_a = ! ay->bit_a;
+      }
+      if (ay->cnt_a == GLITCH_LENGTH) {
+	ay->cnt_a = 0;
+	}
+
+      if (++ay->cnt_b == ay->regs.tone_b) {
+	ay->cnt_b = 0;
+	ay->bit_b = ! ay->bit_b;
+      }
+      if (ay->cnt_b == GLITCH_LENGTH) {
+	ay->cnt_b = 0;
+	}
+
+      if (++ay->cnt_c == ay->regs.tone_c) {
+	ay->cnt_c = 0;
+	ay->bit_c = ! ay->bit_c;
+      }
+
+      if (ay->cnt_c == GLITCH_LENGTH) {
+	ay->cnt_c = 0;
+	}
+
+      /* GenNoise (c) Hacker KAY & Sergey Bulba */
+     if (++ay->cnt_n == (ay->regs.noise * 2)) {
+	ay->cnt_n = 0;
+	ay->Cur_Seed = (ay->Cur_Seed * 2 + 1) ^ \
+	  (((ay->Cur_Seed >> 16) ^ (ay->Cur_Seed >> 13)) & 1);
+	ay->bit_n = ((ay->Cur_Seed >> 16) & 1);
+      }
+     if (ay->cnt_n == GLITCH_LENGTH*2) {
+	ay->cnt_n = 0;
+	}
+#endif
+
+
 
       if (++ay->cnt_e >= ay->regs.env_freq) {
 	ay->cnt_e = 0;
