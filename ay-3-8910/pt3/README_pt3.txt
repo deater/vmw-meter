@@ -41,7 +41,7 @@ The PT3 Format
 	$1E - $3E : 32 bytes : Name         : Name of the module
 	$3E - $41 :  4 bytes : String       : " by "
 	$42 - $62 : 32 bytes : Author       : Author of the module.
-	$63       :  1 byte  : Frequency table (from 1 to 4)
+	$63       :  1 byte  : Frequency table (from 0 to 3)
 	$64       :  1 byte  : Speed/Delay
 	$65       :  1 byte  : Number of patterns+1  (Max Patterns)
 	$66       :  1 byte  : LPosPtr      : Pattern Loop Pointer
@@ -239,9 +239,22 @@ The PT3 Format
 
 * Frequency Tables
 
-	You can select between various frequency tables.
-	I'm not sure why?
-	How to calculate?
+	Various versions of the tracker used different frequency tables.
+	Players lookup the note in these tables to get the proper frequency.
+
+	The value in the frequency table field specifies up to 4 (0...3)
+	tables, but there is an alternate set of tables if the tracker version
+	PT3_VERSION is 3 or less.
+
+	In practice, many players only support two tables from the newer set:
+		"PT3NoteTable_ST" if the TonTableID is 1
+		"PT3NoteTable_REAL_34_35" otherwise
+
+	These tables in theory can be calculated at runtime, but usually
+	they aren't unless you are extremely space constrained.
+	The z80 player has code to do this in z80 assembly.
+
+	The tables are a set of 96 16-bit values (8 octaves of 12 notes)
 
 * Volume Tables
 
