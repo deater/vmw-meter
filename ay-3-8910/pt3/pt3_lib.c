@@ -939,6 +939,38 @@ static void print_note(int which, struct pt3_song_t *pt3,int line) {
 	printf("|");
 }
 
+static char *decode_freqtable_name(int freq, int version) {
+
+	if (freq==0) {
+		if (version <= 3) {
+			return "PT_33_34r";
+		}
+                else {
+			return "PT_34_35";
+		}
+	}
+	else if (freq==1) {
+			return "ST";
+	}
+	else if (freq==2) {
+		if (version <= 3) {
+			return "ASM_34r";
+		}
+		else {
+			return "ASM_34_35";
+		}
+	}
+	else {
+		if (version <= 3) {
+			return "REAL_34r";
+		}
+		else {
+			return "REAL_34_35";
+		}
+	}
+
+}
+
 void dump_header(struct pt3_song_t *pt3) {
 
 	int i,j,addr,loop,len;
@@ -946,8 +978,9 @@ void dump_header(struct pt3_song_t *pt3) {
 	printf("\tPT Version: %d\n",pt3->version);
 	printf("\tNAME: %s\n",pt3->name);
 	printf("\tBY  : %s\n",pt3->author);
-	printf("\tFreqTable: %d Speed: %d  Patterns: %d Loop: %d\n",
+	printf("\tFreqTable: %d (%s) Speed: %d  Patterns: %d Loop: %d\n",
 			pt3->frequency_table,
+			decode_freqtable_name(pt3->frequency_table,pt3->version),
 			pt3->speed,
 			pt3->num_patterns,
 			pt3->loop);
