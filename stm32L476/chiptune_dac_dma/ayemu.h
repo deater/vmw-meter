@@ -2,6 +2,8 @@
  * AY/YM emulator include file
  */
 
+void enable_emulate_bug(void);
+
 typedef unsigned char ayemu_ay_reg_frame_t[14];
 
 /** Types of stereo.

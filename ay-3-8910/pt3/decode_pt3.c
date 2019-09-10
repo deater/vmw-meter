@@ -13,6 +13,7 @@
 
 #include "pt3_lib.h"
 
+int debug=1;
 
 static void dump_song(struct pt3_song_t *pt3) {
 
@@ -36,13 +37,21 @@ static void dump_song(struct pt3_song_t *pt3) {
 		printf("a_addr: %04x, b_addr: %04x, c_addr: %04x\n",
 				pt3->a.addr,pt3->b.addr,pt3->c.addr);
 
-//		printf("Cdata: ");
-//		for(j=0;j<32;j++) printf("%02x ",pt3->data[pt3->c_addr+j]);
-//		printf("\n");
+		if (debug) {
+			printf("Adata: ");
+			for(j=0;j<64;j++) printf("%02x ",pt3->data[pt3->a.addr+j]);
+			printf("\n");
+			printf("Bdata: ");
+			for(j=0;j<64;j++) printf("%02x ",pt3->data[pt3->b.addr+j]);
+			printf("\n");
+			printf("Cdata: ");
+			for(j=0;j<64;j++) printf("%02x ",pt3->data[pt3->c.addr+j]);
+			printf("\n");
+		}
 
 		for(j=0;j<64;j++) {
 
-//			printf("VMW frame: %d\n",frames);
+			if (debug) printf("VMW frame: %x\n",current_time);
 
 			/* decode line. 1 if done early */
 			if (pt3_decode_line(pt3)) break;

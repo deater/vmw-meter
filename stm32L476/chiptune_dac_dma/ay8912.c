@@ -13,6 +13,12 @@
 
 char *ayemu_err;
 
+static int emulate_bug=0;
+
+void enable_emulate_bug(void) {
+	emulate_bug=1;
+}
+
 //static const char VERSION[] = "libayemu 0.9";
 
 const int MAGIC1 = 0xcdef;	/* for check ayemu_t structure inited */
@@ -425,9 +431,7 @@ void *ayemu_gen_sound(ayemu_ay_t *ay, void *buff, int32_t sound_bufsize)
 
     for (m = 0 ; m < ay->ChipTacts_per_outcount ; m++) {
 
-
-	/* Test out glitch maybe seeing on Mockingboard with AY-3-8912 */
-#if 1
+if (!emulate_bug) {
       if (++ay->cnt_a >= ay->regs.tone_a) {
 	ay->cnt_a = 0;
 	ay->bit_a = ! ay->bit_a;
@@ -448,7 +452,9 @@ void *ayemu_gen_sound(ayemu_ay_t *ay, void *buff, int32_t sound_bufsize)
 	  (((ay->Cur_Seed >> 16) ^ (ay->Cur_Seed >> 13)) & 1);
 	ay->bit_n = ((ay->Cur_Seed >> 16) & 1);
       }
-#else
+}
+	/* Test out glitch maybe seeing on Mockingboard with AY-3-8912 */
+else {
 
 /* 2^12 */
 #define GLITCH_LENGTH 4096
@@ -487,8 +493,7 @@ void *ayemu_gen_sound(ayemu_ay_t *ay, void *buff, int32_t sound_bufsize)
      if (ay->cnt_n == GLITCH_LENGTH*2) {
 	ay->cnt_n = 0;
 	}
-#endif
-
+}
 
 
       if (++ay->cnt_e >= ay->regs.env_freq) {

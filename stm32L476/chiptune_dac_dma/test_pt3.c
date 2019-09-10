@@ -155,6 +155,10 @@ int main (int argc, char **argv) {
 	unsigned char *pt3_data;
 	int fd,size;
 
+	if (argc>2) {
+		enable_emulate_bug();
+	}
+
 	if (argc<2) {
 		pt3_image.data=__I2_PT3;
 		pt3_image.length=__I2_PT3_len;
