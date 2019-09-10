@@ -3,7 +3,7 @@ How to decode a Vortex Tracker II "PT3" File
 
 	by Vince "Deater" Weaver, <vince@deater.net>
 	http://www.deater.net/weave/vmwprod/pt3_player/
-	22 May 2019
+	10 September 2019
 
 Background:
 ~~~~~~~~~~~
@@ -50,9 +50,10 @@ The PT3 Format
 	$A9 - $C8 : 32 bytes : OrnPtrs[16]  : Pointers to the ornaments
 	$C9 - ??? :          : Patterns[]   : $FF terminated, More on this below
 
-	Version: is at offset 13, which is just the ASCII value of
+	Version: is at offset $0D, which is just the ASCII value of
 		the version number from the magic.  Usually you
 		subtract off '0' to get the proper value.
+		If the value is not a valid number, '6' is assumed.
 
 * Pattern list
 
@@ -147,7 +148,7 @@ The PT3 Format
 				- sample number is next byte
 
 	+ $20-$3f     - set noise
-				- Noise set to the $20 to $3F byte - $20
+				- Noise set to the ($20...$3F) value - $20
 	+ $40-$4f     - set ornament
 				- ornament sent to bottom 4 bits
 				- possibly setting 0 counts as disabling
@@ -166,7 +167,7 @@ The PT3 Format
 				- next byte is how many lines to skip for
 				  this note
 	+ $b2-$bf     - set envelope
-				- envelope type to bottom 4 bits - 1
+				- envelope type to (bottom 4 bits - 1)
 				- envelope period next 2 bytes (big endian)
 
 
@@ -194,6 +195,9 @@ The PT3 Format
 	(I don't think Vortex Tracker lets you add multiple?)
 
 	The bytes for the effects follow after the byte that ended the note.
+
+	The effect value on disk is not the same as that displayed when
+	viewed in the tracker.
 
 	On	In
 	Disk  Tracker
@@ -239,22 +243,35 @@ The PT3 Format
 
 * Frequency Tables
 
-	Various versions of the tracker used different frequency tables.
-	Players lookup the note in these tables to get the proper frequency.
+	Various versions of the tracker use different frequency tables.
+	Players lookup notes in these tables to get the proper frequency.
 
 	The value in the frequency table field specifies up to 4 (0...3)
 	tables, but there is an alternate set of tables if the tracker version
 	PT3_VERSION is 3 or less.
 
-	In practice, many players only support two tables from the newer set:
-		"PT3NoteTable_ST" if the TonTableID is 1
-		"PT3NoteTable_REAL_34_35" otherwise
+	Presumably for space reasons, some players only support tables 
+	one and two from the newer set.
 
 	These tables in theory can be calculated at runtime, but usually
 	they aren't unless you are extremely space constrained.
 	The z80 player has code to do this in z80 assembly.
 
 	The tables are a set of 96 16-bit values (8 octaves of 12 notes)
+
+	The frequency tables supported by Ay_Emul:
+
+		PT3Version#	Table#		Frequency Table
+		-----------	------		======================
+		<=3.3		0		PT3NoteTable_PT_33_34r
+		all		1		PT3NoteTable_ST
+		<=3.3		2		PT3NoteTable_ASM_34r
+		<=3.3		3		PT3NoteTable_REAL_34r
+
+		3.4+		0		PT3NoteTable_PT_34_35
+		all		1		PT3NoteTable_ST
+		3.4+		2		PT3NoteTable_ASM_34_35
+		3.4+		3		PT3NoteTable_REAL_34_35
 
 * Volume Tables
 
@@ -279,4 +296,4 @@ The PT3 Format
 
 	If the type of these files is PT3! then these are describing
 	PT3 subfiles, and can be read as two 3-channel files which can
-	be interpreted together as 1 6-channel file.
+	be interpreted together as one 6-channel file.
