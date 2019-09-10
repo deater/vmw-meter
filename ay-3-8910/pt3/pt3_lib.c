@@ -232,8 +232,8 @@ static int pt3_load_header(int verbose, struct pt3_song_t *pt3) {
 	} else {
 		fprintf(stderr,"Wrong magic %s != %s\n",
 			pt3->magic,"ProTracker 3.");
-
-		return -1;
+		/* sometimes it is still a valid file... */
+		//return -1;
 	}
 
 	/* version -- byte at offset 0xd */
