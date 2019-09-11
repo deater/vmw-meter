@@ -84,6 +84,25 @@ cmp cr.ym5 CR_good.ym5
 
 
 #DF.PT3
+
+#BH.PT3
+echo "Testing BH.PT3"
+../pt3_to_ym5 BH.PT3 bh.ym > /dev/null
+../../conversion_tools/ym_to_ym5 bh > /dev/null
+cmp bh.ym5 bh_good.ym5
+
+#CH.PT3
+echo "Testing CH.PT3"
+../pt3_to_ym5 CH.PT3 ch.ym > /dev/null
+../../conversion_tools/ym_to_ym5 ch > /dev/null
+cmp ch.ym5 ch_good.ym5
+
+#DY.PT3
+echo "Testing DY.PT3"
+../pt3_to_ym5 DY.PT3 dy.ym > /dev/null
+../../conversion_tools/ym_to_ym5 dy > /dev/null
+cmp dy.ym5 dy_good.ym5
+
 #F4.PT3
 #FC.PT3
 #HI.PT3
