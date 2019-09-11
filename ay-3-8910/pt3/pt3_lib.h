@@ -6,6 +6,7 @@
 struct pt3_note_type {
 	signed char which;
 	unsigned char note;
+	unsigned char original_note;
 	unsigned char sample;
 	unsigned char ornament;
 	unsigned char volume;

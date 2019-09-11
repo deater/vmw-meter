@@ -596,6 +596,7 @@ static void decode_note(struct pt3_note_type *a,
 			case 0xa:
 				a->new_note=1;
 				a->note=(current_val-0x50);
+				a->original_note=(current_val-0x50);
                                 a->sample_position=0;
                                 a->amplitude_sliding=0;
                                 a->noise_sliding=0;
@@ -893,7 +894,7 @@ static void print_note(int which, struct pt3_song_t *pt3,int line) {
 	if (!a->new_note) printf("---");
 //        if (a->note==a_old->note)
 	else if (a->note==0xff) printf("R--");
-	else printf("%s",note_names[a->note]);
+	else printf("%s",note_names[a->original_note]);
 	printf(" ");
 
 	/* A sample */
