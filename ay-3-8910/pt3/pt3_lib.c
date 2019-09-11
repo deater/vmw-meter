@@ -306,10 +306,7 @@ static int GetNoteFreq(int j, struct pt3_song_t *pt3) {
 			return PT3NoteTable_PT_33_34r[j];
 		}
 		else {
-			fprintf(stderr,"ERROR: unusual freq table %d\n",
-				pt3->frequency_table);
 			return PT3NoteTable_PT_34_35[j];
-//			exit(-1);
 		}
 	}
 	else if (pt3->frequency_table==1) {
