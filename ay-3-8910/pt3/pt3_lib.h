@@ -66,7 +66,7 @@ struct pt3_song_t {
 	char version;
 	char name[32+1];
 	char author[32+1];
-	char frequency_table;
+	char which_frequency_table;
 	char speed;
 	char num_patterns;
 	char loop;
@@ -92,6 +92,8 @@ struct pt3_song_t {
 
 	unsigned char noise_period;
 	unsigned char noise_add;
+
+	unsigned short frequency_table[8*12];
 
 	unsigned char *data;
 };

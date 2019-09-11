@@ -162,8 +162,6 @@ unsigned char PT3VolumeTable_33_34[16][16]={
   {0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0xA,0xB,0xC,0xD,0xE,0xF},
 };
 
-
-
 unsigned char PT3VolumeTable_35[16][16]={
   {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0},
   {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1},
@@ -250,7 +248,7 @@ static int pt3_load_header(int verbose, struct pt3_song_t *pt3) {
 	memcpy(&(pt3->author),&(pt3->data[0x42]),32);
 
 	/* Frequency Table */
-	pt3->frequency_table=pt3->data[0x63];
+	pt3->which_frequency_table=pt3->data[0x63];
 
 	/* Speed */
 	pt3->speed=pt3->data[0x64];
@@ -292,48 +290,6 @@ static int pt3_load_header(int verbose, struct pt3_song_t *pt3) {
 	return 0;
 
 }
-
-
-/* There's some variety here, but in practice it's just the two */
-
-static int GetNoteFreq(int j, struct pt3_song_t *pt3) {
-
-	if (pt3->frequency_table==0) {
-		if (pt3->version <= 3) {
-			fprintf(stderr,"ERROR: unusual freq table %d\n",
-				pt3->frequency_table);
-//			exit(-1);
-			return PT3NoteTable_PT_33_34r[j];
-		}
-		else {
-			return PT3NoteTable_PT_34_35[j];
-		}
-	}
-	else if (pt3->frequency_table==1) {
-		return PT3NoteTable_ST[j];
-	}
-	else if (pt3->frequency_table==2) {
-		if (pt3->version <= 3) {
-			fprintf(stderr,"ERROR: unusual freq table %d\n",
-				pt3->frequency_table);
-			return PT3NoteTable_ASM_34r[j];
-//			exit(-1);
-
-		}
-		else {
-			return PT3NoteTable_ASM_34_35[j];
-		}
-	}
-	else {
-		if (pt3->version <= 3) {
-			return PT3NoteTable_REAL_34r[j];
-		}
-		else {
-			return PT3NoteTable_REAL_34_35[j];
-		}
-	}
-}
-
 
 static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
         // B0: XX YYYYY Z  = X= 10=VOLDOWN 11=VOLUP
@@ -383,7 +339,7 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 
 		/* Look up the note in the frequency table */
 		/* Which technically is a period table */
-		w = GetNoteFreq(j,pt3);
+		w = pt3->frequency_table[j]; //GetNoteFreq(j,pt3);
 
 		/* Take the sample tone, and combine with sliding */
 		/* and ornament */
@@ -765,8 +721,9 @@ static void decode_note(struct pt3_note_type *a,
 				if (a->tone_slide_step<0) a->tone_slide_step=-a->tone_slide_step;
 
 
-				a->tone_delta=GetNoteFreq(a->note,pt3)-
-					GetNoteFreq(prev_note,pt3);
+				a->tone_delta=pt3->frequency_table[a->note]-
+						pt3->frequency_table[prev_note];
+
 				a->slide_to_note=a->note;
 				a->note=prev_note;
 				if (pt3->version >= 6) {
@@ -977,8 +934,9 @@ void dump_header(struct pt3_song_t *pt3) {
 	printf("\tNAME: %s\n",pt3->name);
 	printf("\tBY  : %s\n",pt3->author);
 	printf("\tFreqTable: %d (%s) Speed: %d  Patterns: %d Loop: %d\n",
-			pt3->frequency_table,
-			decode_freqtable_name(pt3->frequency_table,pt3->version),
+			pt3->which_frequency_table,
+			decode_freqtable_name(pt3->which_frequency_table,
+						pt3->version),
 			pt3->speed,
 			pt3->num_patterns,
 			pt3->loop);
@@ -1159,6 +1117,58 @@ int pt3_init_song(struct pt3_song_t *pt3) {
 	pt3->envelope_type_old=0;
 	pt3->envelope_slide_add=0;
 	pt3->current_pattern=0;
+
+
+	/**************************/
+	/* set up frequency table */
+	/**************************/
+
+	if (pt3->which_frequency_table==0) {
+		if (pt3->version <= 3) {
+			fprintf(stderr,"ERROR: unusual freq table %d\n",
+				pt3->which_frequency_table);
+			memcpy(pt3->frequency_table,
+				PT3NoteTable_PT_33_34r,
+				8*12*sizeof(unsigned short));
+		}
+		else {
+			memcpy(pt3->frequency_table,
+				PT3NoteTable_PT_34_35,
+				8*12*sizeof(unsigned short));
+		}
+	}
+	else if (pt3->which_frequency_table==1) {
+		memcpy(pt3->frequency_table,
+			PT3NoteTable_ST,
+			8*12*sizeof(unsigned short));
+	}
+	else if (pt3->which_frequency_table==2) {
+		if (pt3->version <= 3) {
+			fprintf(stderr,"ERROR: unusual freq table %d\n",
+				pt3->which_frequency_table);
+			memcpy(pt3->frequency_table,
+				PT3NoteTable_ASM_34r,
+				8*12*sizeof(unsigned short));
+
+		}
+		else {
+			memcpy(pt3->frequency_table,
+				PT3NoteTable_ASM_34_35,
+				8*12*sizeof(unsigned short));
+		}
+	}
+	else {
+		if (pt3->version <= 3) {
+			memcpy(pt3->frequency_table,
+				PT3NoteTable_REAL_34r,
+				8*12*sizeof(unsigned short));
+		}
+		else {
+			memcpy(pt3->frequency_table,
+				PT3NoteTable_REAL_34_35,
+				8*12*sizeof(unsigned short));
+		}
+	}
 
 
 	return 0;
