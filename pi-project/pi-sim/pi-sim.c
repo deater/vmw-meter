@@ -6,7 +6,8 @@
 
 #include "pi-sim.h"
 
-static int xsize=640,ysize=480;
+
+static const int xsize=XSIZE,ysize=YSIZE;
 
 static SDL_Surface *sdl_screen=NULL;
 
@@ -14,6 +15,10 @@ unsigned char display[640*480*3];
 unsigned char red[640*480];
 unsigned char blue[640*480];
 unsigned char green[640*480];
+
+unsigned char red_palette[256];
+unsigned char blue_palette[256];
+unsigned char green_palette[256];
 
 
 int pisim_update(void) {
