@@ -214,8 +214,9 @@ static double potm(double days) {
 	return(50.0 * (1 - cos(dtor(D))));			/* sec 67 #3 */
 }
 
-int lib_pom(void) {
+int lib_pom(int one_shot) {
 
+	int num_cycles=0;
 	time_t tmpt, now;
 	double days, today, tomorrow;
 	int which,waxing=0,percent;
@@ -303,13 +304,18 @@ int lib_pom(void) {
 				scroll=0;
 				scroll_dir=-scroll_dir;
 				usleep(200000);
+				num_cycles++;
 			}
 
 			if (scroll>(strlen(phase_string)-12)) {
 				scroll=strlen(phase_string)-12;
 				scroll_dir=-scroll_dir;
 				usleep(200000);
+				num_cycles++;
 			}
+
+			if ((one_shot) && (num_cycles>2)) return 0;
+
 
 //			printf("%d\n",scroll);
 

@@ -22,7 +22,9 @@
 #include "ymlib/stats.h"
 #include "display.h"
 
-static int display_type=DISPLAY_I2C;
+#include "lib_lib.h"
+
+//static int display_type=DISPLAY_I2C;
 //static int play_music=0;
 
 
@@ -77,7 +79,7 @@ static int reverse_bits32(int v) {
 
 int lib_clock(int alarm_hour, int alarm_minute) {
 
-	int i;
+	int i,ch;
 
 	time_t seconds;  /* Y2038 problem! */
 	unsigned int reverse_seconds;
@@ -183,6 +185,24 @@ int lib_clock(int alarm_hour, int alarm_minute) {
 		}
 
 		usleep(200000);
+
+		/* Read Keyboard */
+		ch=display_keypad_read(display_type);
+ 		if (ch) {
+			switch(ch) {
+				case CMD_NEXT:
+					lib_pom(1);
+					break;
+				case CMD_BACK:
+				case CMD_EXIT_PROGRAM:
+				case CMD_RW:
+				case CMD_FF:
+				case CMD_PLAY:
+				case CMD_STOP:
+				default:
+					break;
+			}
+		}
 	}
 
 

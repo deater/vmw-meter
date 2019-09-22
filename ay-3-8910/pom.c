@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
 		display_type=DISPLAY_TEXT;
 	}
 
-	lib_pom();
+	lib_pom(0);
 
 	/* Quiet down the chips */
 	display_shutdown(display_type);
