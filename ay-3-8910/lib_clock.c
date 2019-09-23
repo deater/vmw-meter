@@ -194,6 +194,8 @@ int lib_clock(int alarm_hour, int alarm_minute) {
 					lib_pom(1);
 					break;
 				case CMD_BACK:
+					lib_temperature(1);
+					break;
 				case CMD_EXIT_PROGRAM:
 				case CMD_RW:
 				case CMD_FF:

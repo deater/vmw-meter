@@ -159,9 +159,9 @@ static int display_temp(struct temp_type *t, int which) {
 
 
 
-int lib_temperature(void) {
+int lib_temperature(int one_shot) {
 
-	int i,state=0;
+	int i,state=0,times_through=0;
 	int current_pointer=0;
 	int count=0;
 	unsigned char buffer[16];
@@ -264,6 +264,11 @@ int lib_temperature(void) {
 				}
 			}
 			display_8x16_vertical(display_type,buffer);
+		}
+		times_through++;
+
+		if ((times_through) && (one_shot==1)) {
+			return 0;
 		}
 	}
 

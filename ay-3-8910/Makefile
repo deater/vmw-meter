@@ -110,7 +110,7 @@ organ.o:	organ.c chiptune_audio/ay-3-8910.h chiptune_display/display.h
 
 ###
 
-lib_temperature.o:	lib_temperature.c
+lib_temperature.o:	lib_temperature.c lib_lib.h
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c lib_temperature.c
 
 temperature:	temperature.o lib_lib.o lib_temperature.o \
@@ -127,11 +127,12 @@ temperature.o:	temperature.c chiptune_display/display.h
 lib_clock.o:	lib_clock.c lib_lib.h
 	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) $(DISPLAY_INCLUDE) -c lib_clock.c
 
-alarm_clock:	alarm_clock.o lib_lib.o lib_clock.o lib_pom.o \
+alarm_clock:	alarm_clock.o lib_lib.o lib_clock.o \
+		lib_pom.o lib_temperature.o \
 		chiptune_display/display.a \
 		chiptune_audio/audio.a
 	$(CC) $(LFLAGS) -o alarm_clock alarm_clock.o lib_lib.o lib_clock.o \
-		lib_pom.o \
+		lib_pom.o lib_temperature.o \
 		chiptune_display/display.a \
 		chiptune_audio/audio.a \
 		$(LIBBCM2835)
@@ -187,10 +188,12 @@ falling_blocks.o:	falling_blocks.c chiptune_display/display.h
 ###
 
 
-kiosk:	kiosk.o lib_lib.o lib_clock.o lib_pom.o \
+kiosk:	kiosk.o lib_lib.o lib_clock.o \
+		lib_pom.o lib_temperature.o \
 		chiptune_display/display.a \
 		chiptune_audio/audio.a
-	$(CC) $(LFLAGS) -o kiosk kiosk.o lib_lib.o lib_clock.o lib_pom.o \
+	$(CC) $(LFLAGS) -o kiosk kiosk.o lib_lib.o lib_clock.o \
+		lib_pom.o lib_temperature.o \
 		chiptune_display/display.a \
 		chiptune_audio/audio.a \
 		$(LIBBCM2835)

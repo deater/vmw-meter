@@ -5,5 +5,5 @@ int sleep_unless_keypress(int seconds);
 
 int lib_clock(int alarm_hour, int alarm_minute);
 int lib_pom(int one_shot);
-int lib_temperature(void);
+int lib_temperature(int one_shot);
 
