@@ -5,6 +5,7 @@
 
 #include "pi-sim.h"
 #include "pcx_load.h"
+#include "print_string.h"
 
 extern unsigned char _binary_pi_boot_pcx_start[];
 extern unsigned char _binary_pi_boot_pcx_end[];
@@ -20,6 +21,8 @@ int main(int argc, char **argv) {
 	printf("Image is %d bytes\n",filesize);
 	vmwPCXLoadPalette(pi_logo, filesize-769);
 	vmwLoadPCX(pi_logo,100,100);
+
+	print_string("Testing 123!",10,10,0xff);
 
 	while(1) {
 

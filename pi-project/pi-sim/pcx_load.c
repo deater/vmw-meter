@@ -103,14 +103,14 @@ int vmwLoadPCX(unsigned char *image, int x_offset, int y_offset)  {
 				x++;
 				if (x>xsize) {
 					x=0;
-					printf("[%d+%d] ",
-						output_pointer,XSIZE-xsize);
+					//printf("[%d+%d] ",
+					//	output_pointer,XSIZE-xsize);
 					output_pointer+=(XSIZE-xsize-1);
-					printf("[%d+%d] ",
-						output_pointer,XSIZE-xsize);
+					//printf("[%d+%d] ",
+					//	output_pointer,XSIZE-xsize);
 
 				}
-				printf("%d ",x);
+				//printf("%d ",x);
 			}
 		}
 		else {
@@ -123,9 +123,9 @@ int vmwLoadPCX(unsigned char *image, int x_offset, int y_offset)  {
 			if (x>xsize) {
 				x=0;
 				output_pointer+=(XSIZE-xsize-1);
-				printf("[%d] ",output_pointer);
+				//printf("[%d] ",output_pointer);
 			}
-			printf("%d ",x);
+			//printf("%d ",x);
 		}
 	}
 
@@ -154,7 +154,7 @@ int vmwPCXLoadPalette(unsigned char *image, int offset) {
 		return -1;
 	}
 
-	for(i=0;i<255;i++) {
+	for(i=0;i<256;i++) {
 		r=*pal_pointer;
 		pal_pointer++;
 		g=*pal_pointer;
