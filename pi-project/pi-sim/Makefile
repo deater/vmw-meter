@@ -6,7 +6,7 @@ AR = ar
 SDL_LIBS= `sdl-config --libs`
 SDL_INCLUDE= `sdl-config --cflags`
 
-all:	sparkle pi_opener
+all:	sparkle pi_opener chiptune
 
 
 ####
@@ -16,6 +16,22 @@ sparkle:	sparkle.o pi-sim.a
 
 sparkle.o:	sparkle.c pi-sim.h
 	$(CC) $(CFLAGS) -c sparkle.c
+
+####
+
+chiptune:	chiptune.o ay8912.o pt3_lib.o
+	$(CC) -o chiptune ay8912.o chiptune.o pt3_lib.o $(LFLAGS)
+
+####
+
+chiptune.o:	chiptune.c pt3_lib.h
+	$(CC) $(CFLAGS) -c chiptune.c
+
+ay8912.o:	ay8912.c ayemu.h
+	$(CC) $(CFLAGS) -c ay8912.c
+
+pt3_lib.o:	pt3_lib.c pt3_lib.h
+	$(CC) $(CFLAGS) -c pt3_lib.c
 
 ####
 

@@ -1,2 +1,0 @@
-int printk(char *string,...);
-
