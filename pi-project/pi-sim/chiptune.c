@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdio.h>
 
 //#include "string.h"
 //#include "stdlib.h"
@@ -29,6 +30,8 @@ static ayemu_ay_reg_frame_t frame;
 #include "i2_pt3.h"
 
 static int which_song=0;
+static int song_done=0;
+static int buffers=0;
 
 void exit(int status) {
 	while(1);
@@ -67,9 +70,8 @@ static void NextBuffer(int which_half) {
 	/* Decode next frame */
 	if ((line==0) && (subframe==0)) {
 		if (current_pattern==pt3.music_len) {
-			which_song++;
-			change_song();
-			current_pattern=0;
+			song_done=1;
+			return;
 		}
 		pt3_set_pattern(current_pattern,&pt3);
 	}
@@ -132,7 +134,13 @@ int main(void) {
 	ayemu_set_stereo(&ay, AYEMU_MONO, NULL);
 
 
-	NextBuffer(0);
+	printf("Buffersize=%d\n",AUDIO_BUFSIZ);
+
+	while(!song_done) {
+		NextBuffer(0);
+		buffers++;
+	}
+	printf("Total buffers=%d total size=%d\n",buffers,buffers*AUDIO_BUFSIZ);
 
 }
 

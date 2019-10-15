@@ -74,5 +74,5 @@ default_font.o:	default_font.c default_font.h
 	$(CC) $(CFLAGS) -c default_font.c
 
 clean:
-	rm -f sparkle pi_opener *~ *.o *.a
+	rm -f chiptune sparkle pi_opener *~ *.o *.a
 
