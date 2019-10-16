@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 //#include "string.h"
 //#include "stdlib.h"
@@ -14,7 +16,7 @@
 
 #define FREQ	44100
 #define CHANS	1
-#define BITS	16
+#define BITS	8
 
 /* global variables */
 volatile uint32_t TimeDelay;
@@ -31,7 +33,6 @@ static ayemu_ay_reg_frame_t frame;
 
 static int which_song=0;
 static int song_done=0;
-static int buffers=0;
 
 void exit(int status) {
 	while(1);
@@ -60,7 +61,9 @@ static void change_song(void) {
 #define NUM_SAMPLES (AUDIO_BUFSIZ/CHANS/(BITS/8))
 #define COUNTDOWN_RESET (FREQ/50)
 
-static unsigned char audio_buf[AUDIO_BUFSIZ*2];
+static unsigned char audio_buf[AUDIO_BUFSIZ];
+static int output_bufsize=8*1024*1024,totalsize=0;
+static unsigned char *output_buffer;
 
 /* Interrupt Handlers */
 static void NextBuffer(int which_half) {
@@ -95,7 +98,8 @@ static void NextBuffer(int which_half) {
 				current_pattern++;
 				line=0;
 			}
-		}	}
+		}
+	}
 
 
 	pt3_make_frame(&pt3,frame);
@@ -104,12 +108,8 @@ static void NextBuffer(int which_half) {
 	ayemu_set_regs(&ay,frame);
 
 	/* Generate sound buffer */
-	if (which_half==0) {
-		ayemu_gen_sound (&ay, audio_buf, AUDIO_BUFSIZ);
-	}
-	else {
-		ayemu_gen_sound (&ay, audio_buf+AUDIO_BUFSIZ, AUDIO_BUFSIZ);
-	}
+	ayemu_gen_sound (&ay, audio_buf, AUDIO_BUFSIZ);
+
 }
 
 
@@ -133,15 +133,31 @@ int main(void) {
 //	ayemu_set_chip_freq(&ay, 1000000);
 	ayemu_set_stereo(&ay, AYEMU_MONO, NULL);
 
-
-	printf("Buffersize=%d\n",AUDIO_BUFSIZ);
+	output_buffer=calloc(output_bufsize,sizeof(unsigned char));
+	if (output_buffer==NULL) {
+		fprintf(stderr,"Error allocating memory!\n");
+		return -1;
+	}
 
 	while(!song_done) {
 		NextBuffer(0);
-		buffers++;
+		memcpy(output_buffer+totalsize,audio_buf,AUDIO_BUFSIZ);
+		totalsize+=AUDIO_BUFSIZ;
 	}
-	printf("Total buffers=%d total size=%d\n",buffers,buffers*AUDIO_BUFSIZ);
 
+
+	printf("Total size=%d\n",totalsize);
+
+
+	FILE *fff;
+
+	fff=fopen("out.bin","w");
+	if (fff==NULL) {
+		fprintf(stderr,"Error opening\n");
+		return -1;
+	}
+	fwrite(output_buffer,totalsize,1,fff);
+	fclose(fff);
 }
 
 
