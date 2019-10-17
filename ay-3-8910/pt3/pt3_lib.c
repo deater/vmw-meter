@@ -1,7 +1,13 @@
+/* pt3_lib:	decode a pt3 file to a stream of AY-3-8910 frames 	*/
+/*		by Vince Weaver <vince@deater.net>			*/
+/* Version 1.0	-- 17 October 2019					*/
+
 /* Some code based on Formats.pas in Bulba's ay_emul */
 
-/* Convert pt3 file to ym file */
-
+/* Version with full tables: 10304 bytes (gcc 9.2.1) */
+/*                            9544 bytes no printfs  */
+/*                            9304 bytes (z80 table) */
+/*			      9280 bytes (opt z80)   */
 
 #include <stdio.h>
 #include <stdint.h>
@@ -14,7 +20,6 @@
 #include <arpa/inet.h>
 
 #include "pt3_lib.h"
-
 
 /* Table #0 of Pro Tracker 3.3x - 3.4r */
 static unsigned short PT3NoteTable_PT_33_34r[]={
@@ -129,6 +134,9 @@ static unsigned short PT3NoteTable_REAL_34_35[] = {
   0x0014,0x0013,0x0012,0x0011,0x0010,0x000F,0x000E,0x000D,
 };
 
+static unsigned char PT3VolumeTable[16][16];
+
+#if 0
 unsigned char PT3VolumeTable_33_34[16][16]={
   {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0},
   {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1},
@@ -166,6 +174,14 @@ unsigned char PT3VolumeTable_35[16][16]={
   {0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x7,0x8,0x9,0xA,0xB,0xC,0xD,0xE},
   {0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0xA,0xB,0xC,0xD,0xE,0xF},
 };
+
+#endif
+
+static void pt3_message(char *message) {
+#if 0
+	fprintf(stderr,"%s",message);
+#endif
+}
 
 static void pt3_load_ornament(struct pt3_song_t *pt3, int which) {
 
@@ -209,13 +225,13 @@ static int pt3_load_header(int verbose, struct pt3_song_t *pt3) {
 	/* Magic: 13 bytes at offset 0 */
 	memcpy(&(pt3->magic),&(pt3->data[0]),13);
 	if (!memcmp(pt3->magic,"ProTracker 3.",13)) {
-		printf("Found ProTracker 3.");
+		//pt3_message("Found ProTracker 3.");
 	}
 	else if (!memcmp(pt3->magic,"Vortex Tracke",13)) {
-		printf("Found Vortex Tracke");
+		//pt3_message("Found Vortex Tracke");
 	} else {
-		fprintf(stderr,"Wrong magic %s != %s\n",
-			pt3->magic,"ProTracker 3.");
+		pt3_message(pt3->magic);
+		pt3_message("Wrong magic != ProTracker 3.\n");
 		/* sometimes it is still a valid file... */
 		//return -1;
 	}
@@ -299,8 +315,10 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 	if (a->enabled) {
 
 		/* Get first two bytes of 4-byte sample step */
-		b0 = pt3->data[a->sample_pointer + (short)(a->sample_position)* 4];
-		b1 = pt3->data[a->sample_pointer + (short)(a->sample_position)* 4 + 1];
+		b0 = pt3->data[a->sample_pointer +
+					(short)(a->sample_position)* 4];
+		b1 = pt3->data[a->sample_pointer +
+					(short)(a->sample_position)* 4 + 1];
 
 		/* The next two bytes are the freq slide value? */
 		a->tone = pt3->data[a->sample_pointer +
@@ -375,15 +393,8 @@ static void calculate_note(struct pt3_note_type *a, struct pt3_song_t *pt3) {
 		if (a->amplitude < 0) a->amplitude = 0;
 		else if (a->amplitude > 15) a->amplitude = 15;
 
-		if (pt3->version <= 4) {
-			a->amplitude = PT3VolumeTable_33_34[a->volume]
-							[(unsigned char)a->amplitude];
-		}
-		else {
-			/* This seems to be the more common case */
-			a->amplitude = PT3VolumeTable_35[a->volume]
-							[(unsigned char)a->amplitude];
-		}
+		a->amplitude = PT3VolumeTable[a->volume]
+						[(unsigned char)a->amplitude];
 
 		/* Bottom bit of b0 indicates our sample has envelope */
 		/* Also make sure envelopes are enabled */
@@ -477,12 +488,11 @@ static void decode_note(struct pt3_note_type *a,
 		a->len_count=a->len;
 
 		current_val=pt3->data[a->addr];
-		//printf("%02X\n",current_val);
 
 		switch((current_val>>4)&0xf) {
 			case 0:
 				if (current_val==0x0) {
-					printf("ALL DONE %c\n",a->which);
+					//printf("ALL DONE %c\n",a->which);
 					a->len_count=0;
 					a->all_done=1;
 					a_done=1;
@@ -505,7 +515,8 @@ static void decode_note(struct pt3_note_type *a,
 
 					a->addr++;
 					current_val=pt3->data[a->addr];
-					pt3->envelope_period|=(current_val&0xff);
+					pt3->envelope_period|=
+							(current_val&0xff);
 
 					a->envelope_enabled=1;
 					pt3->envelope_slide=0;
@@ -515,7 +526,8 @@ static void decode_note(struct pt3_note_type *a,
 				current_val=pt3->data[a->addr];
 				a->sample=(current_val/2);
 				pt3_load_sample(pt3,a->which);
-//				printf("0x1: Sample pointer %d %x\n",a->sample,a->sample_pointer);
+//				printf("0x1: Sample pointer %d %x\n",
+//						a->sample,a->sample_pointer);
 				a->ornament_position=0;
 
 				break;
@@ -575,7 +587,8 @@ static void decode_note(struct pt3_note_type *a,
 
 					a->addr++;
 					current_val=pt3->data[a->addr];
-					pt3->envelope_period|=(current_val&0xff);
+					pt3->envelope_period|=
+							(current_val&0xff);
 
 					a->ornament_position=0;
 					pt3->envelope_slide=0;
@@ -589,7 +602,8 @@ static void decode_note(struct pt3_note_type *a,
 
                                         a->sample_position=0;
                                         a->amplitude_sliding=0;
-					//pt3->noise_period=0; // one song needed this to match?
+					// one song needed this to match?
+					//pt3->noise_period=0;
 					a->noise_sliding=0;
                                         a->envelope_sliding=0;
                                         a->ornament_position=0;
@@ -611,7 +625,8 @@ static void decode_note(struct pt3_note_type *a,
 				else {
 					a->sample=(current_val&0xf);
 					pt3_load_sample(pt3,a->which);
-//					printf("0xd: sample %d sample pointer %x\n",
+//					printf("0xd: sample %d sample "
+//						"pointer %x\n",
 //						a->sample,a->sample_pointer);
 				}
 				break;
@@ -659,7 +674,8 @@ static void decode_note(struct pt3_note_type *a,
 
 				a->tone_slide_step=(a->spec_lo)|(a->spec_hi<<8);
 				/* Sign Extend */
-				//a->tone_slide_step=(a->tone_slide_step<<16)>>16;
+				//a->tone_slide_step=
+				//		(a->tone_slide_step<<16)>>16;
 
 				a->simplegliss=1;
 				a->onoff=0;
@@ -702,10 +718,12 @@ static void decode_note(struct pt3_note_type *a,
 
 				a->tone_slide_step=(a->spec_hi<<8)|(a->spec_lo);
 				/* sign extend */
-				//a->tone_slide_step=(a->tone_slide_step<<16)>>16;
+				//a->tone_slide_step=
+				//	(a->tone_slide_step<<16)>>16;
 				/* abs() */
-				if (a->tone_slide_step<0) a->tone_slide_step=-a->tone_slide_step;
-
+				if (a->tone_slide_step<0) {
+					a->tone_slide_step=-a->tone_slide_step;
+				}
 
 				a->tone_delta=pt3->frequency_table[a->note]-
 						pt3->frequency_table[prev_note];
@@ -716,7 +734,7 @@ static void decode_note(struct pt3_note_type *a,
 					a->tone_sliding = prev_sliding;
 				}
 				if ((a->tone_delta - a->tone_sliding) < 0) {
-					a->tone_slide_step = -a->tone_slide_step;
+					a->tone_slide_step=-a->tone_slide_step;
 				}
 				/* In the tracker it's 3 */
 				new_spec=0x3;
@@ -775,10 +793,13 @@ static void decode_note(struct pt3_note_type *a,
 				a->spec_hi=current_val&0xff;
 				a->addr++;
 
-				pt3->envelope_slide_add=(a->spec_hi<<8)|(a->spec_lo&0xff);
+				pt3->envelope_slide_add=
+					(a->spec_hi<<8)|(a->spec_lo&0xff);
 
 				/* in the tracker it's 9 */
-				if (pt3->envelope_slide_add<0x8000) new_spec=0x9;
+				if (pt3->envelope_slide_add<0x8000) {
+					new_spec=0x9;
+				}
 				else {
 					signed short new_parm;
 					new_spec=0xa;
@@ -798,8 +819,9 @@ static void decode_note(struct pt3_note_type *a,
 				new_spec=0xb;
 			}
 			else {
-				printf("%c UNKNOWN effect %02X\n",
-					a->which,a->spec_command);
+				pt3_message("UNKNOWN EFFECT\n");
+//				printf("%c UNKNOWN effect %02X\n",
+//					a->which,a->spec_command);
 			}
 			a->spec_command=new_spec;
 
@@ -809,6 +831,98 @@ static void decode_note(struct pt3_note_type *a,
 
 }
 
+
+	/*  PT3VolumeTable_35 = 1 */
+	/*  PT3VolumeTable_33334 = 0 */
+void pt3_setup_volume_table(int which) {
+	//based on VolTableCreator by Ivan Roshin
+	// originally in z80 assembly language
+	//A - VersionForVolumeTable (0..4 - 3.xx..3.4x;
+	//5.. - 3.5x..3.6x..VTII1.0)
+
+	unsigned char d,e,a,c,carry,old_carry;
+	unsigned short hl,ix,hl_save;
+	unsigned int temp1,temp2;
+
+
+	if (which) {
+		hl=0x0010;
+		e=0x10;
+		a=0;
+	}
+	else {
+		hl=0x0011;
+		e=0;
+		a=0x17;
+	}
+
+	d=0;
+	ix=16;
+	c=0x10;
+
+	do {
+		hl_save=hl;
+
+		temp1=hl;
+		temp2=(d<<8)|e;
+		temp1=temp1+temp2;
+
+		hl=temp1&0xffff;
+
+		if (temp1&(1<<16)) carry=1;
+		else carry=0;
+
+		temp1=hl;
+		temp2=(d<<8)|e;
+		hl=temp2;
+		d=(temp1>>8);
+		e=temp1&0xff;
+
+		if (carry==0) {
+			hl=0;
+		}
+		else {
+			hl=0xffff;
+		}
+
+		do {
+			a=hl&0xff;
+			if (which) {
+			}
+			else {
+				old_carry=carry;
+				carry=!!(a&0x80);
+				a=a<<1;
+				a|=old_carry;
+			}
+
+			a=(hl>>8)&0xff;
+			a=a+carry;
+
+			PT3VolumeTable[ix/16][ix%16]=a;
+			ix++;
+			temp1=hl;
+			temp2=(d<<8)|e;
+			temp1=temp1+temp2;
+			hl=temp1;//&0xffff;
+
+			c++;
+			a=c;
+			a=a&0xf;
+
+		} while(a!=0);
+
+		hl=hl_save;
+		a=e;
+
+		if ((a-0x77)==0) {
+			e++;
+		}
+		a=c;
+	} while(a!=0);
+}
+
+
 int pt3_init_song(struct pt3_song_t *pt3) {
 
 	int result;
@@ -816,7 +930,7 @@ int pt3_init_song(struct pt3_song_t *pt3) {
 	/* copy in the header data */
 	result=pt3_load_header(1,pt3);
 	if (result) {
-		fprintf(stderr,"Error decoding header!\n");
+		pt3_message("Error decoding header!\n");
 		return -1;
 	}
 
@@ -876,6 +990,19 @@ int pt3_init_song(struct pt3_song_t *pt3) {
 	pt3->envelope_slide_add=0;
 	pt3->current_pattern=0;
 
+	/************************/
+	/* set up volume table	*/
+	/************************/
+
+
+	if (pt3->version <= 4) {
+		/*  PT3VolumeTable_3334 */
+		pt3_setup_volume_table(1);
+	}
+	else {
+		/*  PT3VolumeTable_35 */
+		pt3_setup_volume_table(0);
+	}
 
 	/**************************/
 	/* set up frequency table */
@@ -883,8 +1010,9 @@ int pt3_init_song(struct pt3_song_t *pt3) {
 
 	if (pt3->which_frequency_table==0) {
 		if (pt3->version <= 3) {
-			fprintf(stderr,"ERROR: unusual freq table %d\n",
-				pt3->which_frequency_table);
+			pt3_message("WARNING: unusual freq table\n");
+			//fprintf(stderr,"ERROR: unusual freq table %d\n",
+			//	pt3->which_frequency_table);
 			memcpy(pt3->frequency_table,
 				PT3NoteTable_PT_33_34r,
 				8*12*sizeof(unsigned short));
@@ -902,8 +1030,9 @@ int pt3_init_song(struct pt3_song_t *pt3) {
 	}
 	else if (pt3->which_frequency_table==2) {
 		if (pt3->version <= 3) {
-			fprintf(stderr,"ERROR: unusual freq table %d\n",
-				pt3->which_frequency_table);
+			pt3_message("WARNING: unusual freq table\n");
+			//fprintf(stderr,"ERROR: unusual freq table %d\n",
+			//	pt3->which_frequency_table);
 			memcpy(pt3->frequency_table,
 				PT3NoteTable_ASM_34r,
 				8*12*sizeof(unsigned short));
@@ -928,93 +1057,6 @@ int pt3_init_song(struct pt3_song_t *pt3) {
 		}
 	}
 
-
-	return 0;
-}
-
-int pt3_load_song(char *filename, struct pt3_image_t *pt3_image,
-	struct pt3_song_t *pt3, struct pt3_song_t *pt3_2) {
-
-	int fd;
-	int result;
-	int offset1=0,offset2=0;
-
-	/* Clean up the incoming song structs */
-
-	if (pt3==NULL) {
-		return -1;
-	}
-	else {
-		/* Clear out the struct */
-		memset(pt3,0,sizeof(struct pt3_song_t));
-	}
-
-	if (pt3_2==NULL) {
-		return -1;
-	}
-	else {
-		/* Clear out the struct */
-		memset(pt3_2,0,sizeof(struct pt3_song_t));
-	}
-
-	/* Clear out our data */
-	memset(&pt3_image->data,0,MAX_PT3_SIZE);
-
-	/* Open file */
-	fd=open(filename,O_RDONLY);
-	if (fd<0) {
-		fprintf(stderr,"Error opening %s: %s\n",
-			filename,strerror(errno));
-		return -1;
-
-	}
-
-	/* Read entire file into memory (probably not that big) */
-	result=read(fd,&pt3_image->data,MAX_PT3_SIZE);
-	if (result<0) {
-		fprintf(stderr,"Error reading file: %s\n",
-			strerror(errno));
-		return -1;
-	}
-	pt3_image->length=result;
-
-	/* close the file */
-	close(fd);
-
-
-	/* See if we have a ProTracker 3.7 format with 6-channels */
-	if (!memcmp("02TS",pt3_image->data+(pt3_image->length-4),4)) {
-		printf("6-channels!\n");
-
-		if (!memcmp("PT3!",pt3_image->data+(pt3_image->length-16),4)) {
-			pt3->valid=1;
-			pt3->data=pt3_image->data;
-			offset1=*(pt3_image->data+(pt3_image->length-12));
-			offset1|=(*(pt3_image->data+(pt3_image->length-11)))<<8;
-		}
-
-		if (!memcmp("PT3!",pt3_image->data+(pt3_image->length-10),4)) {
-			pt3_2->valid=1;
-			pt3_2->data=pt3_image->data+offset1;
-			offset2=*(pt3_image->data+(pt3_image->length-6));
-			offset2|=(*(pt3_image->data+(pt3_image->length-5)))<<8;
-			(void)offset2;	/* not needed for now */
-		}
-	}
-	else {
-		/* Point first song to to beginning of data */
-		pt3->valid=1;
-		pt3->data=pt3_image->data;
-	}
-
-	/* Init Data */
-	result=pt3_init_song(pt3);
-	if (result<0) return result;
-
-	if (pt3_2->valid) {
-		result=pt3_init_song(pt3_2);
-		if (result<0) return result;
-	}
 
 	return 0;
 }
@@ -1151,4 +1193,95 @@ void pt3_calc_frames(struct pt3_song_t *pt3, int *total, int *loop) {
 	/* the initial conditions */
 
 	pt3_init_song(pt3);
+}
+
+
+int pt3_load_song(char *filename, struct pt3_image_t *pt3_image,
+	struct pt3_song_t *pt3, struct pt3_song_t *pt3_2) {
+
+	int fd;
+	int result;
+	int offset1=0,offset2=0;
+
+	/* Clean up the incoming song structs */
+
+	if (pt3==NULL) {
+		return -1;
+	}
+	else {
+		/* Clear out the struct */
+		memset(pt3,0,sizeof(struct pt3_song_t));
+	}
+
+	if (pt3_2==NULL) {
+		return -1;
+	}
+	else {
+		/* Clear out the struct */
+		memset(pt3_2,0,sizeof(struct pt3_song_t));
+	}
+
+	/* Clear out our data */
+	memset(&pt3_image->data,0,MAX_PT3_SIZE);
+
+	/* Open file */
+	fd=open(filename,O_RDONLY);
+	if (fd<0) {
+		pt3_message(filename);
+		pt3_message("Error opening\n");
+		//fprintf(stderr,"Error opening %s: %s\n",
+		//	filename,strerror(errno));
+		return -1;
+
+	}
+
+	/* Read entire file into memory (probably not that big) */
+	result=read(fd,&pt3_image->data,MAX_PT3_SIZE);
+	if (result<0) {
+		pt3_message("Error reading file\n");
+		//fprintf(stderr,"Error reading file: %s\n",
+		//	strerror(errno));
+		return -1;
+	}
+	pt3_image->length=result;
+
+	/* close the file */
+	close(fd);
+
+
+	/* See if we have a ProTracker 3.7 format with 6-channels */
+	if (!memcmp("02TS",pt3_image->data+(pt3_image->length-4),4)) {
+		pt3_message("6-channels!\n");
+
+		if (!memcmp("PT3!",pt3_image->data+(pt3_image->length-16),4)) {
+			pt3->valid=1;
+			pt3->data=pt3_image->data;
+			offset1=*(pt3_image->data+(pt3_image->length-12));
+			offset1|=(*(pt3_image->data+(pt3_image->length-11)))<<8;
+		}
+
+		if (!memcmp("PT3!",pt3_image->data+(pt3_image->length-10),4)) {
+			pt3_2->valid=1;
+			pt3_2->data=pt3_image->data+offset1;
+			offset2=*(pt3_image->data+(pt3_image->length-6));
+			offset2|=(*(pt3_image->data+(pt3_image->length-5)))<<8;
+			(void)offset2;	/* not needed for now */
+		}
+	}
+	else {
+		/* Point first song to to beginning of data */
+		pt3->valid=1;
+		pt3->data=pt3_image->data;
+	}
+
+	/* Init Data */
+	result=pt3_init_song(pt3);
+	if (result<0) return result;
+
+	if (pt3_2->valid) {
+		result=pt3_init_song(pt3_2);
+		if (result<0) return result;
+	}
+
+	return 0;
 }
