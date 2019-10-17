@@ -81,7 +81,7 @@ void play (void) {
 
 	int len,line_decode_result=0;
 
-	pt3_load_song("ignored", &pt3_image, &pt3, &pt3_2);
+	pt3_load_song(&pt3_image, &pt3, &pt3_2);
 	current_pattern=0;
 	line=0;
 	subframe=0;

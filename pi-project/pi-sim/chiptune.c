@@ -49,7 +49,7 @@ static void change_song(void) {
 
 	which_song=0;
 
-	pt3_load_song("ignored", &pt3_image[which_song], &pt3, &pt3_2);
+	pt3_load_song(&pt3_image[which_song], &pt3, &pt3_2);
 
 	current_pattern=0;
 	line=0;
