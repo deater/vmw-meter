@@ -6,6 +6,7 @@
 struct pt3_note_type {
 	signed char which;
 	unsigned char note;
+	unsigned char original_note;
 	unsigned char sample;
 	unsigned char ornament;
 	unsigned char volume;
@@ -65,7 +66,7 @@ struct pt3_song_t {
 	char version;
 	char name[32+1];
 	char author[32+1];
-	char frequency_table;
+	char which_frequency_table;
 	char speed;
 	char num_patterns;
 	char loop;
@@ -92,6 +93,8 @@ struct pt3_song_t {
 	unsigned char noise_period;
 	unsigned char noise_add;
 
+	unsigned short frequency_table[8*12];
+
 	unsigned char *data;
 };
 
@@ -101,7 +104,7 @@ struct pt3_image_t {
 };
 
 void dump_header(struct pt3_song_t *pt3);
-int pt3_load_song(char *filename, struct pt3_image_t *pt3_image,
+int pt3_load_song(struct pt3_image_t *pt3_image,
 	struct pt3_song_t *pt3, struct pt3_song_t *pt3_2);
 void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame);
 void pt3_print_tracker_line(struct pt3_song_t *pt3, int line);
