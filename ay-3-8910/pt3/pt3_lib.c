@@ -7,7 +7,7 @@
 /* Version with full tables: 10304 bytes (gcc 9.2.1) */
 /*                            9544 bytes no printfs  */
 /*                            9304 bytes (z80 table) */
-/*			      9280 bytes (opt z80)   */
+/*			      9104 bytes (opt z80)   */
 
 #include <stdio.h>
 #include <stdint.h>
@@ -840,86 +840,50 @@ void pt3_setup_volume_table(int which) {
 	//A - VersionForVolumeTable (0..4 - 3.xx..3.4x;
 	//5.. - 3.5x..3.6x..VTII1.0)
 
-	unsigned char d,e,a,c,carry,old_carry;
-	unsigned short hl,ix,hl_save;
-	unsigned int temp1,temp2;
+	unsigned int carry,a,hl,de,temp1,temp2,c,ix;
 
+	/* 0x00 or 0x10 */
+	de=(which<<4);
 
-	if (which) {
-		hl=0x0010;
-		e=0x10;
-		a=0;
-	}
-	else {
-		hl=0x0011;
-		e=0;
-		a=0x17;
-	}
+	for(ix=1;ix<16;ix++) {
 
-	d=0;
-	ix=16;
-	c=0x10;
+		/* 0x10 or 0x11 */
+		hl=(0x11-which);
 
-	do {
-		hl_save=hl;
+		hl=hl+de;
 
+		carry=(hl>>16);
+		hl&=0xffff;
+
+		/* swap hl and de */
 		temp1=hl;
-		temp2=(d<<8)|e;
-		temp1=temp1+temp2;
-
-		hl=temp1&0xffff;
-
-		if (temp1&(1<<16)) carry=1;
-		else carry=0;
-
-		temp1=hl;
-		temp2=(d<<8)|e;
+		temp2=de;
 		hl=temp2;
-		d=(temp1>>8);
-		e=temp1&0xff;
+		de=temp1;
 
-		if (carry==0) {
-			hl=0;
-		}
-		else {
-			hl=0xffff;
-		}
+		/* 0 or 0xffff */
+		hl=(0-carry)&0xffff;
 
-		do {
-			a=hl&0xff;
-			if (which) {
-			}
-			else {
-				old_carry=carry;
-				carry=!!(a&0x80);
-				a=a<<1;
-				a|=old_carry;
+		for(c=0;c<16;c++) {
+
+			if (!which) {
+				carry=!!(hl&0x80);
 			}
 
 			a=(hl>>8)&0xff;
 			a=a+carry;
 
-			PT3VolumeTable[ix/16][ix%16]=a;
-			ix++;
-			temp1=hl;
-			temp2=(d<<8)|e;
-			temp1=temp1+temp2;
-			hl=temp1;//&0xffff;
+			PT3VolumeTable[ix][c]=a;
 
-			c++;
-			a=c;
-			a=a&0xf;
+			hl=hl+de;
 
-		} while(a!=0);
-
-		hl=hl_save;
-		a=e;
-
-		if ((a-0x77)==0) {
-			e++;
 		}
-		a=c;
-	} while(a!=0);
+
+		if ((de&0xff)==0x77) {
+			de++;
+		}
+
+	}
 }
 
 
