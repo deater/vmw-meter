@@ -44,13 +44,13 @@ play_ym:	play_ym.o ./chiptune_audio/audio.a \
 			chiptune_display/display.a \
 			visualizations/visual.a \
 			noteslib/notes.o
-	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o play_ym play_ym.o \
+	$(CC) -o play_ym play_ym.o \
 			./chiptune_audio/audio.a \
 			ymlib/ym_lib.o ymlib/ym_play.o \
 			chiptune_display/display.a \
 			visualizations/visual.a \
 			noteslib/notes.o \
-			$(LIBBCM2835)
+			$(LFLAGS) $(LIBLHASA_LIB) $(LIBBCM2835)
 
 play_ym.o:	play_ym.c ./chiptune_display/display.h ./chiptune_audio/ay-3-8910.h
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) $(AUDIO_INCLUDE) \
@@ -59,16 +59,18 @@ play_ym.o:	play_ym.c ./chiptune_display/display.h ./chiptune_audio/ay-3-8910.h
 
 ###
 
-play_pt3:	play_pt3.o ./chiptune_audio/audio.a ./pt3/pt3_lib.o \
+play_pt3:	play_pt3.o ./chiptune_audio/audio.a \
+			./pt3/pt3_lib_text.o ./pt3/pt3_lib.o \
 			chiptune_display/display.a \
 			visualizations/visual.a \
 			noteslib/notes.o
-	$(CC) $(LFLAGS) -o play_pt3 play_pt3.o \
-			./chiptune_audio/audio.a ./pt3/pt3_lib.o \
+	$(CC) -o play_pt3 play_pt3.o \
+			./chiptune_audio/audio.a \
+			./pt3/pt3_lib_text.o ./pt3/pt3_lib.o \
 			chiptune_display/display.a \
 			visualizations/visual.a \
 			noteslib/notes.o \
-			$(LIBBCM2835)
+			$(LFLAGS) $(LIBBCM2835)
 
 play_pt3.o:	play_pt3.c ./chiptune_display/display.h \
 		./chiptune_audio/ay-3-8910.h ./pt3/pt3_lib.h
@@ -86,10 +88,10 @@ lyrics.o:	lyrics.c lyrics.h
 glados:	glados.o chiptune_audio/audio.a \
 		./ymlib/ym_lib.o ./ymlib/ym_play.o lyrics.o \
 		chiptune_display/display.a lib_lib.o
-	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o glados glados.o \
+	$(CC) -o glados glados.o \
 			lyrics.o lib_lib.o \
 			./ymlib/ym_lib.o ./ymlib/ym_play.o \
-			$(AUDIO_LIB) \
+			$(LFLAGS) $(LIBLHASA_LIB) $(AUDIO_LIB) \
 			chiptune_display/display.a
 
 
@@ -99,11 +101,11 @@ glados.o:	glados.c chiptune_display/display.h ymlib/ym_lib.h glados_ascii_art.h
 ###
 
 organ:	organ.o chiptune_audio/audio.a chiptune_display/display.a noteslib/notes.o
-	$(CC) $(LFLAGS) -o organ organ.o \
+	$(CC) -o organ organ.o \
 		chiptune_audio/audio.a \
 		chiptune_display/display.a \
 		noteslib/notes.o \
-		$(LIBBCM2835)
+		$(LFLAGS) $(LIBBCM2835)
 
 organ.o:	organ.c chiptune_audio/ay-3-8910.h chiptune_display/display.h
 	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) $(DISPLAY_INCLUDE) -c organ.c
@@ -131,11 +133,11 @@ alarm_clock:	alarm_clock.o lib_lib.o lib_clock.o \
 		lib_pom.o lib_temperature.o \
 		chiptune_display/display.a \
 		chiptune_audio/audio.a
-	$(CC) $(LFLAGS) -o alarm_clock alarm_clock.o lib_lib.o lib_clock.o \
+	$(CC) -o alarm_clock alarm_clock.o lib_lib.o lib_clock.o \
 		lib_pom.o lib_temperature.o \
 		chiptune_display/display.a \
 		chiptune_audio/audio.a \
-		$(LIBBCM2835)
+		$(LFLAGS) $(LIBBCM2835)
 
 alarm_clock.o:	alarm_clock.c chiptune_display/display.h
 	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) $(DISPLAY_INCLUDE) -c alarm_clock.c
@@ -143,8 +145,8 @@ alarm_clock.o:	alarm_clock.c chiptune_display/display.h
 ###
 
 cpu_meter:	cpu_meter.o chiptune_display/display.a
-	$(CC) $(LFLAGS) -o cpu_meter cpu_meter.o \
-		chiptune_display/display.a
+	$(CC) -o cpu_meter cpu_meter.o \
+		$(LFLAGS) chiptune_display/display.a
 
 cpu_meter.o:	cpu_meter.c chiptune_display/display.h
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c cpu_meter.c
@@ -155,8 +157,8 @@ lib_pom.o:	lib_pom.c lib_lib.h
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c lib_pom.c
 
 pom:	pom.o lib_lib.o lib_pom.o chiptune_display/display.a
-	$(CC) $(LFLAGS) -o pom pom.o lib_lib.o lib_pom.o \
-		chiptune_display/display.a $(AUDIO_LIB)
+	$(CC) -o pom pom.o lib_lib.o lib_pom.o \
+		chiptune_display/display.a $(LFLAGS) $(AUDIO_LIB)
 
 pom.o:	pom.c chiptune_display/display.h
 	$(CC) $(CFLAGS) $(DISPLAY_INCLUDE) -c pom.c
@@ -176,11 +178,11 @@ falling_blocks:	falling_blocks.o \
 		chiptune_display/display.a \
 		chiptune_audio/audio.a \
 		ymlib/ym_lib.o ./ymlib/ym_play.o lyrics.o
-	$(CC) $(LFLAGS) $(LIBLHASA_LIB) -o falling_blocks falling_blocks.o \
+	$(CC) -o falling_blocks falling_blocks.o \
 		chiptune_audio/audio.a \
 		ymlib/ym_lib.o ymlib/ym_play.o lyrics.o \
 		chiptune_display/display.a \
-		$(LIBBCM2835)
+		$(LFLAGS) $(LIBLHASA_LIB) $(LIBBCM2835)
 
 falling_blocks.o:	falling_blocks.c chiptune_display/display.h
 	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) $(DISPLAY_INCLUDE) $(YM_INCLUDE) -c falling_blocks.c
@@ -192,11 +194,11 @@ kiosk:	kiosk.o lib_lib.o lib_clock.o \
 		lib_pom.o lib_temperature.o \
 		chiptune_display/display.a \
 		chiptune_audio/audio.a
-	$(CC) $(LFLAGS) -o kiosk kiosk.o lib_lib.o lib_clock.o \
+	$(CC) -o kiosk kiosk.o lib_lib.o lib_clock.o \
 		lib_pom.o lib_temperature.o \
 		chiptune_display/display.a \
 		chiptune_audio/audio.a \
-		$(LIBBCM2835)
+		$(LFLAGS) $(LIBBCM2835)
 
 kiosk.o:	kiosk.c chiptune_display/display.h
 	$(CC) $(CFLAGS) $(AUDIO_INCLUDE) $(DISPLAY_INCLUDE) -c kiosk.c
