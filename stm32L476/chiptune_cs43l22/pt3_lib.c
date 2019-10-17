@@ -1166,8 +1166,15 @@ int pt3_load_song_from_disk(char *filename, struct pt3_image_t *pt3_image,
 	int fd;
 	int result;
 
+	/* allocate space */
+	pt3_image->data=malloc(sizeof(unsigned char)*MAX_PT3_SIZE);
+	if (pt3_image->data==NULL) {
+		pt3_message("Error allocating\n");
+		return -1;
+	}
+
 	/* Clear out our data */
-	memset(&pt3_image->data,0,MAX_PT3_SIZE);
+	memset(pt3_image->data,0,MAX_PT3_SIZE);
 
 	/* Open file */
 	fd=open(filename,O_RDONLY);
@@ -1181,7 +1188,7 @@ int pt3_load_song_from_disk(char *filename, struct pt3_image_t *pt3_image,
 	}
 
 	/* Read entire file into memory (probably not that big) */
-	result=read(fd,&pt3_image->data,MAX_PT3_SIZE);
+	result=read(fd,pt3_image->data,MAX_PT3_SIZE);
 	if (result<0) {
 		pt3_message("Error reading file\n");
 		//fprintf(stderr,"Error reading file: %s\n",

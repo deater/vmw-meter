@@ -486,7 +486,7 @@ static int play_song(char *filename) {
 
 	printf("\nPlaying song %s\n",filename);
 
-	result=pt3_load_song(filename,&pt3_image,&pt3,&pt3_2);
+	result=pt3_load_song_from_disk(filename,&pt3_image,&pt3,&pt3_2);
 	if (result<0) {
 		return -1;
 	}
