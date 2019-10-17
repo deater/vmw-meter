@@ -100,11 +100,13 @@ struct pt3_song_t {
 
 struct pt3_image_t {
 	int length;
-	unsigned char data[MAX_PT3_SIZE];
+	unsigned char *data;
 };
 
 void dump_header(struct pt3_song_t *pt3);
-int pt3_load_song(char *filename, struct pt3_image_t *pt3_image,
+int pt3_load_song(struct pt3_image_t *pt3_image,
+	struct pt3_song_t *pt3, struct pt3_song_t *pt3_2);
+int pt3_load_song_from_disk(char *filename,struct pt3_image_t *pt3_image,
 	struct pt3_song_t *pt3, struct pt3_song_t *pt3_2);
 void pt3_make_frame(struct pt3_song_t *pt3, unsigned char *frame);
 void pt3_print_tracker_line(struct pt3_song_t *pt3, int line);

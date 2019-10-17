@@ -10,8 +10,13 @@
 /*			      9104 bytes (opt z80)			*/
 /*			      7464 bytes (gen freq tables)		*/
 
-#include <stdio.h>
 #include <stdint.h>
+
+#ifdef PT3LIB_EMBEDDED
+#include "string.h"
+#include "stdlib.h"
+#else
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -19,6 +24,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#endif
 
 #include "pt3_lib.h"
 
@@ -28,7 +34,8 @@ static unsigned char PT3VolumeTable[16][16];
 
 
 static void pt3_message(char *message) {
-#if 0
+#ifdef PT3LIB_EMBEDDED
+#else
 	fprintf(stderr,"%s",message);
 #endif
 }
@@ -1091,10 +1098,9 @@ void pt3_calc_frames(struct pt3_song_t *pt3, int *total, int *loop) {
 }
 
 
-int pt3_load_song(char *filename, struct pt3_image_t *pt3_image,
+int pt3_load_song(struct pt3_image_t *pt3_image,
 	struct pt3_song_t *pt3, struct pt3_song_t *pt3_2) {
 
-	int fd;
 	int result;
 	int offset1=0,offset2=0;
 
@@ -1115,34 +1121,6 @@ int pt3_load_song(char *filename, struct pt3_image_t *pt3_image,
 		/* Clear out the struct */
 		memset(pt3_2,0,sizeof(struct pt3_song_t));
 	}
-
-	/* Clear out our data */
-	memset(&pt3_image->data,0,MAX_PT3_SIZE);
-
-	/* Open file */
-	fd=open(filename,O_RDONLY);
-	if (fd<0) {
-		pt3_message(filename);
-		pt3_message("Error opening\n");
-		//fprintf(stderr,"Error opening %s: %s\n",
-		//	filename,strerror(errno));
-		return -1;
-
-	}
-
-	/* Read entire file into memory (probably not that big) */
-	result=read(fd,&pt3_image->data,MAX_PT3_SIZE);
-	if (result<0) {
-		pt3_message("Error reading file\n");
-		//fprintf(stderr,"Error reading file: %s\n",
-		//	strerror(errno));
-		return -1;
-	}
-	pt3_image->length=result;
-
-	/* close the file */
-	close(fd);
-
 
 	/* See if we have a ProTracker 3.7 format with 6-channels */
 	if (!memcmp("02TS",pt3_image->data+(pt3_image->length-4),4)) {
@@ -1181,6 +1159,52 @@ int pt3_load_song(char *filename, struct pt3_image_t *pt3_image,
 	return 0;
 }
 
+#ifndef PT3LIB_EMBEDDED
+int pt3_load_song_from_disk(char *filename, struct pt3_image_t *pt3_image,
+	struct pt3_song_t *pt3, struct pt3_song_t *pt3_2) {
+
+	int fd;
+	int result;
+
+	/* allocate space */
+	pt3_image->data=malloc(sizeof(unsigned char)*MAX_PT3_SIZE);
+	if (pt3_image->data==NULL) {
+		pt3_message("Error allocating\n");
+		return -1;
+	}
+
+	/* Clear out our data */
+	memset(pt3_image->data,0,MAX_PT3_SIZE);
+
+	/* Open file */
+	fd=open(filename,O_RDONLY);
+	if (fd<0) {
+		pt3_message(filename);
+		pt3_message("Error opening\n");
+		//fprintf(stderr,"Error opening %s: %s\n",
+		//	filename,strerror(errno));
+		return -1;
+
+	}
+
+	/* Read entire file into memory (probably not that big) */
+	result=read(fd,pt3_image->data,MAX_PT3_SIZE);
+	if (result<0) {
+		pt3_message("Error reading file\n");
+		//fprintf(stderr,"Error reading file: %s\n",
+		//	strerror(errno));
+		return -1;
+	}
+	pt3_image->length=result;
+
+	/* close the file */
+	close(fd);
+
+	pt3_load_song(pt3_image,pt3,pt3_2);
+
+	return 0;
+}
+#endif
 
 /* These are unused, left for historical reference */
 
