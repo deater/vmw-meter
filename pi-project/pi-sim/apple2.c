@@ -25,6 +25,19 @@ static unsigned int apple2_color[16]={
 	0xffffff,	/* 15 white */
 };
 
+void load_apple2_palette(void) {
+
+	int i;
+
+	for(i=0;i<16;i++) {
+		red_palette[i]=(apple2_color[i]>>16)&0xff;
+		green_palette[i]=(apple2_color[i]>>8)&0xff;
+		blue_palette[i]=(apple2_color[i])&0xff;
+	}
+
+}
+
+
 #if 0
 static unsigned int apple2_hcolor[8]={
 	0,		/*  0 black */
@@ -41,19 +54,13 @@ static unsigned int apple2_hcolor[8]={
 #endif
 
 /* 40x48 -- 640x480, 16x10 */
-void apple2_plot(int x, int y, int color) {
+void apple2_plot(int x, int y, int color, unsigned char *buffer) {
 
-	int r,g,b,xx,yy;
-
-	r=(apple2_color[color]>>16)&0xff;
-	g=(apple2_color[color]>>8)&0xff;
-	b=(apple2_color[color]>>0)&0xff;
+	int xx,yy;
 
 	for(yy=0;yy<10;yy++) {
 		for(xx=0;xx<16;xx++){
-			red[ (((y*10)+yy)*640)+ (x*16)+xx]=r;
-			green[ (((y*10)+yy)*640)+ (x*16)+xx]=g;
-			blue[ (((y*10)+yy)*640)+ (x*16)+xx]=b;
+			buffer[ (((y*10)+yy)*XSIZE)+ (x*16)+xx]=color;
 		}
 	}
 }

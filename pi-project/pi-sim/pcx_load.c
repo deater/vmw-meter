@@ -13,7 +13,8 @@
 
 static int debug=1;
 
-int vmwLoadPCX(unsigned char *image, int x_offset, int y_offset)  {
+int vmwLoadPCX(unsigned char *image, int x_offset, int y_offset,
+	unsigned char *buffer)  {
 
 	int x,i,numacross,xsize,ysize,xmin,ymin,total;
 	int xmax,ymax;
@@ -95,9 +96,7 @@ int vmwLoadPCX(unsigned char *image, int x_offset, int y_offset)  {
 			temp_byte=*image_pointer;
 			image_pointer++;
 			for(i=0;i<numacross;i++) {
-				red[output_pointer]=red_palette[temp_byte];
-				green[output_pointer]=green_palette[temp_byte];
-				blue[output_pointer]=blue_palette[temp_byte];
+				buffer[output_pointer]=temp_byte;
 				output_pointer++;
 				total++;
 				x++;
@@ -114,9 +113,7 @@ int vmwLoadPCX(unsigned char *image, int x_offset, int y_offset)  {
 			}
 		}
 		else {
-			red[output_pointer]=red_palette[temp_byte];
-			green[output_pointer]=green_palette[temp_byte];
-			blue[output_pointer]=blue_palette[temp_byte];
+			buffer[output_pointer]=temp_byte;
 			output_pointer++;
 			total++;
 			x++;

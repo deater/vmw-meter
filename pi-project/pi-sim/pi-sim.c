@@ -11,17 +11,12 @@ static const int xsize=XSIZE,ysize=YSIZE;
 
 static SDL_Surface *sdl_screen=NULL;
 
-unsigned char display[640*480*3];
-unsigned char red[640*480];
-unsigned char blue[640*480];
-unsigned char green[640*480];
-
 unsigned char red_palette[256];
 unsigned char blue_palette[256];
 unsigned char green_palette[256];
 
 
-int pisim_update(void) {
+int pisim_update(unsigned char *buffer) {
 
 	unsigned int *t_pointer;
 
@@ -32,7 +27,9 @@ int pisim_update(void) {
 
 	for(x=0;x<xsize*ysize;x++) {
 
-		temp=(red[x]<<16)|(green[x]<<8)|(blue[x]<<0)|0;
+		temp=(red_palette[buffer[x]]<<16)|
+			(green_palette[buffer[x]]<<8)|
+			(blue_palette[buffer[x]]<<0)|0;
 
 		t_pointer[x]=temp;
 	}
@@ -45,7 +42,6 @@ int pisim_update(void) {
 int pisim_init(void) {
 
 	int mode;
-	int x;
 
 	mode=SDL_SWSURFACE|SDL_HWPALETTE|SDL_HWSURFACE;
 
@@ -68,9 +64,6 @@ int pisim_init(void) {
 	}
 
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-
-	/* Init screen */
-	for(x=0;x<640*480*3;x++) display[x]=0;
 
 	return 0;
 }

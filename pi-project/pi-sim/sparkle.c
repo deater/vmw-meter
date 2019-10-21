@@ -13,10 +13,13 @@ int main(int argc, char **argv) {
 	int r,w,c,m,n,l;
 	int x,y;
 
+	unsigned char buffer[XSIZE*YSIZE];
+
 #define S 19
 	int a[S+1],b[S+1];
 
 	pisim_init();
+	load_apple2_palette();
 
 	// 125
 
@@ -60,15 +63,15 @@ label140:
 				printf("ERROR! %d %d\n",x,r);
 				return -1;
 			}
-			apple2_plot(x+r,y+w,c);
-			apple2_plot(x+r,y-w,c);
-			apple2_plot(x-r,y-w,c);
-			apple2_plot(x-r,y+w,c);
-			apple2_plot(x+w,y+r,c);
-			apple2_plot(x+w,y-r,c);
-			apple2_plot(x-w,y-r,c);
-			apple2_plot(x-w,y+r,c);
-			pisim_update();
+			apple2_plot(x+r,y+w,c,buffer);
+			apple2_plot(x+r,y-w,c,buffer);
+			apple2_plot(x-r,y-w,c,buffer);
+			apple2_plot(x-r,y+w,c,buffer);
+			apple2_plot(x+w,y+r,c,buffer);
+			apple2_plot(x+w,y-r,c,buffer);
+			apple2_plot(x-w,y-r,c,buffer);
+			apple2_plot(x-w,y+r,c,buffer);
+			pisim_update(buffer);
 	//320
 		}
 	}
@@ -93,8 +96,8 @@ label140:
 		//color_equals(w);
 		for(l=(y-S);l<=(y+S);l+=(r/4)+1) {
 			for(k=(x-S);k<=(x+S);k+=r) {
-				apple2_plot(k,l,w);
-				pisim_update();
+				apple2_plot(k,l,w,buffer);
+				pisim_update(buffer);
 			}
 		}
 	}
