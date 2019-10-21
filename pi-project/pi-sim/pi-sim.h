@@ -26,6 +26,8 @@ void vlin(int y1, int y2, int x, int color, unsigned char *buffer);
 
 void vmwTextXY(char *string,int x,int y,int color,int background,int overwrite,
         unsigned char font[256][16], unsigned char *buffer);
+void vmwTextXYx2(char *string,int x,int y,int color,int background,int overwrite,
+        unsigned char font[256][16], unsigned char *buffer);
 int put_char(unsigned char c, int x, int y, int fg_color, int bg_color,
         int overwrite, unsigned char font[256][16], unsigned char *buffer);
 int print_string(char *string, int x, int y, int color,unsigned char *buffer);

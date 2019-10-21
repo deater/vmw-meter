@@ -42,22 +42,54 @@ int main(int argc, char **argv) {
 
 	/* Actually draw the stylized VMW */
 	for(x=0;x<=40;x++) {
-		vlin(45,45+2*x,x+40,100+x,buffer);
-		vlin(45,45+2*x,x+120,141+x,buffer);
-		vlin(45,45+2*x,x+200,141+x,buffer);
-		vlin(125-(2*x),125,x+80,182+x,buffer);
-		vlin(125-(2*x),125,x+160,182+x,buffer);
+		/* red, left */
+		vlin(2*(45),   2*(45+2*x),   2*(x+40),100+x,buffer);
+		vlin(2*(45),   2*(46+2*x), 1+2*(x+40),100+x,buffer);
+
+		/* blue 1st, left */
+		vlin(2*(45),   2*(45+2*x),   2*(x+120),141+x,buffer);
+		vlin(2*(45),   2*(46+2*x), 1+2*(x+120),141+x,buffer);
+		/* blue 2nd, left */
+		vlin(2*(45),   2*(45+2*x),   2*(x+200),141+x,buffer);
+		vlin(2*(45),   2*(46+2*x), 1+2*(x+200),141+x,buffer);
+
+		/* green 1st, left */
+		vlin(  2*(126-(2*x)), 2*(125),	  2*(x+80),182+x,buffer);
+		vlin(  2*(125-(2*x)), 2*(125),	1+2*(x+80),182+x,buffer);
+
+		/* green 2nd, left */
+		vlin(  2*(126-(2*x)), 2*(125),	  2*(x+160),182+x,buffer);
+		vlin(  2*(125-(2*x)), 2*(125),	1+2*(x+160),182+x,buffer);
 	}
 	for(x=40;x>0;x--){
-		vlin(45,45+80-(2*x),x+80,140-x,buffer);
-		vlin(45,45+80-(2*x),x+160,181-x,buffer);
-		vlin(45,45+80-(2*x),x+240,181-x,buffer);
-		vlin(45+(2*x),125,x+120,222-x,buffer);
-		vlin(45+(2*x),125,x+200,222-x,buffer);
+		/* red, right */
+		vlin(2*(45),   2*(46+80-(2*x)),   2*(x+80),140-x,buffer);
+		vlin(2*(45),   2*(45+80-(2*x)), 1+2*(x+80),140-x,buffer);
+
+		/* blue, 1st, right */
+		vlin(2*(45),   2*(46+80-(2*x)),   2*(x+160),181-x,buffer);
+		vlin(2*(45),   2*(45+80-(2*x)), 1+2*(x+160),181-x,buffer);
+
+		/* blue, 2nd, right */
+		vlin(2*(45),   2*(46+80-(2*x)),   2*(x+240),181-x,buffer);
+		vlin(2*(45),   2*(45+80-(2*x)), 1+2*(x+240),181-x,buffer);
+
+		/* green, 1st, right */
+		vlin(  2*(44+(2*x)), 2*(125),   2*(x+120),222-x,buffer);
+		vlin(  2*(45+(2*x)), 2*(125), 1+2*(x+120),222-x,buffer);
+
+		/* green, 2nd, right */
+		vlin(  2*(44+(2*x)), 2*(125),	2*(x+200),222-x,buffer);
+		vlin(  2*(45+(2*x)), 2*(125), 1+2*(x+200),222-x,buffer);
 	}
 
-   vmwTextXY("A VMW SOFTWARE PRODUCTION",60,140,
-	     15,15,0,default_font,buffer);
+	/* hack to clear over-extend line */
+	hlin( 0, 639, 250, 0, buffer);
+	hlin( 0, 639, 251, 0, buffer);
+
+
+	vmwTextXYx2("A VMW SOFTWARE PRODUCTION",60*2,140*2,
+			15,15,0,default_font,buffer);
 
 
 	while(1) {
