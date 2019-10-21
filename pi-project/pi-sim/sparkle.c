@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "svmwgraph.h"
 #include "pi-sim.h"
+
 
 int main(int argc, char **argv) {
 
@@ -19,7 +21,7 @@ int main(int argc, char **argv) {
 	int a[S+1],b[S+1];
 
 	pisim_init();
-	load_apple2_palette();
+	apple2_load_palette();
 
 	// 125
 

@@ -6,7 +6,7 @@
 #include <math.h>
 
 #include "pi-sim.h"
-
+#include "svmwgraph.h"
 
 
 static unsigned char flying_map[16][16]= {
@@ -130,7 +130,7 @@ void draw_background_mode7(double angle, double cx, double cy,
 			color=(flying_map[(int)space_x & mask_x]
 					[(int)space_y&mask_y]);
 
-			plot(screen_x,screen_y,color,buffer);
+			vmwPlot(screen_x,screen_y,color,buffer);
 
 			// advance to the next position in space
 			space_x += line_dx;
@@ -161,12 +161,12 @@ int flying(unsigned char *buffer) {
 	color=APPLE2_COLOR_MEDIUMBLUE;
 
 	for(i=0;i<20;i++) {
-		hlin(0, 40, i, color, buffer);
+		vmwHlin(0, 40, i, color, buffer);
 	}
 
 	color=APPLE2_COLOR_DARKBLUE;
 	for(i=20;i<48;i++) {
-		hlin(0, 40, i, color, buffer);
+		vmwHlin(0, 40, i, color, buffer);
 	}
 
 	while(1) {
@@ -285,7 +285,7 @@ int main(int argc, char **argv) {
 
 	pisim_init();
 
-	load_apple2_palette();
+	apple2_load_palette();
 	flying(buffer);
 
 	return 0;

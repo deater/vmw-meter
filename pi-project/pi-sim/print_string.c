@@ -5,7 +5,7 @@
 #include <sys/stat.h>	/* for file modes */
 #include <stdlib.h>	/* free() */
 
-#include "pi-sim.h"
+#include "svmwgraph.h"
 
 #include "default_font.h"
 

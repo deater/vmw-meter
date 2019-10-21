@@ -5,16 +5,11 @@
 #include <SDL.h>
 
 #include "pi-sim.h"
-
+#include "svmwgraph.h"
 
 static const int xsize=XSIZE,ysize=YSIZE;
 
 static SDL_Surface *sdl_screen=NULL;
-
-unsigned char red_palette[256];
-unsigned char blue_palette[256];
-unsigned char green_palette[256];
-
 
 int pisim_update(unsigned char *buffer) {
 

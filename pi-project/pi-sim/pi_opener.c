@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "svmwgraph.h"
 #include "pi-sim.h"
 #include "pcx_load.h"
 

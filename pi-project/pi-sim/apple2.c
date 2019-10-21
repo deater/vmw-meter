@@ -4,7 +4,7 @@
 
 #include <SDL.h>
 
-#include "pi-sim.h"
+#include "svmwgraph.h"
 
 static unsigned int apple2_color[16]={
 	0,		/*  0 black */
@@ -25,7 +25,7 @@ static unsigned int apple2_color[16]={
 	0xffffff,	/* 15 white */
 };
 
-void load_apple2_palette(void) {
+void apple2_load_palette(void) {
 
 	int i;
 
