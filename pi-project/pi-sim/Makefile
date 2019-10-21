@@ -97,5 +97,5 @@ default_font.o:	default_font.c default_font.h
 	$(CC) $(CFLAGS) -c default_font.c
 
 clean:
-	rm -f chiptune sparkle pi_opener vmw_open *~ *.o *.a
+	rm -f chiptune sparkle pi_opener vmw_open mode7_demo *~ *.o *.a
 
