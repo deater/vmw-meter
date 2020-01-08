@@ -6,6 +6,7 @@
 
 #include "14seg_font.h"
 #include "i2c_lib.h"
+#include "default_device.h"
 
 /* We get cpu usage by reading /proc/stat on Linux */
 /* the cpu line totals all of the values, cpu0-cpuX are individual cpu stats */
@@ -114,9 +115,9 @@ int main(int argc, char **argv) {
 
 	/* Init Display */
 	display_present=1;
-	meter_fd=init_i2c("/dev/i2c-6");
+	meter_fd=init_i2c(DEFAULT_DEVICE);
 	if (meter_fd < 0) {
-		fprintf(stderr,"Error opening device!\n");
+		fprintf(stderr,"Error opening device %s!\n",DEFAULT_DEVICE);
 		display_present=0;
 	}
 

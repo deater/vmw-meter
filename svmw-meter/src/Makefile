@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -O2 -Wall -I../../lib
+CFLAGS = -O2 -Wall -I../../include
 LFLAGS =
 
 all:	char_test \
@@ -11,7 +11,7 @@ all:	char_test \
         scroll_string \
 	spin_demo \
 	string_demo \
-	set_display 
+	set_display
 
 ###
 
@@ -20,7 +20,7 @@ all:	char_test \
 
 ###
 
-../../lib/i2c_lib.o:	../../lib/i2c_lib.c ../../lib/i2c_lib.h
+../../lib/i2c_lib.o:	../../lib/i2c_lib.c ../../include/i2c_lib.h
 	cd ../../lib && make
 
 ###
@@ -28,7 +28,7 @@ all:	char_test \
 char_test:	char_test.o 14seg_font.o
 	$(CC) $(LFLAGS) -o char_test char_test.o 14seg_font.o
 
-char_test.o:	char_test.c ../../lib/i2c_lib.h
+char_test.o:	char_test.c ../../include/i2c_lib.h
 	$(CC) $(CFLAGS) -c char_test.c
 
 ###
@@ -36,7 +36,7 @@ char_test.o:	char_test.c ../../lib/i2c_lib.h
 clock_demo:	clock_demo.o 14seg_font.o ../../lib/i2c_lib.o
 	$(CC) $(LFLAGS) -o clock_demo clock_demo.o 14seg_font.o ../../lib/i2c_lib.o
 
-clock_demo.o:	clock_demo.c 14seg_font.h ../../lib/i2c_lib.h
+clock_demo.o:	clock_demo.c 14seg_font.h ../../include/i2c_lib.h default_device.h
 	$(CC) $(CFLAGS) -c clock_demo.c
 
 
@@ -45,16 +45,16 @@ clock_demo.o:	clock_demo.c 14seg_font.h ../../lib/i2c_lib.h
 cpu_meter:	cpu_meter.o 14seg_font.o ../../lib/i2c_lib.o
 	$(CC) $(LFLAGS) -o cpu_meter cpu_meter.o 14seg_font.o ../../lib/i2c_lib.o
 
-cpu_meter.o:	cpu_meter.c 14seg_font.h ../../lib/i2c_lib.h
-	$(CC) $(CFLAGS) -c cpu_meter.c	
+cpu_meter.o:	cpu_meter.c 14seg_font.h ../../include/i2c_lib.h
+	$(CC) $(CFLAGS) -c cpu_meter.c
 
 ###
 
 enemy_attack:	enemy_attack.o 14seg_font.o ../../lib/i2c_lib.o
 	$(CC) $(LFLAGS) -o enemy_attack enemy_attack.o 14seg_font.o ../../lib/i2c_lib.o
 
-enemy_attack.o:	enemy_attack.c 14seg_font.h ../../lib/i2c_lib.h
-	$(CC) $(CFLAGS) -c enemy_attack.c	
+enemy_attack.o:	enemy_attack.c 14seg_font.h ../../include/i2c_lib.h
+	$(CC) $(CFLAGS) -c enemy_attack.c
 
 
 ###
@@ -62,15 +62,15 @@ enemy_attack.o:	enemy_attack.c 14seg_font.h ../../lib/i2c_lib.h
 music_demo:	music_demo.o 14seg_font.o ../../lib/i2c_lib.o
 	$(CC) $(LFLAGS) -o music_demo music_demo.o 14seg_font.o ../../lib/i2c_lib.o -lm
 
-music_demo.o:	music_demo.c ../../lib/i2c_lib.h
-	$(CC) $(CFLAGS) -c music_demo.c	
+music_demo.o:	music_demo.c ../../include/i2c_lib.h
+	$(CC) $(CFLAGS) -c music_demo.c
 
 ###
 
 pulse_demo:	pulse_demo.o ../../lib/i2c_lib.o
 	$(CC) $(LFLAGS) -o pulse_demo pulse_demo.o ../../lib/i2c_lib.o
 
-pulse_demo.o:	pulse_demo.c ../../lib/i2c_lib.h
+pulse_demo.o:	pulse_demo.c ../../include/i2c_lib.h
 	$(CC) $(CFLAGS) -c pulse_demo.c
 
 ###
@@ -78,16 +78,16 @@ pulse_demo.o:	pulse_demo.c ../../lib/i2c_lib.h
 scroll_string:	scroll_string.o 14seg_font.o ../../lib/i2c_lib.o
 	$(CC) $(LFLAGS) -o scroll_string scroll_string.o 14seg_font.o ../../lib/i2c_lib.o
 
-scroll_string.o:	scroll_string.c ../../lib/i2c_lib.h
+scroll_string.o:	scroll_string.c ../../include/i2c_lib.h
 	$(CC) $(CFLAGS) -c scroll_string.c
 
 
 ###
 
 spin_demo:	spin_demo.o ../../lib/i2c_lib.o
-	$(CC) $(LFLAGS) -o spin_demo spin_demo.o ../../lib/i2c_lib.o	
+	$(CC) $(LFLAGS) -o spin_demo spin_demo.o ../../lib/i2c_lib.o
 
-spin_demo.o:	spin_demo.c ../../lib/i2c_lib.h
+spin_demo.o:	spin_demo.c ../../include/i2c_lib.h
 	$(CC) $(CFLAGS) -c spin_demo.c
 
 
@@ -96,7 +96,7 @@ spin_demo.o:	spin_demo.c ../../lib/i2c_lib.h
 string_demo:	string_demo.o 14seg_font.o ../../lib/i2c_lib.o
 	$(CC) $(LFLAGS) -o string_demo string_demo.o 14seg_font.o ../../lib/i2c_lib.o
 
-string_demo.o:	string_demo.c ../../lib/i2c_lib.h
+string_demo.o:	string_demo.c ../../include/i2c_lib.h
 	$(CC) $(CFLAGS) -c string_demo.c
 
 
@@ -106,8 +106,8 @@ string_demo.o:	string_demo.c ../../lib/i2c_lib.h
 set_display:	set_display.o 14seg_font.o ../../lib/i2c_lib.o
 	$(CC) $(LFLAGS) -o set_display set_display.o 14seg_font.o ../../lib/i2c_lib.o
 
-set_display.o:	set_display.c ../../lib/i2c_lib.h
-	$(CC) $(CFLAGS) -c set_display.c	
+set_display.o:	set_display.c ../../include/i2c_lib.h
+	$(CC) $(CFLAGS) -c set_display.c
 
 
 
