@@ -54,6 +54,11 @@ int update_8x8_bicolor_display_rotated(int i2c_fd, int i2c_addr,
 		unsigned char *display_state_red,
 		int degrees);
 
+int update_8x16_display(int i2c_fd, int i2c_addr,
+		unsigned short *display_state,int degrees,
+		int bug_workaround);
+
+
 int update_display(int i2c_fd, int i2c_addr, unsigned short *display_state);
 
 int init_nunchuck(int i2c_fd);
