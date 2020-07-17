@@ -133,11 +133,12 @@ void play (void) {
 
 	while(1) {
 
+		if (current_pattern==pt3.music_len) {
+			break;
+		}
+
 		/* Decode next frame */
 		if ((line==0) && (subframe==0)) {
-			if (current_pattern==pt3.music_len) {
-				exit(1);
-			}
 			pt3_set_pattern(current_pattern,&pt3);
 			if (pt3_2.valid) pt3_set_pattern(current_pattern,&pt3_2);
 		}
