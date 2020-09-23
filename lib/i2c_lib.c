@@ -151,7 +151,6 @@ int update_8x8_display_rotated(int i2c_fd, int i2c_addr,
 	return 0;
 }
 
-
 int update_8x8_bicolor_display_rotated(int i2c_fd, int i2c_addr,
 				unsigned char *display_state_green,
 				unsigned char *display_state_red,
@@ -228,6 +227,44 @@ int update_8x8_bicolor_display_rotated(int i2c_fd, int i2c_addr,
 	for(i=0;i<8;i++) {
 		buffer[(i*2)+1]=rotated_display_green[i];
 		buffer[(i*2)+2]=rotated_display_red[i];
+	}
+
+	if ( (write(i2c_fd, buffer, 17)) !=17) {
+		fprintf(stderr,"Erorr writing display!\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
+   15 14 13 12 1 10 9 8 7 6 5 4 3 2 1 0
+
+
+*/
+
+int update_8x16_display(int i2c_fd, int i2c_addr,
+				unsigned short *display_state,
+				int degrees, int bug_workaround) {
+
+	unsigned char buffer[17];
+	int i;
+
+	if (ioctl(i2c_fd, I2C_SLAVE, i2c_addr) < 0) {
+		fprintf(stderr,"update8x8: error setting i2c address %x\n",
+			i2c_addr);
+		return -1;
+ 	}
+
+	/* TODO: only update if there's been a change ?*/
+
+
+	/* write out to hardware */
+	buffer[0]=0x00;
+
+	for(i=0;i<8;i++) {
+		buffer[(i*2)+1]=(display_state[7-i])&0xff;
+		buffer[(i*2)+2]=(display_state[7-i]>>8)&0xff;
 	}
 
 	if ( (write(i2c_fd, buffer, 17)) !=17) {
