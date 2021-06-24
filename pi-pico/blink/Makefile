@@ -36,10 +36,12 @@ uldivmod.o:	uldivmod.S
 runtime.o:	runtime.c
 	$(CC) $(CFLAGS) -c runtime.c
 
-blink.elf: blink.o crt0.o bootrom.o runtime.o clocks.o gpio.o idivmod.o uldivmod.o
+blink.elf: blink.o \
+	crt0.o bootrom.o runtime.o \
+	timer.o clocks.o gpio.o idivmod.o uldivmod.o
 	$(LD) -v -Tmemmap_default.ld -nostartfiles -o blink.elf blink.o \
-		bootrom.o crt0.o \
-		runtime.o clocks.o gpio.o idivmod.o uldivmod.o
+		bootrom.o crt0.o runtime.o \
+		timer.o clocks.o gpio.o idivmod.o uldivmod.o
 #		boot2_w25q080.o 
 
 bootrom.o:	bootrom.c
@@ -47,6 +49,9 @@ bootrom.o:	bootrom.c
 
 clocks.o:	clocks.c
 	$(CC) $(CFLAGS) -c clocks.c
+
+timer.o:	timer.c
+	$(CC) $(CFLAGS) -c timer.c
 
 blink.o:	blink.c
 	$(CC) $(CFLAGS) -c blink.c

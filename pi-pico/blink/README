@@ -6,7 +6,7 @@ Setup:
 
 Flashing:
 ~~~~~~~~~
-+ Haven't got the drag-and-drop method going, but using the SWD method.
++ Haven't got the drag-and-drop BOOTSEL method going, but using the SWD method.
 
 	From the "getting started w Raspberry Pi Pico" document
 
