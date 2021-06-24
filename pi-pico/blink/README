@@ -1,0 +1,22 @@
+
+Packages to install:
+
+
+Setup:
+
+Flashing:
+~~~~~~~~~
++ Haven't got the drag-and-drop method going, but using the SWD method.
+
+	From the "getting started w Raspberry Pi Pico" document
+
+	Set up a Pi4 to be the host, and wire up according to the diagram.
+
+	git clone https://github.com/raspberrypi/openocd.git --recursive --branch rp2040 --depth=1
+	cd openocd
+	./bootstrap
+	./configure --enable-ftdi --enable-sysfsgpio --enable-bcm2835gpio
+	make -j4
+	sudo make install
+
+	openocd -f interface/raspberrypi-swd.cfg -f target/rp2040.cfg -c "program blink/blink.elf verify reset exit"
