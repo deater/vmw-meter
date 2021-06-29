@@ -7,7 +7,7 @@ OBJCOPY = arm-none-eabi-objcopy
 #CFLAGS = -g -O2 -Wall
 CFLAGS = -g -O3 -Wall -I..
 CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m0plus
-CFLAGS += -fno-common
+CFLAGS += -fno-common -fno-builtin
 CFLAGS += -ffunction-sections -fdata-sections
 ASFLAGS =
 
@@ -38,11 +38,13 @@ runtime.o:	runtime.c
 
 i2c-display.elf: i2c-display.o \
 	crt0.o bootrom.o runtime.o \
-	mmio.o timer.o clocks.o gpio.o i2c.o idivmod.o uldivmod.o
+	mmio.o timer.o clocks.o gpio.o i2c.o idivmod.o uldivmod.o \
+	write_display.o
 	$(LD) -v -Tmemmap_default.ld -nostartfiles -o i2c-display.elf i2c-display.o \
 		bootrom.o crt0.o runtime.o \
-		mmio.o timer.o clocks.o gpio.o i2c.o idivmod.o uldivmod.o
-#		boot2_w25q080.o 
+		mmio.o timer.o clocks.o gpio.o i2c.o idivmod.o uldivmod.o \
+		write_display.o
+#		boot2_w25q080.o
 
 bootrom.o:	bootrom.c
 	$(CC) $(CFLAGS) -c bootrom.c
@@ -78,5 +80,8 @@ i2c.o:	i2c.c ./i2c.h
 mmio.o:	mmio.c
 	$(CC) $(CFLAGS) -c mmio.c
 
+####
 
+write_display.o:	write_display.c write_display.h
+	$(CC) $(CFLAGS) -c write_display.c
 
