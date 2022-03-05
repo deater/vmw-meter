@@ -7,7 +7,7 @@ LZ4_LIB = -llz4
 all:	dump_xm xm_to_text \
 	dump_ym5 \
 	dump_ed text_to_ed \
-	raw_to_ym text_to_ym ym_to_ym5 \
+	raw_to_ym text_to_ym ym_to_ym5 raw_interleave \
 	ym5_to_raw ym5_to_mockingboard ym5_to_krg ym5_to_krw ym5_to_kr4 \
 	ym5_to_tfv ym5_to_mega ym5_to_kf apple_dump_ym5
 
@@ -167,10 +167,20 @@ ym_to_ym5:	ym_to_ym5.o
 ym_to_ym5.o:	ym_to_ym5.c
 	$(CC) $(CFLAGS) -c ym_to_ym5.c
 
+
+###
+
+raw_interleave:	raw_interleave.o
+	$(CC) -o raw_interleave raw_interleave.o $(LFLAGS)
+
+raw_interleave.o:	raw_interleave.c
+	$(CC) $(CFLAGS) -c raw_interleave.c
+
+
 ###
 
 clean:	
 	rm -f *~ *.o text_to_ym ym_to_ym5 text_to_ed \
 		dump_ed dump_ym5 dump_xm xm_to_text ym5_to_mockingboard \
 		ym5_to_raw ym5_to_krg ym5_to_krw raw_to_ym ym5_to_kr4 \
-		ym5_to_tfv ym5_to_kf
+		ym5_to_tfv ym5_to_kf raw_interleave
