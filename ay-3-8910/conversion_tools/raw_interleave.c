@@ -119,9 +119,11 @@ int main(int argc, char **argv) {
 			frame_end=frame_start+chunksize;
 		}
 
+		/* fill extra with 0xff as it's invalid for A coarse */
+		/* so we can detect end of the song */
 		for(j=0;j<max;j++) {
 			for(i=frame_start;i<frame_end;i++) {
-				if (i>num_frames) fputc(0,fout);
+				if (i>num_frames) fputc(0xff,fout);
 				else fputc(data[(i*14)+j],fout);
 			}
 		}
