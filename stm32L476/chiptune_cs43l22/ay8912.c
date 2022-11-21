@@ -4,7 +4,6 @@
 /* GPLv2 */
 
 #include <stdint.h>
-
 #include "stdlib.h"
 
 #include "ayemu.h"
@@ -383,8 +382,13 @@ static void prepare_generation(ayemu_ay_t *ay)
     int vol;
     for (n = 0; n < 32; n++) {
       vol = ay->table[n];
-      for (m=0; m < 6; m++)
+      for (m=0; m < 6; m++) {
+	/* I think vols maxes to 16 bits, and assuming eq does too */
+	/* we shouldn't need a full 64 bits? */
 	ay->vols[m][n] = (int) (((long long) vol * ay->eq[m]) / 100);
+	//ay->vols[m][n] = ((vol * ay->eq[m]) / 100);
+	//printf("%x %x\n",vol,ay->eq[m]);
+	}
     }
   }
 

@@ -82,7 +82,6 @@ void play (void) {
 
 	int len,line_decode_result=0;
 
-	pt3_load_song("ignored", &pt3_image, &pt3, &pt3_2);
 	current_pattern=0;
 	line=0;
 	subframe=0;
@@ -172,6 +171,13 @@ int main (int argc, char **argv) {
 	ayemu_set_chip_freq(&ay, 1773400);
 //	ayemu_set_chip_freq(&ay, 1000000);
 	ayemu_set_stereo(&ay, AYEMU_MONO, NULL);
+
+	if (argc<2) {
+		pt3_load_song(&pt3_image, &pt3, &pt3_2);
+	}
+	else {
+		pt3_load_song_from_disk(argv[1],&pt3_image, &pt3, &pt3_2);
+	}
 
 	play ();
 

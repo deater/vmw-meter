@@ -22,7 +22,7 @@ int strncmp(const char *s1, const char *s2, uint32_t n) {
 	return 0;
 }
 
-int32_t strlen(const char *s) {
+long unsigned int strlen(const char *s) {
 
 	int length=0;
 
@@ -61,7 +61,7 @@ void *memset(void *s, int c, uint32_t n) {
 }
 
 	/* Not optimized */
-int32_t memcmp(const void *s1, const void *s2, uint32_t n) {
+int memcmp(const void *s1, const void *s2, uint32_t n) {
 
 	int i,result;
 	char *c1,*c2;

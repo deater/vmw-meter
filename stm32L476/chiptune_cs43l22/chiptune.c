@@ -62,7 +62,7 @@ static void change_song(void) {
 		which_song=0;
 	}
 
-	pt3_load_song("ignored", &pt3_image[which_song], &pt3, &pt3_2);
+	pt3_load_song(&pt3_image[which_song], &pt3, &pt3_2);
 	title_len=32;
 	while(pt3_image[which_song].data[0x1e + title_len]==' ') {
 		title_len--;

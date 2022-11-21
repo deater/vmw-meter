@@ -11,6 +11,7 @@
 
 #include "14seg_font.h"
 #include "i2c_lib.h"
+#include "default_device.h"
 
 /* based on the vu code by Toby Shepard */
 /*   http://tobiah.org/pub/vu/          */
@@ -88,7 +89,7 @@ int main(int argc, char **argv) {
 
 	FILE *input,*output;
 	char input_string[BUFSIZ];
-	char song_name[BUFSIZ];
+	char song_name[BUFSIZ/2];
 
 	if (argc<2) {
 		printf("Usage: %s file.mp3\n\n",argv[0]);
@@ -97,9 +98,9 @@ int main(int argc, char **argv) {
 
 	/* Init Display */
 	display_present=1;
-	meter_fd=init_i2c("/dev/i2c-6");
+	meter_fd=init_i2c(DEFAULT_DEVICE);
 	if (meter_fd < 0) {
-		fprintf(stderr,"Error opening device!\n");
+		fprintf(stderr,"Error opening device %s!\n",DEFAULT_DEVICE);
 		display_present=0;
 	}
 
@@ -140,7 +141,7 @@ int main(int argc, char **argv) {
 		str_len=strlen(start);
 		if (str_len<6) {
 			name=strdup("      ");
-			strncpy(name,start,str_len);
+			strncpy(name,start,6);
 			str_len=6;
 			start=name;
 		}
@@ -148,7 +149,7 @@ int main(int argc, char **argv) {
 
 	properly_escape(argv[1],song_name);
 
-	sprintf(input_string,"/usr/bin/mpg321 \"%s\" -s",song_name);
+	snprintf(input_string,BUFSIZ,"/usr/bin/mpg321 \"%s\" -s",song_name);
 	printf("Trying %s\n",input_string);
 
 	input=popen(input_string,"r");

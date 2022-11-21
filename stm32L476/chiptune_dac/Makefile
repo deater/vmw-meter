@@ -5,7 +5,7 @@ OBJCOPY = arm-none-eabi-objcopy
 
 LINKER_SCRIPT = -TSTM32L476xG.ld
 
-CFLAGS = -g -O2 -Wall
+CFLAGS = -g -O2 -Wall -DPT3LIB_EMBEDDED
 CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m4
 CFLAGS += -fno-common
 

@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "i2c_lib.h"
+#include "default_device.h"
 
 int main(int argc, char **argv) {
 
@@ -13,9 +14,9 @@ int main(int argc, char **argv) {
 	int meter_fd,display_present;
 
 	display_present=1;
-	meter_fd=init_i2c("/dev/i2c-6");
+	meter_fd=init_i2c(DEFAULT_DEVICE);
 	if (meter_fd < 0) {
-		fprintf(stderr,"Error opening device!\n");
+		fprintf(stderr,"Error opening device %s!\n",DEFAULT_DEVICE);
 		display_present=0;
 	}
 

@@ -5,7 +5,7 @@ OBJCOPY = arm-none-eabi-objcopy
 
 LINKER_SCRIPT = -TSTM32L476xG.ld
 
-CFLAGS = -g -O2 -Wall
+CFLAGS = -g -O2 -Wall -DPT3LIB_EMBEDDED
 CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m4
 CFLAGS += -fno-common
 
@@ -34,13 +34,13 @@ chiptune.elf:	chiptune.o i2c.o cs43l22.o lcd.o pt3_lib.o string.o ay8912.o ldivm
 test_pt3:	test_pt3.o ay8912_native.o pt3_lib_native.o
 	$(CC_NATIVE) $(LFLAGS_NATIVE) -o test_pt3 test_pt3.o ay8912_native.o pt3_lib_native.o
 
-test_pt3.o:	test_pt3.c
+test_pt3.o:	test_pt3.c pt3_lib.h
 	$(CC_NATIVE) $(CFLAGS_NATIVE) -c test_pt3.c
 
 ay8912_native.o:	ay8912.c
 	$(CC_NATIVE) $(CFLAGS_NATIVE) -o ay8912_native.o -c ay8912.c
 
-pt3_lib_native.o:	pt3_lib.c
+pt3_lib_native.o:	pt3_lib.c pt3_lib.h
 	$(CC_NATIVE) $(CFLAGS_NATIVE) -o pt3_lib_native.o -c pt3_lib.c
 
 ####
@@ -71,7 +71,7 @@ i2c.o:	i2c.c stm32l476xx.h i2c.h
 cs43l22.o:	cs43l22.c cs43l22.h
 	$(CC) $(CFLAGS)  -c -o cs43l22.o cs43l22.c
 
-chiptune.o:	chiptune.c stm32l476xx.h
+chiptune.o:	chiptune.c stm32l476xx.h pt3_lib.h
 	$(CC) $(CFLAGS)  -c -o chiptune.o chiptune.c
 
 

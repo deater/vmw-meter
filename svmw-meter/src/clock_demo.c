@@ -9,9 +9,12 @@
 #include <unistd.h>
 #include <time.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include "14seg_font.h"
 #include "i2c_lib.h"
+
+#include "default_device.h"
 
 static int reverse_bits32(int v) {
 
@@ -54,9 +57,11 @@ int main(int argc, char **argv) {
 #endif
 
 	display_present=1;
-	meter_fd=init_i2c("/dev/i2c-6");
+	meter_fd=init_i2c(DEFAULT_DEVICE);
 	if (meter_fd < 0) {
-		fprintf(stderr,"Error opening device!\n");
+		fprintf(stderr,"Error opening device %s: %s!\n",
+			DEFAULT_DEVICE,strerror(errno));
+		sleep(5);
 		display_present=0;
 	}
 
