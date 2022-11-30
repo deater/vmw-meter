@@ -39,12 +39,36 @@
 #define MODE_2		0x02	/* default */
 #define ONE_SHOT	0x03
 
+#define AS726X_INTEGRATION_TIME_MULT 2.8/* multiplier for integration time */
+#define AS726X_NUM_CHANNELS 6		/* number of sensor channels */
+
+#define AS726X_VIOLET	0
+#define AS726X_BLUE	1
+#define AS726X_GREEN	2
+#define AS726X_YELLOW	3
+#define AS726X_ORANGE	4
+#define AS726X_RED	5
+
+/* Color Registers */
+#define AS7262_VIOLET		0x08
+#define AS7262_BLUE		0x0A
+#define AS7262_GREEN		0x0C
+#define AS7262_YELLOW		0x0E
+#define AS7262_ORANGE		0x10
+#define AS7262_RED		0x12
+#define AS7262_VIOLET_CALIBRATED	0x14
+#define AS7262_BLUE_CALIBRATED		0x18
+#define AS7262_GREEN_CALIBRATED		0x1C
+#define AS7262_YELLOW_CALIBRATED	0x20
+#define AS7262_ORANGE_CALIBRATED	0x24
+#define AS7262_RED_CALIBRATED		0x28
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
 
-#include <math.h>
+#include <string.h>
 
 #include <sys/time.h>
 #include <sys/ioctl.h>
@@ -52,7 +76,7 @@
 
 #include "i2c_lib.h"
 
-static int debug=1;
+static int debug=0;
 
 
 /* as726x data sheet has you do these "virtual" writes */
@@ -218,6 +242,7 @@ static uint8_t control_value=0x0;
 #define CONTROL_INT_MASK	1<<6
 #define CONTROL_GAIN_MASK	3<<4
 #define CONTROL_BANK_MASK	3<<2
+#define CONTROL_DATA_RDY_MASK	1<<1
 
 static void enable_interrupt(int i2c_fd) {
 
@@ -232,16 +257,27 @@ static void set_gain(int i2c_fd, uint8_t gain) {
 	virtual_write(i2c_fd,AS726X_CONTROL_SETUP, control_value);
 }
 
-void set_conversion_type(int i2c_fd, uint8_t type) {
+static void set_conversion_type(int i2c_fd, uint8_t type) {
 
 	control_value&=~CONTROL_BANK_MASK;
 	control_value|=type<<2;
 	virtual_write(i2c_fd,AS726X_CONTROL_SETUP, control_value);
 }
 
+static int data_ready(int i2c_fd) {
+	return !!(virtual_read(i2c_fd,AS726X_CONTROL_SETUP) & 0x02);
+}
+
+static void start_measurement(int i2c_fd) {
+	control_value&=~CONTROL_DATA_RDY_MASK; // DATA_DRY = 0
+	virtual_write(i2c_fd,AS726X_CONTROL_SETUP, control_value);
+
+	set_conversion_type(i2c_fd,ONE_SHOT);
+}
+
 static uint8_t led_control_value=0x0;
-#define LED_ICL_DRV_MASK	0x30
-#define LED_DRV_MASK		0x80
+#define LED_ICL_DRV_MASK	3<<4
+#define LED_DRV_MASK		1<<3
 
 static void set_led_drv_current(int i2c_fd, uint8_t current) {
 
@@ -256,6 +292,12 @@ static void led_drv_off(int i2c_fd) {
 	virtual_write(i2c_fd,AS726X_LED_CONTROL, led_control_value);
 }
 
+/* Turn on the DRV LED */
+static void led_drv_on(int i2c_fd) {
+	led_control_value|=LED_DRV_MASK; //  _led_control.LED_DRV = 1;
+	virtual_write(i2c_fd,AS726X_LED_CONTROL, led_control_value);
+}
+
 static void set_integration_time(int i2c_fd,uint8_t time) {
 
 	uint8_t int_value=time;
@@ -264,13 +306,154 @@ static void set_integration_time(int i2c_fd,uint8_t time) {
 }
 
 
+/* read temperature in C */
+static uint8_t read_temperature(int i2c_fd) {
+
+	return virtual_read(i2c_fd,AS726X_DEVICE_TEMP);
+
+}
+
+static uint16_t read_channel(int i2c_fd, uint8_t channel) {
+	return (virtual_read(i2c_fd,channel) << 8) |
+		virtual_read(i2c_fd,channel + 1);
+}
+
+static uint16_t readViolet(int i2c_fd) {
+	return (read_channel(i2c_fd,AS7262_VIOLET));
+}
+
+static uint16_t readBlue(int i2c_fd) {
+	return (read_channel(i2c_fd,AS7262_BLUE));
+}
+
+static uint16_t readGreen(int i2c_fd) {
+	return (read_channel(i2c_fd,AS7262_GREEN));
+}
+
+static uint16_t readYellow(int i2c_fd) {
+	return (read_channel(i2c_fd,AS7262_YELLOW));
+}
+
+static uint16_t readOrange(int i2c_fd) {
+	return (read_channel(i2c_fd,AS7262_ORANGE));
+}
+
+static uint16_t readRed(int i2c_fd) {
+	return (read_channel(i2c_fd,AS7262_RED));
+}
+
+
+static void read_raw_values(int i2c_fd, uint16_t *buf, uint8_t num) {
+
+	int i;
+
+	for (i = 0; i < num; i++) {
+		switch (i) {
+			case AS726X_VIOLET:
+				buf[i] = readViolet(i2c_fd);
+				break;
+			case AS726X_BLUE:
+				buf[i] = readBlue(i2c_fd);
+				break;
+			case AS726X_GREEN:
+				buf[i] = readGreen(i2c_fd);
+				break;
+			case AS726X_YELLOW:
+				buf[i] = readYellow(i2c_fd);
+				break;
+			case AS726X_ORANGE:
+				buf[i] = readOrange(i2c_fd);
+				break;
+			case AS726X_RED:
+				buf[i] = readRed(i2c_fd);
+				break;
+			default:
+				break;
+		}
+	}
+}
+
+static float read_calibrated_value(int i2c_fd, uint8_t channel) {
+
+	uint32_t val = 0;
+	float ret;
+
+	val = ((uint32_t)virtual_read(i2c_fd,channel) << 24) |
+        	((uint32_t)virtual_read(i2c_fd,channel + 1) << 16) |
+        	((uint32_t)virtual_read(i2c_fd,channel + 2) << 8) |
+        	(uint32_t)virtual_read(i2c_fd,channel + 3);
+
+
+	memcpy(&ret, &val, 4);
+	return ret;
+}
+
+static float readCalibratedViolet(int i2c_fd) {
+	return (read_calibrated_value(i2c_fd,AS7262_VIOLET_CALIBRATED));
+}
+
+static float readCalibratedBlue(int i2c_fd) {
+	return (read_calibrated_value(i2c_fd,AS7262_BLUE_CALIBRATED));
+}
+
+static float readCalibratedGreen(int i2c_fd) {
+	return (read_calibrated_value(i2c_fd,AS7262_GREEN_CALIBRATED));
+}
+
+static float readCalibratedYellow(int i2c_fd) {
+	return (read_calibrated_value(i2c_fd,AS7262_YELLOW_CALIBRATED));
+}
+
+static float readCalibratedOrange(int i2c_fd) {
+	return (read_calibrated_value(i2c_fd,AS7262_ORANGE_CALIBRATED));
+}
+
+static float readCalibratedRed(int i2c_fd) {
+	return (read_calibrated_value(i2c_fd,AS7262_RED_CALIBRATED));
+}
+
+
+
+static void read_calibrated_values(int i2c_fd, float *buf, uint8_t num) {
+
+	int i;
+
+	for (i = 0; i < num; i++) {
+		switch (i) {
+			case AS726X_VIOLET:
+				buf[i] = readCalibratedViolet(i2c_fd);
+				break;
+			case AS726X_BLUE:
+				buf[i] = readCalibratedBlue(i2c_fd);
+				break;
+			case AS726X_GREEN:
+				buf[i] = readCalibratedGreen(i2c_fd);
+				break;
+			case AS726X_YELLOW:
+				buf[i] = readCalibratedYellow(i2c_fd);
+				break;
+			case AS726X_ORANGE:
+				buf[i] = readCalibratedOrange(i2c_fd);
+				break;
+			case AS726X_RED:
+				buf[i] = readCalibratedRed(i2c_fd);
+				break;
+			default:
+				break;
+		}
+	}
+}
+
 int main(int argc, char **argv) {
 
 	signed int result;
 
 	int i2c_fd;
-//	unsigned char buffer[16];
-	uint8_t version,control_value;
+	int use_led=0;
+
+	uint8_t version,control_value,temp;
+	uint16_t sensor_values[AS726X_NUM_CHANNELS];
+	float calibrated_values[AS726X_NUM_CHANNELS];
 
 	i2c_fd=init_i2c("/dev/i2c-1");
 	if (i2c_fd < 0) {
@@ -316,6 +499,60 @@ int main(int argc, char **argv) {
 
 	set_conversion_type(i2c_fd,ONE_SHOT);
 
+
+	memset(sensor_values,0,sizeof(sensor_values));
+	memset(calibrated_values,0,sizeof(calibrated_values));
+
+	/*****************************/
+	/* actually do a measurement */
+	/*****************************/
+
+	while(1) {
+
+	/* read the device temperature */
+	temp = read_temperature(i2c_fd);
+
+	/* set use_led if you want the LED on for reading */
+	if (use_led) led_drv_on(i2c_fd);
+
+	/* Start Measurement */
+	start_measurement(i2c_fd);
+
+	/* wait until data is avail */
+	int ready=0;
+	while (!ready) {
+		usleep(5000);
+		ready=data_ready(i2c_fd);
+	}
+
+	if (use_led) led_drv_off(i2c_fd);
+
+	/* read the values */
+
+	read_raw_values(i2c_fd,sensor_values,AS726X_NUM_CHANNELS);
+
+	read_calibrated_values(i2c_fd,calibrated_values,AS726X_NUM_CHANNELS);
+
+	printf("Temperature: %d C\n\n",temp);
+
+	printf("Raw Values:\n");
+	printf("\tViolet: %d\n",sensor_values[AS726X_VIOLET]);
+	printf("\tBlue:   %d\n",sensor_values[AS726X_BLUE]);
+	printf("\tGreen:  %d\n",sensor_values[AS726X_GREEN]);
+	printf("\tYellow: %d\n",sensor_values[AS726X_YELLOW]);
+	printf("\tOrange: %d\n",sensor_values[AS726X_ORANGE]);
+	printf("\tRed:    %d\n\n",sensor_values[AS726X_RED]);
+
+	printf("Calibrated Values:\n");
+	printf("\tViolet: %f\n",calibrated_values[AS726X_VIOLET]);
+	printf("\tBlue:   %f\n",calibrated_values[AS726X_BLUE]);
+	printf("\tGreen:  %f\n",calibrated_values[AS726X_GREEN]);
+	printf("\tYellow: %f\n",calibrated_values[AS726X_YELLOW]);
+	printf("\tOrange: %f\n",calibrated_values[AS726X_ORANGE]);
+	printf("\tRed:    %f\n\n",calibrated_values[AS726X_RED]);
+
+	sleep(2);
+	}
 
 	return result;
 }
