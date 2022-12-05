@@ -16,7 +16,7 @@ mpl115a2:	mpl115a2.o ../lib/i2c_lib.o ../lib/graphics_lib.o
 	$(CC) $(LFLASG) -o mpl115a2 mpl115a2.o \
 			../lib/i2c_lib.o ../lib/graphics_lib.o -lm
 
-mpl115a2.o:	mpl115a2.c ../include/i2c_lib.h ../include/graphics_lib.h
+mpl115a2.o:	mpl115a2.c mpl115a2.h ../include/i2c_lib.h ../include/graphics_lib.h
 	$(CC) $(CFLAGS) -c mpl115a2.c
 
 
