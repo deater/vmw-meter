@@ -1,4 +1,6 @@
-/* Makes a sine wave */
+/* Sample code for i2c tmp006 temperature sensor */
+
+/* loosely based on the adafruit arduino code */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +13,8 @@
 #include <linux/i2c-dev.h>
 
 #include "i2c_lib.h"
+
+#include "tmp006.h"
 
 static double c_to_f(double c) {
 
@@ -63,14 +67,6 @@ int main(int argc, char **argv) {
 		fprintf(stderr,"Error opening device!\n");
 		return -1;
 	}
-
-#define TMP006_ADDR	0x40
-
-#define TMP006_VOBJ_ADDR	0x0
-#define TMP006_TAMBIENT_ADDR	0x1
-#define TMP006_CONFIG		0x2
-#define TMP006_MANID		0xfe
-#define TMP006_DEVID		0xff
 
 	/* Init TMP006 */
 	if (ioctl(i2c_fd, I2C_SLAVE, TMP006_ADDR) < 0) {

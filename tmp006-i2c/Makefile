@@ -16,7 +16,7 @@ tmp006:	tmp006.o ../lib/i2c_lib.o ../lib/graphics_lib.o
 	$(CC) $(LFLASG) -o tmp006 tmp006.o \
 			../lib/i2c_lib.o ../lib/graphics_lib.o -lm
 
-tmp006.o:	tmp006.c ../include/i2c_lib.h ../include/graphics_lib.h
+tmp006.o:	tmp006.c tmp006.h ../include/i2c_lib.h ../include/graphics_lib.h
 	$(CC) $(CFLAGS) -c tmp006.c
 
 

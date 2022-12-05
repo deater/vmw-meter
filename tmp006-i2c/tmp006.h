@@ -1,0 +1,9 @@
+#define TMP006_ADDR	0x40
+
+#define TMP006_VOBJ_ADDR	0x0
+#define TMP006_TAMBIENT_ADDR	0x1
+#define TMP006_CONFIG		0x2
+#define TMP006_MANID		0xfe
+#define TMP006_DEVID		0xff
+
+
