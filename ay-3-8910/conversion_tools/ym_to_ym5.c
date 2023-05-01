@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
-//	fread(&our_header,sizeof(struct ym_header),1,fin);
+	fread(&our_header,sizeof(struct ym_header),1,fin);
 
 	if (!noheader) {
 
