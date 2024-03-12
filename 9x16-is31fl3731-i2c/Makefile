@@ -2,7 +2,15 @@ CC = gcc
 CFLAGS = -Wall -O2 -g -I../include
 LFLAGS =
 
-all:	test_display disable_display
+all:	test_display disable_display scanner
+
+####
+
+scanner:	scanner.o
+	$(CC) $(LFLAGS) -o scanner scanner.o
+
+scanner.o:	scanner.c is31fl3731.h
+	$(CC) $(CFLAGS) -c scanner.c
 
 ####
 
