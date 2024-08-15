@@ -1,4 +1,4 @@
-/* Test the display
+/* Scanner
 */
 
 #include <stdio.h>
@@ -73,27 +73,49 @@ int main(int argc, char **argv) {
 		fprintf(stderr,"Error setting page1\n");
 	}
 
+	/* there are 8 frames */
 
-	/* whole screen half brightness */
+	/* 18 bytes each frame */
+	/* so 18*8 = 144 LEDs */
+	/* 0x00 - 0x11 (0..17) on/off state for each LED (0=off) */
+	/* 0x12 - 0x23 (18..35) blink status (0=no blink) */
+	/* 0x24 - 0xb3 (36-180) PWM for each LED */
+	/*	comlicated formula */
+
+	/* our grid is 16x9 */
+
+	int i;
+
 	memset(buffer,0,182);
 	buffer[2]=0;					// start register
-	buffer[1+0x00]=0xff;				// LEDs 0..7 on
-	buffer[1+0x12]=0x00;				// blink off
-	buffer[1+0x24]=0x80;				// LED0 brightness = 50%
-	buffer[1+0x25]=0x70;				// LED1 brightness =
-	buffer[1+0x26]=0x60;				// LED2 brightness =
-	buffer[1+0x27]=0x50;				// LED3 brightness =
-	buffer[1+0x28]=0x40;				// LED4 brightness =
-	buffer[1+0x29]=0x30;				// LED5 brightness =
-	buffer[1+0x2A]=0x20;				// LED6 brightness =
-	buffer[1+0x2B]=0x10;				// LED7 brightness =
-
-	result=write(i2c_fd,buffer,182);
-	if ((result<0) || (result!=182)) {
-		fprintf(stderr,"Error configuring\n");
+	for(i=0;i<18;i++) {
+		buffer[1+i]=0xff;	/* turn all on */
+		buffer[1+0x12+i]=0x00;	/* turn blink off */
 	}
 
+	int count=0,direction=1;
+	while(1) {
 
+		for(i=0;i<144;i++) {
+			buffer[1+0x24+i]>>=1;
+		}
+
+		for(i=0;i<144;i++) {
+			if (i%16==count) buffer[1+0x24+i]=0x80;
+		}
+
+		result=write(i2c_fd,buffer,182);
+		if ((result<0) || (result!=182)) {
+			fprintf(stderr,"Error configuring\n");
+		}
+
+		count+=direction;
+		if (count>=15) direction=-1;
+		if (count<1) direction=1;
+
+		usleep(100000);
+
+	}
 
 	close(i2c_fd);
 
