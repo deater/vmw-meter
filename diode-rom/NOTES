@@ -1,0 +1,61 @@
+LED ROM project
++ have been meaning to work on this at least since 2012 or so
++ bought a huge roll of Red LEDs in prep
++ Originally thought maybe I could map it as an SPI ROM or something,
+  but an Atari 2600 ROM would be more fun
+
+Issues:
++ LED voltage drop of 1.6V much higher than diode of 0.6V which means
+	extra work needed when using LEDs
++ Lighting LEDs bright enough might need transistors to pull up
++ Will the 5V supply provide enough current?
+
+
+Parts to consider:
+	74LS138 3->8 decoder popular
+	74HCT154 4->16 decoder, need fewer, bigger chip
+	
+
+Useful links:
+
+Article on this:
++ https://electronics.stackexchange.com/questions/357920/pull-up-or-pull-down-when-building-an-led-rom-for-74hc-logic-levels/357928#357928
+
+LED Rom board
++ https://github.com/Noah1989/loopmicro/tree/master/hardware/ecb-prototype/deprecated/ledrom
+	74ACT244 (T important, has to do with voltage drop)
+	220 ohm pullup
+	74HC4075 decode (3-input or gate)
+	74AC138
+	ZVP3306A transistors
+
+Diode Matrix ROM for Atari 2600 (June 2014)
++ https://forums.atariage.com/topic/226940-diode-matrix-rom-for-atari-2600/
++ 64 byte
+	no schematic
+
+	1N60 diodes
+	8 X 3.3K ohm pullup resistors
+	.1 uf decoupling caps for each IC
+	2 X 74AS04 inverters
+	2 X 74HC244 buffers
+	9 X 74LS138 3:8 decoders
+	inverters used to reduce diode count (more 0s than 1s)
+
+Hard 2632: 32-byte ROM made of DIP switches
++ https://xayax.net/hard2632/
+	74HC240
+	5x 74HC238 for decoding
+	3.3k pullup
+	lots of diodes
+	schematic included
+	A12 = chip select?
+
+Visualizing ROM
++ http://geodesicsphere.blogspot.com/2013/10/visualizing-roms-1-diode-matrix-rom.html
+	+ 4 bytes
+	+ 74139
+	+ read with EPROM programmer
+
+
+	
