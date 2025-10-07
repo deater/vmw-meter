@@ -35,6 +35,8 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
+	printf("Reading from keyboard...\n");
+
 	while(1) {
 		/* Read keypress */
 
@@ -43,9 +45,22 @@ int main(int argc, char **argv) {
                 	return -1;
         	}
 
-		printf("Read %x\n",buffer[0]);
+		/* in theory can only generate \r, backspace and escape */
+		/* below 0x20 */
+		if ((buffer[0]<=127)) {
+			printf("%c",buffer[0]);
+			fflush(stdout);
+		}
+		if (buffer[0]=='\r') {
+			printf("\n");
+			fflush(stdout);
+		}
+		else {
+			printf("%02X",buffer[0]);
+			fflush(stdout);
+		}
 
-		sleep(1);
+		usleep(50000);
 	}
 
 	return result;
