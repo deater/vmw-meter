@@ -1,0 +1,14 @@
+This is code for reading the CardKB i2c keboard from m5stack
+
+https://docs.m5stack.com/en/unit/cardkb_1.1
+
+Note the yellow wire is SDA and thw white wire is SCL
+
+
+
+How it works:
+	Has 1 byte buffer.  Returns most recent keypress.
+	Once read, returns 0.
+
+	Have to constantly poll to know if keypress available.
+
