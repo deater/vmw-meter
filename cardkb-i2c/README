@@ -12,3 +12,14 @@ How it works:
 
 	Have to constantly poll to know if keypress available.
 
+Keys:
+	by default lowercase letters, numbers
+		backspace, enter (carriage return) and escape
+		arrows are B4 B5 B6 B7 (L U D R)
+	symbol modifier gets you punctuation
+	shift modifier gets you upper case letters
+		numbers same.  backspace turns to delete
+	function modifier weird.  Sets high bit and it's based on
+		keyboard layout not underlying ASCII code.
+		Top row 0x80...0xAF on bottom
+
